@@ -1,0 +1,134 @@
+{
+    "name": "InputActions",
+    "maps": [
+        {
+            "name": "PlayerControls",
+            "id": "17427ba6-7d45-4837-b17c-f8e55eadf5f9",
+            "actions": [
+                {
+                    "name": "LeftShield",
+                    "type": "Value",
+                    "id": "65908d5f-f838-4c99-ab59-26f26b2471b7",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "RightShield",
+                    "type": "Value",
+                    "id": "15414574-5c50-4e2d-b883-eb6fe7206c27",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "LeftShoot",
+                    "type": "Button",
+                    "id": "af4e48cc-e606-4eb3-a7f5-4db5630c968e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RightShoot",
+                    "type": "Button",
+                    "id": "26ce4650-9f4d-4083-9479-57193bf8ca28",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "LeftSpecial",
+                    "type": "Button",
+                    "id": "b91a126a-c7ec-4acd-86b4-57119ebeb9c5",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RightSpecial",
+                    "type": "Button",
+                    "id": "9bd799ab-4db2-4736-a351-9f8ce6df91b8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "7e50e9d3-150e-4163-b6d5-5a7047fcf20a",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftShield",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3c539f72-0ce4-461c-bf53-6d5f9a215c94",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightShield",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4944da4f-93a5-4455-8980-08a61eb3c3c7",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftShoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "39e42f5c-81bd-4f96-9bc1-efc32e6a1524",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightShoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d12d7aa9-69b5-4dc6-8eec-86e79e76b767",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftSpecial",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d6d581be-d3f1-43c8-8721-9c5d49e76e9d",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightSpecial",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
