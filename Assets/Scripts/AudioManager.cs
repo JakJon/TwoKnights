@@ -15,13 +15,10 @@ public class AudioManager : MonoBehaviour
     public SoundEffect playerHurt;
     public SoundEffect projectileSpawn;
     public SoundEffect playerProjectile;
+    public SoundEffect reload;
     public SoundEffect projectileShield;
-    public SoundEffect ratChase;
-    public SoundEffect ratDeath;
-    public SoundEffect ratSpawn;
-    public SoundEffect ratShield;
-    public SoundEffect ratPlayer;
-    public SoundEffect ratHurt;
+    public SoundEffect enemyShield;
+    public SoundEffect enemyPlayer;
     public SoundEffect rightMulti2;
     public SoundEffect rightMulti3;
     public SoundEffect rightMulti4;
@@ -31,7 +28,10 @@ public class AudioManager : MonoBehaviour
     public SoundEffect healSpecial;
     public SoundEffect leftSpecial;
     public SoundEffect rightSpecial;
-    public SoundEffect reload;
+    public SoundEffect ratChase;
+    public SoundEffect ratDeath;
+    public SoundEffect ratSpawn;
+    public SoundEffect ratHurt;
 
     // [Header("Music")]
     // public AudioClip backgroundMusic;

@@ -13,6 +13,12 @@ public class EnemySlime : MonoBehaviour
     [Tooltip("Force applied when slimes split apart")]
     public float splitForce = 5f;
 
+    [Header("Movement")]
+    [Tooltip("Movement speed towards the target player")]
+    public float moveSpeed = 1.5f;
+
+    public Transform targetPlayer; // The player this slime will chase
+
     // Base collider points for size 1 slime
     private Vector2[] baseColliderPoints = {
         new Vector2(-0.0244208574f, 0.9287871f),
@@ -49,10 +55,31 @@ public class EnemySlime : MonoBehaviour
         InitializeSlime();
     }
 
+    private void Update()
+    {
+        if (targetPlayer != null)
+        {
+            // Move towards the target player
+            transform.position = Vector2.MoveTowards(
+                transform.position,
+                targetPlayer.position,
+                moveSpeed * Time.deltaTime
+            );
+        }
+    }
+
     public void InitializeSlime()
     {
         // Set health based on size
         currentHealth = baseHealth * size;
+
+        // Set move speed based on size
+        if (size == 3)
+            moveSpeed = 0.2f;
+        else if (size == 2)
+            moveSpeed = 0.35f;
+        else
+            moveSpeed = 0.5f;
 
         // Scale the slime
         transform.localScale = Vector3.one * size;
@@ -141,6 +168,25 @@ public class EnemySlime : MonoBehaviour
         {
             // Fallback to simple color flash
             StartCoroutine(SimpleFlash());
+        }
+    }
+
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Shield"))
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
+            PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
+            if (playerHealth != null) playerHealth.TakeDamage(5 * size);
+            Destroy(gameObject);
+        }
+        else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
+            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
+            if (playerHealth != null) playerHealth.TakeDamage(15 * size);
+            Destroy(gameObject);
         }
     }
 

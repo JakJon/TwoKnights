@@ -29,7 +29,7 @@ public class Spawner : MonoBehaviour
         _leftPlayer = GameObject.FindWithTag("PlayerLeft").transform;
         _rightPlayer = GameObject.FindWithTag("PlayerRight").transform;
 
-        SpawnSlime(3, new Vector2(2, 2), slime, 0);
+        SpawnSlime(3, new Vector2(7, 6), slime, 0, _leftPlayer);
 
         // Generate spiral data for both players
         #region spiral data
@@ -206,22 +206,23 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnSlime(int size, Vector2 spawnPosition, GameObject slimePrefab, float delay)
+    public void SpawnSlime(int size, Vector2 spawnPosition, GameObject slimePrefab, float delay, Transform targetPlayer)
     {
-        StartCoroutine(SpawnSlimeAfterDelay(size, spawnPosition, slimePrefab, delay));
+        StartCoroutine(SpawnSlimeAfterDelay(size, spawnPosition, slimePrefab, delay, targetPlayer));
     }
 
-    private IEnumerator SpawnSlimeAfterDelay(int size, Vector2 spawnPosition, GameObject slimePrefab, float delay)
+    private IEnumerator SpawnSlimeAfterDelay(int size, Vector2 spawnPosition, GameObject slimePrefab, float delay, Transform targetPlayer)
     {
         yield return new WaitForSeconds(delay);
         GameObject slime = Instantiate(slimePrefab);
         slime.transform.position = spawnPosition;
 
-        // Set slime size and initialize
+        // Set slime size, target, and initialize
         EnemySlime slimeScript = slime.GetComponent<EnemySlime>();
         if (slimeScript != null)
         {
             slimeScript.size = size;
+            slimeScript.targetPlayer = targetPlayer;
             slimeScript.InitializeSlime();
         }
     }

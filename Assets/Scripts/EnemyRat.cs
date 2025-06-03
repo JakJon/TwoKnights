@@ -179,14 +179,14 @@ public class EnemyRat : MonoBehaviour
         }
         else if (other.CompareTag("Shield"))
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.ratShield);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
             PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
             if (playerHealth != null) playerHealth.TakeDamage(5);
             Destroy(gameObject);
         }
         else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.ratPlayer);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
             if (playerHealth != null) playerHealth.TakeDamage(damage);
             Destroy(gameObject);
