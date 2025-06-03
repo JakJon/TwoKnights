@@ -21,7 +21,7 @@ public class PlayerSpecial : MonoBehaviour
     void Start()
     {
         streakEnded = false;
-        _currentSpecial = 1000;
+        _currentSpecial = 0;
         specialBar.Initialize(maxSpecial);
         specialBar.SetValue(_currentSpecial);
 

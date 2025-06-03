@@ -93,7 +93,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 4
   moveDistance: 5
-  Health: 2
+  Health: 20
   damage: 30
   spawnMoveDuration: 1
 --- !u!50 &7978365973835505235
@@ -161,8 +161,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0}
-    oldSize: {x: 0.875, y: 0.65625}
-    newSize: {x: 0.875, y: 0.65625}
+    oldSize: {x: 0.9375, y: 0.71875}
+    newSize: {x: 0.9375, y: 0.71875}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0

@@ -18,6 +18,7 @@ public class Spawner : MonoBehaviour
     [SerializeField] private GameObject brownRat;
     [SerializeField] private GameObject greyRat;
     [SerializeField] private GameObject blackRat;
+    [SerializeField] private GameObject slime;
 
     private Transform _leftPlayer;
     private Transform _rightPlayer;
@@ -28,65 +29,68 @@ public class Spawner : MonoBehaviour
         _leftPlayer = GameObject.FindWithTag("PlayerLeft").transform;
         _rightPlayer = GameObject.FindWithTag("PlayerRight").transform;
 
+        SpawnSlime(3, new Vector2(2, 2), slime, 0);
+
         // Generate spiral data for both players
         #region spiral data
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.2f, false, 0f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.2f, true, 2f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.1f, false, 3f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.1f, true, 4f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.1f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.1f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 3.85f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 2f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 3f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 4f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 3.85f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 2f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 3f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 4f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 3.85f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 0f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 2f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 3f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 4f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 3.85f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 2f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 3f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 4f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 5f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 0f);
-        GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 3.85f);
-        GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 0f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.2f, false, 2f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.2f, true, 4f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.1f, false, 5f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.1f, true, 6f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.1f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.1f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 5.85f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 4f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 5f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 6f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 5.85f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 4f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 5f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 6f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 5.85f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 2f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 4f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 5f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 6f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 5.85f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.01f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.01f, true, 4f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.005f, false, 5f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.005f, true, 6f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.001f, false, 7f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.001f, true, 2f);
+        //GenerateSpiralData(_leftPlayer, 8, 30f, 0.00000000001f, false, 5.85f);
+        //GenerateSpiralData(_rightPlayer, 8, 30f, 0.00000000001f, true, 2f);
 
-        SpawnRat(new Vector2(-6, 3), blackRat, 0f, _rightPlayer);
-        SpawnRat(new Vector2(2, 1), brownRat, 12f, _leftPlayer);
-        SpawnRat(new Vector2(-2, -2), greyRat, 20f, _leftPlayer);
-        SpawnRat(new Vector2(-6, 3), blackRat, 30f, _rightPlayer);
-        SpawnRat(new Vector2(1, 2), brownRat, 33, _rightPlayer);
-        SpawnRat(new Vector2(-2, -2), greyRat, 37f, _leftPlayer);
-        SpawnRat(new Vector2(-6, 3), blackRat, 50f, _rightPlayer);
-        SpawnRat(new Vector2(2, 1), brownRat, 50f, _leftPlayer);
-        SpawnRat(new Vector2(-2, -2), greyRat, 50f, _leftPlayer);
-        SpawnRat(new Vector2(-6, 3), blackRat, 65f, _rightPlayer);
-        SpawnRat(new Vector2(2, 1), brownRat, 65f, _leftPlayer);
-        SpawnRat(new Vector2(-2, -2), greyRat, 65f, _leftPlayer);
-        SpawnRat(new Vector2(-6, 3), blackRat, 85f, _rightPlayer);
-        SpawnRat(new Vector2(2, 1), brownRat, 85f, _leftPlayer);
-        SpawnRat(new Vector2(-2, -2), greyRat, 85f, _leftPlayer);
+        //SpawnRat(new Vector2(-6, 3), blackRat, 0f, _rightPlayer);
+        //SpawnRat(new Vector2(2, 1), brownRat, 12f, _leftPlayer);
+        //SpawnRat(new Vector2(-2, -2), greyRat, 20f, _leftPlayer);
+        //SpawnRat(new Vector2(-6, 3), blackRat, 30f, _rightPlayer);
+        //SpawnRat(new Vector2(1, 2), brownRat, 33, _rightPlayer);
+        //SpawnRat(new Vector2(-2, -2), greyRat, 37f, _leftPlayer);
+        //SpawnRat(new Vector2(-6, 3), blackRat, 50f, _rightPlayer);
+        //SpawnRat(new Vector2(2, 1), brownRat, 50f, _leftPlayer);
+        //SpawnRat(new Vector2(-2, -2), greyRat, 50f, _leftPlayer);
+        //SpawnRat(new Vector2(-6, 3), blackRat, 65f, _rightPlayer);
+        //SpawnRat(new Vector2(2, 1), brownRat, 65f, _leftPlayer);
+        //SpawnRat(new Vector2(-2, -2), greyRat, 65f, _leftPlayer);
+        //SpawnRat(new Vector2(-6, 3), blackRat, 85f, _rightPlayer);
+        //SpawnRat(new Vector2(2, 1), brownRat, 85f, _leftPlayer);
+        //SpawnRat(new Vector2(-2, -2), greyRat, 85f, _leftPlayer);
+
 
         //SpawnDevlogIntroSwarm(); 
         StartCoroutine(SpawnAll());
@@ -199,6 +203,26 @@ public class Spawner : MonoBehaviour
         if (enemyRat != null)
         {
             enemyRat.InitializeTarget(playerTarget);
+        }
+    }
+
+    public void SpawnSlime(int size, Vector2 spawnPosition, GameObject slimePrefab, float delay)
+    {
+        StartCoroutine(SpawnSlimeAfterDelay(size, spawnPosition, slimePrefab, delay));
+    }
+
+    private IEnumerator SpawnSlimeAfterDelay(int size, Vector2 spawnPosition, GameObject slimePrefab, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        GameObject slime = Instantiate(slimePrefab);
+        slime.transform.position = spawnPosition;
+
+        // Set slime size and initialize
+        EnemySlime slimeScript = slime.GetComponent<EnemySlime>();
+        if (slimeScript != null)
+        {
+            slimeScript.size = size;
+            slimeScript.InitializeSlime();
         }
     }
 

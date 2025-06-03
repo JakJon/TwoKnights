@@ -144,7 +144,7 @@ public class EnemyRat : MonoBehaviour
     {
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
-            Health -= 1;
+            Health -= 10;
 
             // Determine which player shot the projectile and gain special
             GameObject player = other.CompareTag("PlayerLeftProjectile")

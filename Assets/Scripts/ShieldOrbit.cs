@@ -47,7 +47,8 @@ public class ShieldOrbit : MonoBehaviour
 
             // Position the shield around the player
             transform.position = playerTransform.position +
-                (transform.right * orbitRadius);
+                (transform.right * orbitRadius) +
+                (Vector3.up * .5f);
         }
 
         _currentAngle = transform.eulerAngles.z;
