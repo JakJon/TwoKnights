@@ -59,12 +59,17 @@ public class EnemySlime : MonoBehaviour
     {
         if (targetPlayer != null)
         {
-            // Move towards the target player
+            Vector2 direction = (targetPlayer.position - transform.position).normalized;
             transform.position = Vector2.MoveTowards(
                 transform.position,
                 targetPlayer.position,
                 moveSpeed * Time.deltaTime
             );
+            // Flip sprite based on movement direction
+            if (direction.x < -0.01f)
+                spriteRenderer.flipX = true;
+            else if (direction.x > 0.01f)
+                spriteRenderer.flipX = false;
         }
     }
 

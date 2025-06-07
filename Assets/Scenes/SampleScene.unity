@@ -772,7 +772,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 4.828125
+  orthographic size: 5.625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -2070,27 +2070,18 @@ MonoBehaviour:
   playerProjectile:
     clip: {fileID: 8300000, guid: e458663bf6189ae4689da97499ece328, type: 3}
     volume: 0.4
+  reload:
+    clip: {fileID: 8300000, guid: 4a129dfbd240a474abfbd58d511826dc, type: 3}
+    volume: 0.18
   projectileShield:
     clip: {fileID: 8300000, guid: 5bf2d0d31dc557442a923a71be45d776, type: 3}
     volume: 0.074
-  ratChase:
-    clip: {fileID: 8300000, guid: 9f6f158320ba6ec4db672698a9ec552d, type: 3}
-    volume: 0.809
-  ratDeath:
-    clip: {fileID: 8300000, guid: 12e9190cc900dd547a3f4921325a83f6, type: 3}
-    volume: 0.8
-  ratSpawn:
-    clip: {fileID: 8300000, guid: 9476ac0c34cf93e40b0789c948a54cc3, type: 3}
-    volume: 0.701
-  ratShield:
+  enemyShield:
     clip: {fileID: 8300000, guid: 3e3d619f94d8e7f4c9069425e2b3592a, type: 3}
-    volume: 0.249
-  ratPlayer:
+    volume: 1
+  enemyPlayer:
     clip: {fileID: 8300000, guid: cb4df1f42fd93614d8860f6a2412283d, type: 3}
-    volume: 0.214
-  ratHurt:
-    clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
-    volume: 0.75
+    volume: 1
   rightMulti2:
     clip: {fileID: 8300000, guid: 71a27bf5babf3af439ca09904b81ebd5, type: 3}
     volume: 0.3
@@ -2118,9 +2109,18 @@ MonoBehaviour:
   rightSpecial:
     clip: {fileID: 8300000, guid: e9486f5ff16d2ec4aad9dc57325d50db, type: 3}
     volume: 0.642
-  reload:
-    clip: {fileID: 8300000, guid: 4a129dfbd240a474abfbd58d511826dc, type: 3}
-    volume: 0.18
+  ratChase:
+    clip: {fileID: 8300000, guid: 9f6f158320ba6ec4db672698a9ec552d, type: 3}
+    volume: 0.809
+  ratDeath:
+    clip: {fileID: 8300000, guid: 12e9190cc900dd547a3f4921325a83f6, type: 3}
+    volume: 0.8
+  ratSpawn:
+    clip: {fileID: 8300000, guid: 9476ac0c34cf93e40b0789c948a54cc3, type: 3}
+    volume: 0.701
+  ratHurt:
+    clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
+    volume: 0.75
 --- !u!4 &1736909207
 Transform:
   m_ObjectHideFlags: 0

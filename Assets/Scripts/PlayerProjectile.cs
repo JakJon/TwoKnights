@@ -11,6 +11,19 @@ public class PlayerProjectile : MonoBehaviour
         {
             slime.TakeDamage(damage);
             Destroy(gameObject);
+
+            GameObject player = other.CompareTag("PlayerLeftProjectile")
+            ? GameObject.FindWithTag("PlayerLeft")
+            : GameObject.FindWithTag("PlayerRight");
+
+            if (player != null)
+            {
+                PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
+                if (playerSpecial != null)
+                {
+                    playerSpecial.updateSpecial(5);
+                }
+            }
         }
     }
 }
