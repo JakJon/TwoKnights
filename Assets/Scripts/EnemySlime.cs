@@ -1,7 +1,12 @@
 using UnityEngine;
 
-public class EnemySlime : MonoBehaviour
+public class EnemySlime : MonoBehaviour, IHasAttributes
 {
+    [Header("Enemy Attributes")]
+    [Tooltip("Type attributes of this enemy")]
+    [SerializeField]
+    private EnemyType attributes = EnemyType.Ground | EnemyType.Splitting;
+
     [Header("Slime Settings")]
     [Tooltip("Initial size of the slime (1=small, 2=medium, 3=large)")]
     public int size = 1;
@@ -209,5 +214,10 @@ public class EnemySlime : MonoBehaviour
         spriteRenderer.color = Color.white;
         yield return new WaitForSeconds(0.1f);
         spriteRenderer.color = originalColor;
+    }
+
+    public bool HasAttribute(EnemyType attr)
+    {
+        return (attributes & attr) == attr;
     }
 }

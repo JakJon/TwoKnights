@@ -1,8 +1,13 @@
 using System.Collections;
 using UnityEngine;
 
-public class EnemyRat : MonoBehaviour
+public class EnemyRat : MonoBehaviour, IHasAttributes
 {
+    [Header("Enemy Attributes")]
+    [Tooltip("Type attributes of this enemy")]
+    [SerializeField]
+    private EnemyType attributes = EnemyType.Ground;
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float moveDistance;
@@ -140,6 +145,11 @@ public class EnemyRat : MonoBehaviour
         _playerTransform = player;
     }
 
+    public bool HasAttribute(EnemyType attr)
+    {
+        return (attributes & attr) == attr;
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
@@ -162,7 +172,6 @@ public class EnemyRat : MonoBehaviour
                         playerSpecial.updateSpecial(8);
                 }
             }
-
             
             Destroy(other.gameObject); // Destroy the projectile
 
@@ -175,7 +184,6 @@ public class EnemyRat : MonoBehaviour
             {
                 AudioManager.Instance.PlaySFX(AudioManager.Instance.ratHurt);
             }
-
         }
         else if (other.CompareTag("Shield"))
         {
@@ -190,6 +198,16 @@ public class EnemyRat : MonoBehaviour
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
             if (playerHealth != null) playerHealth.TakeDamage(damage);
             Destroy(gameObject);
+        }
+        else
+        {
+            // Check if we hit another enemy with Ground attribute
+            var otherEnemy = other.GetComponent<MonoBehaviour>() as IHasAttributes;
+            if (otherEnemy != null && otherEnemy.HasAttribute(EnemyType.Ground) && !_isChasing)
+            {
+                _movingRight = !_movingRight;
+                _spriteRenderer.flipX = !_movingRight;
+            }
         }
     }
 }
