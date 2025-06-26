@@ -19,6 +19,7 @@ public class Spawner : MonoBehaviour
     [SerializeField] private GameObject greyRat;
     [SerializeField] private GameObject blackRat;
     [SerializeField] private GameObject slime;
+    [SerializeField] private GameObject bat;  // Added bat prefab reference
 
     private Transform _leftPlayer;
     private Transform _rightPlayer;
@@ -29,7 +30,31 @@ public class Spawner : MonoBehaviour
         _leftPlayer = GameObject.FindWithTag("PlayerLeft").transform;
         _rightPlayer = GameObject.FindWithTag("PlayerRight").transform;
 
-        SpawnSlime(3, new Vector2(2, 2), slime, 0, _leftPlayer);
+        //SpawnSlime(3, new Vector2(2, 2), slime, 0, _leftPlayer);
+        SpawnBat(new Vector2(12, 12), 0f);
+        SpawnBat(new Vector2(-12, 12), 0f);
+        SpawnBat(new Vector2(12, -12), 0f);
+        SpawnBat(new Vector2(-12, -12), 0f);
+        SpawnBat(new Vector2(12, 4), 15f);
+        SpawnBat(new Vector2(-12, 4), 15f);
+        SpawnBat(new Vector2(12, -4), 15f);
+        SpawnBat(new Vector2(-12, -4), 15f);
+        SpawnBat(new Vector2(12, 0), 30f);
+        SpawnBat(new Vector2(-12, 0), 30f);
+        SpawnBat(new Vector2(12, -10), 30f);
+        SpawnBat(new Vector2(-12, 10), 30f);
+        SpawnBat(new Vector2(12, 12), 45f);
+        SpawnBat(new Vector2(-12, 12), 45f);
+        SpawnBat(new Vector2(12, -12), 45f);
+        SpawnBat(new Vector2(-12, -12), 45f);
+        SpawnBat(new Vector2(12, 4), 60f);
+        SpawnBat(new Vector2(-12, 4), 60f);
+        SpawnBat(new Vector2(12, -4), 60f);
+        SpawnBat(new Vector2(-12, -4), 60f);
+        SpawnBat(new Vector2(12, 0), 80f);
+        SpawnBat(new Vector2(-12, 0), 80f);
+        SpawnBat(new Vector2(12, -10), 80f);
+        SpawnBat(new Vector2(-12, 10), 80f);
 
         // Generate spiral data for both players
         #region spiral data
@@ -225,6 +250,18 @@ public class Spawner : MonoBehaviour
             slimeScript.targetPlayer = targetPlayer;
             slimeScript.InitializeSlime();
         }
+    }
+
+    public void SpawnBat(Vector2 spawnPosition, float delay)
+    {
+        StartCoroutine(SpawnBatAfterDelay(spawnPosition, delay));
+    }
+
+    private IEnumerator SpawnBatAfterDelay(Vector2 spawnPosition, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        GameObject enemy = Instantiate(bat);
+        enemy.transform.position = spawnPosition;
     }
 
     private IEnumerator SpawnAll()

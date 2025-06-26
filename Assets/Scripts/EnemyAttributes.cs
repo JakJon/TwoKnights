@@ -9,5 +9,6 @@ public enum EnemyType
 {
     None = 0,
     Ground = 1 << 0,    // Enemy that moves on the ground
-    Splitting = 1 << 1  // Enemy that can split into smaller versions
+    Flying = 1 << 1,    // Enemy that can fly
+    Splitting = 1 << 2  // Enemy that can split into smaller versions
 }

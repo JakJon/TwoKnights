@@ -13,8 +13,29 @@ public class PlayerProjectile : MonoBehaviour
             Destroy(gameObject);
 
             GameObject player = other.CompareTag("PlayerLeftProjectile")
-            ? GameObject.FindWithTag("PlayerLeft")
-            : GameObject.FindWithTag("PlayerRight");
+                ? GameObject.FindWithTag("PlayerLeft")
+                : GameObject.FindWithTag("PlayerRight");
+
+            if (player != null)
+            {
+                PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
+                if (playerSpecial != null)
+                {
+                    playerSpecial.updateSpecial(5);
+                }
+            }
+            return;
+        }
+
+        EnemyBat bat = other.GetComponent<EnemyBat>();
+        if (bat != null)
+        {
+            bat.TakeDamage(damage);
+            Destroy(gameObject);
+
+            GameObject player = other.CompareTag("PlayerLeftProjectile")
+                ? GameObject.FindWithTag("PlayerLeft")
+                : GameObject.FindWithTag("PlayerRight");
 
             if (player != null)
             {
