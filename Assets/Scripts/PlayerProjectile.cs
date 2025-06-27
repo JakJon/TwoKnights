@@ -10,9 +10,8 @@ public class PlayerProjectile : MonoBehaviour
         if (slime != null)
         {
             slime.TakeDamage(damage);
-            Destroy(gameObject);
-
-            GameObject player = other.CompareTag("PlayerLeftProjectile")
+            
+            GameObject player = gameObject.CompareTag("PlayerLeftProjectile")
                 ? GameObject.FindWithTag("PlayerLeft")
                 : GameObject.FindWithTag("PlayerRight");
 
@@ -24,6 +23,8 @@ public class PlayerProjectile : MonoBehaviour
                     playerSpecial.updateSpecial(5);
                 }
             }
+            
+            Destroy(gameObject);
             return;
         }
 
@@ -31,9 +32,8 @@ public class PlayerProjectile : MonoBehaviour
         if (bat != null)
         {
             bat.TakeDamage(damage);
-            Destroy(gameObject);
-
-            GameObject player = other.CompareTag("PlayerLeftProjectile")
+            
+            GameObject player = gameObject.CompareTag("PlayerLeftProjectile")
                 ? GameObject.FindWithTag("PlayerLeft")
                 : GameObject.FindWithTag("PlayerRight");
 
@@ -45,6 +45,8 @@ public class PlayerProjectile : MonoBehaviour
                     playerSpecial.updateSpecial(5);
                 }
             }
+            
+            Destroy(gameObject);
         }
     }
 }

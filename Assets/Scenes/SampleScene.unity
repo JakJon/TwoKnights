@@ -772,7 +772,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.625
+  orthographic size: 7.640625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1891,11 +1891,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4aba2675ba9a2584188ac2c690f0a40f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  waveManager: {fileID: 11400000, guid: 72b134bb0a1686d449fc6420aa410840, type: 2}
   projectilePrefab: {fileID: 6821730625427352102, guid: e3a735aa259ad5e4b8fc19605975b243, type: 3}
   brownRat: {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
   greyRat: {fileID: 7458023765239434115, guid: 6070b81a7ae0ab44bb9c66a15c3f0166, type: 3}
   blackRat: {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
-  slime: {fileID: 4029998536188645349, guid: 301a47a9399ef6e4984a162f5c32cd19, type: 3}
+  slimePrefab: {fileID: 4029998536188645349, guid: 301a47a9399ef6e4984a162f5c32cd19, type: 3}
   bat: {fileID: 3982570877587060258, guid: c7a32b4cb6d3282409d0d54fccca9a5c, type: 3}
 --- !u!1 &1638647220
 GameObject:

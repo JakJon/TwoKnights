@@ -16,7 +16,6 @@ public class EnemyBat : MonoBehaviour, IHasAttributes
 
     private Vector3 _initialPosition;
     private Vector3 _intermediatePosition;
-    private Vector3 _targetPosition;
     private bool _isMovingToIntermediate = true;
     private SpriteRenderer _spriteRenderer;
     private Transform _assignedPlayer;
