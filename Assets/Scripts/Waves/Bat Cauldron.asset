@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
-  m_Name: BatSwarmWave
+  m_Name: Bat Cauldron
   m_EditorClassIdentifier: 
-  waveName: BAT SWARM
+  waveName: Bat Cauldron
   weight: 1
   isUnlocked: 1
   waveDescription: 
-  batsPerRing: 5
+  batsPerRing: 8
   numberOfRings: 3
-  delayBetweenRings: 15
-  ringRadius: 20
+  delayBetweenRings: 12
+  ringRadius: 11

@@ -5,10 +5,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "BatSwarmWave", menuName = "Waves/Bat Swarm Wave")]
 public class BatSwarmWave : BaseWave
 {
+    // The first wave ever made. Super simple, just spawns a swarm of bats in a circular formation
+
     [SerializeField] private int batsPerRing = 8;
     [SerializeField] private int numberOfRings = 3;
     [SerializeField] private float delayBetweenRings = 15f;
-    [SerializeField] private float ringRadius = 12f;
+    [SerializeField] private float ringRadius = 6f;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {

@@ -12,7 +12,7 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
     public int size = 1;
 
     [Tooltip("Health points for the smallest slime")]
-    public int baseHealth = 15;
+    public int baseHealth = 10;
 
     [Header("Splitting Settings")]
     [Tooltip("Force applied when slimes split apart")]
