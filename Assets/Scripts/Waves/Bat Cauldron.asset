@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Bat Cauldron
   m_EditorClassIdentifier: 
   waveName: Bat Cauldron
-  weight: 1000
+  weight: 1e+9
   isUnlocked: 1
   waveDescription: 
   batsPerRing: 6
-  numberOfRings: 3
+  numberOfRings: 1
   delayBetweenRings: 12
   ringRadius: 11

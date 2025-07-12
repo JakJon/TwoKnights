@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="upgrade-menu" class="upgrade-menu">
+        <ui:Label text="Choose an Upgrade:" name="title" class="title" />
+        <ui:VisualElement name="menu-items" class="menu-items">
+            <ui:Button text="one" name="item-one" class="menu-item" />
+            <ui:Button text="two" name="item-two" class="menu-item" />
+            <ui:Button text="three" name="item-three" class="menu-item" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

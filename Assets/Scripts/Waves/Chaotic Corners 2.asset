@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Chaotic Corners 2
   m_EditorClassIdentifier: 
   waveName: Chaotic Corners 2
-  weight: 10000000
+  weight: 1000
   isUnlocked: 1
   waveDescription: 
   numberOfSwarms: 1

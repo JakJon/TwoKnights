@@ -8,6 +8,7 @@ public class Spawner : MonoBehaviour
 
     [SerializeField] private WaveManager waveManager;
     [SerializeField] private WaveName waveNameDisplay;
+    [SerializeField] private UpgradeMenu upgradeMenu; // New reference to upgrade menu
     [SerializeField] public GameObject projectilePrefab;
     [SerializeField] public GameObject brownRat;
     [SerializeField] public GameObject greyRat;
@@ -20,6 +21,7 @@ public class Spawner : MonoBehaviour
     private Transform _leftPlayer;
     private Transform _rightPlayer;
     private bool _isWaveInProgress;
+    private bool _isUpgradeMenuActive; // Track if upgrade menu is showing
 
     #region common references
     // Public methods for spawning that can be used by wave classes
@@ -45,12 +47,19 @@ public class Spawner : MonoBehaviour
     {
         _leftPlayer = GameObject.FindWithTag("PlayerLeft").transform;
         _rightPlayer = GameObject.FindWithTag("PlayerRight").transform;
+        
+        // Setup upgrade menu callback
+        if (upgradeMenu != null)
+        {
+            upgradeMenu.OnUpgradeSelected += OnUpgradeSelected;
+        }
+        
         StartNextWave();
     }
 
     public void StartNextWave()
     {
-        if (_isWaveInProgress)
+        if (_isWaveInProgress || _isUpgradeMenuActive)
             return;
 
         var nextWave = waveManager.SelectNextWave();
@@ -69,7 +78,51 @@ public class Spawner : MonoBehaviour
         _isWaveInProgress = false;
         waveManager.WaveCompleted();
 
-        StartNextWave(); // Automatically start next wave
+        // Show upgrade menu and pause game instead of immediately starting next wave
+        ShowUpgradeMenu();
+    }
+
+    private void ShowUpgradeMenu()
+    {
+        _isUpgradeMenuActive = true;
+        
+        // Pause the game
+        Time.timeScale = 0f;
+        
+        // Show the upgrade menu
+        if (upgradeMenu != null)
+        {
+            upgradeMenu.SetMenuVisible(true);
+        }
+        
+        Debug.Log("Wave completed! Upgrade menu shown and game paused.");
+    }
+
+    private void OnUpgradeSelected(int upgradeIndex)
+    {
+        Debug.Log($"Upgrade {upgradeIndex} selected!");
+        
+        // Hide upgrade menu
+        if (upgradeMenu != null)
+        {
+            upgradeMenu.SetMenuVisible(false);
+        }
+        
+        // Resume game
+        Time.timeScale = 1f;
+        _isUpgradeMenuActive = false;
+        
+        // Start next wave
+        StartNextWave();
+    }
+
+    void OnDestroy()
+    {
+        // Clean up event subscription
+        if (upgradeMenu != null)
+        {
+            upgradeMenu.OnUpgradeSelected -= OnUpgradeSelected;
+        }
     }
 
     public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget)
