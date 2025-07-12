@@ -9,14 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
-  m_Name: Bat Cauldron 2
+  m_Script: {fileID: 11500000, guid: afcfc136fb0be834cbde2a57f87a10e2, type: 3}
+  m_Name: RatMischief 2
   m_EditorClassIdentifier: 
-  waveName: Bat Cauldron 2
+  waveName: Rat Mischief 2
   weight: 1000
   isUnlocked: 0
   waveDescription: 
-  batsPerRing: 12
-  numberOfRings: 4
-  delayBetweenRings: 8
-  ringRadius: 11
+  waveOccurences: 6
+  baseRatCount: 2

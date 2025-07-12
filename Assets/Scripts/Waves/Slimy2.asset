@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Slimy2
   m_EditorClassIdentifier: 
   waveName: A Sticky Situation 2
-  weight: 1
+  weight: 1000
   isUnlocked: 1
   waveDescription: 
-  waveOccurences: 6
+  waveOccurences: 3
   projectilesPerStraight: 6
   delayBetweenProjectiles: 1
   delayBetweenStraights: 12

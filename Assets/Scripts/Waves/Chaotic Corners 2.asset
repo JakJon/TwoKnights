@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: Chaotic Corners 2
   m_EditorClassIdentifier: 
   waveName: Chaotic Corners 2
-  weight: 1
+  weight: 10000000
   isUnlocked: 1
   waveDescription: 
-  numberOfSwarms: 3
-  delayTime: 6
+  numberOfSwarms: 1
+  delayTime: 3
   projectilesPerArc: 8
-  batsPerArc: 5
-  kingSlimes: 1
+  batsPerArc: 8
+  kingSlimes: 2
+  slimesPerArc: 1
+  slimesSize: 2

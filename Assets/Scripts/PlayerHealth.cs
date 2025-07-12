@@ -35,7 +35,6 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
         healthBar.SetValue(currentHealth);
-        AudioManager.Instance.PlaySFX(AudioManager.Instance.healSpecial);
     }
 
     public int GetCurrentHealth()

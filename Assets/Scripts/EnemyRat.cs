@@ -167,9 +167,9 @@ public class EnemyRat : MonoBehaviour, IHasAttributes
                 if (playerSpecial != null)
                 {
                     if (Health > 0)
-                        playerSpecial.updateSpecial(5);
+                        playerSpecial.updateSpecial(10);
                     else
-                        playerSpecial.updateSpecial(8);
+                        playerSpecial.updateSpecial(20);
                 }
             }
             
@@ -189,7 +189,7 @@ public class EnemyRat : MonoBehaviour, IHasAttributes
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
             PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(5);
+            if (playerHealth != null) playerHealth.TakeDamage(10);
             Destroy(gameObject);
         }
         else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))

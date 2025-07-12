@@ -135,4 +135,12 @@ public class PlayerSpecial : MonoBehaviour
 
         specialBar.SetValue(_currentSpecial);
     }
+
+    public void AddSpecialFromOrb(int amount)
+    {
+        _currentSpecial += amount;
+        if (_currentSpecial > maxSpecial)
+            _currentSpecial = maxSpecial;
+        specialBar.SetValue(_currentSpecial);
+    }
 }

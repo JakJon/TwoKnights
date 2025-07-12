@@ -11,7 +11,7 @@ public class EnemyBat : MonoBehaviour, IHasAttributes
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private float Health = 20f;
-    [SerializeField] private int damage = 10;
+    [SerializeField] private int damage;
     [SerializeField] private float spawnMoveDuration = 1f;
 
     private Vector3 _initialPosition;
@@ -99,14 +99,13 @@ public class EnemyBat : MonoBehaviour, IHasAttributes
     {
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
-            TakeDamage(10);
             Destroy(other.gameObject);
         }
         else if (other.CompareTag("Shield"))
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
             PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(5);
+            if (playerHealth != null) playerHealth.TakeDamage(10);
             Destroy(gameObject);
         }
         else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
@@ -121,6 +120,7 @@ public class EnemyBat : MonoBehaviour, IHasAttributes
     public void TakeDamage(int damage)
     {
         Health -= damage;
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.ratHurt);
         if (Health <= 0)
         {
             Destroy(gameObject);

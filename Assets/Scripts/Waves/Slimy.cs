@@ -18,12 +18,11 @@ public class Slimy : BaseWave
         // starting loops at one so that the first waves are not skipped
         for (int wave = 1; wave <= waveOccurences; wave++)
         {
-            spawner.SpawnOrb(new Vector2(-12, 3), new Vector2(12, 3), true);
-            spawner.SpawnOrb(new Vector2(-12, -3), new Vector2(12, -3), false);
 
             // Spawn slimes based on the wave number
             if (wave % 2 == 0)
             {
+                spawner.SpawnOrb(new Vector2(-12, 3), new Vector2(12, 3), false);
                 // variable that divides the amount of slimes by 2 and rounds down
                 int midSlimes = Mathf.FloorToInt(amountOfSlimesOnEachSide / 2f);
                 for (int i = 0; i < midSlimes; i++)
@@ -34,6 +33,7 @@ public class Slimy : BaseWave
             }
             else if (wave % 3 == 0)
             {
+                spawner.SpawnOrb(new Vector2(-12, -3), new Vector2(12, -3), true);
                 // variable that divides the amount of slimes by 3 and rounds down
                 int kingSlimes = Mathf.FloorToInt(amountOfSlimesOnEachSide / 3f);
                 for (int i = 0; i < kingSlimes; i++)

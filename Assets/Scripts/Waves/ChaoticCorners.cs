@@ -12,12 +12,11 @@ public class ChaoticCorners : BaseWave
     [SerializeField] private int numberOfSwarms = 3;
     [Tooltip("Recommended minimum delay time is 3 seconds to ensure proper wave pacing")]
     [SerializeField] private float delayTime = 5f;
-    [Tooltip("Number of projectiles per arc")]
     [SerializeField] private int projectilesPerArc = 8;
-    [Tooltip("Number of bats per arc phase")]
     [SerializeField] private int batsPerArc = 3;
-    [Tooltip("Number of king slimes to spawn at the end of the wave")]
     [SerializeField] private int kingSlimes = 1;
+    [SerializeField] private int slimesPerArc;
+    [SerializeField] private int slimesSize = 1;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
@@ -34,10 +33,17 @@ public class ChaoticCorners : BaseWave
                 1f
             );
 
+            for (int i = 0; i < slimesPerArc; i++)
+            {
+                spawner.SpawnSlime(slimesSize, new Vector2(11, -5 - i), 0f, spawner.LeftPlayer);
+            }
+
             for (int i = 0; i < batsPerArc; i++) {
                 spawner.SpawnBat(new Vector2(11, -5), 0f);
                 if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
             }
+
+            spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), false);
 
             spawner.SpawnProjectileArc(
                 spawner.RightPlayer,
@@ -49,6 +55,10 @@ public class ChaoticCorners : BaseWave
                 5,
                 1f
             );
+
+            for (int i = 0; i < slimesPerArc; i++) {
+                spawner.SpawnSlime(slimesSize, new Vector2(-11, 5 + i), 0f, spawner.RightPlayer);
+            }
 
             for (int i = 0; i < batsPerArc; i++) {
                 spawner.SpawnBat(new Vector2(-11, 5), 0f);
@@ -85,6 +95,12 @@ public class ChaoticCorners : BaseWave
             for (int i = 0; i < kingSlimes; i++) {
                 spawner.SpawnSlime(3, new Vector2(-11 + (i * 3), -6), 0f, spawner.RightPlayer);
             }
+
+            if (slimesPerArc > 0 && kingSlimes > 0)
+            {
+                spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), true);
+            }
+
             yield return new WaitForSeconds(delayTime * 3);
 
             yield return new WaitForSeconds(delayTime * 2);

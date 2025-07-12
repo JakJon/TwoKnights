@@ -124,11 +124,17 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
             if (size > 1)
             {
                 Split();
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeSplit);
             }
             else
             {
                 Die();
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeDeath);
             }
+        }
+        else
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeHit);
         }
     }
 
@@ -188,14 +194,14 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
             PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(5 * size);
+            if (playerHealth != null) playerHealth.TakeDamage(20 * size);
             Destroy(gameObject);
         }
         else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(15 * size);
+            if (playerHealth != null) playerHealth.TakeDamage(20 * size);
             Destroy(gameObject);
         }
     }

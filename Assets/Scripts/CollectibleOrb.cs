@@ -20,11 +20,13 @@ public class CollectibleOrb : MonoBehaviour
 
     public void Initialize(Vector2 start, Vector2 end)
     {
+        Debug.Log($"Initializing CollectibleOrb: Type={orbType}, Start={start}, End={end}");
         startPos = start;
         endPos = end;
         transform.position = startPos;
         moveDir = (endPos - startPos).normalized;
         totalDistance = Vector2.Distance(startPos, endPos);
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.orbFlyBy);
     }
 
     private void Update()
@@ -34,16 +36,21 @@ public class CollectibleOrb : MonoBehaviour
         if (Vector2.Distance(transform.position, startPos) >= totalDistance)
         {
             Destroy(gameObject);
+            AudioManager.Instance.StopSFX();
         }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log($"CollectibleOrb collided with: {other.gameObject.name}, Tag: {other.gameObject.tag}");
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
             GameObject player = other.CompareTag("PlayerLeftProjectile")
                 ? GameObject.FindWithTag("PlayerLeft")
                 : GameObject.FindWithTag("PlayerRight");
+
+            Destroy(other.gameObject);
+            Destroy(gameObject);
 
             if (player != null)
             {
@@ -60,13 +67,13 @@ public class CollectibleOrb : MonoBehaviour
                     PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
                     if (playerSpecial != null)
                     {
-                        playerSpecial.updateSpecial(manaRestoreAmount);
+                        playerSpecial.AddSpecialFromOrb(manaRestoreAmount);
                     }
                 }
             }
 
-            Destroy(other.gameObject);
-            Destroy(gameObject);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.orbCollect);
+
         }
     }
 }

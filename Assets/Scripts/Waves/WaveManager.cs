@@ -9,12 +9,13 @@ using UnityEditor;
 public class WaveManager : ScriptableObject
 {
     [SerializeField] private List<BaseWave> availableWaves;
-    
+    private List<BaseWave> _remainingWaves;
     private BaseWave currentWave;
 
     private void OnEnable()
     {
         RecalculateWeights();
+        _remainingWaves = new List<BaseWave>(availableWaves);
     }
 
     private void RecalculateWeights()
@@ -29,13 +30,11 @@ public class WaveManager : ScriptableObject
 
     public BaseWave SelectNextWave()
     {
-        if (availableWaves == null || availableWaves.Count == 0)
+        if (_remainingWaves == null || _remainingWaves.Count == 0)
             return null;
 
-        RecalculateWeights();
-        
         // Get playable waves
-        var playableWaves = availableWaves.Where(w => w.CanPlay()).ToList();
+        var playableWaves = _remainingWaves.Where(w => w.CanPlay()).ToList();
         if (playableWaves.Count == 0)
             return null;
 
@@ -52,12 +51,14 @@ public class WaveManager : ScriptableObject
             if (random <= current)
             {
                 currentWave = wave;
+                _remainingWaves.Remove(wave); // Remove so it can't be selected again
                 return wave;
             }
         }
 
         // Fallback to a random wave if something went wrong with the weight calculation
         currentWave = playableWaves[Random.Range(0, playableWaves.Count)];
+        _remainingWaves.Remove(currentWave);
         return currentWave;
     }
 

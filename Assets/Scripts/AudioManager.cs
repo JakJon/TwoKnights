@@ -32,6 +32,11 @@ public class AudioManager : MonoBehaviour
     public SoundEffect ratDeath;
     public SoundEffect ratSpawn;
     public SoundEffect ratHurt;
+    public SoundEffect orbFlyBy;
+    public SoundEffect orbCollect;
+    public SoundEffect slimeHit;
+    public SoundEffect slimeDeath;
+    public SoundEffect slimeSplit;
 
     // [Header("Music")]
     // public AudioClip backgroundMusic;
@@ -65,6 +70,14 @@ public class AudioManager : MonoBehaviour
         if (soundEffect.clip != null)
         {
             _sfxSource.PlayOneShot(soundEffect.clip, soundEffect.volume);
+        }
+    }
+
+    public void StopSFX()
+    {
+        if (_sfxSource != null)
+        {
+            _sfxSource.Stop();
         }
     }
 

@@ -2,8 +2,8 @@ using System.Collections;
 using System.Net.NetworkInformation;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "TemplateWave", menuName = "Waves/Template")]
-public class TemplateWave : BaseWave
+[CreateAssetMenu(fileName = "RatMischief", menuName = "Waves/Template")]
+public class RatMischief : BaseWave
 {
     [Tooltip("Tooltip")]
     [SerializeField] private int waveOccurences = 1;

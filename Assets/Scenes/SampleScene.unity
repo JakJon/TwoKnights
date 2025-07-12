@@ -773,7 +773,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 4.6640625
+  orthographic size: 7.875
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -2276,6 +2276,21 @@ MonoBehaviour:
   ratHurt:
     clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
     volume: 0.75
+  orbFlyBy:
+    clip: {fileID: 8300000, guid: 373a3b18f59722b46a923fe6d24c92db, type: 3}
+    volume: 1
+  orbCollect:
+    clip: {fileID: 8300000, guid: 8702757cf9800a641b8c0952fd42ea67, type: 3}
+    volume: 1
+  slimeHit:
+    clip: {fileID: 8300000, guid: 9edfed0ed5a0ee348970a05831657237, type: 3}
+    volume: 1
+  slimeDeath:
+    clip: {fileID: 8300000, guid: 55ecdde7ecae2b34f8e2c5597b1364e3, type: 3}
+    volume: 1
+  slimeSplit:
+    clip: {fileID: 8300000, guid: 9e698157abba0224f84282d9078db507, type: 3}
+    volume: 1
 --- !u!4 &1736909207
 Transform:
   m_ObjectHideFlags: 0

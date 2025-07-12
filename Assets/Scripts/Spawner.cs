@@ -37,6 +37,10 @@ public class Spawner : MonoBehaviour
     public Vector2 bottomRightCorner => new Vector2(12, -6);
     #endregion
 
+    void Awake()
+    {
+    }
+
     void Start()
     {
         _leftPlayer = GameObject.FindWithTag("PlayerLeft").transform;
@@ -62,9 +66,9 @@ public class Spawner : MonoBehaviour
     private IEnumerator RunWave(BaseWave wave)
     {
         yield return StartCoroutine(wave.SpawnWave(this));
-        
         _isWaveInProgress = false;
         waveManager.WaveCompleted();
+
         StartNextWave(); // Automatically start next wave
     }
 
@@ -163,13 +167,15 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnProjectileStraight(Vector2 spawnPosition, Transform targetPlayer, int projectileAmount, float projectileDelay)
+    public void SpawnProjectileStraight(Vector2 spawnPosition, Transform targetPlayer, int projectileAmount, float projectileDelay, float initialDelay = 0f)
     {
-        StartCoroutine(SpawnProjectileStraightCoroutine(spawnPosition, targetPlayer, projectileAmount, projectileDelay));
+        StartCoroutine(SpawnProjectileStraightCoroutine(spawnPosition, targetPlayer, projectileAmount, projectileDelay, initialDelay));
     }
 
-    private IEnumerator SpawnProjectileStraightCoroutine(Vector2 spawnPosition, Transform targetPlayer, int projectileAmount, float projectileDelay)
+    private IEnumerator SpawnProjectileStraightCoroutine(Vector2 spawnPosition, Transform targetPlayer, int projectileAmount, float projectileDelay, float initialDelay)
     {
+        if (initialDelay > 0f)
+            yield return new WaitForSeconds(initialDelay);
         for (int i = 0; i < projectileAmount; i++)
         {
             SpawnProjectile(targetPlayer, spawnPosition, projectileDelay * i);
@@ -177,8 +183,15 @@ public class Spawner : MonoBehaviour
         yield return null;
     }
 
-    public void SpawnOrb(Vector2 startPos, Vector2 endPos, bool isHealthOrb)
+    public void SpawnOrb(Vector2 startPos, Vector2 endPos, bool isHealthOrb, float delay = 0f)
     {
+        StartCoroutine(SpawnOrbAfterDelay(startPos, endPos, isHealthOrb, delay));
+    }
+
+    private IEnumerator SpawnOrbAfterDelay(Vector2 startPos, Vector2 endPos, bool isHealthOrb, float delay)
+    {
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
         GameObject orbPrefab = isHealthOrb ? healthOrbPrefab : manaOrbPrefab;
         GameObject orb = Instantiate(orbPrefab);
         CollectibleOrb collectibleOrb = orb.GetComponent<CollectibleOrb>();
