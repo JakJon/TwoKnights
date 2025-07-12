@@ -2,9 +2,10 @@
     <ui:VisualElement name="upgrade-menu" class="upgrade-menu">
         <ui:Label text="Choose an Upgrade:" name="title" class="title" />
         <ui:VisualElement name="menu-items" class="menu-items">
-            <ui:Button text="one" name="item-one" class="menu-item" />
-            <ui:Button text="two" name="item-two" class="menu-item" />
-            <ui:Button text="three" name="item-three" class="menu-item" />
+            <ui:Button text="one" name="item-one" class="menu-item upgrade" />
+            <ui:Button text="two" name="item-two" class="menu-item upgrade" />
+            <ui:Button text="three" name="item-three" class="menu-item upgrade" />
+            <ui:Button text="three" name="item-four" class="menu-item rest" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

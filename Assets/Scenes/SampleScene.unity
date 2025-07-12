@@ -333,6 +333,74 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
+--- !u!1 &143688916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 143688919}
+  - component: {fileID: 143688918}
+  - component: {fileID: 143688917}
+  m_Layer: 0
+  m_Name: UpgradeMenuUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &143688917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143688916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce6f3d68333d7f743adc11ff13bcbb21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 143688918}
+  styleSheet: {fileID: 7433441132597879392, guid: c2f9c4c0a9d29824b96dfb1794abfac2, type: 3}
+  inputDeadzone: 0.5
+  inputCooldown: 0.3
+--- !u!114 &143688918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143688916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: 328599d5326b60043bf46f7bbb09bf6a, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 88e77e500e3f4e744964bfa2a00d2525, type: 3}
+  m_SortingOrder: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+--- !u!4 &143688919
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 143688916}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.1812131, y: -0.19214214, z: 0.8322213}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &156544915
 GameObject:
   m_ObjectHideFlags: 0
@@ -773,7 +841,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7.875
+  orthographic size: 7.890625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1894,6 +1962,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waveManager: {fileID: 11400000, guid: 72b134bb0a1686d449fc6420aa410840, type: 2}
   waveNameDisplay: {fileID: 1520333984}
+  upgradeMenu: {fileID: 143688917}
   projectilePrefab: {fileID: 6821730625427352102, guid: e3a735aa259ad5e4b8fc19605975b243, type: 3}
   brownRat: {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
   greyRat: {fileID: 7458023765239434115, guid: 6070b81a7ae0ab44bb9c66a15c3f0166, type: 3}
@@ -2834,3 +2903,4 @@ SceneRoots:
   - {fileID: 156544918}
   - {fileID: 1736909207}
   - {fileID: 859533714}
+  - {fileID: 143688919}

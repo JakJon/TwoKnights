@@ -57,11 +57,13 @@ public class UpgradeMenu : MonoBehaviour
         var itemOne = root.Q<Button>("item-one");
         var itemTwo = root.Q<Button>("item-two");
         var itemThree = root.Q<Button>("item-three");
-        
+        var itemFour = root.Q<Button>("item-four");
+
         if (itemOne != null) menuItems.Add(itemOne);
         if (itemTwo != null) menuItems.Add(itemTwo);
         if (itemThree != null) menuItems.Add(itemThree);
-        
+        if (itemFour != null) menuItems.Add(itemFour);
+
         if (menuItems.Count == 0) return;
         
         // Setup click handlers

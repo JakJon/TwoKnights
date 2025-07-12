@@ -19,4 +19,4 @@ MonoBehaviour:
   batsPerRing: 6
   numberOfRings: 1
   delayBetweenRings: 12
-  ringRadius: 11
+  ringRadius: 5

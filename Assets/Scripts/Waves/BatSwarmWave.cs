@@ -10,7 +10,7 @@ public class BatSwarmWave : BaseWave
     [SerializeField] private int batsPerRing = 8;
     [SerializeField] private int numberOfRings = 3;
     [SerializeField] private float delayBetweenRings = 15f;
-    [SerializeField] private float ringRadius = 6f;
+    [SerializeField] private float ringRadius = 3f;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
