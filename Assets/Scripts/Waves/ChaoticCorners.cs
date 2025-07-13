@@ -105,5 +105,7 @@ public class ChaoticCorners : BaseWave
 
             yield return new WaitForSeconds(delayTime * 2);
         }
+        // Wait for the wave to finish
+        yield return new WaitForSeconds(numberOfSwarms * delayTime + 5f);
     }
 }

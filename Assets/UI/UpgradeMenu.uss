@@ -20,10 +20,6 @@
     margin-bottom: 4%;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
-    text-shadow: 0px 0px 3px rgba(255, 255, 255, 0.3),
-                 1px 1px 0px rgba(200, 200, 190, 0.4),
-                 -1px -1px 0px rgba(200, 200, 190, 0.2),
-                 0px 2px 4px rgba(0, 0, 0, 0.8);
     letter-spacing: 1px;
     rotate: -0.5deg;
 }
@@ -59,27 +55,17 @@
     letter-spacing: 0.5px;
     transition-property: background-color, border-color, scale, text-shadow;
     transition-duration: 0.3s;
-    text-shadow: 1px 1px 0px rgba(200, 200, 190, 0.3),
-                 -1px -1px 0px rgba(200, 200, 190, 0.2),
-                 0px 0px 4px rgba(255, 255, 255, 0.4),
-                 0px 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 .menu-item.upgrade {
     width: 32%;
     background-color: rgba(35, 55, 40, 0.9);
     border-color: rgb(60, 100, 70);
-    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.4),
-                0px 2px 4px rgba(0, 0, 0, 0.3),
-                inset 2px 2px 4px rgba(80, 120, 90, 0.2);
 }
 
 .menu-item.rest {
     background-color: rgba(30, 40, 60, 0.9);
     border-color: rgb(60, 85, 130);
-    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.4),
-                0px 2px 4px rgba(0, 0, 0, 0.3),
-                inset 2px 2px 4px rgba(80, 100, 140, 0.2);
 }
 
 .rest-button {
@@ -91,14 +77,6 @@
 .menu-item:hover {
     background-color: rgba(60, 60, 55, 0.8);
     border-color: rgb(120, 120, 110);
-    text-shadow: 1px 1px 0px rgba(200, 200, 190, 0.4),
-                 -1px -1px 0px rgba(200, 200, 190, 0.3),
-                 0px 0px 6px rgba(255, 255, 255, 0.6),
-                 0px 2px 8px rgba(0, 0, 0, 0.5);
-    scale: 1.02;
-    box-shadow: inset 0px 0px 12px rgba(0, 0, 0, 0.3),
-                0px 4px 8px rgba(0, 0, 0, 0.4),
-                inset 2px 2px 6px rgba(120, 120, 110, 0.2);
 }
 
 .menu-item--selected {
@@ -106,27 +84,9 @@
     border-color: rgb(150, 200, 175);
     scale: 1.08;
     color: rgb(255, 255, 245);
-    text-shadow: 1px 1px 0px rgba(220, 220, 210, 0.5),
-                 -1px -1px 0px rgba(220, 220, 210, 0.4),
-                 0px 0px 8px rgba(255, 255, 255, 0.8),
-                 0px 0px 12px rgba(150, 200, 175, 0.6),
-                 0px 3px 10px rgba(0, 0, 0, 0.4);
-    box-shadow: inset 0px 0px 15px rgba(255, 255, 255, 0.1),
-                0px 6px 12px rgba(0, 0, 0, 0.5),
-                inset 3px 3px 8px rgba(180, 220, 200, 0.3),
-                0px 0px 20px rgba(150, 200, 175, 0.3);
 }
 
 .menu-item--selected:hover {
     background-color: rgba(100, 140, 120, 0.95);
     border-color: rgb(170, 220, 195);
-    text-shadow: 1px 1px 0px rgba(240, 240, 230, 0.6),
-                 -1px -1px 0px rgba(240, 240, 230, 0.5),
-                 0px 0px 10px rgba(255, 255, 255, 1.0),
-                 0px 0px 15px rgba(170, 220, 195, 0.8),
-                 0px 4px 12px rgba(0, 0, 0, 0.3);
-    box-shadow: inset 0px 0px 18px rgba(255, 255, 255, 0.15),
-                0px 8px 16px rgba(0, 0, 0, 0.6),
-                inset 4px 4px 10px rgba(200, 240, 220, 0.4),
-                0px 0px 25px rgba(170, 220, 195, 0.4);
 }

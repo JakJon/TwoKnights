@@ -40,6 +40,6 @@ public class BatSwarmWave : BaseWave
         }
 
         // Wait for the wave to finish
-        yield return new WaitForSeconds(numberOfRings * delayBetweenRings + 5f);
+        yield return new WaitForSeconds(numberOfRings * delayBetweenRings + 8f);
     }
 }
