@@ -14,11 +14,8 @@ public class BatSwarmWave : BaseWave
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
-
         for (int ring = 1; ring <= numberOfRings; ring++)
         {
-
-
             float angleStep = 360f / batsPerRing;
             for (int i = 1; i <= batsPerRing; i++)
             {
@@ -26,19 +23,19 @@ public class BatSwarmWave : BaseWave
                 float x = Mathf.Cos(angle * Mathf.Deg2Rad) * ringRadius;
                 float y = Mathf.Sin(angle * Mathf.Deg2Rad) * ringRadius;
                 
-                spawner.SpawnBat(new Vector2(x, y), ring * delayBetweenRings);
-
+                // Spawn first ring immediately, subsequent rings with increasing delay
+                spawner.SpawnBat(new Vector2(x, y), (ring - 1) * delayBetweenRings);
             }
 
             if (ring % 2 == 0)
             {
-                spawner.SpawnProjectileStraight(spawner.topLeftCorner, spawner.LeftPlayer, 3, 4, ring * delayBetweenRings);
+                spawner.SpawnProjectileStraight(spawner.topLeftCorner, spawner.LeftPlayer, 3, 4, (ring - 1) * delayBetweenRings);
                 spawner.SpawnOrb(new Vector2(8, 8), new Vector2(8, -8), false);
                 spawner.SpawnOrb(new Vector2(-8, 8), new Vector2(-8, -8), false);
             }
             else if (ring % 2 != 0)
             {
-                spawner.SpawnProjectileStraight(spawner.bottomRightCorner, spawner.RightPlayer, 3, 4, ring * delayBetweenRings);
+                spawner.SpawnProjectileStraight(spawner.bottomRightCorner, spawner.RightPlayer, 3, 4, (ring - 1) * delayBetweenRings);
             }
         }
 

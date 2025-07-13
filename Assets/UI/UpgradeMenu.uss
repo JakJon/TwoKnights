@@ -4,13 +4,13 @@
     justify-content: center;
     width: 100%;
     height: 100%;
-    padding: 20px;
+    padding: 2%;
 }
 
 .title {
     font-size: 24px;
     color: white;
-    margin-bottom: 30px;
+    margin-bottom: 3%;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
 }
@@ -18,13 +18,20 @@
 .menu-items {
     flex-direction: column;
     align-items: center;
-    width: 300px;
+    width: 60%;
+}
+
+.upgrade-row {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 2%;
 }
 
 .menu-item {
-    width: 200px;
-    height: 40px;
-    margin: 5px;
+    height: 60px;
+    margin: 1%;
     border-width: 2px;
     border-radius: 5px;
     color: white;
@@ -35,13 +42,20 @@
 }
 
 .menu-item.upgrade {
-    background-color: rgb(87, 198, 144); /* green for upgrade */
+    width: 30%;
+    background-color: rgb(87, 198, 144);
     border-color: rgb(30, 131, 82);
 }
 
 .menu-item.rest {
-    background-color: rgb(86, 115, 207); /* blue for rest */
+    background-color: rgb(86, 115, 207);
     border-color: rgb(45, 63, 120);
+}
+
+.rest-button {
+    width: 32%;
+    height: 40px;
+    align-self: center;
 }
 
 .menu-item:hover {
