@@ -365,6 +365,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiDocument: {fileID: 143688918}
   styleSheet: {fileID: 7433441132597879392, guid: c2f9c4c0a9d29824b96dfb1794abfac2, type: 3}
+  upgradeManager: {fileID: 11400000, guid: 541b5ccd0e52f0c4abc9c9a83ea1b3e8, type: 2}
+  navigationAction: {fileID: -8070269708226651640, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  leftKnightSelectAction: {fileID: -5531687915285905008, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  rightKnightSelectAction: {fileID: 4618672932050298884, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  confirmAction: {fileID: -2015749805523769772, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   inputDeadzone: 0.5
   inputCooldown: 0.3
 --- !u!114 &143688918
@@ -1963,6 +1968,7 @@ MonoBehaviour:
   waveManager: {fileID: 11400000, guid: 72b134bb0a1686d449fc6420aa410840, type: 2}
   waveNameDisplay: {fileID: 1520333984}
   upgradeMenu: {fileID: 143688917}
+  upgradeManager: {fileID: 11400000, guid: 541b5ccd0e52f0c4abc9c9a83ea1b3e8, type: 2}
   projectilePrefab: {fileID: 6821730625427352102, guid: e3a735aa259ad5e4b8fc19605975b243, type: 3}
   brownRat: {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
   greyRat: {fileID: 7458023765239434115, guid: 6070b81a7ae0ab44bb9c66a15c3f0166, type: 3}

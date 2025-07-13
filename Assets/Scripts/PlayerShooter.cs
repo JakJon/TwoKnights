@@ -72,4 +72,10 @@ public class PlayerShooter : MonoBehaviour
             Destroy(projectile);
         }
     }
+
+    // Method for upgrades to modify projectile speed
+    public void ModifyProjectileSpeed(float multiplier)
+    {
+        projectileSpeed *= multiplier;
+    }
 }

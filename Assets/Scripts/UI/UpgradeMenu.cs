@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System;
 
@@ -9,19 +10,28 @@ public class UpgradeMenu : MonoBehaviour
     [SerializeField] private UIDocument uiDocument;
     [SerializeField] private StyleSheet styleSheet;
     
+    [Header("Upgrade System")]
+    [SerializeField] private UpgradeManager upgradeManager;
+    
+    [Header("Knight Selection Input System")]
+    [SerializeField] private InputActionReference leftKnightSelectAction;
+    [SerializeField] private InputActionReference rightKnightSelectAction;
+    
     [Header("Input Settings")]
     [SerializeField] private float inputDeadzone = 0.5f;
     [SerializeField] private float inputCooldown = 0.3f;
     
     private VisualElement root;
     private List<Button> menuItems;
+    private List<BaseUpgrade> currentUpgrades;
     private int currentSelectedIndex = 0;
     private float lastInputTime = 0f;
+    private KnightTarget selectedKnight = KnightTarget.LeftKnight;
     
     private const string SELECTED_CLASS = "menu-item--selected";
     
-    // Event for when an upgrade is selected
-    public event System.Action<int> OnUpgradeSelected;
+    // Event for when an upgrade is selected with knight target
+    public event System.Action<int, KnightTarget> OnUpgradeSelected;
     
     void Awake()
     {
@@ -38,6 +48,58 @@ public class UpgradeMenu : MonoBehaviour
         SetMenuVisible(false);
     }
     
+    private void OnEnable()
+    {
+        // Enable knight selection input actions
+        if (leftKnightSelectAction != null)
+        {
+            leftKnightSelectAction.action.performed += OnLeftKnightSelect;
+            leftKnightSelectAction.action.Enable();
+        }
+        
+        if (rightKnightSelectAction != null)
+        {
+            rightKnightSelectAction.action.performed += OnRightKnightSelect;
+            rightKnightSelectAction.action.Enable();
+        }
+    }
+    
+    private void OnDisable()
+    {
+        // Disable knight selection input actions
+        if (leftKnightSelectAction != null)
+        {
+            leftKnightSelectAction.action.performed -= OnLeftKnightSelect;
+            leftKnightSelectAction.action.Disable();
+        }
+        
+        if (rightKnightSelectAction != null)
+        {
+            rightKnightSelectAction.action.performed -= OnRightKnightSelect;
+            rightKnightSelectAction.action.Disable();
+        }
+    }
+    
+    private void OnLeftKnightSelect(InputAction.CallbackContext context)
+    {
+        if (IsMenuVisible() && CanProcessInput())
+        {
+            selectedKnight = KnightTarget.LeftKnight;
+            SelectUpgrade(currentSelectedIndex);
+            lastInputTime = Time.unscaledTime;
+        }
+    }
+    
+    private void OnRightKnightSelect(InputAction.CallbackContext context)
+    {
+        if (IsMenuVisible() && CanProcessInput())
+        {
+            selectedKnight = KnightTarget.RightKnight;
+            SelectUpgrade(currentSelectedIndex);
+            lastInputTime = Time.unscaledTime;
+        }
+    }
+    
     void SetupUI()
     {
         if (uiDocument == null) return;
@@ -52,17 +114,15 @@ public class UpgradeMenu : MonoBehaviour
             root.styleSheets.Add(styleSheet);
         }
         
-        // Find menu items
+        // Find menu items (only the upgrade items, not the rest button)
         menuItems = new List<Button>();
         var itemOne = root.Q<Button>("item-one");
         var itemTwo = root.Q<Button>("item-two");
         var itemThree = root.Q<Button>("item-three");
-        var itemFour = root.Q<Button>("item-four");
 
         if (itemOne != null) menuItems.Add(itemOne);
         if (itemTwo != null) menuItems.Add(itemTwo);
         if (itemThree != null) menuItems.Add(itemThree);
-        if (itemFour != null) menuItems.Add(itemFour);
 
         if (menuItems.Count == 0) return;
         
@@ -80,7 +140,7 @@ public class UpgradeMenu : MonoBehaviour
     void Update()
     {
         // Only handle input when menu is visible
-        if (root != null && root.style.display == DisplayStyle.Flex)
+        if (IsMenuVisible())
         {
             HandleInput();
         }
@@ -88,10 +148,7 @@ public class UpgradeMenu : MonoBehaviour
     
     void HandleInput()
     {
-        if (menuItems.Count == 0) return;
-        
-        // Check if enough time has passed since last input
-        if (Time.unscaledTime - lastInputTime < inputCooldown) return;
+        if (menuItems.Count == 0 || !CanProcessInput()) return;
         
         // Get left joystick vertical input (or keyboard fallback)
         // Use unscaled time for input to work during pause
@@ -113,11 +170,35 @@ public class UpgradeMenu : MonoBehaviour
             }
         }
         
-        // Handle action button (Submit/Fire1)
+        // Handle knight selection with legacy input as fallback (if InputActionReferences not assigned)
+        if (leftKnightSelectAction == null && (Input.GetButtonDown("LeftShoot") || Input.GetButtonDown("LeftSpecial")))
+        {
+            selectedKnight = KnightTarget.LeftKnight;
+            SelectUpgrade(currentSelectedIndex);
+            lastInputTime = Time.unscaledTime;
+        }
+        else if (rightKnightSelectAction == null && (Input.GetButtonDown("RightShoot") || Input.GetButtonDown("RightSpecial")))
+        {
+            selectedKnight = KnightTarget.RightKnight;
+            SelectUpgrade(currentSelectedIndex);
+            lastInputTime = Time.unscaledTime;
+        }
+        
+        // Keep legacy selection for keyboard/other input
         if (Input.GetButtonDown("Submit") || Input.GetButtonDown("Fire1"))
         {
             SelectUpgrade(currentSelectedIndex);
         }
+    }
+    
+    private bool CanProcessInput()
+    {
+        return Time.unscaledTime - lastInputTime >= inputCooldown;
+    }
+    
+    private bool IsMenuVisible()
+    {
+        return root != null && root.style.display == DisplayStyle.Flex;
     }
     
     void NavigateUp()
@@ -153,25 +234,56 @@ public class UpgradeMenu : MonoBehaviour
     {
         if (index < 0 || index >= menuItems.Count) return;
         
-        // Trigger the upgrade selected event
-        OnUpgradeSelected?.Invoke(index);
+        // Trigger the upgrade selected event with knight target
+        OnUpgradeSelected?.Invoke(index, selectedKnight);
     }
     
-    // Public method to show/hide the menu
+    // Public method to show/hide the menu and populate upgrades
     public void SetMenuVisible(bool visible)
     {
         if (root != null)
         {
             root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
             
-            // Reset selection to first item when showing menu
+            // Reset selection and populate upgrades when showing menu
             if (visible)
             {
                 currentSelectedIndex = 0;
+                selectedKnight = KnightTarget.LeftKnight;
+                PopulateUpgrades();
                 UpdateSelection();
                 
                 // Force refresh the UI
                 root.MarkDirtyRepaint();
+            }
+        }
+    }
+    
+    private void PopulateUpgrades()
+    {
+        if (upgradeManager == null) return;
+        
+        currentUpgrades = upgradeManager.GetRandomUpgrades();
+        
+        // Update menu items with upgrade information
+        for (int i = 0; i < menuItems.Count; i++)
+        {
+            if (i < currentUpgrades.Count)
+            {
+                BaseUpgrade upgrade = currentUpgrades[i];
+                menuItems[i].text = upgrade.GetDisplayText();
+                menuItems[i].style.display = DisplayStyle.Flex;
+                
+                // Add rarity styling
+                menuItems[i].RemoveFromClassList("common");
+                menuItems[i].RemoveFromClassList("rare");
+                menuItems[i].RemoveFromClassList("epic");
+                menuItems[i].RemoveFromClassList("legendary");
+                menuItems[i].AddToClassList(upgrade.Rarity.ToString().ToLower());
+            }
+            else
+            {
+                menuItems[i].style.display = DisplayStyle.None;
             }
         }
     }
@@ -186,12 +298,13 @@ public class UpgradeMenu : MonoBehaviour
         }
     }
     
-    // Method to update menu item text (for future upgrade content)
-    public void SetMenuItemText(int index, string text)
+    // Get the currently selected upgrade
+    public BaseUpgrade GetSelectedUpgrade()
     {
-        if (index >= 0 && index < menuItems.Count)
+        if (currentUpgrades != null && currentSelectedIndex >= 0 && currentSelectedIndex < currentUpgrades.Count)
         {
-            menuItems[index].text = text;
+            return currentUpgrades[currentSelectedIndex];
         }
+        return null;
     }
 }

@@ -9,6 +9,7 @@ public class Spawner : MonoBehaviour
     [SerializeField] private WaveManager waveManager;
     [SerializeField] private WaveName waveNameDisplay;
     [SerializeField] private UpgradeMenu upgradeMenu; // New reference to upgrade menu
+    [SerializeField] private UpgradeManager upgradeManager; // Reference to upgrade manager
     [SerializeField] public GameObject projectilePrefab;
     [SerializeField] public GameObject brownRat;
     [SerializeField] public GameObject greyRat;
@@ -98,9 +99,18 @@ public class Spawner : MonoBehaviour
         Debug.Log("Wave completed! Upgrade menu shown and game paused.");
     }
 
-    private void OnUpgradeSelected(int upgradeIndex)
+    private void OnUpgradeSelected(int upgradeIndex, KnightTarget selectedKnight)
     {
-        Debug.Log($"Upgrade {upgradeIndex} selected!");
+        BaseUpgrade selectedUpgrade = upgradeMenu.GetSelectedUpgrade();
+        
+        if (selectedUpgrade != null && upgradeManager != null)
+        {
+            upgradeManager.ApplyUpgrade(selectedUpgrade, selectedKnight);
+        }
+        else
+        {
+            Debug.Log($"Upgrade {upgradeIndex} was selected for {selectedKnight}");
+        }
         
         // Hide upgrade menu
         if (upgradeMenu != null)

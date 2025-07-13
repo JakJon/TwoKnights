@@ -37,6 +37,14 @@ public class PlayerHealth : MonoBehaviour
         healthBar.SetValue(currentHealth);
     }
 
+    public void IncreaseMaxHealth(int amount)
+    {
+        maxHealth += amount;
+        currentHealth += amount; // Also heal the player by the same amount
+        healthBar.Initialize(maxHealth);
+        healthBar.SetValue(currentHealth);
+    }
+
     public int GetCurrentHealth()
     {
         return currentHealth;

@@ -13,7 +13,7 @@ public class ProjectileSettings : MonoBehaviour
             PlayerSpecial playerSpecial = other.GetComponentInParent<PlayerSpecial>();
             if (playerSpecial != null)
             {
-                playerSpecial.updateSpecial(5);
+                playerSpecial.updateSpecial(1);
             }
             Destroy(gameObject);
             return;

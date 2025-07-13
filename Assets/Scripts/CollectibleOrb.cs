@@ -49,7 +49,6 @@ public class CollectibleOrb : MonoBehaviour
                 ? GameObject.FindWithTag("PlayerLeft")
                 : GameObject.FindWithTag("PlayerRight");
 
-            Destroy(other.gameObject);
             Destroy(gameObject);
 
             if (player != null)

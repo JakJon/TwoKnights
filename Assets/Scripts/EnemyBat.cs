@@ -99,6 +99,7 @@ public class EnemyBat : MonoBehaviour, IHasAttributes
     {
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
+            // Damage is now handled in PlayerProjectile
             Destroy(other.gameObject);
         }
         else if (other.CompareTag("Shield"))

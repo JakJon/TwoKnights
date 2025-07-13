@@ -154,36 +154,8 @@ public class EnemyRat : MonoBehaviour, IHasAttributes
     {
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
-            Health -= 10;
-
-            // Determine which player shot the projectile and gain special
-            GameObject player = other.CompareTag("PlayerLeftProjectile")
-                ? GameObject.FindWithTag("PlayerLeft")
-                : GameObject.FindWithTag("PlayerRight");
-
-            if (player != null)
-            {
-                PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
-                if (playerSpecial != null)
-                {
-                    if (Health > 0)
-                        playerSpecial.updateSpecial(10);
-                    else
-                        playerSpecial.updateSpecial(20);
-                }
-            }
-            
+            // Damage is now handled in PlayerProjectile
             Destroy(other.gameObject); // Destroy the projectile
-
-            if (Health <= 0)
-            {
-                Destroy(gameObject); // Destroy the rat
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.ratDeath);
-            }
-            else
-            {
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.ratHurt);
-            }
         }
         else if (other.CompareTag("Shield"))
         {

@@ -9,14 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
-  m_Name: Bat Cauldron
+  m_Script: {fileID: 11500000, guid: 38a3dc441f1152c49aa86408609cb488, type: 3}
+  m_Name: FiringRateUpgrade
   m_EditorClassIdentifier: 
-  waveName: Bat Cauldron
-  weight: 1e+9
+  upgradeName: Firing Rate
+  description: +30% Fire Rate
+  rarity: 2
   isUnlocked: 1
-  waveDescription: 
-  batsPerRing: 6
-  numberOfRings: 1
-  delayBetweenRings: 12
-  ringRadius: 12
+  rateMultiplier: 0.7
