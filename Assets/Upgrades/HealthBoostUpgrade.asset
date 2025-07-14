@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Health Boost
   description: +25 Max Health
-  weight: 11
+  weight: 9
   isUnlocked: 1
   healthIncrease: 25

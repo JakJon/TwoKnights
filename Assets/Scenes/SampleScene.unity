@@ -366,10 +366,9 @@ MonoBehaviour:
   uiDocument: {fileID: 143688918}
   styleSheet: {fileID: 7433441132597879392, guid: c2f9c4c0a9d29824b96dfb1794abfac2, type: 3}
   upgradeManager: {fileID: 11400000, guid: 541b5ccd0e52f0c4abc9c9a83ea1b3e8, type: 2}
-  navigationAction: {fileID: -8070269708226651640, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   leftKnightSelectAction: {fileID: -5531687915285905008, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   rightKnightSelectAction: {fileID: 4618672932050298884, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
-  confirmAction: {fileID: -2015749805523769772, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  confirmAction: {fileID: -834660233161031971, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   inputDeadzone: 0.5
   inputCooldown: 0.3
 --- !u!114 &143688918

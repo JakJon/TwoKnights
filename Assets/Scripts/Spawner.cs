@@ -52,7 +52,7 @@ public class Spawner : MonoBehaviour
         // Setup upgrade menu callback
         if (upgradeMenu != null)
         {
-            upgradeMenu.OnUpgradeSelected += OnUpgradeSelected;
+            upgradeMenu.OnUpgradeConfirmed += OnUpgradeConfirmed;
         }
         
         StartNextWave();
@@ -99,9 +99,9 @@ public class Spawner : MonoBehaviour
         Debug.Log("Wave completed! Upgrade menu shown and game paused.");
     }
 
-    private void OnUpgradeSelected(int upgradeIndex, KnightTarget selectedKnight)
+    private void OnUpgradeConfirmed(int upgradeIndex, KnightTarget selectedKnight)
     {
-        BaseUpgrade selectedUpgrade = upgradeMenu.GetSelectedUpgrade();
+        BaseUpgrade selectedUpgrade = upgradeMenu.GetChosenUpgrade();
         
         if (selectedUpgrade != null && upgradeManager != null)
         {
@@ -109,7 +109,7 @@ public class Spawner : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Upgrade {upgradeIndex} was selected for {selectedKnight}");
+            Debug.Log($"Upgrade {upgradeIndex} was confirmed for {selectedKnight}");
         }
         
         // Hide upgrade menu
@@ -131,7 +131,7 @@ public class Spawner : MonoBehaviour
         // Clean up event subscription
         if (upgradeMenu != null)
         {
-            upgradeMenu.OnUpgradeSelected -= OnUpgradeSelected;
+            upgradeMenu.OnUpgradeConfirmed -= OnUpgradeConfirmed;
         }
     }
 

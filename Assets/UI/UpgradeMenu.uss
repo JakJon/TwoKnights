@@ -28,11 +28,26 @@
 .controls-info {
     font-size: 16px;
     color: rgb(200, 200, 190);
-    margin-bottom: 2%;
+    margin-bottom: 1%;
     -unity-text-align: middle-center;
     -unity-font-style: normal;
     letter-spacing: 0.5px;
     opacity: 0.8;
+    flex-shrink: 0;
+}
+
+.selection-status {
+    font-size: 18px;
+    color: rgb(255, 255, 255);
+    margin-bottom: 2%;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    letter-spacing: 0.5px;
+    background-color: rgba(80, 120, 100, 0.8);
+    border-radius: 6px;
+    padding: 8px 16px;
+    border-width: 2px;
+    border-color: rgb(150, 200, 175);
     flex-shrink: 0;
 }
 
@@ -83,13 +98,13 @@
     border-color: rgb(60, 100, 70);
 }
 
-.menu-item.rest {
+.menu-item.confirm {
     background-color: rgba(30, 40, 60, 0.9);
     border-color: rgb(60, 85, 130);
     flex-shrink: 0;
 }
 
-.rest-button {
+.confirm-button {
     width: 40%;
     min-width: 200px;
     max-width: 300px;
@@ -159,6 +174,26 @@
 
 .menu-item--selected .upgrade-rarity {
     color: rgb(220, 220, 210);
+}
+
+/* Upgrade chosen for application - different from navigation selection */
+.menu-item--chosen {
+    background-color: rgba(255, 215, 0, 0.3);
+    border-color: rgb(255, 215, 0);
+    border-width: 4px;
+}
+
+.menu-item--chosen .upgrade-title {
+    color: rgb(255, 255, 255);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.menu-item--chosen .upgrade-description {
+    color: rgb(255, 255, 255);
+}
+
+.menu-item--chosen .upgrade-rarity {
+    color: rgb(255, 255, 255);
 }
 
 /* Upgrade Rarity Color Styles */

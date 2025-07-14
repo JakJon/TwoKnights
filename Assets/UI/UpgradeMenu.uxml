@@ -2,6 +2,7 @@
     <ui:VisualElement name="upgrade-menu" class="upgrade-menu">
         <ui:Label text="Choose an Upgrade:" name="title" class="title" />
         <ui:Label text="Navigate: Left Stick  |  Left Knight: Left Action  |  Right Knight: Right Action" name="controls-info" class="controls-info" />
+        <ui:Label text="" name="selection-status" class="selection-status" style="display: none;" />
         <ui:VisualElement name="menu-items" class="menu-items">
             <ui:VisualElement name="upgrade-row" class="upgrade-row">
                 <ui:VisualElement name="item-one" class="menu-item upgrade">
@@ -20,7 +21,7 @@
                     <ui:Label text="Epic" name="upgrade-rarity" class="upgrade-rarity" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Button text="rest" name="item-four" class="menu-item rest rest-button" />
+            <ui:Button text="Confirm" name="item-four" class="menu-item confirm confirm-button" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
