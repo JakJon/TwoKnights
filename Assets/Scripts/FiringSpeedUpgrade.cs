@@ -11,6 +11,8 @@ public class FiringSpeedUpgrade : BaseUpgrade
             upgradeName = "Firing Speed";
         if (string.IsNullOrEmpty(description))
             description = $"+{(speedMultiplier - 1f) * 100:F0}% Projectile Speed";
+        if (weight == 0f)
+            weight = 60f; // Rare rarity weight
     }
     
     public override void ApplyUpgrade(GameObject targetKnight)

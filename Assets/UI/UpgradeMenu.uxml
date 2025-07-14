@@ -4,9 +4,21 @@
         <ui:Label text="Navigate: Left Stick  |  Left Knight: Left Action  |  Right Knight: Right Action" name="controls-info" class="controls-info" />
         <ui:VisualElement name="menu-items" class="menu-items">
             <ui:VisualElement name="upgrade-row" class="upgrade-row">
-                <ui:Button text="one" name="item-one" class="menu-item upgrade" />
-                <ui:Button text="two" name="item-two" class="menu-item upgrade" />
-                <ui:Button text="three" name="item-three" class="menu-item upgrade" />
+                <ui:VisualElement name="item-one" class="menu-item upgrade">
+                    <ui:Label text="Upgrade One" name="upgrade-title" class="upgrade-title" />
+                    <ui:Label text="Description of upgrade one goes here" name="upgrade-description" class="upgrade-description" />
+                    <ui:Label text="Common" name="upgrade-rarity" class="upgrade-rarity" />
+                </ui:VisualElement>
+                <ui:VisualElement name="item-two" class="menu-item upgrade">
+                    <ui:Label text="Upgrade Two" name="upgrade-title" class="upgrade-title" />
+                    <ui:Label text="Description of upgrade two goes here" name="upgrade-description" class="upgrade-description" />
+                    <ui:Label text="Rare" name="upgrade-rarity" class="upgrade-rarity" />
+                </ui:VisualElement>
+                <ui:VisualElement name="item-three" class="menu-item upgrade">
+                    <ui:Label text="Upgrade Three" name="upgrade-title" class="upgrade-title" />
+                    <ui:Label text="Description of upgrade three goes here" name="upgrade-description" class="upgrade-description" />
+                    <ui:Label text="Epic" name="upgrade-rarity" class="upgrade-rarity" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:Button text="rest" name="item-four" class="menu-item rest rest-button" />
         </ui:VisualElement>

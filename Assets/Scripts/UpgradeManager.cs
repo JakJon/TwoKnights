@@ -18,7 +18,7 @@ public class UpgradeManager : ScriptableObject
             return availableUpgrades;
         }
         
-        // Weighted random selection based on rarity
+        // Weighted random selection based on upgrade weights
         List<BaseUpgrade> selectedUpgrades = new List<BaseUpgrade>();
         List<BaseUpgrade> tempList = new List<BaseUpgrade>(availableUpgrades);
         
@@ -34,36 +34,24 @@ public class UpgradeManager : ScriptableObject
     
     private BaseUpgrade GetWeightedRandomUpgrade(List<BaseUpgrade> upgrades)
     {
-        // Simple weighted selection - rarer items have lower chance
-        var weightedUpgrades = new List<(BaseUpgrade upgrade, float weight)>();
+        // Calculate total weight for all available upgrades
+        float totalWeight = upgrades.Sum(u => u.Weight);
         
+        // Random selection based on weights (similar to WaveManager)
+        float randomValue = Random.Range(0f, totalWeight);
+        float currentWeight = 0f;
+
         foreach (var upgrade in upgrades)
         {
-            float weight = upgrade.Rarity switch
-            {
-                UpgradeRarity.Common => 1.0f,
-                UpgradeRarity.Rare => 0.5f,
-                UpgradeRarity.Epic => 0.25f,
-                UpgradeRarity.Legendary => 0.1f,
-                _ => 1.0f
-            };
-            weightedUpgrades.Add((upgrade, weight));
-        }
-        
-        float totalWeight = weightedUpgrades.Sum(x => x.weight);
-        float randomValue = Random.Range(0f, totalWeight);
-        
-        float currentWeight = 0f;
-        foreach (var (upgrade, weight) in weightedUpgrades)
-        {
-            currentWeight += weight;
+            currentWeight += upgrade.Weight;
             if (randomValue <= currentWeight)
             {
                 return upgrade;
             }
         }
         
-        return weightedUpgrades.LastOrDefault().upgrade;
+        // Fallback to last upgrade if something went wrong with weight calculation
+        return upgrades.LastOrDefault();
     }
     
     public void ApplyUpgrade(BaseUpgrade upgrade, KnightTarget targetKnight)

@@ -11,6 +11,8 @@ public class HealthBoostUpgrade : BaseUpgrade
             upgradeName = "Health Boost";
         if (string.IsNullOrEmpty(description))
             description = $"+{healthIncrease} Max Health";
+        if (weight == 0f)
+            weight = 120f; // Common rarity weight
     }
     
     public override void ApplyUpgrade(GameObject targetKnight)

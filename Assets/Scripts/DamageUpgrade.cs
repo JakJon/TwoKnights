@@ -11,6 +11,8 @@ public class DamageUpgrade : BaseUpgrade
             upgradeName = "Damage Boost";
         if (string.IsNullOrEmpty(description))
             description = $"+{damageIncrease} Damage";
+        if (weight == 0f)
+            weight = 110f; // Common rarity weight
     }
     
     public override void ApplyUpgrade(GameObject targetKnight)

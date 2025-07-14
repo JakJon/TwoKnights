@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Firing Rate
   description: +30% Fire Rate
-  rarity: 2
+  weight: 50
   isUnlocked: 1
   rateMultiplier: 0.7

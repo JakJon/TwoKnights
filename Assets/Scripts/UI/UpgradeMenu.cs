@@ -22,7 +22,7 @@ public class UpgradeMenu : MonoBehaviour
     [SerializeField] private float inputCooldown = 0.3f;
     
     private VisualElement root;
-    private List<Button> menuItems;
+    private List<VisualElement> menuItems;
     private List<BaseUpgrade> currentUpgrades;
     private int currentSelectedIndex = 0;
     private float lastInputTime = 0f;
@@ -114,11 +114,11 @@ public class UpgradeMenu : MonoBehaviour
             root.styleSheets.Add(styleSheet);
         }
         
-        // Find menu items (only the upgrade items, not the rest button)
-        menuItems = new List<Button>();
-        var itemOne = root.Q<Button>("item-one");
-        var itemTwo = root.Q<Button>("item-two");
-        var itemThree = root.Q<Button>("item-three");
+        // Find menu items (upgrade containers, not the rest button)
+        menuItems = new List<VisualElement>();
+        var itemOne = root.Q<VisualElement>("item-one");
+        var itemTwo = root.Q<VisualElement>("item-two");
+        var itemThree = root.Q<VisualElement>("item-three");
 
         if (itemOne != null) menuItems.Add(itemOne);
         if (itemTwo != null) menuItems.Add(itemTwo);
@@ -126,11 +126,11 @@ public class UpgradeMenu : MonoBehaviour
 
         if (menuItems.Count == 0) return;
         
-        // Setup click handlers
+        // Setup click handlers for the upgrade items
         for (int i = 0; i < menuItems.Count; i++)
         {
             int index = i; // Capture for closure
-            menuItems[i].clicked += () => SelectUpgrade(index);
+            menuItems[i].RegisterCallback<ClickEvent>(_ => SelectUpgrade(index));
         }
         
         // Set initial selection
@@ -271,7 +271,17 @@ public class UpgradeMenu : MonoBehaviour
             if (i < currentUpgrades.Count)
             {
                 BaseUpgrade upgrade = currentUpgrades[i];
-                menuItems[i].text = upgrade.GetDisplayText();
+                
+                // Get the child labels
+                var titleLabel = menuItems[i].Q<Label>("upgrade-title");
+                var descriptionLabel = menuItems[i].Q<Label>("upgrade-description");
+                var rarityLabel = menuItems[i].Q<Label>("upgrade-rarity");
+                
+                // Update the text content
+                if (titleLabel != null) titleLabel.text = upgrade.UpgradeName;
+                if (descriptionLabel != null) descriptionLabel.text = upgrade.Description;
+                if (rarityLabel != null) rarityLabel.text = upgrade.Rarity.ToString();
+                
                 menuItems[i].style.display = DisplayStyle.Flex;
                 
                 // Add rarity styling

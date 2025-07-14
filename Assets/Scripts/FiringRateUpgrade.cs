@@ -11,6 +11,8 @@ public class FiringRateUpgrade : BaseUpgrade
             upgradeName = "Firing Rate";
         if (string.IsNullOrEmpty(description))
             description = $"+{(1f - rateMultiplier) * 100:F0}% Fire Rate";
+        if (weight == 0f)
+            weight = 25f; // Epic rarity weight
     }
     
     public override void ApplyUpgrade(GameObject targetKnight)
