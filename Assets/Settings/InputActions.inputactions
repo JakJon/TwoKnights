@@ -67,6 +67,42 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "dpad left",
+                    "type": "Button",
+                    "id": "15b932bc-8c84-4dc2-b815-736dff941325",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "dpad up",
+                    "type": "Button",
+                    "id": "e8642b55-b3b8-4d5e-a914-ea875a4f654c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "dpad right",
+                    "type": "Button",
+                    "id": "6be60409-6416-4b94-b1fd-b97f61d54ae2",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "dpad down",
+                    "type": "Button",
+                    "id": "cd0eb6f3-ac9d-4b91-b772-a8075c137995",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -144,6 +180,50 @@
                     "processors": "",
                     "groups": "",
                     "action": "BottomButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "394e19d7-d198-4b90-83da-e4d3928317ea",
+                    "path": "<Gamepad>/dpad/left",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "dpad left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b300e442-f26b-4158-b9fb-c127211f8b1a",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "dpad up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "abc6d0c5-1adb-47d2-87cd-940bc71c73bd",
+                    "path": "<Gamepad>/dpad/right",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "dpad right",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c37db3fc-5638-4cb9-9604-48eabdecea00",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "dpad down",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

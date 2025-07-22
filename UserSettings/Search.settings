@@ -9,7 +9,7 @@ onBoardingDoNotAskAgain = true
 showPackageIndexes = false
 showStatusBar = false
 scopes = {
-	"picker_window_position_offset.075BCD15" = "-197;232;320;550"
+	"picker_window_position_offset.075BCD15" = "-385;235;320;550"
 	"picker_visibility_flags.075BCD15" = "264"
 	"picker_item_size.075BCD15" = "32"
 	"picker_inspector.075BCD15" = "0"
@@ -69,6 +69,7 @@ providers = {
 objectSelectors = {
 }
 recentSearches = [
+	"rights"
 ]
 searchItemFavorites = [
 ]

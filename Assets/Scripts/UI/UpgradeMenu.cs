@@ -13,14 +13,19 @@ public class UpgradeMenu : MonoBehaviour
     [Header("Upgrade System")]
     [SerializeField] private UpgradeManager upgradeManager;
     
-    [Header("Input System")]
+    [Header("D-Pad Navigation Input Actions")]
+    [SerializeField] private InputActionReference dpadLeftAction;
+    [SerializeField] private InputActionReference dpadRightAction;
+    [SerializeField] private InputActionReference dpadUpAction;
+    [SerializeField] private InputActionReference dpadDownAction;
+    
+    [Header("Knight Selection Input Actions")]
     [SerializeField] private InputActionReference leftKnightSelectAction;
     [SerializeField] private InputActionReference rightKnightSelectAction;
     [SerializeField] private InputActionReference confirmAction;
     
     [Header("Input Settings")]
-    [SerializeField] private float inputDeadzone = 0.5f;
-    [SerializeField] private float inputCooldown = 0.3f;
+    [SerializeField] private float inputCooldown = 0.2f;
     
     private VisualElement root;
     private List<VisualElement> menuItems;
@@ -28,6 +33,7 @@ public class UpgradeMenu : MonoBehaviour
     private Label selectionStatusLabel;
     private List<BaseUpgrade> currentUpgrades;
     private int currentSelectedIndex = 0;
+    private bool isConfirmButtonSelected = false;
     private float lastInputTime = 0f;
     private KnightTarget selectedKnight = KnightTarget.LeftKnight;
     private int chosenUpgradeIndex = -1;
@@ -56,7 +62,32 @@ public class UpgradeMenu : MonoBehaviour
     
     private void OnEnable()
     {
-        // Enable input actions
+        // Enable D-pad navigation actions
+        if (dpadLeftAction != null)
+        {
+            dpadLeftAction.action.performed += OnDPadLeft;
+            dpadLeftAction.action.Enable();
+        }
+        
+        if (dpadRightAction != null)
+        {
+            dpadRightAction.action.performed += OnDPadRight;
+            dpadRightAction.action.Enable();
+        }
+        
+        if (dpadUpAction != null)
+        {
+            dpadUpAction.action.performed += OnDPadUp;
+            dpadUpAction.action.Enable();
+        }
+        
+        if (dpadDownAction != null)
+        {
+            dpadDownAction.action.performed += OnDPadDown;
+            dpadDownAction.action.Enable();
+        }
+        
+        // Enable knight selection actions
         if (leftKnightSelectAction != null)
         {
             leftKnightSelectAction.action.performed += OnLeftKnightSelect;
@@ -78,7 +109,32 @@ public class UpgradeMenu : MonoBehaviour
     
     private void OnDisable()
     {
-        // Disable input actions
+        // Disable D-pad navigation actions
+        if (dpadLeftAction != null)
+        {
+            dpadLeftAction.action.performed -= OnDPadLeft;
+            dpadLeftAction.action.Disable();
+        }
+        
+        if (dpadRightAction != null)
+        {
+            dpadRightAction.action.performed -= OnDPadRight;
+            dpadRightAction.action.Disable();
+        }
+        
+        if (dpadUpAction != null)
+        {
+            dpadUpAction.action.performed -= OnDPadUp;
+            dpadUpAction.action.Disable();
+        }
+        
+        if (dpadDownAction != null)
+        {
+            dpadDownAction.action.performed -= OnDPadDown;
+            dpadDownAction.action.Disable();
+        }
+        
+        // Disable knight selection actions
         if (leftKnightSelectAction != null)
         {
             leftKnightSelectAction.action.performed -= OnLeftKnightSelect;
@@ -98,6 +154,44 @@ public class UpgradeMenu : MonoBehaviour
         }
     }
     
+    // D-pad navigation input callbacks
+    private void OnDPadLeft(InputAction.CallbackContext context)
+    {
+        if (IsMenuVisible() && CanProcessInput())
+        {
+            NavigateLeft();
+            lastInputTime = Time.unscaledTime;
+        }
+    }
+    
+    private void OnDPadRight(InputAction.CallbackContext context)
+    {
+        if (IsMenuVisible() && CanProcessInput())
+        {
+            NavigateRight();
+            lastInputTime = Time.unscaledTime;
+        }
+    }
+    
+    private void OnDPadUp(InputAction.CallbackContext context)
+    {
+        if (IsMenuVisible() && CanProcessInput())
+        {
+            NavigateUp();
+            lastInputTime = Time.unscaledTime;
+        }
+    }
+    
+    private void OnDPadDown(InputAction.CallbackContext context)
+    {
+        if (IsMenuVisible() && CanProcessInput())
+        {
+            NavigateDown();
+            lastInputTime = Time.unscaledTime;
+        }
+    }
+    
+    // Knight selection input callbacks
     private void OnLeftKnightSelect(InputAction.CallbackContext context)
     {
         if (IsMenuVisible() && CanProcessInput() && IsUpgradeSelected())
@@ -118,7 +212,7 @@ public class UpgradeMenu : MonoBehaviour
     
     private void OnConfirmSelect(InputAction.CallbackContext context)
     {
-        if (IsMenuVisible() && CanProcessInput() && chosenUpgradeIndex >= 0)
+        if (IsMenuVisible() && CanProcessInput() && isConfirmButtonSelected && chosenUpgradeIndex >= 0)
         {
             ConfirmUpgrade();
             lastInputTime = Time.unscaledTime;
@@ -160,6 +254,7 @@ public class UpgradeMenu : MonoBehaviour
             int index = i; // Capture for closure
             menuItems[i].RegisterCallback<ClickEvent>(_ => {
                 currentSelectedIndex = index;
+                isConfirmButtonSelected = false;
                 UpdateSelection();
             });
         }
@@ -167,7 +262,14 @@ public class UpgradeMenu : MonoBehaviour
         // Setup confirm button click handler
         if (confirmButton != null)
         {
-            confirmButton.clicked += ConfirmUpgrade;
+            confirmButton.clicked += () => {
+                isConfirmButtonSelected = true;
+                UpdateSelection();
+                if (chosenUpgradeIndex >= 0)
+                {
+                    ConfirmUpgrade();
+                }
+            };
         }
         
         // Set initial selection
@@ -176,34 +278,51 @@ public class UpgradeMenu : MonoBehaviour
     
     void Update()
     {
-        // Only handle input when menu is visible
+        // Only handle fallback input when menu is visible and no Input Actions are assigned
         if (IsMenuVisible())
         {
-            HandleInput();
+            HandleFallbackInput();
         }
     }
     
-    void HandleInput()
+    void HandleFallbackInput()
     {
         if (menuItems.Count == 0 || !CanProcessInput()) return;
         
-        // Get left joystick vertical input (or keyboard fallback)
-        // Use unscaled time for input to work during pause
-        float verticalInput = Input.GetAxis("Vertical");
+        // Fallback input handling for when InputActionReferences are not assigned
+        bool inputProcessedThisFrame = false;
         
-        // Handle vertical navigation with deadzone
-        // Note: Positive vertical input = up, negative = down
-        if (Mathf.Abs(verticalInput) > inputDeadzone)
+        // Handle D-pad/keyboard horizontal navigation (left/right through upgrade items)
+        if (!inputProcessedThisFrame && dpadLeftAction == null && dpadRightAction == null)
         {
-            if (verticalInput > inputDeadzone) // Up - move to previous item
+            if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
+            {
+                NavigateLeft();
+                lastInputTime = Time.unscaledTime;
+                inputProcessedThisFrame = true;
+            }
+            else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
+            {
+                NavigateRight();
+                lastInputTime = Time.unscaledTime;
+                inputProcessedThisFrame = true;
+            }
+        }
+        
+        // Handle D-pad/keyboard vertical navigation (up/down between upgrade items and confirm button)
+        if (!inputProcessedThisFrame && dpadUpAction == null && dpadDownAction == null)
+        {
+            if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             {
                 NavigateUp();
                 lastInputTime = Time.unscaledTime;
+                inputProcessedThisFrame = true;
             }
-            else if (verticalInput < -inputDeadzone) // Down - move to next item
+            else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             {
                 NavigateDown();
                 lastInputTime = Time.unscaledTime;
+                inputProcessedThisFrame = true;
             }
         }
         
@@ -225,10 +344,10 @@ public class UpgradeMenu : MonoBehaviour
             }
         }
         
-        // Handle confirmation with legacy input
+        // Handle confirmation with legacy input - only if confirm button is selected
         if (confirmAction == null && (Input.GetButtonDown("Submit") || Input.GetButtonDown("Fire1")))
         {
-            if (chosenUpgradeIndex >= 0)
+            if (isConfirmButtonSelected && chosenUpgradeIndex >= 0)
             {
                 ConfirmUpgrade();
                 lastInputTime = Time.unscaledTime;
@@ -248,18 +367,58 @@ public class UpgradeMenu : MonoBehaviour
     
     private bool IsUpgradeSelected()
     {
-        return currentSelectedIndex >= 0 && currentSelectedIndex < menuItems.Count;
+        return !isConfirmButtonSelected && currentSelectedIndex >= 0 && currentSelectedIndex < menuItems.Count;
+    }
+    
+    void NavigateLeft()
+    {
+        if (!isConfirmButtonSelected)
+        {
+            // Navigate through upgrade items: 0 <- 1 <- 2
+            currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.Count) % menuItems.Count;
+            UpdateSelection();
+        }
+    }
+    
+    void NavigateRight()
+    {
+        if (!isConfirmButtonSelected)
+        {
+            // Navigate through upgrade items: 0 -> 1 -> 2
+            currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.Count;
+            UpdateSelection();
+        }
     }
     
     void NavigateUp()
     {
-        currentSelectedIndex = (currentSelectedIndex - 1 + menuItems.Count) % menuItems.Count;
+        if (isConfirmButtonSelected)
+        {
+            // Move from confirm button to second upgrade item (index 1)
+            isConfirmButtonSelected = false;
+            currentSelectedIndex = 1;
+        }
+        else
+        {
+            // Move from any upgrade item to confirm button
+            isConfirmButtonSelected = true;
+        }
         UpdateSelection();
     }
     
     void NavigateDown()
     {
-        currentSelectedIndex = (currentSelectedIndex + 1) % menuItems.Count;
+        if (isConfirmButtonSelected)
+        {
+            // Move from confirm button to second upgrade item (index 1)
+            isConfirmButtonSelected = false;
+            currentSelectedIndex = 1;
+        }
+        else
+        {
+            // Move from any upgrade item to confirm button
+            isConfirmButtonSelected = true;
+        }
         UpdateSelection();
     }
     
@@ -273,10 +432,27 @@ public class UpgradeMenu : MonoBehaviour
             menuItems[i].RemoveFromClassList(SELECTED_CLASS);
         }
         
-        // Add selected class to current item
-        if (currentSelectedIndex >= 0 && currentSelectedIndex < menuItems.Count)
+        // Remove selected class from confirm button
+        if (confirmButton != null)
         {
-            menuItems[currentSelectedIndex].AddToClassList(SELECTED_CLASS);
+            confirmButton.RemoveFromClassList(SELECTED_CLASS);
+        }
+        
+        if (isConfirmButtonSelected)
+        {
+            // Highlight confirm button
+            if (confirmButton != null)
+            {
+                confirmButton.AddToClassList(SELECTED_CLASS);
+            }
+        }
+        else
+        {
+            // Highlight current upgrade item
+            if (currentSelectedIndex >= 0 && currentSelectedIndex < menuItems.Count)
+            {
+                menuItems[currentSelectedIndex].AddToClassList(SELECTED_CLASS);
+            }
         }
     }
     
@@ -284,14 +460,17 @@ public class UpgradeMenu : MonoBehaviour
     {
         if (upgradeIndex < 0 || upgradeIndex >= menuItems.Count || upgradeIndex >= currentUpgrades.Count) return;
         
-        // Clear previous selection
+        // Debug logging to track selection changes
+        Debug.Log($"Selecting upgrade {upgradeIndex} for {knight}. Previous selection: upgrade {chosenUpgradeIndex} for {chosenKnight}");
+        
+        // Clear previous selection - this should remove visual styling from any previously chosen upgrade
         ClearChosenUpgrade();
         
         // Set new selection
         chosenUpgradeIndex = upgradeIndex;
         chosenKnight = knight;
         
-        // Update visual state
+        // Update visual state for the newly chosen upgrade
         menuItems[upgradeIndex].AddToClassList(CHOSEN_CLASS);
         
         // Update status text
@@ -301,14 +480,19 @@ public class UpgradeMenu : MonoBehaviour
             selectionStatusLabel.text = $"{currentUpgrades[upgradeIndex].UpgradeName} will be applied to {knightName}";
             selectionStatusLabel.style.display = DisplayStyle.Flex;
         }
+        
+        Debug.Log($"Selection updated: upgrade {chosenUpgradeIndex} for {chosenKnight}");
     }
     
     void ClearChosenUpgrade()
     {
-        if (chosenUpgradeIndex >= 0 && chosenUpgradeIndex < menuItems.Count)
+        // Clear visual styling from all menu items to ensure no lingering chosen state
+        for (int i = 0; i < menuItems.Count; i++)
         {
-            menuItems[chosenUpgradeIndex].RemoveFromClassList(CHOSEN_CLASS);
+            menuItems[i].RemoveFromClassList(CHOSEN_CLASS);
         }
+        
+        // Reset the chosen state
         chosenUpgradeIndex = -1;
         
         if (selectionStatusLabel != null)
@@ -337,6 +521,7 @@ public class UpgradeMenu : MonoBehaviour
             if (visible)
             {
                 currentSelectedIndex = 0;
+                isConfirmButtonSelected = false;
                 selectedKnight = KnightTarget.LeftKnight;
                 ClearChosenUpgrade();
                 PopulateUpgrades();
@@ -393,6 +578,7 @@ public class UpgradeMenu : MonoBehaviour
         if (index >= 0 && index < menuItems.Count)
         {
             currentSelectedIndex = index;
+            isConfirmButtonSelected = false;
             UpdateSelection();
         }
     }
