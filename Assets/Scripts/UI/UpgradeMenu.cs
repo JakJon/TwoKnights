@@ -459,28 +459,27 @@ public class UpgradeMenu : MonoBehaviour
     void SelectUpgradeForKnight(int upgradeIndex, KnightTarget knight)
     {
         if (upgradeIndex < 0 || upgradeIndex >= menuItems.Count || upgradeIndex >= currentUpgrades.Count) return;
-        
+
         // Debug logging to track selection changes
         Debug.Log($"Selecting upgrade {upgradeIndex} for {knight}. Previous selection: upgrade {chosenUpgradeIndex} for {chosenKnight}");
-        
+
         // Clear previous selection - this should remove visual styling from any previously chosen upgrade
         ClearChosenUpgrade();
-        
+
         // Set new selection
         chosenUpgradeIndex = upgradeIndex;
         chosenKnight = knight;
-        
+
         // Update visual state for the newly chosen upgrade
         menuItems[upgradeIndex].AddToClassList(CHOSEN_CLASS);
-        
+
         // Update status text
         if (selectionStatusLabel != null && currentUpgrades != null && upgradeIndex < currentUpgrades.Count)
         {
             string knightName = knight == KnightTarget.LeftKnight ? "Left Knight" : "Right Knight";
             selectionStatusLabel.text = $"{currentUpgrades[upgradeIndex].UpgradeName} will be applied to {knightName}";
-            selectionStatusLabel.style.display = DisplayStyle.Flex;
         }
-        
+
         Debug.Log($"Selection updated: upgrade {chosenUpgradeIndex} for {chosenKnight}");
     }
     
@@ -495,10 +494,7 @@ public class UpgradeMenu : MonoBehaviour
         // Reset the chosen state
         chosenUpgradeIndex = -1;
         
-        if (selectionStatusLabel != null)
-        {
-            selectionStatusLabel.style.display = DisplayStyle.None;
-        }
+
     }
     
     void ConfirmUpgrade()

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: FiringSpeedUpgrade
   m_EditorClassIdentifier: 
   upgradeName: Firing Speed
-  description: +50% Projectile Speed
+  description: +100% Projectile Speed
   weight: 11
   isUnlocked: 1
-  speedMultiplier: 1.5
+  speedMultiplier: 2
