@@ -65,3 +65,13 @@ crashlytics-build.properties
 
 # Ignore Unity UserSettings directory
 UserSettings/
+
+# VS Code extensions and settings
+.vscode/extensions/
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/c_cpp_properties.json
+.vscode/*.log
+# Keep extensions.json for workspace recommendations
+.vscode/extensions.json
