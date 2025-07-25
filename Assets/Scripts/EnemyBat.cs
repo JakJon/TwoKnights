@@ -1,16 +1,10 @@
 using UnityEngine;
 using System.Collections;
 
-public class EnemyBat : MonoBehaviour, IHasAttributes
+public class EnemyBat : EnemyBase
 {
-    [Header("Enemy Attributes")]
-    [Tooltip("Type attributes of this enemy")]
-    [SerializeField]
-    private EnemyType attributes = EnemyType.Flying;
-
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 2f;
-    [SerializeField] private float Health = 20f;
     [SerializeField] private int damage;
     [SerializeField] private float spawnMoveDuration = 1f;
 
@@ -22,6 +16,14 @@ public class EnemyBat : MonoBehaviour, IHasAttributes
 
     private void Start()
     {
+        // Initialize EnemyBase fields with bat-specific values
+        attributes = EnemyType.Flying;
+        health = 10f;
+        specialOnHit = 5;
+        specialOnDeath = 10;
+        hurtSound = AudioManager.Instance.ratHurt;  // TODO: Replace with bat hurt sound
+        deathSound = AudioManager.Instance.ratDeath; // TODO: Replace with bat death sound
+        
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _initialPosition = transform.position;
         
@@ -116,21 +118,5 @@ public class EnemyBat : MonoBehaviour, IHasAttributes
             if (playerHealth != null) playerHealth.TakeDamage(damage);
             Destroy(gameObject);
         }
-    }
-
-    public void TakeDamage(int damage)
-    {
-        Health -= damage;
-        AudioManager.Instance.PlaySFX(AudioManager.Instance.ratHurt);
-        if (Health <= 0)
-        {
-            Destroy(gameObject);
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.ratDeath); // TODO: Replace with bat death sound
-        }
-    }
-
-    public bool HasAttribute(EnemyType attr)
-    {
-        return (attributes & attr) == attr;
     }
 }

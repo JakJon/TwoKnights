@@ -91,9 +91,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 748067a5a8920f44e8b4c98231dbda7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  health: 20
+  specialOnHit: 5
+  specialOnDeath: 10
+  hurtSound:
+    clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
+    volume: 1
+  deathSound:
+    clip: {fileID: 8300000, guid: 12e9190cc900dd547a3f4921325a83f6, type: 3}
+    volume: 1
+  attributes: 1
   moveSpeed: 4
   moveDistance: 5
-  Health: 20
   damage: 30
   spawnMoveDuration: 1
 --- !u!50 &7978365973835505235

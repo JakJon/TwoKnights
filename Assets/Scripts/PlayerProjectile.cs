@@ -42,48 +42,6 @@ public class PlayerProjectile : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        // Handle Bat damage
-        EnemyBat bat = other.GetComponent<EnemyBat>();
-        if (bat != null)
-        {
-            bat.TakeDamage(damage);
-            GiveSpecialToPlayer(5);
-            Destroy(gameObject);
-            return;
-        }
-
-        // Handle Rat damage
-        EnemyRat rat = other.GetComponent<EnemyRat>();
-        if (rat != null)
-        {
-            float oldHealth = rat.GetType().GetField("Health", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(rat) as float? ?? 0f;
-            
-            // Apply damage using reflection since Health is private
-            var healthField = rat.GetType().GetField("Health", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (healthField != null)
-            {
-                float currentHealth = (float)healthField.GetValue(rat);
-                float newHealth = currentHealth - damage;
-                healthField.SetValue(rat, newHealth);
-
-                // Give special based on whether enemy died
-                if (newHealth <= 0)
-                {
-                    GiveSpecialToPlayer(20);
-                    AudioManager.Instance.PlaySFX(AudioManager.Instance.ratDeath);
-                    Destroy(rat.gameObject);
-                }
-                else
-                {
-                    GiveSpecialToPlayer(10);
-                    AudioManager.Instance.PlaySFX(AudioManager.Instance.ratHurt);
-                }
-            }
-            
-            Destroy(gameObject);
-            return;
-        }
     }
 
     private void GiveSpecialToPlayer(int amount)

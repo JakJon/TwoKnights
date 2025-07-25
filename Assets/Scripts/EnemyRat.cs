@@ -1,17 +1,11 @@
 using System.Collections;
 using UnityEngine;
 
-public class EnemyRat : MonoBehaviour, IHasAttributes
+public class EnemyRat : EnemyBase
 {
-    [Header("Enemy Attributes")]
-    [Tooltip("Type attributes of this enemy")]
-    [SerializeField]
-    private EnemyType attributes = EnemyType.Ground;
-
     [Header("Movement")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float moveDistance;
-    [SerializeField] private float Health;
     [SerializeField] private int damage;
     [Header("Spawning")]
     [SerializeField] private float spawnMoveDuration;
@@ -35,6 +29,13 @@ public class EnemyRat : MonoBehaviour, IHasAttributes
 
     void Start()
     {
+        // Initialize EnemyBase fields with rat-specific values
+        attributes = EnemyType.Ground;
+        specialOnHit = 10;
+        specialOnDeath = 20;
+        hurtSound = AudioManager.Instance.ratHurt;
+        deathSound = AudioManager.Instance.ratDeath;
+
         // Spawning setup
         _targetPosition = transform.position;
         transform.position = GetAdjustedSpawnPosition(_targetPosition);
@@ -143,11 +144,6 @@ public class EnemyRat : MonoBehaviour, IHasAttributes
     {
         _isChasing = true;
         _playerTransform = player;
-    }
-
-    public bool HasAttribute(EnemyType attr)
-    {
-        return (attributes & attr) == attr;
     }
 
     void OnTriggerEnter2D(Collider2D other)

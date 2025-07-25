@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TemplateWave
   m_EditorClassIdentifier: 
   waveName: Hi Jake
-  weight: 1e+16
-  isUnlocked: 1
+  weight: 1e+13
+  isUnlocked: 0
   waveDescription: 
   waveOccurences: 1
