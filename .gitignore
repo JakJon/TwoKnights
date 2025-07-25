@@ -75,3 +75,4 @@ UserSettings/
 .vscode/*.log
 # Keep extensions.json for workspace recommendations
 .vscode/extensions.json
+UserSettings/Layouts/CurrentMaximizeLayout.dwlt
