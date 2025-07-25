@@ -32,31 +32,6 @@ public class PlayerProjectile : MonoBehaviour
             return;
         }
 
-        // Fallback for enemies that haven't been migrated to EnemyBase yet
-        // Handle Slime damage
-        EnemySlime slime = other.GetComponent<EnemySlime>();
-        if (slime != null)
-        {
-            slime.TakeDamage(damage);
-            GiveSpecialToPlayer(5);
-            Destroy(gameObject);
-            return;
-        }
-    }
-
-    private void GiveSpecialToPlayer(int amount)
-    {
-        GameObject player = gameObject.CompareTag("PlayerLeftProjectile")
-            ? GameObject.FindWithTag("PlayerLeft")
-            : GameObject.FindWithTag("PlayerRight");
-
-        if (player != null)
-        {
-            PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
-            if (playerSpecial != null)
-            {
-                playerSpecial.updateSpecial(amount);
-            }
-        }
+        // No more fallback code needed - all enemies have been migrated to EnemyBase
     }
 }

@@ -1,11 +1,7 @@
 using UnityEngine;
 
-public class EnemySlime : MonoBehaviour, IHasAttributes
+public class EnemySlime : EnemyBase
 {
-    [Header("Enemy Attributes")]
-    [Tooltip("Type attributes of this enemy")]
-    [SerializeField]
-    private EnemyType attributes = EnemyType.Ground | EnemyType.Splitting;
 
     [Header("Slime Settings")]
     [Tooltip("Initial size of the slime (1=small, 2=medium, 3=large)")]
@@ -57,6 +53,13 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
 
     private void Start()
     {
+        // Initialize EnemyBase fields with slime-specific values
+        attributes = EnemyType.Ground | EnemyType.Splitting;
+        specialOnHit = 5; 
+        specialOnDeath = 8; // Lower than other enemies due to splitting
+        hurtSound = AudioManager.Instance.slimeHit;
+        deathSound = AudioManager.Instance.slimeDeath;
+        
         InitializeSlime();
     }
 
@@ -82,6 +85,7 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
     {
         // Set health based on size
         currentHealth = baseHealth * size;
+        health = currentHealth; // Update the base class health
 
         // Set move speed based on size
         if (size == 3)
@@ -115,12 +119,18 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
         polyCollider.SetPath(0, scaledPoints);
     }
 
-    public void TakeDamage(int damage)
+    public override void TakeDamage(int damage, GameObject projectile)
     {
         currentHealth -= damage;
+        
+        // Give special to the player who shot the projectile
+        GiveSpecialToPlayer(specialOnHit, projectile);
 
         if (currentHealth <= 0)
         {
+            // Give special to the player who got the kill
+            GiveSpecialToPlayer(specialOnDeath, projectile);
+            
             if (size > 1)
             {
                 Split();
@@ -128,13 +138,12 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
             }
             else
             {
-                Die();
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeDeath);
+                OnDeath();
             }
         }
         else
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeHit);
+            AudioManager.Instance.PlaySFX(hurtSound);
         }
     }
 
@@ -158,35 +167,20 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
             slimeScript.InitializeSlime();
         }
 
-        Die();
+        OnDeath();
     }
 
-    private void Die()
+    protected override void OnDeath()
     {
-        Destroy(gameObject);
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        // Visual feedback on collision - with fallback
-        FlashEffect();
-    }
-
-    private void FlashEffect()
-    {
-        // Try shader-based flash first
-        if (spriteRenderer.material.HasProperty("_FlashAmount"))
+        // Play death sound for smallest slime
+        if (deathSound != null && AudioManager.Instance != null)
         {
-            spriteRenderer.material.SetFloat("_FlashAmount", 0.7f);
-            Invoke("ResetFlash", 0.1f);
+            AudioManager.Instance.PlaySFX(deathSound);
         }
-        else
-        {
-            // Fallback to simple color flash
-            StartCoroutine(SimpleFlash());
-        }
+        
+        // Call base implementation to destroy the game object
+        base.OnDeath();
     }
-
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -204,26 +198,5 @@ public class EnemySlime : MonoBehaviour, IHasAttributes
             if (playerHealth != null) playerHealth.TakeDamage(20 * size);
             Destroy(gameObject);
         }
-    }
-
-    private void ResetFlash()
-    {
-        if (spriteRenderer.material.HasProperty("_FlashAmount"))
-        {
-            spriteRenderer.material.SetFloat("_FlashAmount", 0f);
-        }
-    }
-
-    private System.Collections.IEnumerator SimpleFlash()
-    {
-        Color originalColor = spriteRenderer.color;
-        spriteRenderer.color = Color.white;
-        yield return new WaitForSeconds(0.1f);
-        spriteRenderer.color = originalColor;
-    }
-
-    public bool HasAttribute(EnemyType attr)
-    {
-        return (attributes & attr) == attr;
     }
 }

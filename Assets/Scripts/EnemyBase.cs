@@ -58,7 +58,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         Destroy(gameObject);
     }
 
-    private void GiveSpecialToPlayer(int amount, GameObject projectile)
+    protected void GiveSpecialToPlayer(int amount, GameObject projectile)
     {
         if (projectile == null) return;
 

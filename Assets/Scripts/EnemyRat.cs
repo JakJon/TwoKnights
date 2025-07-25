@@ -31,8 +31,8 @@ public class EnemyRat : EnemyBase
     {
         // Initialize EnemyBase fields with rat-specific values
         attributes = EnemyType.Ground;
-        specialOnHit = 10;
-        specialOnDeath = 20;
+        specialOnHit = 5;
+        specialOnDeath = 15;
         hurtSound = AudioManager.Instance.ratHurt;
         deathSound = AudioManager.Instance.ratDeath;
 
