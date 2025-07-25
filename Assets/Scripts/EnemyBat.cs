@@ -21,6 +21,8 @@ public class EnemyBat : EnemyBase
         health = 10f;
         specialOnHit = 5;
         specialOnDeath = 10;
+        shieldDamage = 10;
+        playerDamage = damage;
         hurtSound = AudioManager.Instance.ratHurt;  // TODO: Replace with bat hurt sound
         deathSound = AudioManager.Instance.ratDeath; // TODO: Replace with bat death sound
         
@@ -95,28 +97,5 @@ public class EnemyBat : EnemyBase
             _assignedPlayer.position,
             moveSpeed * Time.deltaTime
         );
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
-        {
-            // Damage is now handled in PlayerProjectile
-            Destroy(other.gameObject);
-        }
-        else if (other.CompareTag("Shield"))
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
-            PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(10);
-            Destroy(gameObject);
-        }
-        else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
-            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(damage);
-            Destroy(gameObject);
-        }
     }
 }

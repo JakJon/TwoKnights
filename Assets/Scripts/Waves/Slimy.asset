@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Slimy
   m_EditorClassIdentifier: 
   waveName: A Sticky Situation
-  weight: 1000000
+  weight: 1000
   isUnlocked: 1
   waveDescription: 
   waveOccurences: 3

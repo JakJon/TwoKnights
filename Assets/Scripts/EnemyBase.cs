@@ -11,6 +11,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [Tooltip("Special points given to player when this enemy dies")]
     [SerializeField] protected int specialOnDeath = 10;
 
+    [Header("Collision Damage")]
+    [Tooltip("Damage dealt to player when hitting their shield")]
+    [SerializeField] protected int shieldDamage = 10;
+    [Tooltip("Damage dealt to player on direct contact")]
+    [SerializeField] protected int playerDamage = 20;
+
     [Header("Audio")]
     [Tooltip("Sound played when enemy takes damage")]
     [SerializeField] protected SoundEffect hurtSound;
@@ -79,6 +85,57 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     public virtual bool HasAttribute(EnemyType attr)
     {
         return (attributes & attr) == attr;
+    }
+
+    // Virtual method for calculating collision damage (can be overridden by enemies like slime)
+    protected virtual int GetShieldCollisionDamage()
+    {
+        return shieldDamage;
+    }
+
+    protected virtual int GetPlayerCollisionDamage()
+    {
+        return playerDamage;
+    }
+
+    // Virtual method for additional collision handling (can be overridden by specific enemies)
+    protected virtual void OnAdditionalCollision(Collider2D other)
+    {
+        // Default: no additional collision behavior
+    }
+
+    protected virtual void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
+        {
+            // Damage is handled in PlayerProjectile, just destroy the projectile
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("Shield"))
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
+            PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
+            if (playerHealth != null) 
+            {
+                playerHealth.TakeDamage(GetShieldCollisionDamage());
+            }
+            Destroy(gameObject);
+        }
+        else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
+            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
+            if (playerHealth != null) 
+            {
+                playerHealth.TakeDamage(GetPlayerCollisionDamage());
+            }
+            Destroy(gameObject);
+        }
+        else
+        {
+            // Allow derived classes to handle additional collision types
+            OnAdditionalCollision(other);
+        }
     }
 
     // Public getter for health (useful for UI or other systems)

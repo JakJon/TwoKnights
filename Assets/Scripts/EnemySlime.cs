@@ -57,6 +57,8 @@ public class EnemySlime : EnemyBase
         attributes = EnemyType.Ground | EnemyType.Splitting;
         specialOnHit = 5; 
         specialOnDeath = 8; // Lower than other enemies due to splitting
+        shieldDamage = 10; // Base damage, will be multiplied by size
+        playerDamage = 20; // Base damage, will be multiplied by size
         hurtSound = AudioManager.Instance.slimeHit;
         deathSound = AudioManager.Instance.slimeDeath;
         
@@ -182,21 +184,14 @@ public class EnemySlime : EnemyBase
         base.OnDeath();
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    // Override damage calculation to multiply by size
+    protected override int GetShieldCollisionDamage()
     {
-        if (other.CompareTag("Shield"))
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
-            PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(20 * size);
-            Destroy(gameObject);
-        }
-        else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
-            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(20 * size);
-            Destroy(gameObject);
-        }
+        return shieldDamage * size;
+    }
+
+    protected override int GetPlayerCollisionDamage()
+    {
+        return playerDamage * size;
     }
 }

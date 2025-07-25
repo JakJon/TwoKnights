@@ -33,6 +33,8 @@ public class EnemyRat : EnemyBase
         attributes = EnemyType.Ground;
         specialOnHit = 5;
         specialOnDeath = 15;
+        shieldDamage = 10;
+        playerDamage = damage;
         hurtSound = AudioManager.Instance.ratHurt;
         deathSound = AudioManager.Instance.ratDeath;
 
@@ -146,36 +148,15 @@ public class EnemyRat : EnemyBase
         _playerTransform = player;
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    // Override to handle additional collision with other ground enemies
+    protected override void OnAdditionalCollision(Collider2D other)
     {
-        if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
+        // Check if we hit another enemy with Ground attribute
+        var otherEnemy = other.GetComponent<MonoBehaviour>() as IHasAttributes;
+        if (otherEnemy != null && otherEnemy.HasAttribute(EnemyType.Ground) && !_isChasing)
         {
-            // Damage is now handled in PlayerProjectile
-            Destroy(other.gameObject); // Destroy the projectile
-        }
-        else if (other.CompareTag("Shield"))
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
-            PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(10);
-            Destroy(gameObject);
-        }
-        else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
-            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-            if (playerHealth != null) playerHealth.TakeDamage(damage);
-            Destroy(gameObject);
-        }
-        else
-        {
-            // Check if we hit another enemy with Ground attribute
-            var otherEnemy = other.GetComponent<MonoBehaviour>() as IHasAttributes;
-            if (otherEnemy != null && otherEnemy.HasAttribute(EnemyType.Ground) && !_isChasing)
-            {
-                _movingRight = !_movingRight;
-                _spriteRenderer.flipX = !_movingRight;
-            }
+            _movingRight = !_movingRight;
+            _spriteRenderer.flipX = !_movingRight;
         }
     }
 }

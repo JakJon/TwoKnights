@@ -188,8 +188,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26ec54e915f3380489fcf664d09cf70d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  health: 10
+  specialOnHit: 5
+  specialOnDeath: 10
+  shieldDamage: 10
+  playerDamage: 20
+  hurtSound:
+    clip: {fileID: 0}
+    volume: 1
+  deathSound:
+    clip: {fileID: 0}
+    volume: 1
   attributes: 2
   moveSpeed: 1
-  Health: 10
   damage: 10
   spawnMoveDuration: 1

@@ -86,6 +86,8 @@ MonoBehaviour:
   health: 30
   specialOnHit: 5
   specialOnDeath: 10
+  shieldDamage: 10
+  playerDamage: 30
   hurtSound:
     clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
     volume: 1
