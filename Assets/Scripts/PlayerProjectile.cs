@@ -23,6 +23,16 @@ public class PlayerProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // Try to get any enemy that inherits from EnemyBase
+        EnemyBase enemy = other.GetComponent<EnemyBase>();
+        if (enemy != null)
+        {
+            enemy.TakeDamage(damage, gameObject);
+            Destroy(gameObject);
+            return;
+        }
+
+        // Fallback for enemies that haven't been migrated to EnemyBase yet
         // Handle Slime damage
         EnemySlime slime = other.GetComponent<EnemySlime>();
         if (slime != null)
