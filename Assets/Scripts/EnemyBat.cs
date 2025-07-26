@@ -18,7 +18,6 @@ public class EnemyBat : EnemyBase
     {
         // Initialize EnemyBase fields with bat-specific values
         attributes = EnemyType.Flying;
-        health = 10f;
         specialOnHit = 5;
         specialOnDeath = 10;
         shieldDamage = 10;

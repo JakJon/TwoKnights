@@ -194,6 +194,8 @@ MonoBehaviour:
   specialOnDeath: 10
   shieldDamage: 10
   staggerDuration: 0.2
+  staggerAnimation: {fileID: 3651350446308603674, guid: f5d3c163fed172648867d17e626c504e, type: 3}
+  defaultAnimation: {fileID: -4526551656673740845, guid: f5d3c163fed172648867d17e626c504e, type: 3}
   hurtSound:
     clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
     volume: 1

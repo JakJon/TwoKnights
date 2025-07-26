@@ -21,6 +21,10 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [Header("Stagger")]
     [Tooltip("Duration in seconds that enemy is stunned when taking damage")]
     [SerializeField] protected float staggerDuration = 0.2f;
+    [Tooltip("Animation clip to play while staggered")]
+    [SerializeField] protected AnimationClip staggerAnimation;
+    [Tooltip("Default animation to return to after stagger")]
+    [SerializeField] protected AnimationClip defaultAnimation;
 
     [Header("Audio")]
     [Tooltip("Sound played when enemy takes damage")]
@@ -39,15 +43,18 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // Protected components that enemies commonly use
     protected SpriteRenderer spriteRenderer;
     protected GlowManager glowManager; // Cache the GlowManager component
+    protected Animator animator; // Cache the Animator component
     
     // Stagger system
     protected bool isStaggered = false;
+    protected AnimationClip originalAnimationClip; // Store original animation during stagger
     public bool IsStaggered => isStaggered;
 
     protected virtual void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         glowManager = GetComponent<GlowManager>(); // Cache the component
+        animator = GetComponent<Animator>(); // Cache the animator
     }
 
     public virtual void TakeDamage(int damage, GameObject projectile)
@@ -92,7 +99,21 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected virtual IEnumerator StaggerRoutine()
     {
         isStaggered = true;
+        
+        // Play stagger animation if available
+        if (staggerAnimation != null && animator != null)
+        {
+            animator.Play(staggerAnimation.name);
+        }
+        
         yield return new WaitForSeconds(staggerDuration);
+        
+        // Return to default animation
+        if (defaultAnimation != null && animator != null)
+        {
+            animator.Play(defaultAnimation.name);
+        }
+        
         isStaggered = false;
     }
 
