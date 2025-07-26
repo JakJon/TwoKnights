@@ -189,10 +189,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26ec54e915f3380489fcf664d09cf70d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 10
+  health: 15
   specialOnHit: 5
   specialOnDeath: 10
   shieldDamage: 10
+  staggerDuration: 0.2
   hurtSound:
     clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
     volume: 1

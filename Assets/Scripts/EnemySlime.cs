@@ -68,6 +68,9 @@ public class EnemySlime : EnemyBase
 
     private void Update()
     {
+        // Stop movement during stagger
+        if (IsStaggered) return;
+        
         if (targetPlayer != null)
         {
             Vector2 direction = (targetPlayer.position - transform.position).normalized;
@@ -121,7 +124,16 @@ public class EnemySlime : EnemyBase
 
     public override void TakeDamage(int damage, GameObject projectile)
     {
+        // Use cached component instead of GetComponent call
+        glowManager?.StartGlow(Color.red, 0.3f);
+        
         currentHealth -= damage;
+        
+        // Trigger stagger effect (only if slime survives)
+        if (currentHealth > 0)
+        {
+            StartCoroutine(StaggerRoutine());
+        }
         
         // Give special to the player who shot the projectile
         GiveSpecialToPlayer(specialOnHit, projectile);

@@ -57,6 +57,9 @@ public class EnemyBat : EnemyBase
 
     private void Update()
     {
+        // Stop movement during stagger
+        if (IsStaggered) return;
+        
         if (_isMovingToIntermediate)
         {
             MoveToIntermediate();

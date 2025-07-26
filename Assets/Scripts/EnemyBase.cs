@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 {
@@ -17,6 +18,10 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [Tooltip("Damage dealt to player on direct contact")]
     protected int playerDamage = 20;
 
+    [Header("Stagger")]
+    [Tooltip("Duration in seconds that enemy is stunned when taking damage")]
+    [SerializeField] protected float staggerDuration = 0.2f;
+
     [Header("Audio")]
     [Tooltip("Sound played when enemy takes damage")]
     [SerializeField] protected SoundEffect hurtSound;
@@ -33,16 +38,29 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     // Protected components that enemies commonly use
     protected SpriteRenderer spriteRenderer;
+    protected GlowManager glowManager; // Cache the GlowManager component
+    
+    // Stagger system
+    protected bool isStaggered = false;
+    public bool IsStaggered => isStaggered;
 
     protected virtual void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        glowManager = GetComponent<GlowManager>(); // Cache the component
     }
 
     public virtual void TakeDamage(int damage, GameObject projectile)
     {
-        GetComponent<GlowManager>()?.StartGlow(Color.red, 0.3f);
+        // Use cached component instead of GetComponent call
+        glowManager?.StartGlow(Color.red, 0.3f);
         health -= damage;
+        
+        // Trigger stagger effect (only if enemy survives)
+        if (health > 0)
+        {
+            StartCoroutine(StaggerRoutine());
+        }
         
         if (health <= 0)
         {
@@ -69,6 +87,13 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 AudioManager.Instance.PlaySFX(hurtSound);
             }
         }
+    }
+
+    protected virtual IEnumerator StaggerRoutine()
+    {
+        isStaggered = true;
+        yield return new WaitForSeconds(staggerDuration);
+        isStaggered = false;
     }
 
     protected virtual void OnDeath()

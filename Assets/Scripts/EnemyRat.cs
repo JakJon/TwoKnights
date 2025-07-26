@@ -65,7 +65,7 @@ public class EnemyRat : EnemyBase
 
     void Update()
     {
-        if (_isSpawning) return;
+        if (_isSpawning || IsStaggered) return; // Stop movement during spawn or stagger
 
         if (!_isChasing)
         {
