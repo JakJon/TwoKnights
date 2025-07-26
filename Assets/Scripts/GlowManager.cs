@@ -36,7 +36,7 @@ public class GlowManager : MonoBehaviour
         
         while (elapsed < duration)
         {
-            float wave = (Mathf.Sin(Time.time * waveSpeed) * 0.5f + 0.5f) * waveAmplitude;
+            float wave = (Mathf.Sin(elapsed * waveSpeed) * 0.5f + 0.5f) * waveAmplitude;
             
             // Only update if wave value changed significantly (optimization)
             if (Mathf.Abs(wave - lastWave) > 0.01f)
