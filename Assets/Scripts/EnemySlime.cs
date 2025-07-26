@@ -41,13 +41,14 @@ public class EnemySlime : EnemyBase
 
     private int currentHealth;
     private PolygonCollider2D polyCollider; // Renamed from 'collider'
-    private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
 
-    private void Awake()
+    protected override void Awake()
     {
+        // Call base Awake to initialize spriteRenderer
+        base.Awake();
+        
         polyCollider = GetComponent<PolygonCollider2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
     }
 
@@ -75,11 +76,8 @@ public class EnemySlime : EnemyBase
                 targetPlayer.position,
                 moveSpeed * Time.deltaTime
             );
-            // Flip sprite based on movement direction
-            if (direction.x < -0.01f)
-                spriteRenderer.flipX = true;
-            else if (direction.x > 0.01f)
-                spriteRenderer.flipX = false;
+            // Update sprite direction based on movement direction
+            UpdateSpriteDirection(direction);
         }
     }
 

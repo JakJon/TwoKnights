@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5413760365329819139}
   - component: {fileID: 6234175965726450196}
   - component: {fileID: 527821915735605099}
+  - component: {fileID: -790149733252760527}
   m_Layer: 0
   m_Name: enemy_slime_purple
   m_TagString: Untagged
@@ -59,7 +60,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 34fbda43bf7ac5e43930aafb3a8a6d4a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -218,16 +219,28 @@ MonoBehaviour:
   specialOnHit: 5
   specialOnDeath: 10
   shieldDamage: 10
-  playerDamage: 20
   hurtSound:
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 9edfed0ed5a0ee348970a05831657237, type: 3}
     volume: 1
   deathSound:
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 55ecdde7ecae2b34f8e2c5597b1364e3, type: 3}
     volume: 1
-  attributes: -1
+  attributes: 5
+  directionThreshold: 0.01
   size: 1
   baseHealth: 10
   splitForce: 5
   moveSpeed: 1.5
   targetPlayer: {fileID: 0}
+--- !u!114 &-790149733252760527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4029998536188645349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 169a6f82813e78b4fa3dd707f5ef3707, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

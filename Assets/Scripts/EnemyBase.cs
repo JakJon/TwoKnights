@@ -15,7 +15,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [Tooltip("Damage dealt to player when hitting their shield")]
     [SerializeField] protected int shieldDamage = 10;
     [Tooltip("Damage dealt to player on direct contact")]
-    [SerializeField] protected int playerDamage = 20;
+    protected int playerDamage = 20;
 
     [Header("Audio")]
     [Tooltip("Sound played when enemy takes damage")]
@@ -27,21 +27,34 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [Tooltip("Type attributes of this enemy")]
     [SerializeField] protected EnemyType attributes;
 
+    [Header("Sprite Flipping")]
+    [Tooltip("Threshold for sprite direction changes to prevent flickering")]
+    [SerializeField] protected float directionThreshold = 0.01f;
+
+    // Protected components that enemies commonly use
+    protected SpriteRenderer spriteRenderer;
+
+    protected virtual void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
     public virtual void TakeDamage(int damage, GameObject projectile)
     {
+        GetComponent<GlowManager>()?.StartGlow(Color.red, 0.3f);
         health -= damage;
-
+        
         if (health <= 0)
         {
             // Give death special to the player who fired the projectile
             GiveSpecialToPlayer(specialOnDeath, projectile);
-            
+
             // Play death sound
             if (deathSound != null && AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySFX(deathSound);
             }
-            
+
             // Call virtual death method for custom behavior
             OnDeath();
         }
@@ -49,7 +62,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             // Give hit special to the player who fired the projectile
             GiveSpecialToPlayer(specialOnHit, projectile);
-            
+
             // Play hurt sound
             if (hurtSound != null && AudioManager.Instance != null)
             {
@@ -102,6 +115,26 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected virtual void OnAdditionalCollision(Collider2D other)
     {
         // Default: no additional collision behavior
+    }
+
+    // Virtual method for updating sprite direction based on movement
+    protected virtual void UpdateSpriteDirection(Vector3 moveDirection)
+    {
+        if (spriteRenderer != null)
+        {
+            // Flip sprite based on horizontal movement direction with threshold
+            if (moveDirection.x < -directionThreshold)
+                spriteRenderer.flipX = true;  // Moving left
+            else if (moveDirection.x > directionThreshold)
+                spriteRenderer.flipX = false; // Moving right
+        }
+    }
+
+    // Overload for updating sprite direction based on current position and target
+    protected virtual void UpdateSpriteDirection(Vector3 currentPosition, Vector3 targetPosition)
+    {
+        Vector3 moveDirection = (targetPosition - currentPosition).normalized;
+        UpdateSpriteDirection(moveDirection);
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
