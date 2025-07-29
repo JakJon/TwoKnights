@@ -20,7 +20,6 @@ public class CollectibleOrb : MonoBehaviour
 
     public void Initialize(Vector2 start, Vector2 end)
     {
-        Debug.Log($"Initializing CollectibleOrb: Type={orbType}, Start={start}, End={end}");
         startPos = start;
         endPos = end;
         transform.position = startPos;
@@ -42,7 +41,6 @@ public class CollectibleOrb : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"CollectibleOrb collided with: {other.gameObject.name}, Tag: {other.gameObject.tag}");
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
             GameObject player = other.CompareTag("PlayerLeftProjectile")

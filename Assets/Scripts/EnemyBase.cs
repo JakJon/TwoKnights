@@ -26,6 +26,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [Tooltip("Default animation to return to after stagger")]
     [SerializeField] protected AnimationClip defaultAnimation;
 
+    [Header("Damage Text")]
+    [Tooltip("Prefab for floating damage text")]
+    [SerializeField] protected GameObject damageTextPrefab;
+    [Tooltip("Offset above enemy where damage text appears")]
+    [SerializeField] protected Vector3 damageTextOffset = new Vector3(0, 0.01f, 0);
+
     [Header("Audio")]
     [Tooltip("Sound played when enemy takes damage")]
     [SerializeField] protected SoundEffect hurtSound;
@@ -59,9 +65,19 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     public virtual void TakeDamage(int damage, GameObject projectile)
     {
+        // Extension point for pre-damage effects
+        OnBeforeDamageApplied(damage, projectile);
+        
         // Use cached component instead of GetComponent call
         glowManager?.StartGlow(Color.red, 0.3f);
+        
+        // Show floating damage text
+        ShowDamageText(damage);
+        
         health -= damage;
+        
+        // Extension point for post-damage effects
+        OnAfterDamageApplied(damage, projectile);
         
         // Trigger stagger effect (only if enemy survives)
         if (health > 0)
@@ -117,10 +133,51 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         isStaggered = false;
     }
 
+    protected virtual void ShowDamageText(int damage)
+    {
+        Debug.Log($"ShowDamageText called with damage: {damage}");
+        
+        if (damageTextPrefab != null)
+        {
+            // Calculate position based on sprite height
+            float spriteHeight = spriteRenderer != null ? spriteRenderer.bounds.size.y : 1f;
+            Vector3 adjustedOffset = damageTextOffset + new Vector3(0, spriteHeight, 0);
+            Vector3 spawnPosition = transform.position + adjustedOffset;
+            
+            GameObject damageTextObj = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity);
+            
+            // Try to get the DamageText component and set the damage value
+            var damageText = damageTextObj.GetComponent<DamageText>();
+            if (damageText != null)
+            {
+                damageText.Initialize(damage);
+            }
+            else
+            {
+                Debug.LogWarning("DamageText component not found on prefab!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("damageTextPrefab is null! Make sure to assign it in the inspector.");
+        }
+    }
+
     protected virtual void OnDeath()
     {
         // Default behavior: destroy the game object
         Destroy(gameObject);
+    }
+
+    // Extension points for custom damage handling
+    protected virtual void OnBeforeDamageApplied(int damage, GameObject projectile)
+    {
+        // Default: no custom behavior
+    }
+
+    protected virtual void OnAfterDamageApplied(int damage, GameObject projectile)
+    {
+        // Default: no custom behavior
     }
 
     protected void GiveSpecialToPlayer(int amount, GameObject projectile)

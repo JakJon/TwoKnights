@@ -63,7 +63,6 @@ public class UpgradeManager : ScriptableObject
         if (knight != null && upgrade != null)
         {
             upgrade.ApplyUpgrade(knight);
-            Debug.Log($"{upgrade.UpgradeName} was selected for {targetKnight}");
         }
     }
 }

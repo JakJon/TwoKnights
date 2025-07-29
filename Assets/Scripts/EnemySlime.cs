@@ -122,22 +122,11 @@ public class EnemySlime : EnemyBase
         polyCollider.SetPath(0, scaledPoints);
     }
 
-    public override void TakeDamage(int damage, GameObject projectile)
+    protected override void OnAfterDamageApplied(int damage, GameObject projectile)
     {
-        // Use cached component instead of GetComponent call
-        glowManager?.StartGlow(Color.red, 0.3f);
-        
+        // Use currentHealth instead of base health for slime-specific logic
         currentHealth -= damage;
         
-        // Trigger stagger effect (only if slime survives)
-        if (currentHealth > 0)
-        {
-            StartCoroutine(StaggerRoutine());
-        }
-        
-        // Give special to the player who shot the projectile
-        GiveSpecialToPlayer(specialOnHit, projectile);
-
         if (currentHealth <= 0)
         {
             // Give special to the player who got the kill

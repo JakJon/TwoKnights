@@ -222,6 +222,8 @@ MonoBehaviour:
   staggerDuration: 0.2
   staggerAnimation: {fileID: 3651350446308603674, guid: 706c0f4bb4d5582468ae08df84484601, type: 3}
   defaultAnimation: {fileID: -1610863427237328480, guid: 706c0f4bb4d5582468ae08df84484601, type: 3}
+  damageTextPrefab: {fileID: 3743341822335282499, guid: 225900761027b3641860ebbbe4304136, type: 3}
+  damageTextOffset: {x: 0, y: 0, z: 0}
   hurtSound:
     clip: {fileID: 8300000, guid: 9edfed0ed5a0ee348970a05831657237, type: 3}
     volume: 1

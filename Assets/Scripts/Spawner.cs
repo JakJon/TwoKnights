@@ -95,8 +95,6 @@ public class Spawner : MonoBehaviour
         {
             upgradeMenu.SetMenuVisible(true);
         }
-        
-        Debug.Log("Wave completed! Upgrade menu shown and game paused.");
     }
 
     private void OnUpgradeConfirmed(int upgradeIndex, KnightTarget selectedKnight)

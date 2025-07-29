@@ -460,9 +460,6 @@ public class UpgradeMenu : MonoBehaviour
     {
         if (upgradeIndex < 0 || upgradeIndex >= menuItems.Count || upgradeIndex >= currentUpgrades.Count) return;
 
-        // Debug logging to track selection changes
-        Debug.Log($"Selecting upgrade {upgradeIndex} for {knight}. Previous selection: upgrade {chosenUpgradeIndex} for {chosenKnight}");
-
         // Clear previous selection - this should remove visual styling from any previously chosen upgrade
         ClearChosenUpgrade();
 
@@ -479,8 +476,6 @@ public class UpgradeMenu : MonoBehaviour
             string knightName = knight == KnightTarget.LeftKnight ? "Left Knight" : "Right Knight";
             selectionStatusLabel.text = $"{currentUpgrades[upgradeIndex].UpgradeName} will be applied to {knightName}";
         }
-
-        Debug.Log($"Selection updated: upgrade {chosenUpgradeIndex} for {chosenKnight}");
     }
     
     void ClearChosenUpgrade()
