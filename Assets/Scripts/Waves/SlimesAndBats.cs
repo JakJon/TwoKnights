@@ -8,12 +8,13 @@ public class SlimesAndBats : BaseWave
 {
     [Tooltip("Tooltip")]
     [SerializeField] private int waveOccurences = 1;
+    [SerializeField] private int minimumSlimeSize = 1;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
         for (int wave = 1; wave <= waveOccurences; wave++)
         {
-            spawner.SpawnProjectileStraight(spawner.belowLeftPlayer, spawner.LeftPlayer, 3 + wave, 4 );
+            spawner.SpawnProjectileStraight(spawner.belowLeftPlayer, spawner.LeftPlayer, 3 + wave, 4);
             spawner.SpawnProjectileStraight(spawner.belowRightPlayer, spawner.RightPlayer, 3 + wave, 4);
 
             // Amount of bats goes up each wave
@@ -29,6 +30,8 @@ public class SlimesAndBats : BaseWave
             while (remaining > 0)
             {
                 int size = Mathf.Min(3, remaining);
+                // Ensure slime size meets minimum requirement
+                size = Mathf.Max(minimumSlimeSize, size);
                 // Offset each slime horizontally for visibility
                 Vector2 offset = new Vector2(slimeCount * 2 - 2, 0);
                 spawner.SpawnSlime(size, spawnPos + offset, 0, spawner.RightPlayer);

@@ -12,6 +12,8 @@ public abstract class BaseWave : ScriptableObject
     [SerializeField] private int unlockedAfterXWaves = -1; // -1 means not set
     [SerializeField] private int lockedAfterXWaves = -1; // -1 means not set
 
+    [Header("Wave Configuration")]
+
     public string WaveName => waveName;
     public float Weight => weight;
     public bool IsUnlocked => isUnlocked;

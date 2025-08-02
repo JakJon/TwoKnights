@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
-  m_Name: Bat Cauldron 2
+  m_Name: Bat Cauldron 3
   m_EditorClassIdentifier: 
-  waveName: Bat Cauldron 2
-  weight: 1
+  waveName: Bat Cauldron 3
+  weight: 1000
   isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: -1
+  unlockedAfterXWaves: 6
   lockedAfterXWaves: -1
-  batsPerRing: 8
-  numberOfRings: 3
-  delayBetweenRings: 15
-  ringRadius: 3
+  batsPerRing: 12
+  numberOfRings: 4
+  delayBetweenRings: 8
+  ringRadius: 11
