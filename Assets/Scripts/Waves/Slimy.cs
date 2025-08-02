@@ -86,6 +86,11 @@ public class Slimy : BaseWave
                 yield return new WaitForSeconds(delayBetweenStraights);
             }
         }
-        yield return new WaitForSeconds(1f);
+        
+        // Mark spawning as complete so the wave knows to start checking for enemy deaths
+        MarkSpawningComplete();
+        
+        // The wave will now automatically complete when all enemies are killed
+        yield return null; // Required for IEnumerator even though we're not waiting
     }
 }

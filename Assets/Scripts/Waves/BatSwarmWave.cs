@@ -39,7 +39,10 @@ public class BatSwarmWave : BaseWave
             }
         }
 
-        // Wait for the wave to finish
-        yield return new WaitForSeconds(numberOfRings * delayBetweenRings + 8f);
+        // Mark spawning as complete so the wave knows to start checking for enemy deaths
+        MarkSpawningComplete();
+        
+        // The wave will now automatically complete when all enemies are killed
+        yield return null; // Required for IEnumerator even though we're not waiting
     }
 }

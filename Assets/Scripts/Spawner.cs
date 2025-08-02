@@ -75,7 +75,18 @@ public class Spawner : MonoBehaviour
 
     private IEnumerator RunWave(BaseWave wave)
     {
+        // Start wave tracking
+        wave.StartWaveTracking();
+        
+        // Run the wave spawn logic
         yield return StartCoroutine(wave.SpawnWave(this));
+        
+        // Wait for all enemies to be killed (if enemy tracking is enabled)
+        yield return StartCoroutine(wave.WaitForAllEnemiesDead());
+        
+        // End wave tracking
+        wave.EndWaveTracking();
+        
         _isWaveInProgress = false;
         waveManager.WaveCompleted();
 

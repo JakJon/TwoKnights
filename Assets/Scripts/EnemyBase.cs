@@ -61,6 +61,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         spriteRenderer = GetComponent<SpriteRenderer>();
         glowManager = GetComponent<GlowManager>(); // Cache the component
         animator = GetComponent<Animator>(); // Cache the animator
+        
+        // Register this enemy with the current wave for tracking
+        BaseWave.RegisterEnemy(gameObject);
     }
 
     public virtual void TakeDamage(int damage, GameObject projectile)
@@ -165,6 +168,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     protected virtual void OnDeath()
     {
+        // Unregister this enemy from wave tracking before destroying
+        BaseWave.UnregisterEnemy(gameObject);
+        
         // Default behavior: destroy the game object
         Destroy(gameObject);
     }
