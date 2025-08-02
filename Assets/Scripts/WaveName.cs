@@ -21,6 +21,13 @@ public class WaveName : MonoBehaviour
         StartCoroutine(ShowWaveNameCoroutine(waveName));
     }
 
+    public void DisplayWaveName(int waveNumber, string waveName)
+    {
+        string romanNumeral = NumberConverter.ToRoman(waveNumber);
+        string formattedName = $"{romanNumeral}: {waveName}";
+        DisplayWaveName(formattedName);
+    }
+
     private IEnumerator ShowWaveNameCoroutine(string waveName)
     {
         waveText.text = waveName;
