@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
   m_Name: Bat Cauldron 3
   m_EditorClassIdentifier: 
-  waveName: Bat Cauldron 3
+  waveName: Bat Cauldron III
   weight: 1000
   isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: 6
-  lockedAfterXWaves: -1
+  unlockedAfterXWaves: 8
+  lockedAfterXWaves: 12
+  useEnemyTracking: 1
   batsPerRing: 12
   numberOfRings: 4
   delayBetweenRings: 8

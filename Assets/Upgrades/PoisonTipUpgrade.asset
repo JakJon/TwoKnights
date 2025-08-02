@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
-  m_Name: HealthBoostUpgrade
+  m_Script: {fileID: 11500000, guid: 6299f799a84fece41b0981d7fb4b7694, type: 3}
+  m_Name: PoisonTipUpgrade
   m_EditorClassIdentifier: 
-  upgradeName: Health Boost
-  description: +25 Max Health
-  weight: 50
+  upgradeName: Poison Tip
+  description: Arrows have 100% chance to poison enemies
+  weight: 20000000
   isUnlocked: 1
-  healthIncrease: 25
+  poisonChanceIncrease: 100

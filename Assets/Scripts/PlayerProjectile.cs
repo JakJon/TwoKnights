@@ -27,7 +27,16 @@ public class PlayerProjectile : MonoBehaviour
         EnemyBase enemy = other.GetComponent<EnemyBase>();
         if (enemy != null)
         {
+            // Apply normal damage
             enemy.TakeDamage(damage, gameObject);
+            
+            // Check if this projectile has poison and apply it
+            PoisonProjectile poisonComponent = GetComponent<PoisonProjectile>();
+            if (poisonComponent != null)
+            {
+                poisonComponent.ApplyPoisonToEnemy(enemy);
+            }
+            
             Destroy(gameObject);
             return;
         }

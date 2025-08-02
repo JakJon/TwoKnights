@@ -17,8 +17,9 @@ MonoBehaviour:
   isUnlocked: 1
   waveDescription: 
   unlockedAfterXWaves: -1
-  lockedAfterXWaves: -1
-  batsPerRing: 6
-  numberOfRings: 1
+  lockedAfterXWaves: 3
+  useEnemyTracking: 1
+  batsPerRing: 5
+  numberOfRings: 2
   delayBetweenRings: 12
   ringRadius: 12

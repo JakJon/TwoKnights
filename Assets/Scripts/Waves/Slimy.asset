@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waveName: A Sticky Situation
   weight: 1000
-  isUnlocked: 0
+  isUnlocked: 1
   waveDescription: 
   unlockedAfterXWaves: -1
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 3
+  useEnemyTracking: 1
   waveOccurences: 3
   projectilesPerStraight: 3
   delayBetweenProjectiles: 4

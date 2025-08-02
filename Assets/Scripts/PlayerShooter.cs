@@ -55,6 +55,14 @@ public class PlayerShooter : MonoBehaviour
         GameObject projectile = Instantiate(playerProjectilePrefab, spawnPosition, spawnRotation);
         projectile.tag = gameObject.tag + "Projectile";
 
+        // Check if this projectile should be poisoned
+        PoisonTipBoost poisonTipBoost = GetComponent<PoisonTipBoost>();
+        if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
+        {
+            // Add PoisonProjectile component to make this projectile poisonous
+            projectile.AddComponent<PoisonProjectile>();
+        }
+
         // Set velocity
         projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
 

@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1a15d43fcb295e4a83c917fe3dab7a3, type: 3}
   m_Name: Bat Slime Boogie 2
   m_EditorClassIdentifier: 
-  waveName: Bat Slime Boogie 2
+  waveName: Bat Slime Boogie II
   weight: 1000
   isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: -1
-  lockedAfterXWaves: -1
+  unlockedAfterXWaves: 3
+  lockedAfterXWaves: 8
+  useEnemyTracking: 1
   waveOccurences: 8
+  minimumSlimeSize: 1

@@ -51,6 +51,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected GlowManager glowManager; // Cache the GlowManager component
     protected Animator animator; // Cache the Animator component
     
+    // Poison system
+    protected bool isPoisoned = false;
+    protected float poisonTimer = 0f;
+    protected int poisonDamage = 0;
+    protected float poisonTickRate = 1f; // Damage every 1 second
+    protected float lastPoisonTick = 0f;
+    protected Coroutine poisonCoroutine = null;
+    public bool IsPoisoned => isPoisoned;
+    
     // Stagger system
     protected bool isStaggered = false;
     protected AnimationClip originalAnimationClip; // Store original animation during stagger
@@ -134,6 +143,72 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
         
         isStaggered = false;
+    }
+
+    public virtual void ApplyPoison(int damage, float duration)
+    {
+        // Stop existing poison coroutine if running
+        if (poisonCoroutine != null)
+        {
+            StopCoroutine(poisonCoroutine);
+        }
+        
+        // Set poison parameters (new poison resets timer)
+        poisonDamage = damage;
+        poisonTimer = duration;
+        lastPoisonTick = 0f;
+        
+        // Start poison effect
+        poisonCoroutine = StartCoroutine(PoisonRoutine());
+    }
+
+    protected virtual IEnumerator PoisonRoutine()
+    {
+        isPoisoned = true;
+        
+        // Start green wave glow effect (slow waves for poison)
+        glowManager?.StartGlow(Color.green, poisonTimer, 3f, 0.8f);
+        
+        while (poisonTimer > 0f)
+        {
+            // Check if it's time for poison damage tick
+            if (lastPoisonTick >= poisonTickRate)
+            {
+                // Apply poison damage
+                health -= poisonDamage;
+                
+                // Show poison damage text
+                ShowDamageText(poisonDamage);
+                
+                // Reset tick timer
+                lastPoisonTick = 0f;
+                
+                // Check if enemy dies from poison
+                if (health <= 0)
+                {
+                    // Note: We don't give special points for poison death since there's no projectile reference
+                    // Play death sound
+                    if (deathSound != null && AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlaySFX(deathSound);
+                    }
+                    
+                    // Call death method
+                    OnDeath();
+                    yield break; // Exit coroutine early
+                }
+            }
+            
+            // Update timers
+            lastPoisonTick += Time.deltaTime;
+            poisonTimer -= Time.deltaTime;
+            
+            yield return null;
+        }
+        
+        // Poison effect ended
+        isPoisoned = false;
+        poisonCoroutine = null;
     }
 
     protected virtual void ShowDamageText(int damage)

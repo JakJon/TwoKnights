@@ -17,7 +17,8 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: 
   unlockedAfterXWaves: 1
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 5
+  useEnemyTracking: 1
   numberOfSwarms: 1
   delayTime: 6
   projectilesPerArc: 4

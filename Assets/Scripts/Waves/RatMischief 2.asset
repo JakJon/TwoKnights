@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afcfc136fb0be834cbde2a57f87a10e2, type: 3}
   m_Name: RatMischief 2
   m_EditorClassIdentifier: 
-  waveName: Rat Mischief 2
+  waveName: Rat Mischief II
   weight: 1000
   isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: -1
-  lockedAfterXWaves: -1
+  unlockedAfterXWaves: 5
+  lockedAfterXWaves: 10
+  useEnemyTracking: 1
   waveOccurences: 6
   baseRatCount: 2
