@@ -30,13 +30,14 @@ public class DamageText : MonoBehaviour
         }
     }
 
-    public void Initialize(int damage)
+    public void Initialize(int damage, Color? color = null)
     {
         if (textMesh != null)
         {
             // minus sign and then the dmage value
             textMesh.text = $"-{damage}";
-            textMesh.color = Color.red;
+            // Use provided color or default to red
+            textMesh.color = color ?? Color.red;
         }
         
         // Adjust starting position (lower the text)

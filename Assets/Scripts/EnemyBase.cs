@@ -58,6 +58,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected float poisonTickRate = 1f; // Damage every 1 second
     protected float lastPoisonTick = 0f;
     protected Coroutine poisonCoroutine = null;
+    protected GameObject poisonSourceProjectile = null; // Track who applied the poison
     public bool IsPoisoned => isPoisoned;
     
     // Stagger system
@@ -145,7 +146,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         isStaggered = false;
     }
 
-    public virtual void ApplyPoison(int damage, float duration)
+    public virtual void ApplyPoison(int damage, float duration, GameObject sourceProjectile = null)
     {
         // Stop existing poison coroutine if running
         if (poisonCoroutine != null)
@@ -158,6 +159,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         poisonTimer = duration;
         lastPoisonTick = 0f;
         
+        // Store the source projectile for special point rewards
+        poisonSourceProjectile = sourceProjectile;
+        
         // Start poison effect
         poisonCoroutine = StartCoroutine(PoisonRoutine());
     }
@@ -166,8 +170,17 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     {
         isPoisoned = true;
         
-        // Start green wave glow effect (slow waves for poison)
-        glowManager?.StartGlow(Color.green, poisonTimer, 3f, 0.8f);
+        // Wait a bit for the red damage glow to finish before starting green poison glow
+        yield return new WaitForSeconds(0.4f);
+        
+        // Start green wave glow effect (slow waves for poison) for remaining duration
+        float remainingDuration = poisonTimer - 0.4f;
+        if (remainingDuration > 0f)
+        {
+            // make this a darker green rather than the default bright green, and make the transperancy higher and shorter waves
+
+            glowManager?.StartGlow(new Color(0.3f, 0.5f, 0.13f), remainingDuration, 5f, 0.75f);
+        }
         
         while (poisonTimer > 0f)
         {
@@ -177,8 +190,11 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 // Apply poison damage
                 health -= poisonDamage;
                 
-                // Show poison damage text
-                ShowDamageText(poisonDamage);
+                // Show poison damage text in green
+                ShowDamageText(poisonDamage, new Color(0.7f, 0.9f, 0.5f));
+                
+                // Give special points for poison damage (like hit damage)
+                GiveSpecialToPlayer(specialOnHit, poisonSourceProjectile);
                 
                 // Reset tick timer
                 lastPoisonTick = 0f;
@@ -186,7 +202,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 // Check if enemy dies from poison
                 if (health <= 0)
                 {
-                    // Note: We don't give special points for poison death since there's no projectile reference
+                    // Give death special points for poison kill
+                    GiveSpecialToPlayer(specialOnDeath, poisonSourceProjectile);
+                    
                     // Play death sound
                     if (deathSound != null && AudioManager.Instance != null)
                     {
@@ -209,11 +227,23 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Poison effect ended
         isPoisoned = false;
         poisonCoroutine = null;
+        poisonSourceProjectile = null; // Clear the source reference
     }
 
-    protected virtual void ShowDamageText(int damage)
+    protected virtual void ShowDamageText(int damage, Color textColor = default)
     {
-        Debug.Log($"ShowDamageText called with damage: {damage}");
+        Debug.Log($"ShowDamageText called with damage: {damage}, color: {textColor}");
+        
+        // Use red as default color if no color specified
+        if (textColor == default)
+        {
+            textColor = Color.red;
+            Debug.Log("Using default red color");
+        }
+        else
+        {
+            Debug.Log($"Using specified color: {textColor}");
+        }
         
         if (damageTextPrefab != null)
         {
@@ -224,15 +254,38 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             
             GameObject damageTextObj = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity);
             
-            // Try to get the DamageText component and set the damage value
+            // Try to get the DamageText component and set the damage value and color
             var damageText = damageTextObj.GetComponent<DamageText>();
             if (damageText != null)
             {
-                damageText.Initialize(damage);
+                damageText.Initialize(damage, textColor);
+                Debug.Log($"Initialized DamageText with color: {textColor}");
             }
             else
             {
                 Debug.LogWarning("DamageText component not found on prefab!");
+                
+                // Fallback: Set the color directly on text components
+                var textMesh = damageTextObj.GetComponent<TextMesh>();
+                if (textMesh != null)
+                {
+                    textMesh.color = textColor;
+                    Debug.Log($"Set TextMesh color to: {textColor}");
+                }
+                else
+                {
+                    // Try TMPro Text component if TextMesh isn't found
+                    var tmpText = damageTextObj.GetComponent<TMPro.TextMeshPro>();
+                    if (tmpText != null)
+                    {
+                        tmpText.color = textColor;
+                        Debug.Log($"Set TMPro color to: {textColor}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Neither TextMesh nor TextMeshPro component found on damage text prefab!");
+                    }
+                }
             }
         }
         else

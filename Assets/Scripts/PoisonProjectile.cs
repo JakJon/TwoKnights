@@ -43,11 +43,11 @@ public class PoisonProjectile : MonoBehaviour
     }
     
     // Method to apply poison to an enemy
-    public void ApplyPoisonToEnemy(EnemyBase enemy)
+    public void ApplyPoisonToEnemy(EnemyBase enemy, GameObject sourceProjectile)
     {
         if (enemy != null)
         {
-            enemy.ApplyPoison(poisonDamage, poisonDuration);
+            enemy.ApplyPoison(poisonDamage, poisonDuration, sourceProjectile);
         }
     }
 }

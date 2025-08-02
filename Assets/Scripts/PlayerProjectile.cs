@@ -34,7 +34,7 @@ public class PlayerProjectile : MonoBehaviour
             PoisonProjectile poisonComponent = GetComponent<PoisonProjectile>();
             if (poisonComponent != null)
             {
-                poisonComponent.ApplyPoisonToEnemy(enemy);
+                poisonComponent.ApplyPoisonToEnemy(enemy, gameObject);
             }
             
             Destroy(gameObject);
