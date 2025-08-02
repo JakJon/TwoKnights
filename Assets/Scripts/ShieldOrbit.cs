@@ -102,9 +102,7 @@ public class ShieldOrbit : MonoBehaviour
         barRect.pivot = new Vector2(0.5f, 0f); // Pivot at bottom center so it shrinks upward
         
         // Start hidden (player can shoot initially)
-        reloadBarObject.SetActive(false);
-        
-        Debug.Log("Created simple transform-based reload bar");
+        reloadBarObject.SetActive(false);        
     }
     
     private void UpdateReloadBarPosition()

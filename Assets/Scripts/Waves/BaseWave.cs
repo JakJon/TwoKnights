@@ -30,7 +30,8 @@ public abstract class BaseWave : ScriptableObject
     // Get formatted wave name with wave number
     public string GetFormattedWaveName(int waveNumber)
     {
-        return $"{waveNumber}: {waveName}";
+        string romanNumeral = NumberConverter.ToRoman(waveNumber);
+        return $"{romanNumeral}: {waveName}";
     }
 
     // Called to check if wave can be played (beyond just being unlocked)
@@ -70,7 +71,7 @@ public abstract class BaseWave : ScriptableObject
         if (_currentWave != null && _currentWave.useEnemyTracking)
         {
             _currentWave._trackedEnemies.Add(enemy);
-            Debug.Log($"Enemy registered with wave. Total enemies: {_currentWave._trackedEnemies.Count}");
+            // Debug.Log($"Enemy registered with wave. Total enemies: {_currentWave._trackedEnemies.Count}");
         }
     }
     
@@ -79,7 +80,7 @@ public abstract class BaseWave : ScriptableObject
         if (_currentWave != null && _currentWave.useEnemyTracking)
         {
             _currentWave._trackedEnemies.Remove(enemy);
-            Debug.Log($"Enemy unregistered from wave. Remaining enemies: {_currentWave._trackedEnemies.Count}");
+            // Debug.Log($"Enemy unregistered from wave. Remaining enemies: {_currentWave._trackedEnemies.Count}");
         }
     }
     
@@ -87,7 +88,7 @@ public abstract class BaseWave : ScriptableObject
     protected void MarkSpawningComplete()
     {
         _waveSpawningComplete = true;
-        Debug.Log("Wave spawning marked as complete");
+        // Debug.Log("Wave spawning marked as complete");
     }
     
     // Check if all enemies are dead
@@ -107,7 +108,7 @@ public abstract class BaseWave : ScriptableObject
         _currentWave = this;
         _trackedEnemies.Clear();
         _waveSpawningComplete = false;
-        Debug.Log($"Started tracking for wave: {waveName}");
+        // Debug.Log($"Started tracking for wave: {waveName}");
     }
     
     // Call this at the end of wave execution
@@ -119,7 +120,7 @@ public abstract class BaseWave : ScriptableObject
         }
         _trackedEnemies.Clear();
         _waveSpawningComplete = false;
-        Debug.Log($"Ended tracking for wave: {waveName}");
+        // Debug.Log($"Ended tracking for wave: {waveName}");
     }
     
     // Coroutine that waits for all enemies to be killed
@@ -130,13 +131,13 @@ public abstract class BaseWave : ScriptableObject
             yield break; // Don't wait if tracking is disabled
         }
         
-        Debug.Log("Waiting for all enemies to be killed...");
+        // Debug.Log("Waiting for all enemies to be killed...");
         
         while (!AreAllEnemiesDead())
         {
             yield return new WaitForSeconds(0.5f); // Check every half second
         }
         
-        Debug.Log("All enemies have been killed!");
+        // Debug.Log("All enemies have been killed!");
     }
 }

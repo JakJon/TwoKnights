@@ -20,12 +20,12 @@ public class SlimesAndBats : BaseWave
             // Amount of bats goes up each wave
             for (int j = -1; j < wave; j++)
             {
-                spawner.SpawnBat(new Vector2(wave * 2, 7), math.abs(j));
+                spawner.SpawnBat(new Vector2(wave * 2, 6.5f), math.abs(j));
             }
 
             // Spawn slimes: largest possible sizes, sum to wave number, max size 3
             int remaining = wave;
-            Vector2 spawnPos = new Vector2(0, 7);
+            Vector2 spawnPos = new Vector2(0, 6.5f);
             int slimeCount = 0;
             while (remaining > 0)
             {
@@ -33,7 +33,7 @@ public class SlimesAndBats : BaseWave
                 // Ensure slime size meets minimum requirement
                 size = Mathf.Max(minimumSlimeSize, size);
                 // Offset each slime horizontally for visibility
-                Vector2 offset = new Vector2(slimeCount * 2 - 2, 0);
+                Vector2 offset = new Vector2(slimeCount * 4 - 2, 0);
                 spawner.SpawnSlime(size, spawnPos + offset, 0, spawner.RightPlayer);
                 remaining -= size;
                 slimeCount++;

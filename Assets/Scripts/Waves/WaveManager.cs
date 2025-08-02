@@ -20,6 +20,10 @@ public class WaveManager : ScriptableObject
     {
         RecalculateWeights();
         _remainingWaves = new List<BaseWave>(availableWaves);
+        
+        // Reset progress when the ScriptableObject is enabled
+        // This ensures we always start at wave 1 in new game sessions
+        _completedWavesCount = 0;
     }
 
     private void RecalculateWeights()
