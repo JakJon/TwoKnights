@@ -44,6 +44,10 @@ public class PlayerShooter : MonoBehaviour
     private IEnumerator ShootProjectile()
     {
         _canShoot = false;
+        
+        // Show reload bar and start it full
+        shield.SetReloadBarVisible(true);
+        shield.SetReloadBarFill(1.0f);
 
         // Create projectile
         Vector2 spawnPosition = shield.transform.position;
@@ -57,7 +61,19 @@ public class PlayerShooter : MonoBehaviour
         // Start lifetime countdown
         StartCoroutine(DestroyProjectile(projectile));
 
-        yield return new WaitForSeconds(cooldownTime);
+        // Gradual cooldown with fill amount updates
+        float elapsed = 0f;
+        while (elapsed < cooldownTime)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / cooldownTime;
+            float remainingFill = 1f - progress; // Start at 1, go to 0
+            shield.SetReloadBarFill(remainingFill);
+            yield return null;
+        }
+        
+        // Hide reload bar and re-enable shooting
+        shield.SetReloadBarVisible(false);
         AudioManager.Instance.PlaySFX(AudioManager.Instance.reload);
         _canShoot = true;
     }
