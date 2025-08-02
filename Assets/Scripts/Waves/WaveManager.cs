@@ -11,6 +11,10 @@ public class WaveManager : ScriptableObject
     [SerializeField] private List<BaseWave> availableWaves;
     private List<BaseWave> _remainingWaves;
     private BaseWave currentWave;
+    private int _completedWavesCount = 0;
+    
+    public int CompletedWavesCount => _completedWavesCount;
+    public int CurrentWaveNumber => _completedWavesCount + 1;
 
     private void OnEnable()
     {
@@ -33,8 +37,8 @@ public class WaveManager : ScriptableObject
         if (_remainingWaves == null || _remainingWaves.Count == 0)
             return null;
 
-        // Get playable waves
-        var playableWaves = _remainingWaves.Where(w => w.CanPlay()).ToList();
+        // Get playable waves (now passing completed waves count)
+        var playableWaves = _remainingWaves.Where(w => w.CanPlay(_completedWavesCount)).ToList();
         if (playableWaves.Count == 0)
             return null;
 
@@ -68,7 +72,16 @@ public class WaveManager : ScriptableObject
         {
             currentWave.OnWaveComplete();
             currentWave = null;
+            
+            // Increment completed waves counter
+            _completedWavesCount++;
+            Debug.Log($"[WaveManager] Wave completed. Total completed waves: {_completedWavesCount}");
         }
+    }
+    
+    public void ResetProgress()
+    {
+        _completedWavesCount = 0;
     }
 
 #if UNITY_EDITOR

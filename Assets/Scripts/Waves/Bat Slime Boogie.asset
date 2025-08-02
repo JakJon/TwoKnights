@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waveName: Bat Slime Boogie
   weight: 1000000
-  isUnlocked: 1
+  isUnlocked: 0
   waveDescription: 
+  unlockedAfterXWaves: -1
+  lockedAfterXWaves: -1
   waveOccurences: 3

@@ -16,6 +16,8 @@ MonoBehaviour:
   weight: 1000
   isUnlocked: 0
   waveDescription: 
+  unlockedAfterXWaves: 6
+  lockedAfterXWaves: -1
   batsPerRing: 12
   numberOfRings: 4
   delayBetweenRings: 8

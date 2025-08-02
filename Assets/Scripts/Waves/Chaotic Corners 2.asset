@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waveName: Chaotic Corners 2
   weight: 1000
-  isUnlocked: 1
+  isUnlocked: 0
   waveDescription: 
+  unlockedAfterXWaves: -1
+  lockedAfterXWaves: -1
   numberOfSwarms: 1
   delayTime: 3
   projectilesPerArc: 8

@@ -16,4 +16,6 @@ MonoBehaviour:
   weight: 1000
   isUnlocked: 0
   waveDescription: 
+  unlockedAfterXWaves: -1
+  lockedAfterXWaves: -1
   waveOccurences: 8

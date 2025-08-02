@@ -67,7 +67,7 @@ public class Spawner : MonoBehaviour
         if (nextWave != null)
         {
             if (waveNameDisplay != null)
-                waveNameDisplay.DisplayWaveName(nextWave.WaveName);
+                waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
             _isWaveInProgress = true;
             StartCoroutine(RunWave(nextWave));
         }
