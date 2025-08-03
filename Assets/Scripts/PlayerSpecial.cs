@@ -120,6 +120,7 @@ public class PlayerSpecial : MonoBehaviour
 
         if (_currentSpecial >= maxSpecial)
         {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.multiFull);
             _currentSpecial = maxSpecial;
 
             if (!_specialBarFilledSfxPlayed && !streakEnded)

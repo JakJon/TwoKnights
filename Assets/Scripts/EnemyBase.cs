@@ -7,63 +7,47 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [SerializeField] protected float health = 10f;
 
     [Header("Special Rewards")]
-    [Tooltip("Special points given to player when this enemy takes damage")]
-    [SerializeField] protected int specialOnHit = 5;
-    [Tooltip("Special points given to player when this enemy dies")]
-    [SerializeField] protected int specialOnDeath = 10;
+    [SerializeField] protected int specialOnHit = 5; // Points for damage
+    [SerializeField] protected int specialOnDeath = 10; // Points for death
 
     [Header("Collision Damage")]
-    [Tooltip("Damage dealt to player when hitting their shield")]
-    [SerializeField] protected int shieldDamage = 10;
-    [Tooltip("Damage dealt to player on direct contact")]
-    protected int playerDamage = 20;
+    [SerializeField] protected int shieldDamage = 10; // Damage to shield
+    protected int playerDamage = 20; // Damage to player
 
     [Header("Stagger")]
-    [Tooltip("Duration in seconds that enemy is stunned when taking damage")]
-    [SerializeField] protected float staggerDuration = 0.2f;
-    [Tooltip("Animation clip to play while staggered")]
-    [SerializeField] protected AnimationClip staggerAnimation;
-    [Tooltip("Default animation to return to after stagger")]
-    [SerializeField] protected AnimationClip defaultAnimation;
+    [SerializeField] protected float staggerDuration = 0.2f; // Stun duration
+    [SerializeField] protected AnimationClip staggerAnimation; // Stagger anim
+    [SerializeField] protected AnimationClip defaultAnimation; // Default anim
 
     [Header("Damage Text")]
-    [Tooltip("Prefab for floating damage text")]
-    [SerializeField] protected GameObject damageTextPrefab;
-    [Tooltip("Offset above enemy where damage text appears")]
-    [SerializeField] protected Vector3 damageTextOffset = new Vector3(0, 0.01f, 0);
+    [SerializeField] protected GameObject damageTextPrefab; // Floating text prefab
+    [SerializeField] protected Vector3 damageTextOffset = new Vector3(0, 0.01f, 0); // Text offset
 
     [Header("Audio")]
-    [Tooltip("Sound played when enemy takes damage")]
-    [SerializeField] protected SoundEffect hurtSound;
-    [Tooltip("Sound played when enemy dies")]
-    [SerializeField] protected SoundEffect deathSound;
+    [SerializeField] protected SoundEffect hurtSound; 
+    [SerializeField] protected SoundEffect deathSound; 
 
     [Header("Enemy Attributes")]
-    [Tooltip("Type attributes of this enemy")]
     [SerializeField] protected EnemyType attributes;
 
     [Header("Sprite Flipping")]
-    [Tooltip("Threshold for sprite direction changes to prevent flickering")]
-    [SerializeField] protected float directionThreshold = 0.01f;
+    [SerializeField] protected float directionThreshold = 0.01f; 
 
-    // Protected components that enemies commonly use
     protected SpriteRenderer spriteRenderer;
-    protected GlowManager glowManager; // Cache the GlowManager component
-    protected Animator animator; // Cache the Animator component
-    
+    protected GlowManager glowManager;
+    protected Animator animator;
     // Poison system
     protected bool isPoisoned = false;
     protected float poisonTimer = 0f;
     protected int poisonDamage = 0;
-    protected float poisonTickRate = 1f; // Damage every 1 second
+    protected float poisonTickRate = 1f;
     protected float lastPoisonTick = 0f;
     protected Coroutine poisonCoroutine = null;
-    protected GameObject poisonSourceProjectile = null; // Track who applied the poison
+    protected GameObject poisonSourceProjectile = null;
     public bool IsPoisoned => isPoisoned;
-    
     // Stagger system
     protected bool isStaggered = false;
-    protected AnimationClip originalAnimationClip; // Store original animation during stagger
+    protected AnimationClip originalAnimationClip;
     public bool IsStaggered => isStaggered;
 
     protected virtual void Awake()
@@ -72,8 +56,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         glowManager = GetComponent<GlowManager>(); // Cache the component
         animator = GetComponent<Animator>(); // Cache the animator
         
-        // Register this enemy with the current wave for tracking
-        BaseWave.RegisterEnemy(gameObject);
+        BaseWave.RegisterEnemy(gameObject); // Register for wave tracking
     }
 
     public virtual void TakeDamage(int damage, GameObject projectile)
@@ -81,10 +64,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Extension point for pre-damage effects
         OnBeforeDamageApplied(damage, projectile);
         
-        // Use cached component instead of GetComponent call
         glowManager?.StartGlow(Color.red, 0.3f);
-        
-        // Show floating damage text
         ShowDamageText(damage);
         
         health -= damage;
@@ -92,10 +72,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Extension point for post-damage effects
         OnAfterDamageApplied(damage, projectile);
         
-        // Trigger stagger effect (only if enemy survives)
         if (health > 0)
         {
-            StartCoroutine(StaggerRoutine());
+            StartCoroutine(StaggerRoutine()); // Stagger if alive
         }
         
         if (health <= 0)
@@ -114,14 +93,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
         else
         {
-            // Give hit special to the player who fired the projectile
-            GiveSpecialToPlayer(specialOnHit, projectile);
+        GiveSpecialToPlayer(specialOnHit, projectile);
 
-            // Play hurt sound
-            if (hurtSound != null && AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlaySFX(hurtSound);
-            }
+        if (hurtSound != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(hurtSound);
+        }
         }
     }
 
@@ -129,7 +106,6 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     {
         isStaggered = true;
         
-        // Play stagger animation if available
         if (staggerAnimation != null && animator != null)
         {
             animator.Play(staggerAnimation.name);
@@ -137,7 +113,6 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         
         yield return new WaitForSeconds(staggerDuration);
         
-        // Return to default animation
         if (defaultAnimation != null && animator != null)
         {
             animator.Play(defaultAnimation.name);
@@ -153,16 +128,16 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             StopCoroutine(poisonCoroutine);
         }
+
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.poisoned);
         
         // Set poison parameters (new poison resets timer)
         poisonDamage = damage;
         poisonTimer = duration;
         lastPoisonTick = 0f;
         
-        // Store the source projectile for special point rewards
-        poisonSourceProjectile = sourceProjectile;
+        poisonSourceProjectile = sourceProjectile; // For special rewards
         
-        // Start poison effect
         poisonCoroutine = StartCoroutine(PoisonRoutine());
     }
 
@@ -170,50 +145,28 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     {
         isPoisoned = true;
         
-        // Wait a bit for the red damage glow to finish before starting green poison glow
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.4f); // Wait for red dmg glow to end
         
-        // Start green wave glow effect (slow waves for poison) for remaining duration
         float remainingDuration = poisonTimer - 0.4f;
         if (remainingDuration > 0f)
         {
-            // make this a darker green rather than the default bright green, and make the transperancy higher and shorter waves
-
-            glowManager?.StartGlow(new Color(0.3f, 0.5f, 0.13f), remainingDuration, 5f, 0.75f);
+            glowManager?.StartGlow(new Color(0.3f, 0.5f, 0.13f), remainingDuration, 5f, 0.75f); // Poison glow
         }
         
         while (poisonTimer > 0f)
         {
-            // Check if it's time for poison damage tick
             if (lastPoisonTick >= poisonTickRate)
             {
-                // Apply poison damage
                 health -= poisonDamage;
-                
-                // Show poison damage text in green
-                ShowDamageText(poisonDamage, new Color(0.7f, 0.9f, 0.5f));
-                
-                // Give special points for poison damage (like hit damage)
+                ShowDamageText(poisonDamage, new Color(0.7f, 0.9f, 0.5f)); // Pale green text
                 GiveSpecialToPlayer(specialOnHit, poisonSourceProjectile);
-                
-                // Reset tick timer
                 lastPoisonTick = 0f;
-                
-                // Check if enemy dies from poison
                 if (health <= 0)
                 {
-                    // Give death special points for poison kill
                     GiveSpecialToPlayer(specialOnDeath, poisonSourceProjectile);
-                    
-                    // Play death sound
-                    if (deathSound != null && AudioManager.Instance != null)
-                    {
-                        AudioManager.Instance.PlaySFX(deathSound);
-                    }
-                    
-                    // Call death method
+                    AudioManager.Instance.PlaySFX(deathSound);
                     OnDeath();
-                    yield break; // Exit coroutine early
+                    yield break;
                 }
             }
             
@@ -224,10 +177,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             yield return null;
         }
         
-        // Poison effect ended
         isPoisoned = false;
         poisonCoroutine = null;
-        poisonSourceProjectile = null; // Clear the source reference
+        poisonSourceProjectile = null;
     }
 
     protected virtual void ShowDamageText(int damage, Color textColor = default)

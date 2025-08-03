@@ -25,6 +25,7 @@ public class AudioManager : MonoBehaviour
     public SoundEffect leftMulti2;
     public SoundEffect leftMulti3;
     public SoundEffect leftMulti4;
+    public SoundEffect multiFull;
     public SoundEffect healSpecial;
     public SoundEffect leftSpecial;
     public SoundEffect rightSpecial;
@@ -37,6 +38,7 @@ public class AudioManager : MonoBehaviour
     public SoundEffect slimeHit;
     public SoundEffect slimeDeath;
     public SoundEffect slimeSplit;
+    public SoundEffect poisoned;
 
     // [Header("Music")]
     // public AudioClip backgroundMusic;
