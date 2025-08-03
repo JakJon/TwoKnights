@@ -121,7 +121,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         isStaggered = false;
     }
 
-    public virtual void ApplyPoison(int damage, float duration, GameObject sourceProjectile = null)
+    public virtual void ApplyPoison(int damage, float duration, float tickRate, GameObject sourceProjectile = null)
     {
         // Stop existing poison coroutine if running
         if (poisonCoroutine != null)
@@ -134,6 +134,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Set poison parameters (new poison resets timer)
         poisonDamage = damage;
         poisonTimer = duration;
+        poisonTickRate = tickRate;
         lastPoisonTick = 0f;
         
         poisonSourceProjectile = sourceProjectile; // For special rewards

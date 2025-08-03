@@ -116,11 +116,17 @@ public class PlayerSpecial : MonoBehaviour
             specialBar._multiplierIndicator.SetText($"x{_currentSpecialMultiplier} STREAK: {_currentSpecialStreak} ");
         }
 
+        int previousSpecial = _currentSpecial;
         _currentSpecial += amountToGain * _currentSpecialMultiplier;
 
         if (_currentSpecial >= maxSpecial)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.multiFull);
+            // Only play multiFull sound if bar wasn't already filled
+            if (previousSpecial < maxSpecial)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.multiFull);
+            }
+            
             _currentSpecial = maxSpecial;
 
             if (!_specialBarFilledSfxPlayed && !streakEnded)

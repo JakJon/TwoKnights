@@ -4,9 +4,11 @@ public class PoisonProjectile : MonoBehaviour
 {
     [Header("Poison Settings")]
     [Tooltip("Damage dealt per poison tick")]
-    [SerializeField] private int poisonDamage = 3;
+    [SerializeField] private int poisonDamage = 1;
     [Tooltip("Duration of poison effect in seconds")]
-    [SerializeField] private float poisonDuration = 5f;
+    [SerializeField] private float poisonDuration = 20f;
+    [Tooltip("Time between poison damage ticks in seconds")]
+    [SerializeField] private float poisonTickRate = 1f;
     
     // Visual indicator for poisoned projectiles
     [Header("Visual Effects")]
@@ -21,6 +23,7 @@ public class PoisonProjectile : MonoBehaviour
     
     public int PoisonDamage => poisonDamage;
     public float PoisonDuration => poisonDuration;
+    public float PoisonTickRate => poisonTickRate;
     
     private void Start()
     {
@@ -38,7 +41,7 @@ public class PoisonProjectile : MonoBehaviour
         // Add glow effect if enabled
         if (enableGlow && glowManager != null)
         {
-            glowManager.StartGlow(Color.green, 10f, 5f, 0.4f); // Long duration, medium speed waves
+            glowManager.StartGlow(Color.blue, 10f, 5f, 0.4f); // Long duration, medium speed waves
         }
     }
     
@@ -47,7 +50,7 @@ public class PoisonProjectile : MonoBehaviour
     {
         if (enemy != null)
         {
-            enemy.ApplyPoison(poisonDamage, poisonDuration, sourceProjectile);
+            enemy.ApplyPoison(poisonDamage, poisonDuration, poisonTickRate, sourceProjectile);
         }
     }
 }
