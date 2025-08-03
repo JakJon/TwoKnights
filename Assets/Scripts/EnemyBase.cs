@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 {
@@ -43,7 +44,23 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected float poisonTickRate = 1f;
     protected float lastPoisonTick = 0f;
     protected Coroutine poisonCoroutine = null;
-    protected GameObject poisonSourceProjectile = null;
+    
+    // Track poison sources and their contributions
+    protected List<PoisonSource> poisonSources = new List<PoisonSource>();
+    
+    [System.Serializable]
+    public class PoisonSource
+    {
+        public GameObject sourceProjectile;
+        public int damageContribution;
+        
+        public PoisonSource(GameObject source, int damage)
+        {
+            sourceProjectile = source;
+            damageContribution = damage;
+        }
+    }
+    
     public bool IsPoisoned => isPoisoned;
     // Stagger system
     protected bool isStaggered = false;
@@ -123,23 +140,33 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     public virtual void ApplyPoison(int damage, float duration, float tickRate, GameObject sourceProjectile = null)
     {
-        // Stop existing poison coroutine if running
-        if (poisonCoroutine != null)
+        // Add or update poison source
+        if (sourceProjectile != null)
         {
-            StopCoroutine(poisonCoroutine);
+            var existingSource = poisonSources.Find(ps => ps.sourceProjectile == sourceProjectile);
+            if (existingSource != null)
+            {
+                existingSource.damageContribution += damage; // Stack damage from same source
+            }
+            else
+            {
+                poisonSources.Add(new PoisonSource(sourceProjectile, damage)); // Add new source
+            }
         }
+        
+        // Stack poison damage and reset timer
+        poisonDamage += damage;
+        poisonTimer = duration; // Reset timer to new duration
+        poisonTickRate = tickRate; // Use latest tick rate
+        lastPoisonTick = 0f;
 
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.poisoned);
         
-        // Set poison parameters (new poison resets timer)
-        poisonDamage = damage;
-        poisonTimer = duration;
-        poisonTickRate = tickRate;
-        lastPoisonTick = 0f;
-        
-        poisonSourceProjectile = sourceProjectile; // For special rewards
-        
-        poisonCoroutine = StartCoroutine(PoisonRoutine());
+        // Start poison coroutine if not already running
+        if (poisonCoroutine == null)
+        {
+            poisonCoroutine = StartCoroutine(PoisonRoutine());
+        }
     }
 
     protected virtual IEnumerator PoisonRoutine()
@@ -160,12 +187,34 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             {
                 health -= poisonDamage;
                 ShowDamageText(poisonDamage, new Color(0.7f, 0.9f, 0.5f)); // Pale green text
-                GiveSpecialToPlayer(specialOnHit, poisonSourceProjectile);
+                
+                // Give special points to all poison contributors proportionally
+                foreach (var poisonSource in poisonSources)
+                {
+                    if (poisonSource.sourceProjectile != null)
+                    {
+                        // Calculate proportional special points based on damage contribution
+                        int proportionalSpecial = Mathf.RoundToInt(specialOnHit * (float)poisonSource.damageContribution / poisonDamage);
+                        GiveSpecialToPlayer(proportionalSpecial, poisonSource.sourceProjectile);
+                    }
+                }
+                
                 lastPoisonTick = 0f;
                 if (health <= 0)
                 {
-                    GiveSpecialToPlayer(specialOnDeath, poisonSourceProjectile);
-                    AudioManager.Instance.PlaySFX(deathSound);
+                    // Give death special to all contributors
+                    foreach (var poisonSource in poisonSources)
+                    {
+                        if (poisonSource.sourceProjectile != null)
+                        {
+                            GiveSpecialToPlayer(specialOnDeath, poisonSource.sourceProjectile);
+                        }
+                    }
+                    
+                    if (deathSound != null && AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlaySFX(deathSound);
+                    }
                     OnDeath();
                     yield break;
                 }
@@ -178,9 +227,11 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             yield return null;
         }
         
+        // Poison effect ended - clear all data
         isPoisoned = false;
         poisonCoroutine = null;
-        poisonSourceProjectile = null;
+        poisonSources.Clear();
+        poisonDamage = 0;
     }
 
     protected virtual void ShowDamageText(int damage, Color textColor = default)
