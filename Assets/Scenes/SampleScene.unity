@@ -1369,8 +1369,8 @@ Transform:
   m_GameObject: {fileID: 859533712}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.038, y: -5, z: 10}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalPosition: {x: 0.038, y: -5.5, z: 10}
+  m_LocalScale: {x: 1.9, y: 1.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -2332,6 +2332,9 @@ MonoBehaviour:
   leftMulti4:
     clip: {fileID: 8300000, guid: dfa390fee52f9aa4099df1b17e48599a, type: 3}
     volume: 0.651
+  multiFull:
+    clip: {fileID: 8300000, guid: 31986b4f479e5544893909ab9bf9d0dc, type: 3}
+    volume: 1
   healSpecial:
     clip: {fileID: 8300000, guid: c8b34dd0f92e2bf4d88549a07795d9ef, type: 3}
     volume: 0.222
@@ -2367,6 +2370,9 @@ MonoBehaviour:
     volume: 1
   slimeSplit:
     clip: {fileID: 8300000, guid: 9e698157abba0224f84282d9078db507, type: 3}
+    volume: 1
+  poisoned:
+    clip: {fileID: 8300000, guid: c2762ac4dfa659f4cbb0623a8fdce04e, type: 3}
     volume: 1
 --- !u!4 &1736909207
 Transform:

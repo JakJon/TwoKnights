@@ -51,12 +51,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [System.Serializable]
     public class PoisonSource
     {
-        public GameObject sourceProjectile;
+        public string playerTag; // Store player tag instead of projectile reference
         public int damageContribution;
         
-        public PoisonSource(GameObject source, int damage)
+        public PoisonSource(string playerTag, int damage)
         {
-            sourceProjectile = source;
+            this.playerTag = playerTag;
             damageContribution = damage;
         }
     }
@@ -143,14 +143,17 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Add or update poison source
         if (sourceProjectile != null)
         {
-            var existingSource = poisonSources.Find(ps => ps.sourceProjectile == sourceProjectile);
+            // Extract player tag from projectile tag
+            string playerTag = sourceProjectile.CompareTag("PlayerLeftProjectile") ? "PlayerLeft" : "PlayerRight";
+            
+            var existingSource = poisonSources.Find(ps => ps.playerTag == playerTag);
             if (existingSource != null)
             {
                 existingSource.damageContribution += damage; // Stack damage from same source
             }
             else
             {
-                poisonSources.Add(new PoisonSource(sourceProjectile, damage)); // Add new source
+                poisonSources.Add(new PoisonSource(playerTag, damage)); // Add new source
             }
         }
         
@@ -188,26 +191,24 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 health -= poisonDamage;
                 ShowDamageText(poisonDamage, new Color(0.7f, 0.9f, 0.5f)); // Pale green text
                 
-                // Give special points to all poison contributors proportionally
-                foreach (var poisonSource in poisonSources)
-                {
-                    if (poisonSource.sourceProjectile != null)
-                    {
-                        // Calculate proportional special points based on damage contribution
-                        int proportionalSpecial = Mathf.RoundToInt(specialOnHit * (float)poisonSource.damageContribution / poisonDamage);
-                        GiveSpecialToPlayer(proportionalSpecial, poisonSource.sourceProjectile);
-                    }
-                }
+                // Don't give special points for poison ticks - only for kills
                 
                 lastPoisonTick = 0f;
                 if (health <= 0)
                 {
+                    Debug.Log($"Enemy died from poison! Poison sources count: {poisonSources.Count}");
+                    
                     // Give death special to all contributors
                     foreach (var poisonSource in poisonSources)
                     {
-                        if (poisonSource.sourceProjectile != null)
+                        if (!string.IsNullOrEmpty(poisonSource.playerTag))
                         {
-                            GiveSpecialToPlayer(specialOnDeath, poisonSource.sourceProjectile);
+                            Debug.Log($"Giving death special to poison contributor with player tag: {poisonSource.playerTag}");
+                            GiveSpecialToPlayer(specialOnDeath, poisonSource.playerTag);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("Poison source player tag is null or empty!");
                         }
                     }
                     
@@ -235,20 +236,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     }
 
     protected virtual void ShowDamageText(int damage, Color textColor = default)
-    {
-        Debug.Log($"ShowDamageText called with damage: {damage}, color: {textColor}");
-        
+    {        
         // Use red as default color if no color specified
         if (textColor == default)
         {
             textColor = Color.red;
-            Debug.Log("Using default red color");
         }
-        else
-        {
-            Debug.Log($"Using specified color: {textColor}");
-        }
-        
         if (damageTextPrefab != null)
         {
             // Calculate position based on sprite height
@@ -263,18 +256,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             if (damageText != null)
             {
                 damageText.Initialize(damage, textColor);
-                Debug.Log($"Initialized DamageText with color: {textColor}");
             }
             else
             {
-                Debug.LogWarning("DamageText component not found on prefab!");
                 
                 // Fallback: Set the color directly on text components
                 var textMesh = damageTextObj.GetComponent<TextMesh>();
                 if (textMesh != null)
                 {
                     textMesh.color = textColor;
-                    Debug.Log($"Set TextMesh color to: {textColor}");
                 }
                 else
                 {
@@ -283,18 +273,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                     if (tmpText != null)
                     {
                         tmpText.color = textColor;
-                        Debug.Log($"Set TMPro color to: {textColor}");
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Neither TextMesh nor TextMeshPro component found on damage text prefab!");
                     }
                 }
             }
-        }
-        else
-        {
-            Debug.LogWarning("damageTextPrefab is null! Make sure to assign it in the inspector.");
         }
     }
 
@@ -320,19 +301,66 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     protected void GiveSpecialToPlayer(int amount, GameObject projectile)
     {
-        if (projectile == null) return;
+        if (projectile == null)
+        {
+            Debug.LogWarning("GiveSpecialToPlayer: projectile is null!");
+            return;
+        }
+
 
         GameObject player = projectile.CompareTag("PlayerLeftProjectile")
             ? GameObject.FindWithTag("PlayerLeft")
             : GameObject.FindWithTag("PlayerRight");
+
+        Debug.Log($"GiveSpecialToPlayer: found player = {(player != null ? player.name : "null")}");
 
         if (player != null)
         {
             PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
             if (playerSpecial != null)
             {
+                Debug.Log($"GiveSpecialToPlayer: Giving {amount} special to {player.name}");
                 playerSpecial.updateSpecial(amount);
             }
+            else
+            {
+                Debug.LogWarning($"GiveSpecialToPlayer: PlayerSpecial component not found on {player.name}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"GiveSpecialToPlayer: No player found for projectile tag {projectile.tag}");
+        }
+    }
+
+    // Overloaded version that accepts a player tag directly
+    protected void GiveSpecialToPlayer(int amount, string playerTag)
+    {
+        if (string.IsNullOrEmpty(playerTag))
+        {
+            Debug.LogWarning("GiveSpecialToPlayer: playerTag is null or empty!");
+            return;
+        }
+
+        GameObject player = GameObject.FindWithTag(playerTag);
+        Debug.Log($"GiveSpecialToPlayer: found player = {(player != null ? player.name : "null")} for tag {playerTag}");
+
+        if (player != null)
+        {
+            PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
+            if (playerSpecial != null)
+            {
+                Debug.Log($"GiveSpecialToPlayer: Giving {amount} special to {player.name}");
+                playerSpecial.updateSpecial(amount);
+            }
+            else
+            {
+                Debug.LogWarning($"GiveSpecialToPlayer: PlayerSpecial component not found on {player.name}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"GiveSpecialToPlayer: No player found for tag {playerTag}");
         }
     }
 

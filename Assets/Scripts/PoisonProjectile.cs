@@ -4,7 +4,7 @@ public class PoisonProjectile : MonoBehaviour
 {
     [Header("Poison Settings")]
     [Tooltip("Damage dealt per poison tick")]
-    [SerializeField] private int poisonDamage = 1;
+    [SerializeField] private int poisonDamage = 3;
     [Tooltip("Duration of poison effect in seconds")]
     [SerializeField] private float poisonDuration = 20f;
     [Tooltip("Time between poison damage ticks in seconds")]

@@ -17,4 +17,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c17172dcd566efe49b55d6c69ffde2c4, type: 2}
   - {fileID: 11400000, guid: 8a8ac69ee86f50342bf16a878d746a2b, type: 2}
   - {fileID: 11400000, guid: 6894bfba50da8464cb9cb6eebf0a891b, type: 2}
+  - {fileID: 11400000, guid: 882d0ee6c7877c5409d9c877d1057086, type: 2}
   upgradesPerSelection: 3

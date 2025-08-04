@@ -132,15 +132,8 @@ public class EnemySlime : EnemyBase
             // Give special to the player who got the kill
             GiveSpecialToPlayer(specialOnDeath, projectile);
             
-            if (size > 1)
-            {
-                Split();
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeSplit);
-            }
-            else
-            {
-                OnDeath();
-            }
+            // Don't call OnDeath() here - let the base TakeDamage method handle it
+            // The base class will call OnDeath() when health <= 0
         }
         else
         {
@@ -168,15 +161,24 @@ public class EnemySlime : EnemyBase
             slimeScript.InitializeSlime();
         }
 
-        OnDeath();
+        // Don't call OnDeath() here - let the OnDeath() method handle destruction
     }
 
     protected override void OnDeath()
     {
-        // Play death sound for smallest slime
-        if (deathSound != null && AudioManager.Instance != null)
+        // Check if this slime should split before dying
+        if (size > 1)
         {
-            AudioManager.Instance.PlaySFX(deathSound);
+            Split();
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeSplit);
+        }
+        else
+        {
+            // Play death sound for smallest slime
+            if (deathSound != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(deathSound);
+            }
         }
         
         // Call base implementation to destroy the game object

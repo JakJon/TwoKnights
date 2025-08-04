@@ -46,7 +46,7 @@ public class SlimesAndBats : BaseWave
                 spawner.SpawnOrb(spawner.rightOfRightPlayer, spawner.aboveLeftPLayer, false);
             }
 
-            yield return new WaitForSeconds(15f + wave);
+            yield return new WaitForSeconds(10f + wave);
         }
         
         // Mark spawning as complete so the wave knows to start checking for enemy deaths
