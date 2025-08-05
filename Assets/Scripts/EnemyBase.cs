@@ -33,7 +33,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     [Header("Sprite Flipping")]
     [SerializeField] protected float directionThreshold = 0.01f; 
-
+    
     protected SpriteRenderer spriteRenderer;
     protected GlowManager glowManager;
     protected Animator animator;
@@ -44,6 +44,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected float poisonTickRate = 1f;
     protected float lastPoisonTick = 0f;
     protected Coroutine poisonCoroutine = null;
+    protected PoisonBubbleEffect poisonBubbles = null; // Poison bubble effect
     
     // Track poison sources and their contributions
     protected List<PoisonSource> poisonSources = new List<PoisonSource>();
@@ -52,7 +53,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     public class PoisonSource
     {
         public string playerTag; // Store player tag instead of projectile reference
-        public int damageContribution;
+        public int damageContribution; //
         
         public PoisonSource(string playerTag, int damage)
         {
@@ -165,6 +166,43 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.poisoned);
         
+        // Create poison bubbles if not already created
+        if (poisonBubbles == null)
+        {
+            GameObject bubbleObject;
+            GameObject bubblePrefab = PoisonResourceManager.Instance?.GetPoisonBubblePrefab();
+            
+            if (bubblePrefab != null)
+            {
+                // Use prefab from resource manager
+                bubbleObject = Instantiate(bubblePrefab, transform.position, Quaternion.identity);
+                bubbleObject.transform.SetParent(transform);
+                bubbleObject.transform.localPosition = Vector3.zero;
+                poisonBubbles = bubbleObject.GetComponent<PoisonBubbleEffect>();
+                
+                // If prefab doesn't have the component, add it
+                if (poisonBubbles == null)
+                {
+                    poisonBubbles = bubbleObject.AddComponent<PoisonBubbleEffect>();
+                }
+            }
+            else
+            {
+                // Fallback: create dynamically and try to get sprite from resource manager
+                bubbleObject = new GameObject("PoisonBubbles");
+                bubbleObject.transform.SetParent(transform);
+                bubbleObject.transform.localPosition = Vector3.zero;
+                poisonBubbles = bubbleObject.AddComponent<PoisonBubbleEffect>();
+                
+                // Try to set sprite from resource manager
+                Sprite bubbleSprite = PoisonResourceManager.Instance?.GetPoisonBubbleSprite();
+                if (bubbleSprite != null)
+                {
+                    poisonBubbles.SetBubbleSprite(bubbleSprite);
+                }
+            }
+        }
+        
         // Start poison coroutine if not already running
         if (poisonCoroutine == null)
         {
@@ -184,6 +222,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             glowManager?.StartGlow(new Color(0.3f, 0.5f, 0.13f), remainingDuration, 5f, 0.75f); // Poison glow
         }
         
+        // Start poison bubbles
+        poisonBubbles?.StartBubbles();
+        
         while (poisonTimer > 0f)
         {
             if (lastPoisonTick >= poisonTickRate)
@@ -197,6 +238,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 if (health <= 0)
                 {
                     Debug.Log($"Enemy died from poison! Poison sources count: {poisonSources.Count}");
+                    
+                    // Stop poison bubbles
+                    poisonBubbles?.StopBubbles();
                     
                     // Give death special to all contributors
                     foreach (var poisonSource in poisonSources)
@@ -227,6 +271,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             
             yield return null;
         }
+        
+        // Stop poison bubbles when effect ends
+        poisonBubbles?.StopBubbles();
         
         // Poison effect ended - clear all data
         isPoisoned = false;

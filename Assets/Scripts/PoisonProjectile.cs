@@ -16,10 +16,13 @@ public class PoisonProjectile : MonoBehaviour
     [SerializeField] private Color poisonTint = Color.green;
     [Tooltip("Glow effect for poisoned projectiles")]
     [SerializeField] private bool enableGlow = true;
+    [Tooltip("Prefab to use for poison bubble trail effects")]
+    [SerializeField] private GameObject poisonBubblePrefab;
     
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
     private GlowManager glowManager;
+    private PoisonBubbleEffect poisonBubbles;
     
     public int PoisonDamage => poisonDamage;
     public float PoisonDuration => poisonDuration;
@@ -43,6 +46,45 @@ public class PoisonProjectile : MonoBehaviour
         {
             glowManager.StartGlow(Color.blue, 10f, 5f, 0.4f); // Long duration, medium speed waves
         }
+        
+        // Create and start poison bubble trail
+        GameObject bubbleObject;
+        GameObject bubblePrefab = PoisonResourceManager.Instance?.GetPoisonBubblePrefab();
+        
+        if (bubblePrefab != null)
+        {
+            // Use prefab from resource manager
+            bubbleObject = Instantiate(bubblePrefab, transform.position, Quaternion.identity);
+            bubbleObject.transform.SetParent(transform);
+            bubbleObject.transform.localPosition = Vector3.zero;
+            poisonBubbles = bubbleObject.GetComponent<PoisonBubbleEffect>();
+            
+            // If prefab doesn't have the component, add it
+            if (poisonBubbles == null)
+            {
+                poisonBubbles = bubbleObject.AddComponent<PoisonBubbleEffect>();
+            }
+        }
+        else
+        {
+            // Fallback: create dynamically and try to get sprite from resource manager
+            bubbleObject = new GameObject("PoisonBubbleTrail");
+            bubbleObject.transform.SetParent(transform);
+            bubbleObject.transform.localPosition = Vector3.zero;
+            poisonBubbles = bubbleObject.AddComponent<PoisonBubbleEffect>();
+            
+            // Try to set sprite from resource manager
+            Sprite bubbleSprite = PoisonResourceManager.Instance?.GetPoisonBubbleSprite();
+            if (bubbleSprite != null)
+            {
+                poisonBubbles.SetBubbleSprite(bubbleSprite);
+            }
+        }
+        
+        // Configure bubbles for projectile trail (faster rate, shorter lifetime)
+        float bubbleRate = PoisonResourceManager.Instance?.projectileBubbleRate ?? 3f;
+        poisonBubbles.SetBubbleRate(bubbleRate);
+        poisonBubbles.StartBubbles();
     }
     
     // Method to apply poison to an enemy
@@ -51,6 +93,15 @@ public class PoisonProjectile : MonoBehaviour
         if (enemy != null)
         {
             enemy.ApplyPoison(poisonDamage, poisonDuration, poisonTickRate, sourceProjectile);
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        // Stop bubbles when projectile is destroyed
+        if (poisonBubbles != null)
+        {
+            poisonBubbles.StopBubbles();
         }
     }
 }

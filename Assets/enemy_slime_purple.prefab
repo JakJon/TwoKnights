@@ -232,6 +232,7 @@ MonoBehaviour:
     volume: 1
   attributes: 5
   directionThreshold: 0.01
+  poisonBubblePrefab: {fileID: 1347739639544268601, guid: 6db99557d07e4844db87602aaa06889a, type: 3}
   size: 1
   baseHealth: 10
   splitForce: 5
