@@ -66,6 +66,37 @@ public class PlayerShooter : MonoBehaviour
             projectile.AddComponent<PoisonProjectile>();
         }
 
+        // Check if shadow arrow should be spawned
+        ShadowArrowBoost shadowArrowBoost = GetComponent<ShadowArrowBoost>();
+        if (shadowArrowBoost != null && shadowArrowBoost.GetShadowArrowPrefab() != null)
+        {
+            // Get shadow spawn position with variance
+            Vector2 shadowSpawnPosition = shadowArrowBoost.GetShadowSpawnPosition(spawnPosition, shield.Direction);
+            GameObject shadowArrow = Instantiate(shadowArrowBoost.GetShadowArrowPrefab(), shadowSpawnPosition, spawnRotation);
+            shadowArrow.tag = gameObject.tag + "Projectile";
+            
+            // Shadow arrow has independent poison chance
+            if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
+            {
+                shadowArrow.AddComponent<PoisonProjectile>();
+            }
+            
+            // Set shadow arrow velocity (same direction and speed as main projectile)
+            shadowArrow.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
+            
+            // Set shadow arrow damage (reduced damage)
+            PlayerProjectile shadowProjectileComponent = shadowArrow.GetComponent<PlayerProjectile>();
+            if (shadowProjectileComponent != null)
+            {
+                // Calculate damage: base damage + damage bonus, then apply shadow multiplier
+                int mainProjectileDamage = shadowProjectileComponent.damage + damageBonus;
+                shadowProjectileComponent.damage = Mathf.RoundToInt(mainProjectileDamage * shadowArrowBoost.GetDamageMultiplier());
+            }
+            
+            // Start lifetime countdown for shadow arrow
+            StartCoroutine(DestroyProjectile(shadowArrow));
+        }
+
         // Set velocity
         projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
         

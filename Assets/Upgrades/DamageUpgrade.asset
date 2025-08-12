@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Damage Boost
   description: +5 Damage
-  weight: 101
+  weight: 10100
   isUnlocked: 1
   damageIncrease: 5

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30f20533f6df10648b22aac557d534e3, type: 3}
+  m_Name: ShadowArrowUpgrade
+  m_EditorClassIdentifier: 
+  upgradeName: Shadow Arrow
+  description: Arrows spawn shadow copies that deal 33% damage
+  weight: 1e+9
+  isUnlocked: 1
+  shadowArrowPrefab: {fileID: 8124615890466243421, guid: b06b2f4c55b919a458a9db7434633ee0, type: 3}
+  damageMultiplier: 0.33
+  spawnChance: 100
+  trailDistance: 0.5

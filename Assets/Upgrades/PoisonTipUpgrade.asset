@@ -16,4 +16,4 @@ MonoBehaviour:
   description: Arrows have 30% chance to poison enemies
   weight: 20000000
   isUnlocked: 1
-  poisonChanceIncrease: 30
+  poisonChanceIncrease: 20
