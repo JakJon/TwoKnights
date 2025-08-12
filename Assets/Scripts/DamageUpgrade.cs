@@ -17,29 +17,11 @@ public class DamageUpgrade : BaseUpgrade
     
     public override void ApplyUpgrade(GameObject targetKnight)
     {
-        // Since damage is handled in projectile collision detection, we'll store damage multiplier
-        // on the player and check for it in projectile collision
-        DamageBoost damageBoost = targetKnight.GetComponent<DamageBoost>();
-        if (damageBoost == null)
+        // Apply damage bonus directly to the PlayerShooter component
+        PlayerShooter playerShooter = targetKnight.GetComponent<PlayerShooter>();
+        if (playerShooter != null)
         {
-            damageBoost = targetKnight.AddComponent<DamageBoost>();
+            playerShooter.IncreaseDamage(damageIncrease);
         }
-        damageBoost.IncreaseDamage(damageIncrease);
-    }
-}
-
-// Component to track damage bonuses
-public class DamageBoost : MonoBehaviour
-{
-    private int totalDamageBonus = 0;
-    
-    public void IncreaseDamage(int amount)
-    {
-        totalDamageBonus += amount;
-    }
-    
-    public int GetDamageBonus()
-    {
-        return totalDamageBonus;
     }
 }

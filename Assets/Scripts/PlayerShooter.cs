@@ -15,6 +15,9 @@ public class PlayerShooter : MonoBehaviour
     
     private bool _canShoot = true;
     private bool _isHoldingButton = false;
+    
+    [Header("Upgrades")]
+    private int damageBonus = 0; // Total damage bonus from upgrades
 
     public float cooldownTime = 1.5f;
     public bool rapidFireEnabled = false;
@@ -65,6 +68,13 @@ public class PlayerShooter : MonoBehaviour
 
         // Set velocity
         projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
+        
+        // Apply damage bonus to the projectile
+        PlayerProjectile playerProjectileComponent = projectile.GetComponent<PlayerProjectile>();
+        if (playerProjectileComponent != null)
+        {
+            playerProjectileComponent.damage += damageBonus;
+        }
 
         // Start lifetime countdown
         StartCoroutine(DestroyProjectile(projectile));
@@ -101,5 +111,11 @@ public class PlayerShooter : MonoBehaviour
     public void ModifyProjectileSpeed(float multiplier)
     {
         projectileSpeed *= multiplier;
+    }
+    
+    // Method for damage upgrades to increase damage
+    public void IncreaseDamage(int amount)
+    {
+        damageBonus += amount;
     }
 }
