@@ -4,6 +4,18 @@ public class ProjectileSettings : MonoBehaviour
 {
     [SerializeField] public int damage = 10;
 
+    void Start()
+    {
+        // Register this projectile with the wave tracking system
+        BaseWave.RegisterProjectile(gameObject);
+    }
+
+    void OnDestroy()
+    {
+        // Unregister this projectile when it's destroyed
+        BaseWave.UnregisterProjectile(gameObject);
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         // Check for shield collision

@@ -9,18 +9,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1a15d43fcb295e4a83c917fe3dab7a3, type: 3}
-  m_Name: Bat Slime boogie 3
+  m_Script: {fileID: 11500000, guid: 9ca87ab27606c334a9896c3f2a802b31, type: 3}
+  m_Name: Chaotic Corners 0
   m_EditorClassIdentifier: 
-  waveName: Bat Slime Boogie 4
+  waveName: Chaotic Corners
   weight: 1000
-  isUnlocked: 0
+  isUnlocked: 1
   waveDescription: 
-  unlockedAfterXWaves: 12
-  lockedAfterXWaves: 16
+  unlockedAfterXWaves: -1
+  lockedAfterXWaves: 4
   useEnemyTracking: 1
-  waveOccurences: 5
-  minimumSlimeSize: 2
-  batDelay: 1
-  projectileDelay: 2
-  projectileCount: 6
+  delayTime: 12
+  projectilesPerArc: 2
+  batsPerArc: 2
+  kingSlimes: 1
+  slimesPerArc: 0
+  slimesSize: 1
+  arcCount: 3
+  arcDelay: 3

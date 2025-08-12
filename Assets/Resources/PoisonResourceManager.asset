@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   poisonBubblePrefab: {fileID: 1347739639544268601, guid: 6db99557d07e4844db87602aaa06889a, type: 3}
   poisonBubbleSprite: {fileID: 4685750256754047291, guid: 66fe85fe9d731ec4790e03a2ecf51016, type: 3}
-  enemyBubbleRate: 2
-  projectileBubbleRate: 3
+  enemyBubbleRate: 5
+  projectileBubbleRate: 12

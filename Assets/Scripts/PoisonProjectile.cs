@@ -82,7 +82,7 @@ public class PoisonProjectile : MonoBehaviour
         }
         
         // Configure bubbles for projectile trail (faster rate, shorter lifetime)
-        float bubbleRate = PoisonResourceManager.Instance?.projectileBubbleRate ?? 3f;
+        float bubbleRate = PoisonResourceManager.Instance?.projectileBubbleRate ?? 5f;
         poisonBubbles.SetBubbleRate(bubbleRate);
         poisonBubbles.StartBubbles();
     }
@@ -98,10 +98,38 @@ public class PoisonProjectile : MonoBehaviour
     
     private void OnDestroy()
     {
-        // Stop bubbles when projectile is destroyed
+        // Stop bubbles but let them finish their animation when projectile is destroyed
         if (poisonBubbles != null)
         {
-            poisonBubbles.StopBubbles();
+            
+            // Alternative approach: Create a completely independent bubble GameObject
+            GameObject independentBubbles = new GameObject("IndependentPoisonBubbles");
+            independentBubbles.transform.position = transform.position;
+            
+            // Copy the particle system to the independent object
+            var newBubbleEffect = independentBubbles.AddComponent<PoisonBubbleEffect>();
+            
+            // Copy the sprite from the current bubble effect
+            Sprite bubbleSprite = PoisonResourceManager.Instance?.GetPoisonBubbleSprite();
+            if (bubbleSprite != null)
+            {
+                newBubbleEffect.SetBubbleSprite(bubbleSprite);
+            }
+            
+            // Start the independent bubbles and immediately stop emission (let existing ones finish)
+            newBubbleEffect.StartBubbles();
+            newBubbleEffect.StopBubbles();
+            
+            // Destroy the independent bubbles after their lifetime
+            float bubbleLifetime = 2f; // Default bubble lifetime
+            Destroy(independentBubbles, bubbleLifetime + 1f);
+            
+            
+            // Also try the original method
+            poisonBubbles.StopBubblesAndDetach();
+        }
+        else
+        {
         }
     }
 }

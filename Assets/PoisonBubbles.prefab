@@ -51,4 +51,4 @@ MonoBehaviour:
   bubbleSpeed: 1
   bubbleSpread: 0.5
   bubbleSizeRange: {x: 0.1, y: 0.3}
-  bubbleColor: {r: 0.3, g: 0.8, b: 0.3, a: 0.7}
+  bubbleColor: {r: 0.038573265, g: 0, b: 1, a: 0.7}

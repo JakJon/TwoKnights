@@ -239,12 +239,12 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnProjectileStraight(Vector2 spawnPosition, Transform targetPlayer, int projectileAmount, float projectileDelay, float initialDelay = 0f)
+    public void SpawnProjectileStraight(Vector2 spawnPosition, Transform targetPlayer, float projectileAmount, float projectileDelay, float initialDelay = 0f)
     {
         StartCoroutine(SpawnProjectileStraightCoroutine(spawnPosition, targetPlayer, projectileAmount, projectileDelay, initialDelay));
     }
 
-    private IEnumerator SpawnProjectileStraightCoroutine(Vector2 spawnPosition, Transform targetPlayer, int projectileAmount, float projectileDelay, float initialDelay)
+    private IEnumerator SpawnProjectileStraightCoroutine(Vector2 spawnPosition, Transform targetPlayer, float projectileAmount, float projectileDelay, float initialDelay)
     {
         if (initialDelay > 0f)
             yield return new WaitForSeconds(initialDelay);

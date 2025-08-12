@@ -9,7 +9,7 @@ public class ChaoticCorners : BaseWave
     // projectiles, with the opisite corner spawning a swarm of bats. The last wave
     // spawns one giant slime instead of a swarm of bats.
 
-    [SerializeField] private int numberOfSwarms = 3;
+
     [Tooltip("Recommended minimum delay time is 3 seconds to ensure proper wave pacing")]
     [SerializeField] private float delayTime = 5f;
     [SerializeField] private int projectilesPerArc = 8;
@@ -17,11 +17,12 @@ public class ChaoticCorners : BaseWave
     [SerializeField] private int kingSlimes = 1;
     [SerializeField] private int slimesPerArc;
     [SerializeField] private int slimesSize = 1;
+    [SerializeField] private int arcCount = 5;
+    [SerializeField] private float arcDelay = 1f;
+
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
-        for (int swarm = 0; swarm < numberOfSwarms; swarm++)
-        {
             spawner.SpawnProjectileArc(
                 spawner.LeftPlayer,
                 Spawner.ArcDirection.CounterClockwise,
@@ -29,8 +30,8 @@ public class ChaoticCorners : BaseWave
                 90f,
                 projectilesPerArc,
                 0.1f,
-                5,
-                1f
+                arcCount,
+                arcDelay
             );
 
             for (int i = 0; i < slimesPerArc; i++)
@@ -38,12 +39,14 @@ public class ChaoticCorners : BaseWave
                 spawner.SpawnSlime(slimesSize, new Vector2(11, -5 - i), 0f, spawner.LeftPlayer);
             }
 
-            for (int i = 0; i < batsPerArc; i++) {
+            for (int i = 0; i < batsPerArc; i++)
+            {
                 spawner.SpawnBat(new Vector2(11, -5), 0f);
                 if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
             }
 
             spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), false);
+            yield return new WaitForSeconds(arcDelay * arcCount);
 
             spawner.SpawnProjectileArc(
                 spawner.RightPlayer,
@@ -52,15 +55,17 @@ public class ChaoticCorners : BaseWave
                 90f,
                 projectilesPerArc,
                 0.1f,
-                5,
-                1f
+                arcCount,
+                arcDelay
             );
 
-            for (int i = 0; i < slimesPerArc; i++) {
+            for (int i = 0; i < slimesPerArc; i++)
+            {
                 spawner.SpawnSlime(slimesSize, new Vector2(-11, 5 + i), 0f, spawner.RightPlayer);
             }
 
-            for (int i = 0; i < batsPerArc; i++) {
+            for (int i = 0; i < batsPerArc; i++)
+            {
                 spawner.SpawnBat(new Vector2(-11, 5), 0f);
                 if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
             }
@@ -72,11 +77,12 @@ public class ChaoticCorners : BaseWave
                 90f,
                 projectilesPerArc,
                 0.1f,
-                5,
-                1f
+                arcCount,
+                arcDelay
             );
 
-            for (int i = 0; i < batsPerArc; i++) {
+            for (int i = 0; i < batsPerArc; i++)
+            {
                 spawner.SpawnBat(new Vector2(11, 5), 0f);
                 if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
             }
@@ -88,11 +94,12 @@ public class ChaoticCorners : BaseWave
                 90f,
                 projectilesPerArc,
                 0.1f,
-                5,
-                1f
+                arcCount,
+                arcDelay
             );
 
-            for (int i = 0; i < kingSlimes; i++) {
+            for (int i = 0; i < kingSlimes; i++)
+            {
                 spawner.SpawnSlime(3, new Vector2(-11 + (i * 3), -6), 0f, spawner.RightPlayer);
             }
 
@@ -101,14 +108,9 @@ public class ChaoticCorners : BaseWave
                 spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), true);
             }
 
-            yield return new WaitForSeconds(delayTime * 3);
-
-            yield return new WaitForSeconds(delayTime * 2);
-        }
-        
         // Mark spawning as complete so the wave knows to start checking for enemy deaths
         MarkSpawningComplete();
-        
+
         // The wave will now automatically complete when all enemies are killed
         yield return null; // Required for IEnumerator even though we're not waiting
     }

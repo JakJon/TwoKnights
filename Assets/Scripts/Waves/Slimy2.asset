@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd4dfdd53c8d07247a13e9b949c804db, type: 3}
   m_Name: Slimy2
   m_EditorClassIdentifier: 
-  waveName: A Sticky Situation II
+  waveName: A Sticky Situation 2
   weight: 1000
   isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: 3
-  lockedAfterXWaves: 6
+  unlockedAfterXWaves: 4
+  lockedAfterXWaves: 8
   useEnemyTracking: 1
   waveOccurences: 3
   projectilesPerStraight: 6

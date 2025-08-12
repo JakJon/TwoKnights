@@ -15,7 +15,7 @@ public class PoisonResourceManager : ScriptableObject
     public float enemyBubbleRate = 2f;
     
     [Tooltip("Default bubble rate for projectiles")]
-    public float projectileBubbleRate = 3f;
+    public float projectileBubbleRate = 15f;
     
     // Singleton instance
     private static PoisonResourceManager _instance;

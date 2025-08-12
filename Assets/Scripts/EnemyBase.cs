@@ -239,8 +239,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 {
                     Debug.Log($"Enemy died from poison! Poison sources count: {poisonSources.Count}");
                     
-                    // Stop poison bubbles
-                    poisonBubbles?.StopBubbles();
+                    // Stop poison bubbles but let them finish their animation
+                    poisonBubbles?.StopBubblesAndDetach();
                     
                     // Give death special to all contributors
                     foreach (var poisonSource in poisonSources)
@@ -272,8 +272,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             yield return null;
         }
         
-        // Stop poison bubbles when effect ends
-        poisonBubbles?.StopBubbles();
+        // Stop poison bubbles when effect ends but let them finish their animation
+        poisonBubbles?.StopBubblesAndDetach();
         
         // Poison effect ended - clear all data
         isPoisoned = false;

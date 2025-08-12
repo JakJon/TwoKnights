@@ -9,15 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1a15d43fcb295e4a83c917fe3dab7a3, type: 3}
-  m_Name: Bat Slime Boogie
+  m_Script: {fileID: 11500000, guid: afcfc136fb0be834cbde2a57f87a10e2, type: 3}
+  m_Name: RatMischief 3
   m_EditorClassIdentifier: 
-  waveName: Bat Slime Boogie
+  waveName: Rat Mischief 2
   weight: 1000
-  isUnlocked: 1
+  isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: -1
-  lockedAfterXWaves: 3
+  unlockedAfterXWaves: 12
+  lockedAfterXWaves: 16
   useEnemyTracking: 1
   waveOccurences: 3
-  minimumSlimeSize: 1
+  baseRatCount: 3
+  projectileCount: 10
+  projectileDelay: 0.5

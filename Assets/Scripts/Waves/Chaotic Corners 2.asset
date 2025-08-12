@@ -12,17 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ca87ab27606c334a9896c3f2a802b31, type: 3}
   m_Name: Chaotic Corners 2
   m_EditorClassIdentifier: 
-  waveName: Chaotic Corners II
+  waveName: Chaotic Corners 3
   weight: 1000
   isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: 6
+  unlockedAfterXWaves: 8
   lockedAfterXWaves: 12
   useEnemyTracking: 1
-  numberOfSwarms: 1
   delayTime: 3
   projectilesPerArc: 8
   batsPerArc: 8
   kingSlimes: 2
   slimesPerArc: 3
   slimesSize: 2
+  arcCount: 7
+  arcDelay: 1

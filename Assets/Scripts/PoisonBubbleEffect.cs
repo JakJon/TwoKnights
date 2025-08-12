@@ -18,9 +18,9 @@ public class PoisonBubbleEffect : MonoBehaviour
     
     [Header("Visual Settings")]
     [Tooltip("Size range for bubbles (min, max)")]
-    [SerializeField] private Vector2 bubbleSizeRange = new Vector2(0.1f, 0.3f);
+    [SerializeField] private Vector2 bubbleSizeRange = new Vector2(0.1f, 0.2f);
     [Tooltip("Color tint for bubbles")]
-    [SerializeField] private Color bubbleColor = new Color(0.3f, 0.8f, 0.3f, 0.7f);
+    [SerializeField] private Color bubbleColor = new Color(1f, 1f, 1f, 1f);
     
     private ParticleSystem particles;
     private ParticleSystem.MainModule mainModule;
@@ -59,8 +59,10 @@ public class PoisonBubbleEffect : MonoBehaviour
         mainModule.startSpeed = 0f; // We'll handle movement with velocity module
         mainModule.startSize3D = false; // Use uniform scaling to maintain aspect ratio
         mainModule.startSize = new ParticleSystem.MinMaxCurve(bubbleSizeRange.x, bubbleSizeRange.y);
-        mainModule.startColor = bubbleColor;
-        mainModule.simulationSpace = ParticleSystemSimulationSpace.World;
+        mainModule.startColor = Color.white; // Use white to preserve sprite's original colors
+        mainModule.simulationSpace = ParticleSystemSimulationSpace.World; // Ensure particles persist when parent is destroyed
+        mainModule.prewarm = true; // Pre-warm so particles are visible immediately
+        mainModule.maxParticles = 100; // Increase max particles for better trails
         
         // Emission settings
         emissionModule.rateOverTime = bubbleRate;
@@ -75,6 +77,7 @@ public class PoisonBubbleEffect : MonoBehaviour
         velocityModule.space = ParticleSystemSimulationSpace.World;
         velocityModule.y = new ParticleSystem.MinMaxCurve(bubbleSpeed * 0.7f, bubbleSpeed);
         velocityModule.x = new ParticleSystem.MinMaxCurve(-bubbleSpread, bubbleSpread);
+        velocityModule.z = new ParticleSystem.MinMaxCurve(0f, 0f); // Ensure Z is also set consistently
         
         // Size over lifetime (bubbles shrink as they fade)
         sizeModule.enabled = true;
@@ -83,12 +86,12 @@ public class PoisonBubbleEffect : MonoBehaviour
         sizeCurve.AddKey(1f, 0.2f);
         sizeModule.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
         
-        // Color over lifetime (fade out)
+        // Color over lifetime (fade out while preserving sprite colors)
         colorModule.enabled = true;
         Gradient colorGradient = new Gradient();
         colorGradient.SetKeys(
-            new GradientColorKey[] { new GradientColorKey(bubbleColor, 0f), new GradientColorKey(bubbleColor, 1f) },
-            new GradientAlphaKey[] { new GradientAlphaKey(bubbleColor.a, 0f), new GradientAlphaKey(0f, 1f) }
+            new GradientColorKey[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
         );
         colorModule.color = colorGradient;
         
@@ -125,6 +128,9 @@ public class PoisonBubbleEffect : MonoBehaviour
         if (particles != null)
         {
             particles.Play();
+            
+            // Force emit a few particles immediately so they're available for detachment
+            particles.Emit(3);
         }
     }
     
@@ -132,7 +138,43 @@ public class PoisonBubbleEffect : MonoBehaviour
     {
         if (particles != null)
         {
-            particles.Stop();
+            // Stop emitting new bubbles but let existing ones finish
+            var emission = particles.emission;
+            emission.enabled = false;
+        }
+    }
+    
+    public void StopBubblesAndDetach()
+    {
+        if (particles != null)
+        {
+            // Check current particle count
+            int currentParticleCount = particles.particleCount;
+            if (currentParticleCount == 0)
+            {
+                particles.Emit(5); // Force emit some particles
+                currentParticleCount = particles.particleCount;
+            }
+            // Stop emitting new bubbles
+            var emission = particles.emission;
+            emission.enabled = false;
+            // Store current position before detaching
+            Vector3 currentPosition = transform.position;
+            // CRITICAL: Set simulation space to World BEFORE detaching
+            var main = particles.main;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            // Detach from parent so bubbles persist when parent is destroyed
+            transform.SetParent(null);
+            // Ensure position is maintained after detaching
+            transform.position = currentPosition;
+            // Try to keep the particles alive by ensuring they don't get culled
+            var renderer = particles.GetComponent<ParticleSystemRenderer>();
+            if (renderer != null)
+            {
+                renderer.enabled = true;
+            }
+            // Destroy this GameObject after all bubbles have finished their lifetime
+            Destroy(gameObject, bubbleLifetime + 0.5f);
         }
     }
     

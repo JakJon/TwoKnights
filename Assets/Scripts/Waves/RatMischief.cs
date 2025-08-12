@@ -7,6 +7,8 @@ public class RatMischef : BaseWave
     [Tooltip("Tooltip")]
     [SerializeField] private int waveOccurences = 1;
     [SerializeField] private int baseRatCount = 1;
+    [SerializeField] private int projectileCount = 3;
+    [SerializeField] private float projectileDelay = 1f;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
@@ -35,8 +37,8 @@ public class RatMischef : BaseWave
                 Spawner.ArcDirection.CounterClockwise,
                 spawner.belowRightPlayer,
                 180f,
-                3 + i,
-                1f
+                projectileCount + i,
+                projectileDelay
                 );
 
             for (int ratIndex = 1; ratIndex < totalRats + 1; ratIndex++)
@@ -82,16 +84,14 @@ public class RatMischef : BaseWave
                     ratPrefab = spawner.blackRat;
                 }
 
-
-
                 spawner.SpawnRat(spawnPos, ratPrefab, 0, targetPlayer);
             }
             yield return new WaitForSeconds(12f + i * 2);
         }
-        
+
         // Mark spawning as complete so the wave knows to start checking for enemy deaths
         MarkSpawningComplete();
-        
+
         // The wave will now automatically complete when all enemies are killed
         yield return null; // Required for IEnumerator even though we're not waiting
     }

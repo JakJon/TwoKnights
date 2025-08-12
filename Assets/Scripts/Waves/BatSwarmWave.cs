@@ -11,6 +11,8 @@ public class BatSwarmWave : BaseWave
     [SerializeField] private int numberOfRings = 3;
     [SerializeField] private float delayBetweenRings = 15f;
     [SerializeField] private float ringRadius = 3f;
+    [SerializeField] private float projectileAmount = 3f;
+    [SerializeField] private float projectileDelay = 4f;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
@@ -22,14 +24,15 @@ public class BatSwarmWave : BaseWave
                 float angle = i * angleStep;
                 float x = Mathf.Cos(angle * Mathf.Deg2Rad) * ringRadius;
                 float y = Mathf.Sin(angle * Mathf.Deg2Rad) * ringRadius;
-                
+                // spawner.SpawnProjectileStraight(spawner.topLeftCorner, spawner.RightPlayer, projectileAmount, projectileDelay, (ring - 1) * delayBetweenRings);
+
                 // Spawn first ring immediately, subsequent rings with increasing delay
                 spawner.SpawnBat(new Vector2(x, y), (ring - 1) * delayBetweenRings);
             }
 
             if (ring % 2 == 0)
             {
-                spawner.SpawnProjectileStraight(spawner.topLeftCorner, spawner.LeftPlayer, 3, 4, (ring - 1) * delayBetweenRings);
+                spawner.SpawnProjectileStraight(spawner.topLeftCorner, spawner.LeftPlayer, projectileAmount, projectileDelay, (ring - 1) * delayBetweenRings);
                 spawner.SpawnOrb(new Vector2(8, 8), new Vector2(8, -8), false);
                 spawner.SpawnOrb(new Vector2(-8, 8), new Vector2(-8, -8), false);
             }
@@ -41,7 +44,7 @@ public class BatSwarmWave : BaseWave
 
         // Mark spawning as complete so the wave knows to start checking for enemy deaths
         MarkSpawningComplete();
-        
+
         // The wave will now automatically complete when all enemies are killed
         yield return null; // Required for IEnumerator even though we're not waiting
     }

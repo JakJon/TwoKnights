@@ -19,6 +19,7 @@ public abstract class BaseWave : ScriptableObject
     // Static reference to the currently active wave for enemy tracking
     private static BaseWave _currentWave;
     private HashSet<GameObject> _trackedEnemies = new HashSet<GameObject>();
+    private HashSet<GameObject> _trackedProjectiles = new HashSet<GameObject>();
     private bool _waveSpawningComplete = false;
 
     public string WaveName => waveName;
@@ -84,6 +85,25 @@ public abstract class BaseWave : ScriptableObject
         }
     }
     
+    // Projectile tracking methods
+    public static void RegisterProjectile(GameObject projectile)
+    {
+        if (_currentWave != null && _currentWave.useEnemyTracking)
+        {
+            _currentWave._trackedProjectiles.Add(projectile);
+            // Debug.Log($"Projectile registered with wave. Total projectiles: {_currentWave._trackedProjectiles.Count}");
+        }
+    }
+    
+    public static void UnregisterProjectile(GameObject projectile)
+    {
+        if (_currentWave != null && _currentWave.useEnemyTracking)
+        {
+            _currentWave._trackedProjectiles.Remove(projectile);
+            // Debug.Log($"Projectile unregistered from wave. Remaining projectiles: {_currentWave._trackedProjectiles.Count}");
+        }
+    }
+    
     // Call this when spawning is complete
     protected void MarkSpawningComplete()
     {
@@ -91,15 +111,16 @@ public abstract class BaseWave : ScriptableObject
         // Debug.Log("Wave spawning marked as complete");
     }
     
-    // Check if all enemies are dead
+    // Check if all enemies and projectiles are cleared
     public bool AreAllEnemiesDead()
     {
         if (!useEnemyTracking) return true;
         
         // Clean up any null references (destroyed objects)
         _trackedEnemies.RemoveWhere(enemy => enemy == null);
+        _trackedProjectiles.RemoveWhere(projectile => projectile == null);
         
-        return _waveSpawningComplete && _trackedEnemies.Count == 0;
+        return _waveSpawningComplete && _trackedEnemies.Count == 0 && _trackedProjectiles.Count == 0;
     }
     
     // Call this at the start of wave execution
@@ -107,6 +128,7 @@ public abstract class BaseWave : ScriptableObject
     {
         _currentWave = this;
         _trackedEnemies.Clear();
+        _trackedProjectiles.Clear();
         _waveSpawningComplete = false;
         // Debug.Log($"Started tracking for wave: {waveName}");
     }
@@ -119,11 +141,12 @@ public abstract class BaseWave : ScriptableObject
             _currentWave = null;
         }
         _trackedEnemies.Clear();
+        _trackedProjectiles.Clear();
         _waveSpawningComplete = false;
         // Debug.Log($"Ended tracking for wave: {waveName}");
     }
     
-    // Coroutine that waits for all enemies to be killed
+    // Coroutine that waits for all enemies and projectiles to be cleared
     public IEnumerator WaitForAllEnemiesDead()
     {
         if (!useEnemyTracking)
@@ -131,13 +154,13 @@ public abstract class BaseWave : ScriptableObject
             yield break; // Don't wait if tracking is disabled
         }
         
-        // Debug.Log("Waiting for all enemies to be killed...");
+        // Debug.Log("Waiting for all enemies to be killed and projectiles to be cleared...");
         
         while (!AreAllEnemiesDead())
         {
             yield return new WaitForSeconds(0.5f); // Check every half second
         }
         
-        // Debug.Log("All enemies have been killed!");
+        // Debug.Log("All enemies have been killed and projectiles cleared!");
     }
 }

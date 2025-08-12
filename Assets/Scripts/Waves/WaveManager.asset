@@ -15,14 +15,20 @@ MonoBehaviour:
   availableWaves:
   - {fileID: 11400000, guid: e89c0b74e50623e499b78faa296fb806, type: 2}
   - {fileID: 11400000, guid: 4e1026808e595c4418fa352954702e7c, type: 2}
+  - {fileID: 11400000, guid: e4336ed67387d204b8c18b92abbda5e9, type: 2}
+  - {fileID: 11400000, guid: eaf13f96cd845c14c999df85d5db27ec, type: 2}
   - {fileID: 11400000, guid: 2a5c758966989004db385309c2298e26, type: 2}
   - {fileID: 11400000, guid: 0cb74cedd07cadc4d80d879284bfcb0e, type: 2}
+  - {fileID: 11400000, guid: acf020a8328b62249bfd3ef52d3d3434, type: 2}
   - {fileID: 11400000, guid: 5427b839ddc9bc74c86ac9b14921134c, type: 2}
+  - {fileID: 11400000, guid: ffa4ae6d377973a42ab4d3f28bee96d6, type: 2}
   - {fileID: 11400000, guid: fd648e2f5936313409b6aa70387f4394, type: 2}
   - {fileID: 11400000, guid: c894df30f276d5941aa6e17a306741b7, type: 2}
   - {fileID: 11400000, guid: 4df10c92c4ed2e346badf121d3b556d8, type: 2}
+  - {fileID: 11400000, guid: fbfeeafa6a54348489a8666044a0e3ac, type: 2}
   - {fileID: 11400000, guid: eae7605d7443493498e047e8f0a81bad, type: 2}
-  - {fileID: 11400000, guid: daa1f5801a8675a46abba2e655a1909d, type: 2}
-  - {fileID: 11400000, guid: 5ec56862b3415b648bd753aa8efc9263, type: 2}
-  - {fileID: 11400000, guid: 2a5c758966989004db385309c2298e26, type: 2}
   - {fileID: 11400000, guid: e45f4e781a6e3d44fb5942c1a013d4d4, type: 2}
+  - {fileID: 11400000, guid: daa1f5801a8675a46abba2e655a1909d, type: 2}
+  - {fileID: 11400000, guid: b0f01d31727289c45b1029059896b0a3, type: 2}
+  - {fileID: 11400000, guid: 5ec56862b3415b648bd753aa8efc9263, type: 2}
+  - {fileID: 11400000, guid: e472514a6455d6446897de96010b741f, type: 2}
