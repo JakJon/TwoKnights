@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Shadow Arrow
   description: Arrows spawn shadow copies that deal 33% damage
-  weight: 1e+9
+  weight: 100
   isUnlocked: 1
   shadowArrowPrefab: {fileID: 8124615890466243421, guid: b06b2f4c55b919a458a9db7434633ee0, type: 3}
   damageMultiplier: 0.33
-  spawnChance: 100
   trailDistance: 0.5
+  positionVariance: 0.3

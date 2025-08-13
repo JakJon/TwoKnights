@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rat Mischief 0
   m_EditorClassIdentifier: 
   waveName: Rat Mischief
-  weight: 100000
+  weight: 1000
   isUnlocked: 1
   waveDescription: 
   unlockedAfterXWaves: -1
