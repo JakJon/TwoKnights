@@ -359,10 +359,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orbitRadius: 0.8
   rotationSpeed: 400
-  inputActions: {fileID: -944628639613478452, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  shieldActionReference: {fileID: 4618672932050298884, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   isLeftShield: 0
   reloadBarOffset: 1
-  reloadBarSize: {x: 1, y: 0.1}
 --- !u!70 &7223431453482718602
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

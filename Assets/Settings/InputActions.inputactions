@@ -6,7 +6,7 @@
             "id": "17427ba6-7d45-4837-b17c-f8e55eadf5f9",
             "actions": [
                 {
-                    "name": "LeftShield",
+                    "name": "LeftStickRotation",
                     "type": "Value",
                     "id": "65908d5f-f838-4c99-ab59-26f26b2471b7",
                     "expectedControlType": "Vector2",
@@ -15,7 +15,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "RightShield",
+                    "name": "RightStickRotation",
                     "type": "Value",
                     "id": "15414574-5c50-4e2d-b883-eb6fe7206c27",
                     "expectedControlType": "Vector2",
@@ -24,7 +24,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "LeftShoot",
+                    "name": "LeftBumper",
                     "type": "Button",
                     "id": "af4e48cc-e606-4eb3-a7f5-4db5630c968e",
                     "expectedControlType": "",
@@ -33,7 +33,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "RightShoot",
+                    "name": "RightBumper",
                     "type": "Button",
                     "id": "26ce4650-9f4d-4083-9479-57193bf8ca28",
                     "expectedControlType": "",
@@ -42,7 +42,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "LeftSpecial",
+                    "name": "LeftTrigger",
                     "type": "Button",
                     "id": "b91a126a-c7ec-4acd-86b4-57119ebeb9c5",
                     "expectedControlType": "",
@@ -51,7 +51,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "RightSpecial",
+                    "name": "RightTrigger",
                     "type": "Button",
                     "id": "9bd799ab-4db2-4736-a351-9f8ce6df91b8",
                     "expectedControlType": "",
@@ -103,6 +103,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "LeftStickIn",
+                    "type": "Button",
+                    "id": "697203c0-e9c5-4a19-8beb-24efc99e0fc0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RightStickIn",
+                    "type": "Button",
+                    "id": "6466c5ae-f701-4b77-a89d-894c227bb90c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -113,7 +131,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "LeftShield",
+                    "action": "LeftStickRotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -124,7 +142,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RightShield",
+                    "action": "RightStickRotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -135,7 +153,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "LeftShoot",
+                    "action": "LeftBumper",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -146,7 +164,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RightShoot",
+                    "action": "RightBumper",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -157,7 +175,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "LeftSpecial",
+                    "action": "LeftTrigger",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -168,7 +186,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "RightSpecial",
+                    "action": "RightTrigger",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -224,6 +242,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "dpad down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "912a368b-8116-4961-99f4-400030e3dee7",
+                    "path": "<Gamepad>/leftStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c42a98ed-ee02-4a27-8150-fc38d01505c7",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightStickIn",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

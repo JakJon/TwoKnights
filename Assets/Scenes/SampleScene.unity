@@ -2768,6 +2768,10 @@ PrefabInstance:
       propertyPath: specialBar
       value: 
       objectReference: {fileID: 573658906}
+    - target: {fileID: 3369740735711854902, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
+      propertyPath: specialAction
+      value: 
+      objectReference: {fileID: -7722276321632382696, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
     - target: {fileID: 6468539870584729108, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.5
@@ -2856,6 +2860,10 @@ PrefabInstance:
       propertyPath: specialBar
       value: 
       objectReference: {fileID: 591771582}
+    - target: {fileID: 4189576862051482252, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+      propertyPath: specialAction
+      value: 
+      objectReference: {fileID: -7544589189344433060, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
     - target: {fileID: 5602433824061351597, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2

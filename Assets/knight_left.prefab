@@ -93,7 +93,7 @@ SpriteRenderer:
   m_Size: {x: 0.2, y: 0.31}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &7334425175041041612
@@ -109,6 +109,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  currentHealth: 0
   healthBar: {fileID: 0}
 --- !u!114 &4189576862051482252
 MonoBehaviour:
@@ -358,8 +359,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orbitRadius: 0.8
   rotationSpeed: 400
-  inputActions: {fileID: -944628639613478452, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  shieldActionReference: {fileID: -8070269708226651640, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   isLeftShield: 1
+  reloadBarOffset: 0.1
 --- !u!50 &131749441196972514
 Rigidbody2D:
   serializedVersion: 5

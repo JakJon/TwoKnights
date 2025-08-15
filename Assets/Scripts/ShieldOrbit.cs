@@ -13,14 +13,14 @@ public class ShieldOrbit : MonoBehaviour
 
     [SerializeField] private float orbitRadius = 1f; // Distance from the player
     [SerializeField] private float rotationSpeed = 180f;
-    [SerializeField] private InputActionAsset inputActions;
+    [SerializeField] private InputActionReference shieldActionReference;
     [SerializeField] private bool isLeftShield; // Toggle in Inspector
     
     [Header("Reload Bar Settings")]
     [SerializeField] private float reloadBarOffset = 0.1f; // Angular offset for reload bar
 
     private Transform playerTransform;
-    private InputAction shieldAction;
+    private InputAction shieldInputAction;
     
     // Reload bar components
     private GameObject reloadBarObject;
@@ -30,11 +30,12 @@ public class ShieldOrbit : MonoBehaviour
     void Awake()
     {
         playerTransform = transform.parent; // Assuming shield is a child of the player
-        InputActionMap actionMap = inputActions.FindActionMap("PlayerControls");
-        shieldAction = isLeftShield ?
-            actionMap.FindAction("LeftShield") :
-            actionMap.FindAction("RightShield");
-        shieldAction.Enable();
+        
+        if (shieldActionReference != null)
+        {
+            shieldInputAction = shieldActionReference.action;
+            shieldInputAction.Enable();
+        }
         
         CreateReloadBar();
     }
@@ -42,7 +43,7 @@ public class ShieldOrbit : MonoBehaviour
     void Update()
     {
         // Read joystick input
-        Vector2 input = shieldAction.ReadValue<Vector2>();
+        Vector2 input = shieldInputAction?.ReadValue<Vector2>() ?? Vector2.zero;
 
         if (input.magnitude > .5f) // Deadzone check
         {
@@ -150,7 +151,10 @@ public class ShieldOrbit : MonoBehaviour
 
     void OnDestroy()
     {
-        shieldAction.Disable();
+        if (shieldInputAction != null)
+        {
+            shieldInputAction.Disable();
+        }
         
         // Clean up reload bar
         if (reloadBarObject != null)
