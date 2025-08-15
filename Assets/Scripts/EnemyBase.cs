@@ -37,6 +37,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected SpriteRenderer spriteRenderer;
     protected GlowManager glowManager;
     protected Animator animator;
+    // Death guard to avoid double-kill/race conditions
+    protected bool isDead = false;
     // Poison system
     protected bool isPoisoned = false;
     protected float poisonTimer = 0f;
@@ -79,6 +81,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     public virtual void TakeDamage(int damage, GameObject projectile)
     {
+        // Ignore any damage once death has been triggered
+        if (isDead) return;
         // Extension point for pre-damage effects
         OnBeforeDamageApplied(damage, projectile);
         
@@ -97,6 +101,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         
         if (health <= 0)
         {
+            // Mark as dead immediately to prevent re-entrancy in the same frame
+            isDead = true;
             // Give death special to the player who fired the projectile
             GiveSpecialToPlayer(specialOnDeath, projectile);
 
@@ -237,6 +243,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 lastPoisonTick = 0f;
                 if (health <= 0)
                 {
+                    if (isDead)
+                    {
+                        // Already handled by another damage source
+                        yield break;
+                    }
+                    isDead = true;
                     Debug.Log($"Enemy died from poison! Poison sources count: {poisonSources.Count}");
                     
                     // Stop poison bubbles but let them finish their animation
@@ -455,6 +467,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
+    if (isDead) return; // Ignore collisions after death triggered
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
             // Damage is handled in PlayerProjectile, just destroy the projectile

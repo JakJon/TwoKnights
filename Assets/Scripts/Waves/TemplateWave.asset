@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waveName: Hi Jake
   weight: 1e+13
-  isUnlocked: 1
+  isUnlocked: 0
   waveDescription: 
   unlockedAfterXWaves: -1
   lockedAfterXWaves: -1

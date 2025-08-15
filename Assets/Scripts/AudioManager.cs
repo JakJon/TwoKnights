@@ -39,6 +39,7 @@ public class AudioManager : MonoBehaviour
     public SoundEffect slimeDeath;
     public SoundEffect slimeSplit;
     public SoundEffect poisoned;
+    public SoundEffect swordSwing;
 
     // [Header("Music")]
     // public AudioClip backgroundMusic;

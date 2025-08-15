@@ -68,6 +68,7 @@ public class EnemySlime : EnemyBase
 
     private void Update()
     {
+    if (isDead) return; // Stop any logic after death
         // Stop movement during stagger
         if (IsStaggered) return;
         
@@ -129,11 +130,7 @@ public class EnemySlime : EnemyBase
         
         if (currentHealth <= 0)
         {
-            // Give special to the player who got the kill
-            GiveSpecialToPlayer(specialOnDeath, projectile);
-            
-            // Don't call OnDeath() here - let the base TakeDamage method handle it
-            // The base class will call OnDeath() when health <= 0
+            // Death is handled in base TakeDamage; avoid double-credit here
         }
         else
         {
@@ -158,6 +155,10 @@ public class EnemySlime : EnemyBase
             GameObject newSlime = Instantiate(gameObject, spawnPosition, Quaternion.identity);
             EnemySlime slimeScript = newSlime.GetComponent<EnemySlime>();
             slimeScript.size = size - 1;
+            // Ensure clones are alive and not carrying over death/stagger state
+            slimeScript.isDead = false;
+            slimeScript.isPoisoned = false;
+            slimeScript.isStaggered = false;
             slimeScript.InitializeSlime();
         }
 
