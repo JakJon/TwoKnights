@@ -14,6 +14,7 @@ public class SwordSwing : MonoBehaviour
     [SerializeField] private float swingAngleRange = 60f; // 30 degrees each direction (reduced from 90)
     [SerializeField] private int swingDamage = 10;
     [SerializeField] private float cooldownTime = 1f;
+    [SerializeField] private Vector3 rotationOffset = Vector3.zero; // Offset to adjust rotation center
     
     private InputAction swordInputAction;
     private bool canSwing = true;
@@ -116,49 +117,58 @@ public class SwordSwing : MonoBehaviour
         float startAngle = shieldAngle - 45f; // 45 degrees counter-clockwise from shield
         float endAngle = shieldAngle + 45f; // 45 degrees clockwise from shield
         
-        // Enable both sprites
+        // Enable sword sprite only (slash will appear later)
         swordSpriteTransform.gameObject.SetActive(true);
-        slashSpriteTransform.gameObject.SetActive(true);
-        Debug.Log("SwordSwing: Sword and slash sprites activated");
+        Debug.Log("SwordSwing: Sword sprite activated");
         
-        // Position and rotate slash sprite to match shield angle (stationary)
+        // Position slash sprite but keep it disabled for now
         float shieldAngleRad = shieldAngle * Mathf.Deg2Rad;
-        Vector3 slashPosition = new Vector3(Mathf.Cos(shieldAngleRad), Mathf.Sin(shieldAngleRad), 0) * 0.8f;
+        Vector3 slashPosition = (new Vector3(Mathf.Cos(shieldAngleRad), Mathf.Sin(shieldAngleRad), 0) * 0.6f) + rotationOffset;
         slashSpriteTransform.localPosition = slashPosition;
         slashSpriteTransform.localRotation = Quaternion.Euler(0, 0, shieldAngle - 90f); // Subtract 90 degrees to be parallel with shield
         
         // Position and rotate sword sprite at starting angle
         float startAngleRad = startAngle * Mathf.Deg2Rad;
-        Vector3 swordStartPos = new Vector3(Mathf.Cos(startAngleRad), Mathf.Sin(startAngleRad), 0) * 1f;
+        Vector3 swordStartPos = (new Vector3(Mathf.Cos(startAngleRad), Mathf.Sin(startAngleRad), 0) * 0.8f) + rotationOffset;
         swordSpriteTransform.localPosition = swordStartPos;
         swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, startAngle - 90f); // Subtract 90 degrees so sword points outward
         
         // Perform swing animation over the duration
         float elapsed = 0f;
+        bool slashActivated = false;
+        
         while (elapsed < swingDuration)
         {
             elapsed += Time.deltaTime;
             float progress = elapsed / swingDuration;
+            
+            // Activate slash sprite halfway through the swing
+            if (progress >= 0.5f && !slashActivated)
+            {
+                slashSpriteTransform.gameObject.SetActive(true);
+                slashActivated = true;
+                Debug.Log("SwordSwing: Slash sprite activated at halfway point");
+            }
             
             // Interpolate angle from start to end for sword only
             float currentAngle = Mathf.Lerp(startAngle, endAngle, progress);
             float currentAngleRad = currentAngle * Mathf.Deg2Rad;
             
             // Update only the sword sprite position and rotation
-            Vector3 swordCurrentPos = new Vector3(Mathf.Cos(currentAngleRad), Mathf.Sin(currentAngleRad), 0) * 1f;
+            Vector3 swordCurrentPos = (new Vector3(Mathf.Cos(currentAngleRad), Mathf.Sin(currentAngleRad), 0) * 1f) + rotationOffset;
             swordSpriteTransform.localPosition = swordCurrentPos;
             swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, currentAngle - 90f); // Subtract 90 degrees so sword points outward
             
             // Slash sprite stays in place (no changes needed)
             
-            Debug.Log($"SwordSwing: Progress: {progress:F2}, Sword Angle: {currentAngle:F1}, Slash stays at: {shieldAngle:F1}");
+            Debug.Log($"SwordSwing: Progress: {progress:F2}, Sword Angle: {currentAngle:F1}, Slash active: {slashActivated}");
             
             yield return null;
         }
         
         // Ensure sword ends at the exact end angle
         float endAngleRad = endAngle * Mathf.Deg2Rad;
-        Vector3 swordEndPos = new Vector3(Mathf.Cos(endAngleRad), Mathf.Sin(endAngleRad), 0) * 1f;
+        Vector3 swordEndPos = (new Vector3(Mathf.Cos(endAngleRad), Mathf.Sin(endAngleRad), 0) * .8f) + rotationOffset;
         swordSpriteTransform.localPosition = swordEndPos;
         swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, endAngle - 90f); // Subtract 90 degrees so sword points outward
         
