@@ -2712,6 +2712,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1953736199}
   m_CullTransparentMesh: 1
+--- !u!114 &2055505850 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3150989412142417475, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+  m_PrefabInstance: {fileID: 5529193467397045558}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 729d1d75721c5a84fa4c78d858c632c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2677172254742118073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2816,8 +2827,19 @@ PrefabInstance:
       propertyPath: orbitRadius
       value: 0.6
       objectReference: {fileID: 0}
+    - target: {fileID: 8189182321263953408, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
+      propertyPath: swordAttackPrefab
+      value: 
+      objectReference: {fileID: 986853531401275511, guid: 78e9bc1e253d1bd4fb0623f25cfcaafd, type: 3}
+    - target: {fileID: 8946614055239153945, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
+      propertyPath: swordPrefab
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 6773080685404098137, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
+    - {fileID: 2631635229618832895, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
+    - {fileID: 704591467496564941, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1437825732208362206, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
@@ -2848,6 +2870,10 @@ PrefabInstance:
       propertyPath: orbitRadius
       value: 0.6
       objectReference: {fileID: 0}
+    - target: {fileID: 3150989412142417475, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+      propertyPath: swordAttackPrefab
+      value: 
+      objectReference: {fileID: 6432330328849805823, guid: ac357e4c7a10a1547a414a5029f9404c, type: 3}
     - target: {fileID: 3414440261650667815, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -2864,6 +2890,14 @@ PrefabInstance:
       propertyPath: specialAction
       value: 
       objectReference: {fileID: -7544589189344433060, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+    - target: {fileID: 4977459672692644222, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+      propertyPath: shield
+      value: 
+      objectReference: {fileID: 2055505850}
+    - target: {fileID: 4977459672692644222, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+      propertyPath: swordPrefab
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5602433824061351597, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2
@@ -2909,7 +2943,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 591771581}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 6416644510087169320, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+    - {fileID: 8985864352732481440, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+    - {fileID: 39829784117832447, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2528923223428741810, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}

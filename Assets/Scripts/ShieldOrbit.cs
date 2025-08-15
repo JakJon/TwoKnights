@@ -16,11 +16,15 @@ public class ShieldOrbit : MonoBehaviour
     [SerializeField] private InputActionReference shieldActionReference;
     [SerializeField] private bool isLeftShield; // Toggle in Inspector
     
+    [Header("Sword Attack")]
+    [SerializeField] private GameObject swordAttackPrefab; // Assign swordAttackLeft or swordAttackRight
+    
     [Header("Reload Bar Settings")]
     [SerializeField] private float reloadBarOffset = 0.1f; // Angular offset for reload bar
 
     private Transform playerTransform;
     private InputAction shieldInputAction;
+    private GameObject swordAttackInstance; // Instance of the sword attack system
     
     // Reload bar components
     private GameObject reloadBarObject;
@@ -37,7 +41,12 @@ public class ShieldOrbit : MonoBehaviour
             shieldInputAction.Enable();
         }
         
+        Debug.Log("ShieldOrbit: About to create reload bar");
         CreateReloadBar();
+        Debug.Log("ShieldOrbit: About to create sword attack");
+        CreateSwordAttack();
+        
+        Debug.Log($"ShieldOrbit: Awake completed. swordAttackPrefab assigned: {swordAttackPrefab != null}");
     }
 
     void Update()
@@ -104,6 +113,22 @@ public class ShieldOrbit : MonoBehaviour
         
         // Start hidden (player can shoot initially)
         reloadBarObject.SetActive(false);        
+    }
+    
+    private void CreateSwordAttack()
+    {
+        Debug.Log($"ShieldOrbit: CreateSwordAttack called. swordAttackPrefab is null: {swordAttackPrefab == null}");
+        
+        if (swordAttackPrefab != null)
+        {
+            // Instantiate the sword attack system as a child of the player
+            swordAttackInstance = Instantiate(swordAttackPrefab, playerTransform.position, Quaternion.identity, playerTransform);
+            Debug.Log($"ShieldOrbit: Sword attack instance created: {swordAttackInstance.name}");
+        }
+        else
+        {
+            Debug.LogWarning("ShieldOrbit: swordAttackPrefab is null! Please assign it in the inspector.");
+        }
     }
     
     private void UpdateReloadBarPosition()
