@@ -366,12 +366,11 @@ MonoBehaviour:
   uiDocument: {fileID: 143688918}
   styleSheet: {fileID: 7433441132597879392, guid: c2f9c4c0a9d29824b96dfb1794abfac2, type: 3}
   upgradeManager: {fileID: 11400000, guid: 541b5ccd0e52f0c4abc9c9a83ea1b3e8, type: 2}
+  waveManager: {fileID: 11400000, guid: 72b134bb0a1686d449fc6420aa410840, type: 2}
   dpadLeftAction: {fileID: 1497862213591620651, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   dpadRightAction: {fileID: 2702908591954731153, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   dpadUpAction: {fileID: 1618329277400360275, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   dpadDownAction: {fileID: 2657498200606382711, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
-  leftKnightSelectAction: {fileID: -5531687915285905008, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
-  rightKnightSelectAction: {fileID: 8747918674544820464, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   confirmAction: {fileID: -834660233161031971, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   inputCooldown: 0.1
 --- !u!114 &143688918
@@ -2373,6 +2372,9 @@ MonoBehaviour:
     volume: 1
   poisoned:
     clip: {fileID: 8300000, guid: c2762ac4dfa659f4cbb0623a8fdce04e, type: 3}
+    volume: 1
+  swordSwing:
+    clip: {fileID: 8300000, guid: 6323caf92af226643bece1d250fc1af4, type: 3}
     volume: 1
 --- !u!4 &1736909207
 Transform:

@@ -16,8 +16,8 @@ MonoBehaviour:
   weight: 1000
   isUnlocked: 1
   waveDescription: 
-  unlockedAfterXWaves: -1
-  lockedAfterXWaves: 4
+  unlockedAfterXWaves: 3
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   waveOccurences: 3
   projectilesPerStraight: 3

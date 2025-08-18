@@ -1,7 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="upgrade-menu" class="upgrade-menu">
-        <ui:Label text="Navigate: Left Stick  |  Left Knight: Left Action  |  Right Knight: Right Action" name="controls-info" class="controls-info" />
-        <ui:Label text="Choose an Upgrade" name="selection-status" class="selection-status" />
+    <ui:Label text="Upgrade Left Knight" name="selection-status" class="selection-status" />
         <ui:VisualElement name="menu-items" class="menu-items">
             <ui:VisualElement name="upgrade-row" class="upgrade-row">
                 <ui:VisualElement name="item-one" class="menu-item upgrade">
