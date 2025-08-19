@@ -259,7 +259,7 @@ public class UpgradeMenu : MonoBehaviour
         // Fallback input handling for when InputActionReferences are not assigned
         bool inputProcessedThisFrame = false;
         
-    // Handle D-pad/Stick/keyboard horizontal navigation (left/right through upgrade items)
+    // Handle D-pad/Stick/keyboard horizontal inputs (mapped to vertical navigation in column layout)
     if (!inputProcessedThisFrame && navLeftAction == null && navRightAction == null)
         {
             if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
@@ -331,40 +331,51 @@ public class UpgradeMenu : MonoBehaviour
         return !isConfirmButtonSelected && currentSelectedIndex >= 0 && currentSelectedIndex < menuItems.Count;
     }
     
-    void NavigateLeft() => MoveHorizontal(-1);
-    void NavigateRight() => MoveHorizontal(1);
-    void NavigateUp() => ToggleConfirmFocus();
-    void NavigateDown() => ToggleConfirmFocus();
+    // Column layout navigation: map left/right to up/down
+    void NavigateLeft() => NavigateUp();
+    void NavigateRight() => NavigateDown();
+
+    // Move selection up within items; if on confirm, jump back to last item
+    void NavigateUp()
+    {
+        if (menuItems == null || menuItems.Count == 0) return;
+        if (isConfirmButtonSelected)
+        {
+            isConfirmButtonSelected = false;
+            currentSelectedIndex = Mathf.Clamp(menuItems.Count - 1, 0, menuItems.Count - 1);
+        }
+        else
+        {
+            currentSelectedIndex = Mathf.Max(0, currentSelectedIndex - 1);
+        }
+        UpdateSelection();
+    }
+
+    // Move selection down within items; from last item move to confirm; stay on confirm if already there
+    void NavigateDown()
+    {
+        if (menuItems == null || menuItems.Count == 0) return;
+        if (isConfirmButtonSelected)
+        {
+            // Stay on confirm
+        }
+        else if (currentSelectedIndex < menuItems.Count - 1)
+        {
+            currentSelectedIndex++;
+        }
+        else
+        {
+            isConfirmButtonSelected = true;
+        }
+        UpdateSelection();
+    }
 
     private bool IsValidIndex(int index)
     {
         return menuItems != null && index >= 0 && index < menuItems.Count;
     }
 
-    private void MoveHorizontal(int direction)
-    {
-        if (isConfirmButtonSelected || menuItems == null || menuItems.Count == 0) return;
-        int step = direction < 0 ? -1 : 1;
-        currentSelectedIndex = (currentSelectedIndex + step + menuItems.Count) % menuItems.Count;
-        UpdateSelection();
-    }
-
-    private void ToggleConfirmFocus()
-    {
-        if (menuItems == null || menuItems.Count == 0) return;
-        if (isConfirmButtonSelected)
-        {
-            // Move from confirm button to second upgrade item (index 1 if exists, else 0)
-            isConfirmButtonSelected = false;
-            currentSelectedIndex = Mathf.Min(1, menuItems.Count - 1);
-        }
-        else
-        {
-            // Move from any upgrade item to confirm button
-            isConfirmButtonSelected = true;
-        }
-        UpdateSelection();
-    }
+    // Horizontal/toggle helpers removed in favor of explicit Up/Down logic for column layout
     
     void UpdateSelection()
     {
