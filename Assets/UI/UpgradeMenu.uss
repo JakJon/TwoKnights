@@ -1,91 +1,116 @@
 .upgrade-menu {
     flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    background-color: rgb(12, 20, 15);
+}
+
+.layout-root {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: 2%;
+}
+
+.center-content {
+    flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    width: 85%;
-    height: auto;
-    min-height: 80%;
-    max-height: 95%;
-    max-width: 900px;
-    padding: 2%;
-    margin: auto;
+    width: 56%;
+    min-width: 560px;
+    height: 100%;
     background-color: rgb(18, 30, 22);
-    border-width: 12px;
-    border-color: rgb(45, 35, 25);
+    border-width: 4px;
+    border-color: rgb(35, 50, 40);
     border-radius: 8px;
-    flex-shrink: 0;
+    padding: 2%;
 }
 
-.title {
-    font-size: 28px;
+.status-panel {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    width: 21%;
+    min-width: 240px;
+    height: 100%;
+    background-color: rgba(20, 30, 25, 0.9);
+    border-width: 4px;
+    border-color: rgb(35, 50, 40);
+    border-radius: 8px;
+    padding: 1.5%;
+}
+
+.status-panel.left { margin-right: 2%; }
+.status-panel.right { margin-left: 2%; }
+
+.status-title {
+    font-size: 20px;
+    height: 24px;
     color: rgb(240, 240, 230);
-    margin-bottom: 1%;
-    -unity-text-align: middle-center;
     -unity-font-style: bold;
-    letter-spacing: 1px;
-    rotate: -0.5deg;
-    flex-shrink: 0;
+    margin-bottom: 4px;
 }
 
-.controls-info {
-    font-size: 12px;
-    color: rgb(200, 200, 190);
-    margin-bottom: 1%;
-    -unity-text-align: middle-center;
-    -unity-font-style: normal;
-    letter-spacing: 0.5px;
-    opacity: 0.8;
-    flex-shrink: 0;
+.status-subtitle {
+    font-size: 14px;
+    color: rgb(220, 220, 210);
+    -unity-font-style: bold;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.stat-line {
+    font-size: 14px;
+    color: rgb(215, 230, 220);
+    margin: 2px 0;
+}
+
+.upgrades-list {
+    flex-grow: 1;
+    margin-top: 6px;
+    background-color: rgba(30, 45, 35, 0.5);
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(60, 80, 70, 0.8);
 }
 
 .selection-status {
-    font-size: 18px;
+    font-size: 24px;
     color: rgb(255, 255, 255);
-    margin-bottom: 2%;
-    margin-top: 1%;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
-    letter-spacing: 0.5px;
-    background-color: rgba(80, 120, 100, 0.8);
-    border-radius: 6px;
-    padding: 10px 20px;
-    border-width: 2px;
-    border-color: rgb(150, 200, 175);
-    flex-shrink: 0;
-    white-space: normal;
     max-width: 80%;
+    max-height: 48px;
+    text-overflow: ellipsis;
 }
 
 .menu-items {
     flex-direction: column;
-    align-items: space-between;
-    width: 90%;
-    flex-grow: 1;
-    background-color: rgba(25, 40, 30, 0.6);
+    align-items: stretch;
+    width: 100%;
     border-radius: 8px;
-    padding: 3% 3% 1% 3%;
-    margin: 1% 0 2% 0;
-    border-width: 2px;
-    border-color: rgba(10, 20, 15, 0.8);
-    justify-content: space-between;
-    max-height: 75%
-    flex-shrink: 0;
+    padding: 1% 2% 0 2%;
+    border-width: 0;
+    justify-content: flex-start;
 }
 
-.upgrade-row {
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
-    width: 100%;
-    flex-grow: 1;
-    margin-bottom: 100px;
-    min-height: 140px;
+.upgrade-column {
+    flex-direction: column;
+    justify-content: flex-start;
+    min-width: 100%;
+    align-items: center;
+    align-self: center;
 }
 
 .menu-item {
-    height: 120px;
-    margin: 1%;
-    border-width: 3px;
+    margin: 0;
+    border-width: 2px;
     border-radius: 8px;
     color: rgb(245, 245, 235);
     transition-property: background-color, border-color, scale, text-shadow;
@@ -98,12 +123,13 @@
 }
 
 .menu-item.upgrade {
-    width: 30%;
-    min-width: 180px;
-    max-width: 220px;
+    width: 100%;
+    min-width: 0;
+    min-height: 35%;
+    max-height: 35%;
     background-color: rgba(35, 55, 40, 0.9);
     border-color: rgb(60, 100, 70);
-    margin: auto 2.5%
+    margin: 12px 0;
 }
 
 .menu-item.confirm {
@@ -116,9 +142,9 @@
     width: 50%;
     min-width: 220px;
     max-width: 350px;
-    height: 60px;
+    height: 8%;
     align-self: center;
-    font-size: 20px;
+    font-size: 18px;
     -unity-font-style: bold;
     letter-spacing: 0.5px;
     margin-top: auto;
@@ -126,13 +152,13 @@
 }
 
 .upgrade-title {
-    font-size: 20px;
+    font-size: 16px;
     color: rgb(255, 255, 245);
     -unity-font-style: bold;
     -unity-text-align: upper-left;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
+    margin-bottom: 4px;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .upgrade-description {
@@ -142,8 +168,8 @@
     -unity-text-align: upper-left;
     flex-grow: 1;
     white-space: normal;
-    -unity-text-overflow-position: ellipsis;
-    margin-bottom: 20px;
+    -unity-text-overflow-position: end;
+    margin-bottom: 4px;
 }
 
 .upgrade-rarity {
@@ -160,8 +186,8 @@
 .menu-item--selected {
     background-color: rgba(120, 160, 135, 0.95);
     border-color: rgb(150, 200, 175);
-    scale: 1.15;
-    border-width: 4px;
+    scale: 1.05;
+    border-width: 3px;
 }
 
 .menu-item--selected .upgrade-title {
@@ -180,13 +206,14 @@
 .menu-item--chosen {
     background-color: rgba(255, 215, 200, 0.1);
     border-color: rgb(255, 215, 0);
-    border-width: 6px;
-    scale: 1.08;
+    border-width: 4px;
+    scale: 1.06;
 }
 
 .menu-item--chosen.menu-item--selected {
-    scale: 1.15;
-    border-width: 8px;
+    scale: 1.08;
+    border-width: 5px;
+    padding: 10px 25px;
 }
 
 .menu-item--chosen .upgrade-title {
@@ -210,7 +237,8 @@
 .confirm-button.menu-item--selected {
     background-color: rgba(80, 120, 170, 0.9);
     border-color: rgb(150, 200, 255);
-    scale: 1.2;
+    scale: 1.08;
+    border-width: 3px;
     color: rgb(255, 255, 255);
 }
 

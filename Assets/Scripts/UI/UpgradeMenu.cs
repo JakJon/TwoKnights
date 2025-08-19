@@ -47,6 +47,20 @@ public class UpgradeMenu : MonoBehaviour
     
     private const string SELECTED_CLASS = "menu-item--selected";
     private const string CHOSEN_CLASS = "menu-item--chosen";
+
+    // Status panel UI refs
+    private Label leftHealthLabel;
+    private Label leftSpecialLabel;
+    private ScrollView leftUpgradesList;
+    private Label rightHealthLabel;
+    private Label rightSpecialLabel;
+    private ScrollView rightUpgradesList;
+
+    // Cached status data (applied when UI is ready)
+    private float _leftCurHP, _leftMaxHP, _leftCurSP, _leftMaxSP;
+    private List<string> _leftUpgradesCache = new List<string>();
+    private float _rightCurHP, _rightMaxHP, _rightCurSP, _rightMaxSP;
+    private List<string> _rightUpgradesCache = new List<string>();
     
     // Event for when an upgrade is confirmed
     public event System.Action<int, KnightTarget> OnUpgradeConfirmed;
@@ -186,6 +200,14 @@ public class UpgradeMenu : MonoBehaviour
         confirmButton = root.Q<Button>("item-four");
         selectionStatusLabel = root.Q<Label>("selection-status");
 
+    // Status panels
+    leftHealthLabel = root.Q<Label>("left-health");
+    leftSpecialLabel = root.Q<Label>("left-special");
+    leftUpgradesList = root.Q<ScrollView>("left-upgrades");
+    rightHealthLabel = root.Q<Label>("right-health");
+    rightSpecialLabel = root.Q<Label>("right-special");
+    rightUpgradesList = root.Q<ScrollView>("right-upgrades");
+
         if (menuItems.Count == 0) return;
         
         // Setup click handlers for the upgrade items
@@ -215,6 +237,10 @@ public class UpgradeMenu : MonoBehaviour
         
         // Set initial selection
         UpdateSelection();
+    // Clear status lists initially
+    ClearStatusLists();
+    // Apply any cached status values to UI
+    ApplyStatusToUI();
     }
     
     void Update()
@@ -480,6 +506,59 @@ public class UpgradeMenu : MonoBehaviour
                 menuItems[i].style.display = DisplayStyle.None;
             }
         }
+    }
+
+    // Public APIs to update status panels
+    public void SetLeftKnightStatus(float currentHealth, float maxHealth, float currentSpecial, float maxSpecial, IEnumerable<string> upgrades)
+    {
+    _leftCurHP = currentHealth; _leftMaxHP = maxHealth; _leftCurSP = currentSpecial; _leftMaxSP = maxSpecial;
+    _leftUpgradesCache = upgrades != null ? new List<string>(upgrades) : new List<string>();
+    if (leftHealthLabel != null) leftHealthLabel.text = $"Health: {Mathf.RoundToInt(_leftCurHP)} / {Mathf.RoundToInt(_leftMaxHP)}";
+    if (leftSpecialLabel != null) leftSpecialLabel.text = $"Special: {Mathf.RoundToInt(_leftCurSP)} / {Mathf.RoundToInt(_leftMaxSP)}";
+    PopulateUpgradeList(leftUpgradesList, _leftUpgradesCache);
+    }
+
+    public void SetRightKnightStatus(float currentHealth, float maxHealth, float currentSpecial, float maxSpecial, IEnumerable<string> upgrades)
+    {
+    _rightCurHP = currentHealth; _rightMaxHP = maxHealth; _rightCurSP = currentSpecial; _rightMaxSP = maxSpecial;
+    _rightUpgradesCache = upgrades != null ? new List<string>(upgrades) : new List<string>();
+    if (rightHealthLabel != null) rightHealthLabel.text = $"Health: {Mathf.RoundToInt(_rightCurHP)} / {Mathf.RoundToInt(_rightMaxHP)}";
+    if (rightSpecialLabel != null) rightSpecialLabel.text = $"Special: {Mathf.RoundToInt(_rightCurSP)} / {Mathf.RoundToInt(_rightMaxSP)}";
+    PopulateUpgradeList(rightUpgradesList, _rightUpgradesCache);
+    }
+
+    private void PopulateUpgradeList(ScrollView list, IEnumerable<string> upgrades)
+    {
+        if (list == null) return;
+        list.Clear();
+        if (upgrades == null) return;
+        foreach (var name in upgrades)
+        {
+            var item = new Label(name) { name = null };
+            item.AddToClassList("stat-line");
+            list.Add(item);
+        }
+    }
+
+    private void ClearStatusLists()
+    {
+        leftUpgradesList?.Clear();
+        rightUpgradesList?.Clear();
+    }
+
+    private void ApplyStatusToUI()
+    {
+        if (leftHealthLabel != null)
+            leftHealthLabel.text = $"Health: {Mathf.RoundToInt(_leftCurHP)} / {Mathf.RoundToInt(_leftMaxHP)}";
+        if (leftSpecialLabel != null)
+            leftSpecialLabel.text = $"Special: {Mathf.RoundToInt(_leftCurSP)} / {Mathf.RoundToInt(_leftMaxSP)}";
+        PopulateUpgradeList(leftUpgradesList, _leftUpgradesCache);
+
+        if (rightHealthLabel != null)
+            rightHealthLabel.text = $"Health: {Mathf.RoundToInt(_rightCurHP)} / {Mathf.RoundToInt(_rightMaxHP)}";
+        if (rightSpecialLabel != null)
+            rightSpecialLabel.text = $"Special: {Mathf.RoundToInt(_rightCurSP)} / {Mathf.RoundToInt(_rightMaxSP)}";
+        PopulateUpgradeList(rightUpgradesList, _rightUpgradesCache);
     }
     
     // Public method to set which item is selected

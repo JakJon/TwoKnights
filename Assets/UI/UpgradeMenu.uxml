@@ -1,25 +1,48 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="upgrade-menu" class="upgrade-menu">
-    <ui:Label text="Upgrade Left Knight" name="selection-status" class="selection-status" />
-        <ui:VisualElement name="menu-items" class="menu-items">
-            <ui:VisualElement name="upgrade-row" class="upgrade-row">
-                <ui:VisualElement name="item-one" class="menu-item upgrade">
-                    <ui:Label text="Upgrade One" name="upgrade-title" class="upgrade-title" />
-                    <ui:Label text="Description of upgrade one goes here" name="upgrade-description" class="upgrade-description" />
-                    <ui:Label text="Common" name="upgrade-rarity" class="upgrade-rarity" />
-                </ui:VisualElement>
-                <ui:VisualElement name="item-two" class="menu-item upgrade">
-                    <ui:Label text="Upgrade Two" name="upgrade-title" class="upgrade-title" />
-                    <ui:Label text="Description of upgrade two goes here" name="upgrade-description" class="upgrade-description" />
-                    <ui:Label text="Rare" name="upgrade-rarity" class="upgrade-rarity" />
-                </ui:VisualElement>
-                <ui:VisualElement name="item-three" class="menu-item upgrade">
-                    <ui:Label text="Upgrade Three" name="upgrade-title" class="upgrade-title" />
-                    <ui:Label text="Description of upgrade three goes here" name="upgrade-description" class="upgrade-description" />
-                    <ui:Label text="Epic" name="upgrade-rarity" class="upgrade-rarity" />
+        <ui:VisualElement name="layout-root" class="layout-root">
+            <!-- Left Knight Status Panel -->
+            <ui:VisualElement name="left-status" class="status-panel left">
+                <ui:Label text="Left Knight" class="status-title" />
+                <ui:Label text="Health: 0 / 0" name="left-health" class="stat-line" />
+                <ui:Label text="Special: 0 / 0" name="left-special" class="stat-line" />
+                <ui:Label text="Upgrades" class="status-subtitle" />
+                <ui:ScrollView name="left-upgrades" class="upgrades-list" />
+            </ui:VisualElement>
+
+            <!-- Center Content: Existing Upgrade Selection UI -->
+            <ui:VisualElement name="center-content" class="center-content">
+                <ui:Label text="Upgrade Left Knight" name="selection-status" class="selection-status" />
+                <ui:VisualElement name="menu-items" class="menu-items">
+                    <ui:VisualElement name="upgrade-column" class="upgrade-column">
+                        <ui:VisualElement name="item-one" class="menu-item upgrade">
+                            <ui:Label text="Upgrade One" name="upgrade-title" class="upgrade-title" />
+                            <ui:Label text="Description of upgrade one goes here" name="upgrade-description" class="upgrade-description" />
+                            <ui:Label text="Common" name="upgrade-rarity" class="upgrade-rarity" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="item-two" class="menu-item upgrade">
+                            <ui:Label text="Upgrade Two" name="upgrade-title" class="upgrade-title" />
+                            <ui:Label text="Description of upgrade two goes here" name="upgrade-description" class="upgrade-description" />
+                            <ui:Label text="Rare" name="upgrade-rarity" class="upgrade-rarity" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="item-three" class="menu-item upgrade">
+                            <ui:Label text="Upgrade Three" name="upgrade-title" class="upgrade-title" />
+                            <ui:Label text="Description of upgrade three goes here" name="upgrade-description" class="upgrade-description" />
+                            <ui:Label text="Epic" name="upgrade-rarity" class="upgrade-rarity" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Button text="Confirm" name="item-four" class="menu-item confirm confirm-button" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Button text="Confirm" name="item-four" class="menu-item confirm confirm-button" />
+
+            <!-- Right Knight Status Panel -->
+            <ui:VisualElement name="right-status" class="status-panel right">
+                <ui:Label text="Right Knight" class="status-title" />
+                <ui:Label text="Health: 0 / 0" name="right-health" class="stat-line" />
+                <ui:Label text="Special: 0 / 0" name="right-special" class="stat-line" />
+                <ui:Label text="Upgrades" class="status-subtitle" />
+                <ui:ScrollView name="right-upgrades" class="upgrades-list" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
