@@ -15,6 +15,10 @@ public class PlayerSpecial : MonoBehaviour
     public bool streakEnded;
     public bool specialBarFilled => _currentSpecial >= maxSpecial;
 
+    // Read-only accessors for UI/status
+    public int CurrentSpecial => _currentSpecial;
+    public int MaxSpecial => maxSpecial;
+
     // Add this field to track if SFX has been played for the current streak
     private bool _specialBarFilledSfxPlayed = false;
 

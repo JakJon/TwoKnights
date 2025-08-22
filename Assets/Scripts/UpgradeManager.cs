@@ -8,6 +8,10 @@ public class UpgradeManager : ScriptableObject
     [SerializeField] private List<BaseUpgrade> allUpgrades = new List<BaseUpgrade>();
     [SerializeField] private int upgradesPerSelection = 3;
     
+    // Track applied upgrades per knight for UI/status
+    private readonly List<string> _leftApplied = new List<string>();
+    private readonly List<string> _rightApplied = new List<string>();
+    
     // Get a random selection of available upgrades
     public List<BaseUpgrade> GetRandomUpgrades()
     {
@@ -63,6 +67,17 @@ public class UpgradeManager : ScriptableObject
         if (knight != null && upgrade != null)
         {
             upgrade.ApplyUpgrade(knight);
+            // Record applied upgrade name for status panels
+            if (targetKnight == KnightTarget.LeftKnight)
+                _leftApplied.Add(upgrade.UpgradeName);
+            else
+                _rightApplied.Add(upgrade.UpgradeName);
         }
+    }
+
+    // Expose applied upgrade names for UI
+    public IEnumerable<string> GetAppliedUpgradeNames(KnightTarget targetKnight)
+    {
+        return targetKnight == KnightTarget.LeftKnight ? _leftApplied : _rightApplied;
     }
 }

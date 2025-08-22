@@ -62,6 +62,14 @@ public class UpgradeMenu : MonoBehaviour
     private float _rightCurHP, _rightMaxHP, _rightCurSP, _rightMaxSP;
     private List<string> _rightUpgradesCache = new List<string>();
     
+    // Optional provider to fetch applied upgrade names per knight (inject from game systems)
+    public Func<KnightTarget, IEnumerable<string>> UpgradeNamesProvider;
+
+    // Cached player component refs (avoids repeated FindWithTag calls)
+    private GameObject _leftPlayerGO, _rightPlayerGO;
+    private PlayerHealth _leftHealth, _rightHealth;
+    private PlayerSpecial _leftSpecial, _rightSpecial;
+    
     // Event for when an upgrade is confirmed
     public event System.Action<int, KnightTarget> OnUpgradeConfirmed;
     
@@ -70,6 +78,12 @@ public class UpgradeMenu : MonoBehaviour
         // Get UI Document component if not assigned
         if (uiDocument == null)
             uiDocument = GetComponent<UIDocument>();
+
+        // Default provider for upgrade names from UpgradeManager if available
+        if (upgradeManager != null)
+        {
+            UpgradeNamesProvider = (knight) => upgradeManager.GetAppliedUpgradeNames(knight);
+        }
     }
     
     void Start()
@@ -443,6 +457,8 @@ public class UpgradeMenu : MonoBehaviour
         {
             // Trigger the upgrade confirmed event
             OnUpgradeConfirmed?.Invoke(chosenUpgradeIndex, chosenKnight);
+            // Refresh status lists now that an upgrade has been applied
+            RefreshStatusFromScene();
         }
     }
     
@@ -471,12 +487,61 @@ public class UpgradeMenu : MonoBehaviour
                     SetKnightTargetForThisUpgrade(KnightTarget.LeftKnight);
                 }
                 ClearChosenUpgrade();
+                // Pull latest status from scene components (health/special/upgrades)
+                RefreshStatusFromScene();
                 PopulateUpgrades();
                 UpdateSelection();
                 
                 // Force refresh the UI
                 root.MarkDirtyRepaint();
             }
+        }
+    }
+
+    // Attempts to cache references to the player GameObjects and components once
+    private void TryCachePlayerRefs()
+    {
+        if (_leftPlayerGO == null)
+        {
+            _leftPlayerGO = GameObject.FindWithTag("PlayerLeft");
+            if (_leftPlayerGO != null)
+            {
+                _leftHealth = _leftPlayerGO.GetComponent<PlayerHealth>();
+                _leftSpecial = _leftPlayerGO.GetComponent<PlayerSpecial>();
+            }
+        }
+        if (_rightPlayerGO == null)
+        {
+            _rightPlayerGO = GameObject.FindWithTag("PlayerRight");
+            if (_rightPlayerGO != null)
+            {
+                _rightHealth = _rightPlayerGO.GetComponent<PlayerHealth>();
+                _rightSpecial = _rightPlayerGO.GetComponent<PlayerSpecial>();
+            }
+        }
+    }
+
+    // Convenience: read stats from scene components and update status panels
+    public void RefreshStatusFromScene()
+    {
+        TryCachePlayerRefs();
+
+        // Left knight
+        if (_leftHealth != null && _leftSpecial != null)
+        {
+            var leftUpgrades = UpgradeNamesProvider != null ? UpgradeNamesProvider(KnightTarget.LeftKnight) : _leftUpgradesCache;
+            SetLeftKnightStatus(_leftHealth.CurrentHealth, _leftHealth.MaxHealth,
+                                _leftSpecial.CurrentSpecial, _leftSpecial.MaxSpecial,
+                                leftUpgrades);
+        }
+
+        // Right knight
+        if (_rightHealth != null && _rightSpecial != null)
+        {
+            var rightUpgrades = UpgradeNamesProvider != null ? UpgradeNamesProvider(KnightTarget.RightKnight) : _rightUpgradesCache;
+            SetRightKnightStatus(_rightHealth.CurrentHealth, _rightHealth.MaxHealth,
+                                 _rightSpecial.CurrentSpecial, _rightSpecial.MaxSpecial,
+                                 rightUpgrades);
         }
     }
     

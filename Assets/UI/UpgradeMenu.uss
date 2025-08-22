@@ -50,6 +50,7 @@
 .status-panel.right { margin-left: 1%; }
 
 .status-title {
+    align-self: center;
     font-size: 20px;
     height: 24px;
     color: rgb(240, 240, 230);
@@ -58,6 +59,7 @@
 }
 
 .status-subtitle {
+    align-self: center;
     font-size: 14px;
     color: rgb(220, 220, 210);
     -unity-font-style: bold;
@@ -66,14 +68,18 @@
 }
 
 .stat-line {
+    align-self: stretch;
+    -unity-text-align: upper-left;
     font-size: 14px;
     color: rgb(215, 230, 220);
     margin: 2px 0;
+    padding-left: 8px;
 }
 
 .upgrades-list {
     flex-grow: 1;
     margin-top: 6px;
+    align-content: flex-start;
     background-color: rgba(30, 45, 35, 0.5);
     border-radius: 6px;
     border-width: 1px;
@@ -92,7 +98,6 @@
 
 .menu-items {
     flex-direction: column;
-    /* align-items: center; */
     width: 100%;
     border-radius: 8px;
     padding: 1% 2% 2% 2%; /* add bottom padding to clear scaled bottom card */
@@ -181,7 +186,8 @@
 
 .menu-item--selected {
     background-color: rgba(120, 160, 135, 0.95);
-    border-color: rgb(150, 200, 175);
+        border-color: rgba(255, 255, 255, 1);
+
     scale: 1.05;
     border-width: 3px;
 }
@@ -198,18 +204,13 @@
     color: rgb(220, 220, 210);
 }
 
-/* Upgrade chosen for application - different from navigation selection */
 .menu-item--chosen {
-    background-color: rgba(255, 255, 255, .5);
-    border-color: rgb(255, 215, 0);
-    border-width: 4px;
-    scale: 1.06;
+    scale: 1.08;
 }
 
 .menu-item--chosen.menu-item--selected {
     scale: 1.08;
     border-width: 5px;
-    padding: 10px 25px;
 }
 
 .menu-item--chosen .upgrade-title {
@@ -229,7 +230,6 @@
 .menu-item--chosen .upgrade-rarity {
     color: rgb(255, 255, 255);
     scale: 1.05;
-
 }
 
 /* Apply selected styling to confirm button when selected */
@@ -246,3 +246,17 @@
 .menu-item.rare .upgrade-rarity { color: rgb(192, 192, 192); font-size: 14px; }
 .menu-item.epic .upgrade-rarity { color: rgb(212, 175, 55); font-size: 16px; }
 .menu-item.legendary .upgrade-rarity { color: rgb(128, 90, 213); font-size: 18px; }
+
+/* Ensure selected/chosen border-color wins over base .menu-item.upgrade (specificity bump) */
+.menu-item.upgrade.menu-item--selected { 
+    border-color: rgb(150, 200, 175); 
+    background-color: rgba(44, 87, 61, 0.95);
+}
+.menu-item.upgrade.menu-item--chosen {     
+    background-color: rgba(10, 26, 14, 0.9);
+    border-color: rgba(86, 255, 128, 1); }
+.menu-item.upgrade.menu-item--chosen.menu-item--selected { 
+    border-color: rgba(86, 255, 128, 1); 
+    background-color: rgba(44, 87, 61, 0.95);
+    border-width: 3px;
+}

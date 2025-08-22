@@ -13,6 +13,10 @@ public class PlayerHealth : MonoBehaviour
         healthBar.SetValue(currentHealth);
     }
 
+    // Read-only accessors for UI/status
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
+
     public void TakeDamage(int damage)
     {
         currentHealth = Mathf.Max(0, currentHealth - damage);
