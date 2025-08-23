@@ -19,94 +19,94 @@ public class ChaoticCorners : BaseWave
     [SerializeField] private int slimesSize = 1;
     [SerializeField] private int arcCount = 5;
     [SerializeField] private float arcDelay = 1f;
-
+    [SerializeField] private float delayBetweenProjectiles = 0.1f;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
-            spawner.SpawnProjectileArc(
-                spawner.LeftPlayer,
-                Spawner.ArcDirection.CounterClockwise,
-                new Vector2(-2, 12),
-                90f,
-                projectilesPerArc,
-                0.1f,
-                arcCount,
-                arcDelay
-            );
+        spawner.SpawnProjectileArc(
+            spawner.LeftPlayer,
+            Spawner.ArcDirection.CounterClockwise,
+            new Vector2(-2, 12),
+            90f,
+            projectilesPerArc,
+            delayBetweenProjectiles,
+            arcCount,
+            arcDelay
+        );
 
-            for (int i = 0; i < slimesPerArc; i++)
-            {
-                spawner.SpawnSlime(slimesSize, new Vector2(11, -5 - i), 0f, spawner.LeftPlayer);
-            }
+        for (int i = 0; i < slimesPerArc; i++)
+        {
+            spawner.SpawnSlime(slimesSize, new Vector2(11, -5 - i), 0f, spawner.LeftPlayer);
+        }
 
-            for (int i = 0; i < batsPerArc; i++)
-            {
-                spawner.SpawnBat(new Vector2(11, -5), 0f);
-                if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
-            }
+        for (int i = 0; i < batsPerArc; i++)
+        {
+            spawner.SpawnBat(new Vector2(11, -5), 0f);
+            if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
+        }
 
-            spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), false);
-            yield return new WaitForSeconds(arcDelay * arcCount);
+        spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), false);
+        yield return new WaitForSeconds(arcDelay * arcCount);
 
-            spawner.SpawnProjectileArc(
-                spawner.RightPlayer,
-                Spawner.ArcDirection.CounterClockwise,
-                new Vector2(2, -12),
-                90f,
-                projectilesPerArc,
-                0.1f,
-                arcCount,
-                arcDelay
-            );
+        spawner.SpawnProjectileArc(
+            spawner.RightPlayer,
+            Spawner.ArcDirection.CounterClockwise,
+            new Vector2(2, -12),
+            90f,
+            projectilesPerArc,
+            delayBetweenProjectiles,
+            arcCount,
+            arcDelay
+        );
 
-            for (int i = 0; i < slimesPerArc; i++)
-            {
-                spawner.SpawnSlime(slimesSize, new Vector2(-11, 5 + i), 0f, spawner.RightPlayer);
-            }
+        for (int i = 0; i < slimesPerArc; i++)
+        {
+            spawner.SpawnSlime(slimesSize, new Vector2(-11, 5 + i), 0f, spawner.RightPlayer);
+        }
 
-            for (int i = 0; i < batsPerArc; i++)
-            {
-                spawner.SpawnBat(new Vector2(-11, 5), 0f);
-                if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
-            }
+        for (int i = 0; i < batsPerArc; i++)
+        {
+            spawner.SpawnBat(new Vector2(-11, 5), 0f);
+            if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
+        }
 
-            spawner.SpawnProjectileArc(
-                spawner.LeftPlayer,
-                Spawner.ArcDirection.Clockwise,
-                new Vector2(-2, -12),
-                90f,
-                projectilesPerArc,
-                0.1f,
-                arcCount,
-                arcDelay
-            );
+        spawner.SpawnProjectileArc(
+            spawner.LeftPlayer,
+            Spawner.ArcDirection.Clockwise,
+            new Vector2(-2, -12),
+            90f,
+            projectilesPerArc,
+            delayBetweenProjectiles,
+            arcCount,
+            arcDelay
+        );
 
-            for (int i = 0; i < batsPerArc; i++)
-            {
-                spawner.SpawnBat(new Vector2(11, 5), 0f);
-                if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
-            }
+        for (int i = 0; i < batsPerArc; i++)
+        {
+            spawner.SpawnBat(new Vector2(11, 5), 0f);
+            if (i < batsPerArc - 1) yield return new WaitForSeconds(delayTime);
+        }
 
-            spawner.SpawnProjectileArc(
-                spawner.RightPlayer,
-                Spawner.ArcDirection.Clockwise,
-                new Vector2(2, 12),
-                90f,
-                projectilesPerArc,
-                0.1f,
-                arcCount,
-                arcDelay
-            );
+        spawner.SpawnProjectileArc(
+            spawner.RightPlayer,
+            Spawner.ArcDirection.Clockwise,
+            new Vector2(2, 12),
+            90f,
+            projectilesPerArc,
+            delayBetweenProjectiles,
+            arcCount,
+            arcDelay
+        );
 
-            for (int i = 0; i < kingSlimes; i++)
-            {
-                spawner.SpawnSlime(3, new Vector2(-11 + (i * 3), -6), 0f, spawner.RightPlayer);
-            }
+        for (int i = 0; i < kingSlimes; i++)
+        {
+            spawner.SpawnSlime(3, new Vector2(-11 + (i * 3), -6), 0f, spawner.RightPlayer);
+        }
 
-            if (slimesPerArc > 0 && kingSlimes > 0)
-            {
-                spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), true);
-            }
+        if (slimesPerArc > 0 && kingSlimes > 0)
+        {
+            spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), true);
+        }
 
         // Mark spawning as complete so the wave knows to start checking for enemy deaths
         MarkSpawningComplete();

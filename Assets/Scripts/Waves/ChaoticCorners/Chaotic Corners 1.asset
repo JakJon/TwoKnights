@@ -27,3 +27,4 @@ MonoBehaviour:
   slimesSize: 1
   arcCount: 5
   arcDelay: 2
+  delayBetweenProjectiles: 0.3
