@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84c2ba7339cc4654c9c029455ecf0c9e, type: 3}
   m_Name: Fire Speed 1
   m_EditorClassIdentifier: 
-  upgradeName: Firing Speed
-  description: +100% Projectile Speed
-  weight: 100
-  isUnlocked: 1
-  speedMultiplier: 2
+  upgradeName: Quick Firing Speed
+  description: Arrows travel significantly faster. +50% Projectile Speed
+  weight: 60
+  unlockedBy: []
+  lockedBy: []
+  speedMultiplier: 1.5

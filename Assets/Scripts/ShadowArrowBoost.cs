@@ -4,13 +4,21 @@ using UnityEngine;
 public class ShadowArrowBoost : MonoBehaviour
 {
     private GameObject shadowArrowPrefab;
-    private float damageMultiplier = 0.33f;
-    private float trailDistance = 0.5f;
-    private float positionVariance = 0.3f;
+    private int shadowArrowAmount = 1;
+    private float damageMultiplier = 0.2f;
+    private float trailDistance = 0.35f;
+    private float positionVariance = 0.1f;
     
+    // Backward-compatible overload: defaults to one shadow arrow
     public void SetShadowArrowSettings(GameObject prefab, float damageMultiplier, float trailDistance, float positionVariance)
     {
+        SetShadowArrowSettings(prefab, 1, damageMultiplier, trailDistance, positionVariance);
+    }
+
+    public void SetShadowArrowSettings(GameObject prefab, int amount, float damageMultiplier, float trailDistance, float positionVariance)
+    {
         this.shadowArrowPrefab = prefab;
+        this.shadowArrowAmount = Mathf.Max(0, amount);
         this.damageMultiplier = damageMultiplier;
         this.trailDistance = trailDistance;
         this.positionVariance = positionVariance;
@@ -24,6 +32,11 @@ public class ShadowArrowBoost : MonoBehaviour
     public float GetDamageMultiplier()
     {
         return damageMultiplier;
+    }
+    
+    public int GetShadowArrowAmount()
+    {
+        return shadowArrowAmount;
     }
     
     public Vector2 GetShadowSpawnPosition(Vector2 mainProjectilePosition, Vector2 direction)

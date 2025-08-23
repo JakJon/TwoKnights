@@ -66,36 +66,7 @@ public class PlayerShooter : MonoBehaviour
             projectile.AddComponent<PoisonProjectile>();
         }
 
-        // Check if shadow arrow should be spawned
-        ShadowArrowBoost shadowArrowBoost = GetComponent<ShadowArrowBoost>();
-        if (shadowArrowBoost != null && shadowArrowBoost.GetShadowArrowPrefab() != null)
-        {
-            // Get shadow spawn position with variance
-            Vector2 shadowSpawnPosition = shadowArrowBoost.GetShadowSpawnPosition(spawnPosition, shield.Direction);
-            GameObject shadowArrow = Instantiate(shadowArrowBoost.GetShadowArrowPrefab(), shadowSpawnPosition, spawnRotation);
-            shadowArrow.tag = gameObject.tag + "Projectile";
-            
-            // Shadow arrow has independent poison chance
-            if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
-            {
-                shadowArrow.AddComponent<PoisonProjectile>();
-            }
-            
-            // Set shadow arrow velocity (same direction and speed as main projectile)
-            shadowArrow.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
-            
-            // Set shadow arrow damage (reduced damage)
-            PlayerProjectile shadowProjectileComponent = shadowArrow.GetComponent<PlayerProjectile>();
-            if (shadowProjectileComponent != null)
-            {
-                // Calculate damage: base damage + damage bonus, then apply shadow multiplier
-                int mainProjectileDamage = shadowProjectileComponent.damage + damageBonus;
-                shadowProjectileComponent.damage = Mathf.RoundToInt(mainProjectileDamage * shadowArrowBoost.GetDamageMultiplier());
-            }
-            
-            // Start lifetime countdown for shadow arrow
-            StartCoroutine(DestroyProjectile(shadowArrow));
-        }
+    // (Moved shadow spawn below after computing final damage)
 
         // Set velocity
         projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
@@ -107,13 +78,24 @@ public class PlayerShooter : MonoBehaviour
             playerProjectileComponent.damage += damageBonus;
         }
 
+        // Capture final main projectile damage to drive shadow damage scaling
+        int mainProjectileFinalDamage = playerProjectileComponent != null ? playerProjectileComponent.damage : 0;
+
+        // Check if shadow arrow(s) should be spawned
+        ShadowArrowBoost shadowArrowBoost = GetComponent<ShadowArrowBoost>();
+        if (shadowArrowBoost != null && shadowArrowBoost.GetShadowArrowPrefab() != null)
+        {
+            // Spawn chain asynchronously with small delay between spawns so they don't all appear at once
+            StartCoroutine(SpawnShadowArrows(shadowArrowBoost, projectile, shield.Direction, spawnRotation, gameObject.tag + "Projectile", poisonTipBoost, mainProjectileFinalDamage));
+        }
+
         // Start lifetime countdown
         StartCoroutine(DestroyProjectile(projectile));
 
         // Gradual cooldown with fill amount updates
         float elapsed = 0f;
-        while (elapsed < cooldownTime)
-        {
+    while (elapsed < cooldownTime)
+    {
             elapsed += Time.deltaTime;
             float progress = elapsed / cooldownTime;
             float remainingFill = 1f - progress; // Start at 1, go to 0
@@ -135,6 +117,56 @@ public class PlayerShooter : MonoBehaviour
         if (projectile != null)
         {
             Destroy(projectile);
+        }
+    }
+
+    // Spawns the chain of shadow arrows with a 0.1s delay between each
+    private IEnumerator SpawnShadowArrows(ShadowArrowBoost shadowArrowBoost, GameObject initialLeader, Vector2 direction, Quaternion rotation, string projectileTag, PoisonTipBoost poisonTipBoost, int mainProjectileFinalDamage)
+    {
+        int amount = shadowArrowBoost.GetShadowArrowAmount();
+        if (amount <= 0)
+            yield break;
+
+        GameObject leaderGO = initialLeader;
+        for (int i = 0; i < amount; i++)
+        {
+            if (i > 0)
+            {
+                yield return new WaitForSeconds(0.0485f); // DELAY BETWEEN SHADOW ARROWS
+            }
+
+            // Use the current leader position at the time of spawn so distance matches settings
+            if (leaderGO == null)
+            {
+                // If leader disappeared, stop spawning remaining shadows to avoid odd placement
+                yield break;
+            }
+
+            Vector2 leaderPositionNow = leaderGO.transform.position;
+            Vector2 shadowSpawnPosition = shadowArrowBoost.GetShadowSpawnPosition(leaderPositionNow, direction);
+            GameObject shadowArrow = Instantiate(shadowArrowBoost.GetShadowArrowPrefab(), shadowSpawnPosition, rotation);
+            shadowArrow.tag = projectileTag;
+
+            // Independent poison chance per arrow
+            if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
+            {
+                shadowArrow.AddComponent<PoisonProjectile>();
+            }
+
+            // Velocity and lifetime same as main projectile
+            shadowArrow.GetComponent<Rigidbody2D>().linearVelocity = direction * projectileSpeed;
+            StartCoroutine(DestroyProjectile(shadowArrow));
+
+                // Damage reduced by multiplier relative to the main projectile's final damage
+                int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowArrowBoost.GetDamageMultiplier());
+                var shadowProjComponents = shadowArrow.GetComponentsInChildren<PlayerProjectile>(true);
+                foreach (var comp in shadowProjComponents)
+                {
+                    comp.damage = scaledShadowDamage;
+                }
+
+            // Next shadow trails this one; update leader to the new shadow arrow GameObject
+            leaderGO = shadowArrow;
         }
     }
 
