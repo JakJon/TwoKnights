@@ -12,6 +12,10 @@ public class DamageText : MonoBehaviour
     
     private TextMeshPro textMesh;
     private Color originalColor;
+    // Base world position captured at spawn; can be adjusted via PushUp()
+    private Vector3 basePosition;
+    // Extra Y offset so existing texts can be nudged upward when new ones spawn
+    private float externalYOffset = 0f;
 
     void Awake()
     {
@@ -42,21 +46,29 @@ public class DamageText : MonoBehaviour
         
         // Adjust starting position (lower the text)
         transform.position += Vector3.down * 0.0f; // Adjust 0.3f to your preference
+        // Capture base world position for animation calculations
+        basePosition = transform.position;
         
         StartCoroutine(AnimateText());
+    }
+
+    // Public API to nudge the text upward while it animates
+    public void PushUp(float amount)
+    {
+        externalYOffset += amount;
     }
 
     private IEnumerator AnimateText()
     {
         float elapsed = 0f;
-        Vector3 startPosition = transform.position;
+        // basePosition is captured in Initialize and combined with any externalYOffset
         
         while (elapsed < duration)
         {
             float progress = elapsed / duration;
             
             // Move the text upward
-            transform.position = startPosition + (moveDirection * moveSpeed * elapsed);
+            transform.position = basePosition + (Vector3.up * externalYOffset) + (moveDirection * moveSpeed * elapsed);
             
             // Fade out using the animation curve - make fade happen mostly at the end
             if (textMesh != null)

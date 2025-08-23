@@ -23,6 +23,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [Header("Damage Text")]
     [SerializeField] protected GameObject damageTextPrefab; // Floating text prefab
     [SerializeField] protected Vector3 damageTextOffset = new Vector3(0, 0.01f, 0); // Text offset
+    [SerializeField] protected float damageTextStackSeparation = 0.25f; // Vertical spacing between stacked texts
 
     [Header("Audio")]
     [SerializeField] protected SoundEffect hurtSound; 
@@ -308,7 +309,21 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             Vector3 adjustedOffset = damageTextOffset + new Vector3(0, spriteHeight, 0);
             Vector3 spawnPosition = transform.position + adjustedOffset;
             
+            // Before spawning the new text, nudge existing texts on this enemy upward so they stack
+            // Look for DamageText components under this enemy
+        var existingTexts = GetComponentsInChildren<DamageText>(includeInactive: false);
+            if (existingTexts != null && existingTexts.Length > 0)
+            {
+                foreach (var dt in existingTexts)
+                {
+                    // Push each existing damage text up by one slot
+            dt.PushUp(damageTextStackSeparation);
+                }
+            }
+            
             GameObject damageTextObj = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity);
+            // Parent to this enemy so subsequent spawns can find and stack
+            damageTextObj.transform.SetParent(transform);
             
             // Try to get the DamageText component and set the damage value and color
             var damageText = damageTextObj.GetComponent<DamageText>();
