@@ -9,11 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d8268bdcd15e0544a41f0971b2312cb, type: 3}
-  m_Name: DamageUpgrade
+  m_Script: {fileID: 11500000, guid: 38a3dc441f1152c49aa86408609cb488, type: 3}
+  m_Name: Reload 2
   m_EditorClassIdentifier: 
-  upgradeName: Damage Boost
-  description: +5 Damage
-  weight: 100
-  isUnlocked: 1
-  damageIncrease: 5
+  upgradeName: Rapid Reload
+  description: Even less downtime between each arrow. It's raining arrows. +15% Fire
+    Rate
+  weight: 10000
+  unlockedBy: []
+  lockedBy: []
+  rateMultiplier: 0.55

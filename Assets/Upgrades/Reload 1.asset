@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38a3dc441f1152c49aa86408609cb488, type: 3}
+  m_Name: Reload 1
+  m_EditorClassIdentifier: 
+  upgradeName: 'Quick Reload '
+  description: Less downtime between arrows. +30% Fire Rate
+  weight: 100
+  unlockedBy: []
+  lockedBy: []
+  rateMultiplier: 0.7

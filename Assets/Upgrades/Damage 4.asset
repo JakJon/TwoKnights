@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d8268bdcd15e0544a41f0971b2312cb, type: 3}
+  m_Name: Damage 4
+  m_EditorClassIdentifier: 
+  upgradeName: Incredible Damage
+  description: A huge increase in damage per arrow. A single arrow will fall most
+    foes. +12 Damage
+  weight: 35
+  unlockedBy:
+  - {fileID: 11400000, guid: 9b240762b90fb4e4cac7474405b82202, type: 2}
+  lockedBy: []
+  damageIncrease: 12

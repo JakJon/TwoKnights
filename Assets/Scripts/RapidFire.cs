@@ -29,7 +29,7 @@ public class RapidFire : MonoBehaviour
     private IEnumerator RapidFireRoutine(PlayerShooter shooter)
     {
         shooter.rapidFireEnabled = true;
-        shooter.cooldownTime = .25f;
+        shooter.cooldownTime = .1f;
         yield return new WaitForSeconds(6f);
         shooter.rapidFireEnabled = false;
         shooter.cooldownTime = 1.5f;

@@ -9,11 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84c2ba7339cc4654c9c029455ecf0c9e, type: 3}
-  m_Name: FiringSpeedUpgrade
+  m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
+  m_Name: Health Major 3
   m_EditorClassIdentifier: 
-  upgradeName: Firing Speed
-  description: +100% Projectile Speed
-  weight: 100
-  isUnlocked: 1
-  speedMultiplier: 2
+  upgradeName: Health Boost
+  description: +25 Max Health
+  weight: 1
+  unlockedBy: []
+  lockedBy: []
+  healthIncrease: 25

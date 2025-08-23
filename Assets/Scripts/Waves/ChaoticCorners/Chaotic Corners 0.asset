@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Chaotic Corners 0
   m_EditorClassIdentifier: 
   waveName: Chaotic Corners
-  weight: 1000000
+  weight: 1000
   isUnlocked: 1
   waveDescription: 
   unlockedAfterXWaves: -1
