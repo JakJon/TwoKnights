@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   allUpgrades:
   - {fileID: 11400000, guid: 882d0ee6c7877c5409d9c877d1057086, type: 2}
-  - {fileID: 11400000, guid: 8a8ac69ee86f50342bf16a878d746a2b, type: 2}
   - {fileID: 11400000, guid: a4721a1389389ba41970067eefe58f94, type: 2}
   - {fileID: 11400000, guid: 499448e98d4c1964a88084fcd5591da7, type: 2}
   - {fileID: 11400000, guid: 69d2a7afd7a20ba48a471b469e2e8770, type: 2}
@@ -37,5 +36,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 369f8169389948f429fe7584feee0941, type: 2}
   - {fileID: 11400000, guid: 9c75a28dd39af6542a8d26a5124f38af, type: 2}
   - {fileID: 11400000, guid: 7645648c800d7494bb3437a6ee9bdf92, type: 2}
+  - {fileID: 11400000, guid: 8a8ac69ee86f50342bf16a878d746a2b, type: 2}
   - {fileID: 11400000, guid: ae782597e50921d4bb2a2b3ed5d8ff94, type: 2}
   upgradesPerSelection: 3

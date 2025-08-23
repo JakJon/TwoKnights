@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30f20533f6df10648b22aac557d534e3, type: 3}
-  m_Name: Shadow 1
+  m_Name: Shadow 4
   m_EditorClassIdentifier: 
-  upgradeName: Shadow Arrow
-  description: Arrows spawn shadow copies that deal 20% damage
-  weight: 10000
-  unlockedBy: []
+  upgradeName: Shadow Arrow Four
+  description: A fourth shadow arrow. A daisy chain of shadows. Deals 20% damage
+    of main arrow.
+  weight: 100
+  unlockedBy:
+  - {fileID: 11400000, guid: 30e4f281e39903e41bb2bc4aa2029c04, type: 2}
   lockedBy: []
   shadowArrowPrefab: {fileID: 8124615890466243421, guid: b06b2f4c55b919a458a9db7434633ee0, type: 3}
-  shadowArrowAmount: 5
+  shadowArrowAmount: 4

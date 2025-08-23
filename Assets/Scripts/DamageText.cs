@@ -19,6 +19,12 @@ public class DamageText : MonoBehaviour
 
     void Awake()
     {
+        // Ensure this object is marked as transient (not to be cloned when enemies duplicate)
+        var markerType = System.Type.GetType("TransientEffect");
+        if (markerType != null && GetComponent(markerType) == null)
+        {
+            gameObject.AddComponent(markerType);
+        }
         // First try to find TextMeshPro on this object
         textMesh = GetComponent<TextMeshPro>();
         

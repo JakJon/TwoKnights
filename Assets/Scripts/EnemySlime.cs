@@ -159,6 +159,25 @@ public class EnemySlime : EnemyBase
             slimeScript.isDead = false;
             slimeScript.isPoisoned = false;
             slimeScript.isStaggered = false;
+            // Reset poison-related fields and stop any particle effects that may have been copied
+            if (slimeScript.poisonBubbles != null)
+            {
+                // Destroy any copied poison bubble object on the clone
+                Destroy(slimeScript.poisonBubbles.gameObject);
+                slimeScript.poisonBubbles = null;
+            }
+            // Destroy any DamageText or other transient effects that got copied during Instantiate
+            // We detect by component types we control to avoid string-based reflection
+            var damageTexts = newSlime.GetComponentsInChildren<DamageText>(includeInactive: true);
+            foreach (var dt in damageTexts)
+            {
+                Destroy(dt.gameObject);
+            }
+            var bubbleEffects = newSlime.GetComponentsInChildren<PoisonBubbleEffect>(includeInactive: true);
+            foreach (var be in bubbleEffects)
+            {
+                Destroy(be.gameObject);
+            }
             slimeScript.InitializeSlime();
         }
 
