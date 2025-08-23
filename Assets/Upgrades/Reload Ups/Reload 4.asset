@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38a3dc441f1152c49aa86408609cb488, type: 3}
-  m_Name: Reload 2
+  m_Name: Reload 4
   m_EditorClassIdentifier: 
-  upgradeName: Rapid Reload
-  description: Even less downtime between each arrow. It's raining arrows. +15% Fire
-    Rate
-  weight: 10000
-  unlockedBy: []
+  upgradeName: Semi-Automatic Bow
+  description: Reloading is a thing of the past. +15% Fire Rate
+  weight: 3
+  unlockedBy:
+  - {fileID: 11400000, guid: eb588a9a45e2cd9419101e00e384f7ad, type: 2}
   lockedBy: []
-  rateMultiplier: 0.55
+  rateMultiplier: 0.25

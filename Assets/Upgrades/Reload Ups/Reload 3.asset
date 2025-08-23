@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Blazing Reloads
   description: Almost no downtime between arrows. +15% Fire Rate
-  weight: 10000
-  unlockedBy: []
+  weight: 25
+  unlockedBy:
+  - {fileID: 11400000, guid: 7af5fdc0cc104a94f9474a5540c91a4e, type: 2}
   lockedBy: []
   rateMultiplier: 0.4

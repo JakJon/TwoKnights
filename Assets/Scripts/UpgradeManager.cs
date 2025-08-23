@@ -24,6 +24,7 @@ public class UpgradeManager : ScriptableObject
     {
         var target = _nextTarget;
         var availableUpgrades = GetAvailableUpgradesFor(target).ToList();
+        Debug.Log($"Available upgrades for {target}: {string.Join(", ", availableUpgrades.Select(u => u))}");
 
         return SelectWeightedDistinct(availableUpgrades, upgradesPerSelection);
     }
@@ -59,15 +60,24 @@ public class UpgradeManager : ScriptableObject
     
     private List<BaseUpgrade> SelectWeightedDistinct(List<BaseUpgrade> pool, int count)
     {
-        if (pool.Count <= count)
-            return pool;
-
+        // Always enforce per-category uniqueness; if not enough unique categories exist, return fewer than count.
         var selected = new List<BaseUpgrade>();
+        var usedTypes = new HashSet<System.Type>();
         var temp = new List<BaseUpgrade>(pool);
+
         for (int i = 0; i < count && temp.Count > 0; i++)
         {
-            var pick = GetWeightedRandomUpgrade(temp);
+            // Filter out upgrades whose type is already used in this selection
+            var filtered = temp.Where(u => !usedTypes.Contains(u.GetType())).ToList();
+            if (filtered.Count == 0)
+            {
+                // No non-conflicting categories left, break early
+                break;
+            }
+
+            var pick = GetWeightedRandomUpgrade(filtered);
             selected.Add(pick);
+            usedTypes.Add(pick.GetType());
             temp.Remove(pick);
         }
         return selected;

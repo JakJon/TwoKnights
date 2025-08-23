@@ -10,11 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
-  m_Name: Health Major 3
+  m_Name: Health Mid 1
   m_EditorClassIdentifier: 
-  upgradeName: Health Boost
-  description: +25 Max Health
-  weight: 1
+  upgradeName: Moderate Health Boost
+  description: A decent boost to your max health. +25 Max Health. Boost 1.
+  weight: 60
   unlockedBy: []
-  lockedBy: []
+  lockedBy:
+  - {fileID: 11400000, guid: 4ec4f9f5d54c6884bb666bff4fcdaca4, type: 2}
+  - {fileID: 11400000, guid: 6894bfba50da8464cb9cb6eebf0a891b, type: 2}
   healthIncrease: 25

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
+  m_Name: Health Epic 4
+  m_EditorClassIdentifier: 
+  upgradeName: Incredible Health Boost
+  description: A massive addition to your max health. +100 Max Health. Boost 4,
+  weight: 12
+  unlockedBy:
+  - {fileID: 11400000, guid: 7774771bbc16cdb41a61d76f1cc01219, type: 2}
+  - {fileID: 11400000, guid: 3d99d5f4aa0f44a4092384cac58140da, type: 2}
+  - {fileID: 11400000, guid: 9c75a28dd39af6542a8d26a5124f38af, type: 2}
+  lockedBy:
+  - {fileID: 11400000, guid: 9326ad829fc44d3408ef98c3999b13ad, type: 2}
+  - {fileID: 11400000, guid: 7645648c800d7494bb3437a6ee9bdf92, type: 2}
+  healthIncrease: 100

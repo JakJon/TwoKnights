@@ -91,9 +91,8 @@
     color: rgb(255, 255, 255);
     -unity-text-align: middle-center;
     -unity-font-style: bold;
-    max-width: 80%;
-    max-height: 48px;
-    text-overflow: ellipsis;
+    max-width: 100%;
+    white-space: normal;
 }
 
 .menu-items {
@@ -216,14 +215,14 @@
 .menu-item--chosen .upgrade-title {
     color: rgb(255, 255, 255);
     text-shadow: 3px 3px 4px rgba(0, 0, 0, 1);
-    padding: auto 12px;
+    padding: 0 12px;
     scale: 1.05;
 }
 
 .menu-item--chosen .upgrade-description {
     color: rgb(255, 255, 255);
     text-shadow: 3px 3px 4px rgba(0, 0, 0, 1);
-    padding: auto 12px;
+    padding: 0 12px;
     scale: 1.05;
 }
 

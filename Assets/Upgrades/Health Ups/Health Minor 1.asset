@@ -10,11 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
-  m_Name: Health mid 3
+  m_Name: Health Minor 1
   m_EditorClassIdentifier: 
-  upgradeName: Health Boost
-  description: +25 Max Health
-  weight: 1
+  upgradeName: Minor Health Boost
+  description: A small boost to your max health. +10 Max Health. Boost 1.
+  weight: 100
   unlockedBy: []
-  lockedBy: []
-  healthIncrease: 25
+  lockedBy:
+  - {fileID: 11400000, guid: 4ec4f9f5d54c6884bb666bff4fcdaca4, type: 2}
+  - {fileID: 11400000, guid: 4cc75edd22705814788da12026ec520b, type: 2}
+  healthIncrease: 10
