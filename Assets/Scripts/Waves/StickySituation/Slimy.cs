@@ -56,7 +56,7 @@ public class Slimy : BaseWave
                 if (straight % 2 == 0)
                 {
                     spawner.SpawnProjectileStraight(
-                        spawner.aboveLeftPLayer, 
+                        spawner.aboveLeftPlayer, 
                         spawner.LeftPlayer, 
                         projectilesPerStraight, 
                         delayBetweenProjectiles

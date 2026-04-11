@@ -51,7 +51,7 @@ public class SlimesAndBats : BaseWave
             if (wave % 2 == 0)
             {
                 spawner.SpawnOrb(spawner.leftOfLeftPlayer, spawner.aboveRightPlayer, false);
-                spawner.SpawnOrb(spawner.rightOfRightPlayer, spawner.aboveLeftPLayer, false);
+                spawner.SpawnOrb(spawner.rightOfRightPlayer, spawner.aboveLeftPlayer, false);
             }
 
             yield return new WaitForSeconds(10f + wave);

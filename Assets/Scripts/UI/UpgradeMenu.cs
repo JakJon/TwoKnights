@@ -229,6 +229,7 @@ public class UpgradeMenu : MonoBehaviour
         {
             int index = i; // Capture for closure
             menuItems[i].RegisterCallback<ClickEvent>(_ => {
+                if (PauseMenu.IsPaused) return;
                 currentSelectedIndex = index;
                 isConfirmButtonSelected = false;
                 SelectUpgrade(index);
@@ -240,6 +241,7 @@ public class UpgradeMenu : MonoBehaviour
         if (confirmButton != null)
         {
             confirmButton.clicked += () => {
+                if (PauseMenu.IsPaused) return;
                 isConfirmButtonSelected = true;
                 UpdateSelection();
                 if (chosenUpgradeIndex >= 0)
@@ -268,7 +270,7 @@ public class UpgradeMenu : MonoBehaviour
     
     void HandleFallbackInput()
     {
-        if (menuItems.Count == 0 || !CanProcessInput()) return;
+    if (PauseMenu.IsPaused || menuItems.Count == 0 || !CanProcessInput()) return;
         
         // Fallback input handling for when InputActionReferences are not assigned
         bool inputProcessedThisFrame = false;
@@ -310,6 +312,7 @@ public class UpgradeMenu : MonoBehaviour
         // Handle confirmation and selection with legacy input
         if (confirmAction == null && (Input.GetButtonDown("Submit") || Input.GetButtonDown("Fire1")))
         {
+            if (PauseMenu.IsPaused) return;
             if (isConfirmButtonSelected)
             {
                 if (chosenUpgradeIndex >= 0)
@@ -332,6 +335,8 @@ public class UpgradeMenu : MonoBehaviour
     
     private bool CanProcessInput()
     {
+        if (PauseMenu.IsPaused)
+            return false;
         return Time.unscaledTime - lastInputTime >= inputCooldown;
     }
     
@@ -352,7 +357,7 @@ public class UpgradeMenu : MonoBehaviour
     // Move selection up within items; if on confirm, jump back to last item
     void NavigateUp()
     {
-        if (menuItems == null || menuItems.Count == 0) return;
+    if (PauseMenu.IsPaused || menuItems == null || menuItems.Count == 0) return;
         if (isConfirmButtonSelected)
         {
             isConfirmButtonSelected = false;
@@ -368,7 +373,7 @@ public class UpgradeMenu : MonoBehaviour
     // Move selection down within items; from last item move to confirm; stay on confirm if already there
     void NavigateDown()
     {
-        if (menuItems == null || menuItems.Count == 0) return;
+    if (PauseMenu.IsPaused || menuItems == null || menuItems.Count == 0) return;
         if (isConfirmButtonSelected)
         {
             // Stay on confirm
@@ -416,6 +421,7 @@ public class UpgradeMenu : MonoBehaviour
     void SelectUpgrade(int upgradeIndex)
     {
         if (currentUpgrades == null) return;
+    if (PauseMenu.IsPaused) return;
         if (upgradeIndex < 0 || upgradeIndex >= menuItems.Count || upgradeIndex >= currentUpgrades.Count) return;
 
         // Clear previous selection - this should remove visual styling from any previously chosen upgrade
@@ -441,6 +447,7 @@ public class UpgradeMenu : MonoBehaviour
         // Clear visual styling from all menu items to ensure no lingering chosen state
         if (menuItems != null)
         {
+            if (PauseMenu.IsPaused) return;
             for (int i = 0; i < menuItems.Count; i++) menuItems[i].RemoveFromClassList(CHOSEN_CLASS);
         }
         

@@ -31,7 +31,17 @@ public class PlayerHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            Time.timeScale = 0; // Stop the game
+            // Player has died - trigger scene transition to camp
+            if (GameSceneManager.Instance != null)
+            {
+                GameSceneManager.Instance.OnPlayerDeath();
+            }
+            else
+            {
+                // Fallback behavior if no scene manager exists
+                Debug.LogWarning("GameSceneManager not found! Stopping game instead.");
+                Time.timeScale = 0;
+            }
         }
     }
 

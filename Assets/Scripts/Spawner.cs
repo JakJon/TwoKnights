@@ -16,6 +16,9 @@ public class Spawner : MonoBehaviour
     [SerializeField] public GameObject blackRat;
     [SerializeField] public GameObject slimePrefab;
     [SerializeField] public GameObject bat;
+    [SerializeField] public GameObject greyWolfPrefab;
+    [SerializeField] public GameObject brownWolfPrefab;
+    [SerializeField] public GameObject blackWolfPrefab;
     [SerializeField] public GameObject healthOrbPrefab;
     [SerializeField] public GameObject manaOrbPrefab;
 
@@ -28,7 +31,7 @@ public class Spawner : MonoBehaviour
     // Public methods for spawning that can be used by wave classes
     public Transform LeftPlayer => _leftPlayer;
     public Transform RightPlayer => _rightPlayer;
-    public Vector2 aboveLeftPLayer => new Vector2(-2, 7);
+    public Vector2 aboveLeftPlayer => new Vector2(-2, 7);
     public Vector2 aboveRightPlayer => new Vector2(2, 7);
     public Vector2 belowLeftPlayer => new Vector2(-2, -7);
     public Vector2 belowRightPlayer => new Vector2(2, -7);
@@ -90,12 +93,23 @@ public class Spawner : MonoBehaviour
         _isWaveInProgress = false;
         waveManager.WaveCompleted();
 
+        if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
+        {
+            yield break;
+        }
+
         // Show upgrade menu and pause game instead of immediately starting next wave
         ShowUpgradeMenu();
     }
 
     private void ShowUpgradeMenu()
     {
+        if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
+        {
+            _isUpgradeMenuActive = false;
+            return;
+        }
+
         _isUpgradeMenuActive = true;
         
         // Pause the game
@@ -133,6 +147,12 @@ public class Spawner : MonoBehaviour
         
         // Start next wave
         StartNextWave();
+    }
+
+    public void HandlePlayerDeathTransition()
+    {
+        _isUpgradeMenuActive = false;
+        Time.timeScale = 1f;
     }
 
     void OnDestroy()
@@ -192,6 +212,58 @@ public class Spawner : MonoBehaviour
         yield return new WaitForSeconds(delay);
         GameObject enemy = Instantiate(bat);
         enemy.transform.position = spawnPosition;
+    }
+
+    public void SpawnWolf(List<Vector2> waypoints, Transform targetKnight, WolfType wolfType, float delay = 0f)
+    {
+        StartCoroutine(SpawnWolfAfterDelay(waypoints, targetKnight, wolfType, delay));
+    }
+
+    private IEnumerator SpawnWolfAfterDelay(List<Vector2> waypoints, Transform targetKnight, WolfType wolfType, float delay)
+    {
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+
+        GameObject prefabToUse = null;
+        switch (wolfType)
+        {
+            case WolfType.Grey:  prefabToUse = greyWolfPrefab;  break;
+            case WolfType.Brown: prefabToUse = brownWolfPrefab; break;
+            case WolfType.Black: prefabToUse = blackWolfPrefab; break;
+        }
+        if (prefabToUse == null)
+        {
+            Debug.LogWarning($"Spawner: Missing prefab for wolf type {wolfType}. Please assign it in the Spawner inspector.");
+            yield break;
+        }
+        GameObject wolf = Instantiate(prefabToUse);
+
+        // Convert Vector2 waypoints to Vector3 for EnemyWolf API
+        List<Vector3> wp3 = null;
+        if (waypoints != null)
+        {
+            wp3 = new List<Vector3>(waypoints.Count);
+            for (int i = 0; i < waypoints.Count; i++)
+                wp3.Add(new Vector3(waypoints[i].x, waypoints[i].y, 0f));
+        }
+
+        // If we have at least one waypoint, place the wolf there before initialization
+        if (wp3 != null && wp3.Count > 0)
+        {
+            wolf.transform.position = wp3[0];
+        }
+
+        EnemyWolf wolfScript = wolf.GetComponent<EnemyWolf>();
+        if (wolfScript != null)
+        {
+            wolfScript.SetWaypoints(wp3);
+            wolfScript.SetTarget(targetKnight);
+            wolfScript.SetWolfType(wolfType);
+        }
+        else
+        {
+            Debug.LogWarning("Spawner: EnemyWolf component not found on wolf instance.");
+        }
     }
 
     public void SpawnProjectile(Transform targetPlayer, Vector2 spawnPosition, float delay = 0f)
