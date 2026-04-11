@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:Style src="CampMenu.uss" />
+    <ui:VisualElement class="camp-root">
+        <ui:VisualElement name="menu-container" class="menu-container">
+            <ui:Button name="return-button" class="menu-button" text="Start" />
+            <ui:Button name="exit-button" class="menu-button secondary" text="Exit" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

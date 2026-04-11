@@ -1,0 +1,71 @@
+.camp-root {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.35);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.camp-title {
+    font-size: 48px;
+    unity-font-style: bold;
+    color: #FFE6AA;
+    margin-bottom: 12px;
+}
+
+.menu-container {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.menu-button {
+    width: 260px;
+    height: 64px;
+    font-size: 22px;
+    unity-text-align: middle-center;
+    -unity-font-style: bold;
+    background-color: #FF8C42;
+    color: #000000;
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0.25);
+    transition-property: background-color, border-color, color, scale;
+    transition-duration: 0.2s;
+}
+
+.menu-button.secondary {
+    background-color: #425bff;
+    color: #ffffff;
+}
+
+.menu-button:hover,
+.menu-button:focus {
+    background-color: #FFB067;
+    border-color: rgba(255, 255, 255, 0.75);
+}
+
+.menu-button.secondary:hover,
+.menu-button.secondary:focus {
+    background-color: #7485ff;
+}
+
+.menu-button--selected {
+    scale: 1.05;
+    border-color: rgba(255, 255, 255, 1);
+    border-width: 3px;
+}
+
+.menu-button--selected.menu-button.secondary {
+    border-color: rgba(173, 205, 255, 1);
+}
+
+.camp-hint {
+    font-size: 18px;
+    color: #FFFFFF;
+    opacity: 0.8;
+}

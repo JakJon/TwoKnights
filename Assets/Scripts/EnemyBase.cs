@@ -11,6 +11,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [SerializeField] protected int specialOnHit = 5; // Points for damage
     [SerializeField] protected int specialOnDeath = 10; // Points for death
 
+    [Header("Gold")]
+    [SerializeField] protected int goldOnDeath = 1;
+
     [Header("Collision Damage")]
     [SerializeField] protected int shieldDamage = 10; // Damage to shield
     protected int playerDamage = 20; // Damage to player

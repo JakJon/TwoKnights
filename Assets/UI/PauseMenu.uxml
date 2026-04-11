@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="pause-menu" class="pause-menu-overlay">
+        <ui:VisualElement name="pause-panel" class="pause-panel">
+            <ui:Label text="Paused" name="pause-title" class="pause-title" />
+            <ui:VisualElement name="pause-body" class="pause-body">
+                <ui:VisualElement name="main-actions" class="actions-container">
+                    <ui:Button text="Resume" name="resume-button" class="menu-button primary" />
+                    <ui:Button text="Quit" name="quit-button" class="menu-button secondary" />
+                </ui:VisualElement>
+                <ui:VisualElement name="confirm-actions" class="actions-container confirm" style="display: none;">
+                    <ui:Label text="Are you sure you want to quit?" name="confirm-text" class="confirm-text" />
+                    <ui:VisualElement name="confirm-buttons" class="confirm-buttons">
+                        <ui:Button text="Yes" name="confirm-yes" class="menu-button danger" />
+                        <ui:Button text="No" name="confirm-no" class="menu-button primary" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
