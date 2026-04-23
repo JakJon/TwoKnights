@@ -4,8 +4,6 @@ using System.Collections;
 
 public class GameSceneManager : MonoBehaviour
 {
-    public const string LastWaveReachedPrefKey = "LastWaveReached";
-
     public static GameSceneManager Instance { get; private set; }
 
     [Header("Scene Names")]
@@ -50,8 +48,9 @@ public class GameSceneManager : MonoBehaviour
 
         if (WaveManager.ActiveInstance != null)
         {
-            PlayerPrefs.SetInt(LastWaveReachedPrefKey, WaveManager.ActiveInstance.CurrentWaveNumber);
-            PlayerPrefs.Save();
+            int reached = WaveManager.ActiveInstance.CurrentWaveNumber;
+            SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, reached);
+            SaveManager.Save();
         }
 
         HideUpgradeMenuIfNeeded();

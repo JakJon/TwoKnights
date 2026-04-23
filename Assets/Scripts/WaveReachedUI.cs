@@ -8,7 +8,7 @@ public class WaveReachedUI : MonoBehaviour
 
     private void OnEnable()
     {
-        int wave = PlayerPrefs.GetInt(GameSceneManager.LastWaveReachedPrefKey, 0);
+        int wave = SaveManager.Data.furthestWave;
         GameObject target = rootToHide != null ? rootToHide : gameObject;
 
         if (wave > 1)
@@ -16,7 +16,7 @@ public class WaveReachedUI : MonoBehaviour
             target.SetActive(true);
             if (waveText != null)
             {
-                waveText.text = $"Reached Wave {wave}";
+                waveText.text = $"Furthest Wave: {wave}";
             }
         }
         else

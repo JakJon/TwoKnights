@@ -3,8 +3,6 @@ using System;
 
 public class GoldManager : MonoBehaviour
 {
-    public const string GoldPrefKey = "TotalGold";
-
     public static GoldManager Instance { get; private set; }
 
     [SerializeField] private int gold = 0;
@@ -21,7 +19,7 @@ public class GoldManager : MonoBehaviour
             return;
         }
         Instance = this;
-        gold = PlayerPrefs.GetInt(GoldPrefKey, 0);
+        gold = SaveManager.Data.gold;
     }
 
     private void Start()
@@ -45,6 +43,7 @@ public class GoldManager : MonoBehaviour
 
     private void Persist()
     {
-        PlayerPrefs.SetInt(GoldPrefKey, gold);
+        SaveManager.Data.gold = gold;
+        SaveManager.Save();
     }
 }
