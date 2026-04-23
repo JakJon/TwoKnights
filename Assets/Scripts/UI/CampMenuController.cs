@@ -14,10 +14,15 @@ public class CampMenuController : MonoBehaviour
 {
     [Header("Button Names")]
     [SerializeField] private string returnButtonName = "return-button";
+    [SerializeField] private string questsButtonName = "quests-button";
     [SerializeField] private string exitButtonName = "exit-button";
 
     [Header("Scene Names")]
     [SerializeField] private string gameplaySceneName = "Main";
+
+    [Header("Quest Panel")]
+    [SerializeField] private QuestPanel questPanel;
+    [SerializeField] private string menuContainerName = "menu-container";
 
     [Header("Input Actions")]
     [SerializeField] private InputActionReference navigateUpAction;
@@ -30,6 +35,7 @@ public class CampMenuController : MonoBehaviour
 
     private UIDocument _uiDocument;
     private VisualElement _root;
+    private VisualElement _menuContainer;
     private readonly List<Button> _menuButtons = new();
     private readonly List<Action> _buttonHandlers = new();
     private int _currentIndex;
@@ -40,6 +46,7 @@ public class CampMenuController : MonoBehaviour
     private void Awake()
     {
         _uiDocument = GetComponent<UIDocument>();
+        if (questPanel == null) questPanel = GetComponent<QuestPanel>();
     }
 
     private void OnEnable()
@@ -50,6 +57,7 @@ public class CampMenuController : MonoBehaviour
         HookAction(confirmAction, OnConfirm, true);
         HookAction(cancelAction, OnCancel, true);
         SetSelectedIndex(Mathf.Clamp(_currentIndex, 0, _menuButtons.Count - 1));
+        if (questPanel != null) questPanel.OnCloseRequested += HandleQuestPanelClosed;
     }
 
     private void OnDisable()
@@ -59,6 +67,7 @@ public class CampMenuController : MonoBehaviour
         HookAction(confirmAction, OnConfirm, false);
         HookAction(cancelAction, OnCancel, false);
         UnregisterCallbacks();
+        if (questPanel != null) questPanel.OnCloseRequested -= HandleQuestPanelClosed;
     }
 
     private void Update()
@@ -81,6 +90,7 @@ public class CampMenuController : MonoBehaviour
             return;
         }
 
+        _menuContainer = _root.Q<VisualElement>(menuContainerName);
         _menuButtons.Clear();
         _buttonHandlers.Clear();
 
@@ -93,6 +103,9 @@ public class CampMenuController : MonoBehaviour
             {
                 case var name when name == returnButtonName:
                     handler = HandleReturnClicked;
+                    break;
+                case var name when name == questsButtonName:
+                    handler = HandleQuestsClicked;
                     break;
                 case var name when name == exitButtonName:
                     handler = HandleExitClicked;
@@ -150,18 +163,36 @@ public class CampMenuController : MonoBehaviour
     private void OnNavigateUp(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
+        if (questPanel != null && questPanel.IsVisible)
+        {
+            questPanel.NavigateUp();
+            _lastInputTime = Time.unscaledTime;
+            return;
+        }
         Navigate(-1);
     }
 
     private void OnNavigateDown(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
+        if (questPanel != null && questPanel.IsVisible)
+        {
+            questPanel.NavigateDown();
+            _lastInputTime = Time.unscaledTime;
+            return;
+        }
         Navigate(1);
     }
 
     private void OnConfirm(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
+        if (questPanel != null && questPanel.IsVisible)
+        {
+            questPanel.Confirm();
+            _lastInputTime = Time.unscaledTime;
+            return;
+        }
         ActivateCurrentButton();
         _lastInputTime = Time.unscaledTime;
     }
@@ -178,24 +209,28 @@ public class CampMenuController : MonoBehaviour
         if (!CanProcessInput()) return;
 
         bool usedInput = false;
+        bool questPanelOpen = questPanel != null && questPanel.IsVisible;
 
         if (navigateUpAction == null && navigateDownAction == null)
         {
             if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             {
-                Navigate(-1);
+                if (questPanelOpen) questPanel.NavigateUp();
+                else Navigate(-1);
                 usedInput = true;
             }
             else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             {
-                Navigate(1);
+                if (questPanelOpen) questPanel.NavigateDown();
+                else Navigate(1);
                 usedInput = true;
             }
         }
 
         if (!usedInput && confirmAction == null && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Submit")))
         {
-            ActivateCurrentButton();
+            if (questPanelOpen) questPanel.Confirm();
+            else ActivateCurrentButton();
             usedInput = true;
         }
 
@@ -266,6 +301,29 @@ public class CampMenuController : MonoBehaviour
         }
     }
 
+    private void HandleQuestsClicked()
+    {
+        if (questPanel == null)
+        {
+            Debug.LogWarning("CampMenuController: Quest panel reference is not set.");
+            return;
+        }
+        SetMenuContainerVisible(false);
+        questPanel.Show();
+    }
+
+    private void HandleQuestPanelClosed()
+    {
+        SetMenuContainerVisible(true);
+        SetSelectedIndex(_currentIndex);
+    }
+
+    private void SetMenuContainerVisible(bool visible)
+    {
+        if (_menuContainer == null) return;
+        _menuContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+    }
+
     private void HandleExitClicked()
     {
         // Placeholder behavior: quit application. In editor, just log.
@@ -279,6 +337,13 @@ public class CampMenuController : MonoBehaviour
 
     private void HandleCancel()
     {
+        if (questPanel != null && questPanel.IsVisible)
+        {
+            questPanel.Hide();
+            HandleQuestPanelClosed();
+            return;
+        }
+
         // If a specific button is selected, prefer activating that button's handler instead of exiting outright.
         if (_menuButtons.Count > 0 && _currentIndex < _menuButtons.Count)
         {

@@ -78,6 +78,10 @@ public static class SaveManager
 
     private static void Migrate(SaveData data)
     {
-        // No-op at version 1. Add per-version upgrades here when SaveData changes shape.
+        if (data.version < 2)
+        {
+            if (data.knightRank < 1) data.knightRank = 1;
+            data.version = 2;
+        }
     }
 }
