@@ -358,9 +358,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     protected virtual void OnDeath()
     {
+        if (goldOnDeath > 0)
+        {
+            GoldManager.Instance?.AddGold(goldOnDeath);
+        }
+
         // Unregister this enemy from wave tracking before destroying
         BaseWave.UnregisterEnemy(gameObject);
-        
+
         // Default behavior: destroy the game object
         Destroy(gameObject);
     }

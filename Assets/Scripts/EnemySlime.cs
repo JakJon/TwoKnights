@@ -191,6 +191,7 @@ public class EnemySlime : EnemyBase
         {
             Split();
             AudioManager.Instance.PlaySFX(AudioManager.Instance.slimeSplit);
+            GoldManager.Instance?.AddGold(1);
         }
         else
         {

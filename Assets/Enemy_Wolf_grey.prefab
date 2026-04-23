@@ -214,6 +214,7 @@ MonoBehaviour:
   health: 10
   specialOnHit: 5
   specialOnDeath: 10
+  goldOnDeath: 2
   shieldDamage: 10
   staggerDuration: 0.2
   staggerAnimation: {fileID: 8017390324079358001, guid: 5335422218ed8224d805c50080388616, type: 3}
@@ -233,6 +234,3 @@ MonoBehaviour:
   damage: 20
   waypointReachThreshold: 0.1
   wolfType: 0
-  greySprite: {fileID: -8296914003309079980, guid: 5335422218ed8224d805c50080388616, type: 3}
-  brownSprite: {fileID: 4732747221326893242, guid: 48a8dc8c2720968409282cfc59244943, type: 3}
-  blackSprite: {fileID: -3635456540771445128, guid: c673ec978313723488cd881c3e97c8bf, type: 3}
