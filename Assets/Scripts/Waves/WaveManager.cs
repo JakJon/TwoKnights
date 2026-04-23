@@ -16,11 +16,14 @@ public class WaveManager : ScriptableObject
     public int CompletedWavesCount => _completedWavesCount;
     public int CurrentWaveNumber => _completedWavesCount + 1;
 
+    public static WaveManager ActiveInstance { get; private set; }
+
     private void OnEnable()
     {
+        ActiveInstance = this;
         RecalculateWeights();
         _remainingWaves = new List<BaseWave>(availableWaves);
-        
+
         // Reset progress when the ScriptableObject is enabled
         // This ensures we always start at wave 1 in new game sessions
         _completedWavesCount = 0;

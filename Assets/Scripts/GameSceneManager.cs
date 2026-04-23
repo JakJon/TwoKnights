@@ -4,6 +4,8 @@ using System.Collections;
 
 public class GameSceneManager : MonoBehaviour
 {
+    public const string LastWaveReachedPrefKey = "LastWaveReached";
+
     public static GameSceneManager Instance { get; private set; }
 
     [Header("Scene Names")]
@@ -45,6 +47,12 @@ public class GameSceneManager : MonoBehaviour
         isTransitioningToCamp = true;
 
         Debug.Log("Player died! Transitioning to camp...");
+
+        if (WaveManager.ActiveInstance != null)
+        {
+            PlayerPrefs.SetInt(LastWaveReachedPrefKey, WaveManager.ActiveInstance.CurrentWaveNumber);
+            PlayerPrefs.Save();
+        }
 
         HideUpgradeMenuIfNeeded();
 

@@ -20,7 +20,7 @@ MonoBehaviour:
   lockedAfterXWaves: 10
   useEnemyTracking: 1
   wolfCount: 6
-  additionalCircles: 0
+  additionalCircles: 3
   WolfOneType: 1
   WolfTwoType: 2
   WolfThreeType: 0
