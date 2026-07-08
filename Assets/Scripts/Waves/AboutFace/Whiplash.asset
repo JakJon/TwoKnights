@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
+  m_Name: Whiplash
+  m_EditorClassIdentifier: 
+  waveName: Whiplash
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Opposite volleys arrive faster and slightly off-angle, with bats
+    drifting in.
+  unlockedAfterXWaves: 4
+  lockedAfterXWaves: 10
+  useEnemyTracking: 1
+  burstCount: 3
+  pairsPerBurst: 4
+  flipWindow: 1
+  flipWindowRampFactor: 0.9
+  delayBetweenPairs: 1.2
+  delayBetweenBursts: 3
+  projectilesPerVolley: 1
+  angleJitter: 15
+  offscreenPadding: 2
+  minAngleFromHorizontal: 30
+  batsPerBurst: 2
+  wolfEscorts: 0
+  spawnManaOrb: 1

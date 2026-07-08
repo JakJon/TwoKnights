@@ -44,20 +44,22 @@ public abstract class BaseWave : ScriptableObject
     // Overloaded version that takes completed waves count
     public virtual bool CanPlay(int completedWavesCount)
     {
+        // isUnlocked overrides the conditional fields — if explicitly unlocked, always playable
+        if (isUnlocked) return true;
+
         // Check lock condition first (can override everything)
         if (lockedAfterXWaves >= 0 && completedWavesCount >= lockedAfterXWaves)
         {
             return false;
         }
-        
+
         // Check unlock condition
         if (unlockedAfterXWaves >= 0)
         {
             return completedWavesCount >= unlockedAfterXWaves;
         }
-        
-        // Fall back to base unlock state if no conditional fields are set
-        return isUnlocked;
+
+        return false;
     }
 
     // The main wave spawn logic - implemented by each wave

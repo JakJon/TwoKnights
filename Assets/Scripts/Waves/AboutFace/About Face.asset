@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
+  m_Name: About Face
+  m_EditorClassIdentifier: 
+  waveName: About Face
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Volleys strike from one side, then snap in from the opposite side.
+    Keep that shield turning!
+  unlockedAfterXWaves: 0
+  lockedAfterXWaves: 5
+  useEnemyTracking: 1
+  burstCount: 2
+  pairsPerBurst: 3
+  flipWindow: 1.5
+  flipWindowRampFactor: 1
+  delayBetweenPairs: 1.5
+  delayBetweenBursts: 3
+  projectilesPerVolley: 1
+  angleJitter: 0
+  offscreenPadding: 4
+  minAngleFromHorizontal: 30
+  batsPerBurst: 0
+  wolfEscorts: 0
+  spawnManaOrb: 0

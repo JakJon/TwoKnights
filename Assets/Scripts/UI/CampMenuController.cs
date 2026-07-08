@@ -15,13 +15,15 @@ public class CampMenuController : MonoBehaviour
     [Header("Button Names")]
     [SerializeField] private string returnButtonName = "return-button";
     [SerializeField] private string questsButtonName = "quests-button";
+    [SerializeField] private string statsButtonName = "stats-button";
     [SerializeField] private string exitButtonName = "exit-button";
 
     [Header("Scene Names")]
     [SerializeField] private string gameplaySceneName = "Main";
 
-    [Header("Quest Panel")]
+    [Header("Sub Panels")]
     [SerializeField] private QuestPanel questPanel;
+    [SerializeField] private StatsPanel statsPanel;
     [SerializeField] private string menuContainerName = "menu-container";
 
     [Header("Input Actions")]
@@ -47,6 +49,7 @@ public class CampMenuController : MonoBehaviour
     {
         _uiDocument = GetComponent<UIDocument>();
         if (questPanel == null) questPanel = GetComponent<QuestPanel>();
+        if (statsPanel == null) statsPanel = GetComponent<StatsPanel>();
     }
 
     private void OnEnable()
@@ -57,7 +60,8 @@ public class CampMenuController : MonoBehaviour
         HookAction(confirmAction, OnConfirm, true);
         HookAction(cancelAction, OnCancel, true);
         SetSelectedIndex(Mathf.Clamp(_currentIndex, 0, _menuButtons.Count - 1));
-        if (questPanel != null) questPanel.OnCloseRequested += HandleQuestPanelClosed;
+        if (questPanel != null) questPanel.OnCloseRequested += HandleSubPanelClosed;
+        if (statsPanel != null) statsPanel.OnCloseRequested += HandleSubPanelClosed;
     }
 
     private void OnDisable()
@@ -67,7 +71,8 @@ public class CampMenuController : MonoBehaviour
         HookAction(confirmAction, OnConfirm, false);
         HookAction(cancelAction, OnCancel, false);
         UnregisterCallbacks();
-        if (questPanel != null) questPanel.OnCloseRequested -= HandleQuestPanelClosed;
+        if (questPanel != null) questPanel.OnCloseRequested -= HandleSubPanelClosed;
+        if (statsPanel != null) statsPanel.OnCloseRequested -= HandleSubPanelClosed;
     }
 
     private void Update()
@@ -106,6 +111,9 @@ public class CampMenuController : MonoBehaviour
                     break;
                 case var name when name == questsButtonName:
                     handler = HandleQuestsClicked;
+                    break;
+                case var name when name == statsButtonName:
+                    handler = HandleStatsClicked;
                     break;
                 case var name when name == exitButtonName:
                     handler = HandleExitClicked;
@@ -169,6 +177,11 @@ public class CampMenuController : MonoBehaviour
             _lastInputTime = Time.unscaledTime;
             return;
         }
+        if (statsPanel != null && statsPanel.IsVisible)
+        {
+            _lastInputTime = Time.unscaledTime;
+            return;
+        }
         Navigate(-1);
     }
 
@@ -181,6 +194,11 @@ public class CampMenuController : MonoBehaviour
             _lastInputTime = Time.unscaledTime;
             return;
         }
+        if (statsPanel != null && statsPanel.IsVisible)
+        {
+            _lastInputTime = Time.unscaledTime;
+            return;
+        }
         Navigate(1);
     }
 
@@ -190,6 +208,12 @@ public class CampMenuController : MonoBehaviour
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.Confirm();
+            _lastInputTime = Time.unscaledTime;
+            return;
+        }
+        if (statsPanel != null && statsPanel.IsVisible)
+        {
+            statsPanel.Confirm();
             _lastInputTime = Time.unscaledTime;
             return;
         }
@@ -210,19 +234,20 @@ public class CampMenuController : MonoBehaviour
 
         bool usedInput = false;
         bool questPanelOpen = questPanel != null && questPanel.IsVisible;
+        bool statsPanelOpen = statsPanel != null && statsPanel.IsVisible;
 
         if (navigateUpAction == null && navigateDownAction == null)
         {
             if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             {
                 if (questPanelOpen) questPanel.NavigateUp();
-                else Navigate(-1);
+                else if (!statsPanelOpen) Navigate(-1);
                 usedInput = true;
             }
             else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             {
                 if (questPanelOpen) questPanel.NavigateDown();
-                else Navigate(1);
+                else if (!statsPanelOpen) Navigate(1);
                 usedInput = true;
             }
         }
@@ -230,6 +255,7 @@ public class CampMenuController : MonoBehaviour
         if (!usedInput && confirmAction == null && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Submit")))
         {
             if (questPanelOpen) questPanel.Confirm();
+            else if (statsPanelOpen) statsPanel.Confirm();
             else ActivateCurrentButton();
             usedInput = true;
         }
@@ -312,7 +338,18 @@ public class CampMenuController : MonoBehaviour
         questPanel.Show();
     }
 
-    private void HandleQuestPanelClosed()
+    private void HandleStatsClicked()
+    {
+        if (statsPanel == null)
+        {
+            Debug.LogWarning("CampMenuController: Stats panel reference is not set.");
+            return;
+        }
+        SetMenuContainerVisible(false);
+        statsPanel.Show();
+    }
+
+    private void HandleSubPanelClosed()
     {
         SetMenuContainerVisible(true);
         SetSelectedIndex(_currentIndex);
@@ -340,7 +377,13 @@ public class CampMenuController : MonoBehaviour
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.Hide();
-            HandleQuestPanelClosed();
+            HandleSubPanelClosed();
+            return;
+        }
+        if (statsPanel != null && statsPanel.IsVisible)
+        {
+            statsPanel.Hide();
+            HandleSubPanelClosed();
             return;
         }
 

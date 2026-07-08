@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
+  m_Name: Vertigo
+  m_EditorClassIdentifier: 
+  waveName: Vertigo
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Relentless point-blank flips from every direction while wolves
+    and bats close in.
+  unlockedAfterXWaves: 8
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  burstCount: 4
+  pairsPerBurst: 5
+  flipWindow: 0.7
+  flipWindowRampFactor: 0.85
+  delayBetweenPairs: 1
+  delayBetweenBursts: 2.5
+  projectilesPerVolley: 2
+  angleJitter: 45
+  offscreenPadding: 0.5
+  minAngleFromHorizontal: 30
+  batsPerBurst: 2
+  wolfEscorts: 2
+  spawnManaOrb: 1

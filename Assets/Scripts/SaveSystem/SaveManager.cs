@@ -83,5 +83,15 @@ public static class SaveManager
             if (data.knightRank < 1) data.knightRank = 1;
             data.version = 2;
         }
+        if (data.version < 3)
+        {
+            if (data.completedQuests == null) data.completedQuests = new System.Collections.Generic.List<QuestCompletion>();
+            data.version = 3;
+        }
+        if (data.version < 4)
+        {
+            if (data.stats == null) data.stats = new System.Collections.Generic.List<StatEntry>();
+            data.version = 4;
+        }
     }
 }

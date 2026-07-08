@@ -11,6 +11,7 @@ public class QuestPanel : MonoBehaviour
     private ScrollView _list;
     private Label _detailName;
     private Label _detailDescription;
+    private Label _detailProgress;
     private Label _detailReward;
     private Button _closeButton;
 
@@ -20,6 +21,8 @@ public class QuestPanel : MonoBehaviour
     public System.Action OnCloseRequested;
 
     private const string SELECTED_CLASS = "quest-list-item--selected";
+    private const string COMPLETED_CLASS = "quest-list-item--completed";
+    private const string COMPLETED_CHECK = "<color=#FFD700>✔</color> ";
 
     private void Awake()
     {
@@ -29,11 +32,30 @@ public class QuestPanel : MonoBehaviour
     private void OnEnable()
     {
         BindUI();
+        QuestProgress.OnQuestCompleted += HandleQuestCompleted;
+        QuestProgress.OnQuestProgressChanged += HandleQuestProgressChanged;
     }
 
     private void OnDisable()
     {
         if (_closeButton != null) _closeButton.clicked -= HandleCloseClicked;
+        QuestProgress.OnQuestCompleted -= HandleQuestCompleted;
+        QuestProgress.OnQuestProgressChanged -= HandleQuestProgressChanged;
+    }
+
+    private void HandleQuestCompleted(string questId)
+    {
+        RefreshQuestButtons();
+        if (_selectedIndex >= 0) SelectQuest(_selectedIndex);
+    }
+
+    private void HandleQuestProgressChanged(string questId)
+    {
+        if (_selectedIndex >= 0 && _selectedIndex < QuestDatabase.All.Count
+            && QuestDatabase.All[_selectedIndex].Id == questId)
+        {
+            SelectQuest(_selectedIndex);
+        }
     }
 
     private void BindUI()
@@ -46,6 +68,7 @@ public class QuestPanel : MonoBehaviour
         _list = _root.Q<ScrollView>("quest-list");
         _detailName = _root.Q<Label>("quest-detail-name");
         _detailDescription = _root.Q<Label>("quest-detail-description");
+        _detailProgress = _root.Q<Label>("quest-detail-progress");
         _detailReward = _root.Q<Label>("quest-detail-reward");
         _closeButton = _root.Q<Button>("quest-close-button");
 
@@ -77,9 +100,9 @@ public class QuestPanel : MonoBehaviour
             var quest = quests[i];
             var button = new Button(() => SelectQuest(index))
             {
-                text = quest.Name,
                 name = $"quest-item-{quest.Id}"
             };
+            button.enableRichText = true;
             button.AddToClassList("quest-list-item");
             button.focusable = true;
             button.RegisterCallback<FocusInEvent>(_ => SelectQuest(index));
@@ -87,8 +110,24 @@ public class QuestPanel : MonoBehaviour
             _questButtons.Add(button);
         }
 
+        RefreshQuestButtons();
+
         if (quests.Count > 0) SelectQuest(0);
         else ShowEmptyDetails();
+    }
+
+    private void RefreshQuestButtons()
+    {
+        var quests = QuestDatabase.All;
+        for (int i = 0; i < _questButtons.Count && i < quests.Count; i++)
+        {
+            var quest = quests[i];
+            var button = _questButtons[i];
+            bool completed = QuestProgress.IsCompleted(quest.Id);
+            button.text = completed ? COMPLETED_CHECK + quest.Name : quest.Name;
+            if (completed) button.AddToClassList(COMPLETED_CLASS);
+            else button.RemoveFromClassList(COMPLETED_CLASS);
+        }
     }
 
     private void SelectQuest(int index)
@@ -113,7 +152,37 @@ public class QuestPanel : MonoBehaviour
         var quest = quests[index];
         if (_detailName != null) _detailName.text = quest.Name;
         if (_detailDescription != null) _detailDescription.text = quest.Description;
-        if (_detailReward != null) _detailReward.text = $"Reward: {quest.HonorReward} Honor";
+        if (_detailProgress != null)
+        {
+            if (quest.HasObjective)
+            {
+                int current = QuestProgress.GetProgress(quest);
+                string label = StatsDatabase.GetShortLabel(quest.ObjectiveStatKey);
+                _detailProgress.text = $"{current}/{quest.ObjectiveTarget} {label}";
+                _detailProgress.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _detailProgress.text = string.Empty;
+                _detailProgress.style.display = DisplayStyle.None;
+            }
+        }
+        if (_detailReward != null)
+        {
+            if (QuestProgress.IsCompleted(quest.Id))
+            {
+                var date = QuestProgress.GetCompletionDate(quest.Id);
+                _detailReward.text = $"COMPLETED {date}";
+                _detailReward.RemoveFromClassList("quest-detail-reward--active");
+                _detailReward.AddToClassList("quest-detail-reward--completed");
+            }
+            else
+            {
+                _detailReward.text = $"Reward: {quest.HonorReward} Honor";
+                _detailReward.RemoveFromClassList("quest-detail-reward--completed");
+                _detailReward.AddToClassList("quest-detail-reward--active");
+            }
+        }
     }
 
     public void NavigateUp()
@@ -139,6 +208,7 @@ public class QuestPanel : MonoBehaviour
     {
         if (_detailName != null) _detailName.text = "No quests available";
         if (_detailDescription != null) _detailDescription.text = string.Empty;
+        if (_detailProgress != null) _detailProgress.text = string.Empty;
         if (_detailReward != null) _detailReward.text = string.Empty;
     }
 

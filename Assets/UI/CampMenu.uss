@@ -161,6 +161,59 @@
     -unity-font-style: bold;
 }
 
+.quest-list-item--completed {
+    color: rgba(170, 170, 170, 0.7);
+    -unity-font-style: italic;
+}
+
+.quest-list-item--completed.quest-list-item--selected {
+    color: rgba(210, 210, 210, 1);
+}
+
+.quest-detail-reward--active {
+    color: #9ED982;
+}
+
+.quest-detail-reward--completed {
+    color: #FFD700;
+    -unity-font-style: bold;
+}
+
+.quest-detail-progress {
+    font-size: 16px;
+    color: #CFE9FF;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+}
+
+.stats-list {
+    flex-grow: 1;
+    background-color: rgba(30, 40, 55, 0.6);
+    border-width: 1px;
+    border-color: rgba(255, 230, 170, 0.2);
+    border-radius: 6px;
+}
+
+.stats-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 230, 170, 0.12);
+}
+
+.stats-label {
+    font-size: 18px;
+    color: #E8E8E8;
+}
+
+.stats-value {
+    font-size: 18px;
+    color: #FFE6AA;
+    -unity-font-style: bold;
+}
+
 .quest-details {
     flex-grow: 1;
     background-color: rgba(30, 40, 55, 0.6);

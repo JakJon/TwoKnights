@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Stalkers
   m_EditorClassIdentifier: 
   waveName: Stalkers
-  weight: 1e+13
+  weight: 1000
   isUnlocked: 1
   waveDescription: 
   unlockedAfterXWaves: -1

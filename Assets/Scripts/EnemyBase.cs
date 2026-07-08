@@ -363,11 +363,23 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             GoldManager.Instance?.AddGold(goldOnDeath);
         }
 
+        PlayerStats.Increment($"kills.{StatKey}");
+
         // Unregister this enemy from wave tracking before destroying
         BaseWave.UnregisterEnemy(gameObject);
 
         // Default behavior: destroy the game object
         Destroy(gameObject);
+    }
+
+    protected virtual string StatKey
+    {
+        get
+        {
+            var name = GetType().Name;
+            if (name.StartsWith("Enemy")) name = name.Substring(5);
+            return name.ToLowerInvariant();
+        }
     }
 
     // Extension points for custom damage handling

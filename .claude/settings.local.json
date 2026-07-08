@@ -40,7 +40,19 @@
       "mcp__UnityMCP__read_console",
       "mcp__UnityMCP__execute_code",
       "mcp__UnityMCP__find_gameobjects",
-      "mcp__UnityMCP__manage_gameobject"
+      "mcp__UnityMCP__manage_gameobject",
+      "Bash(python -c ' *)",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call-file bdbad746ccbc4c518045fc4f58b3c2c4 tools/call /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/params.json)",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call bdbad746ccbc4c518045fc4f58b3c2c4 tools/call '{\"name\":\"refresh_unity\",\"arguments\":{\"mode\":\"force\",\"scope\":\"all\",\"compile\":\"request\",\"wait_for_ready\":true}}')",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['result']['content'][0]['text'][:800]\\)\")",
+      "Bash(curl -s --max-time 60 -X POST http://127.0.0.1:8080/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H 'mcp-session-id: bdbad746ccbc4c518045fc4f58b3c2c4' -d '{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"resources/read\",\"params\":{\"uri\":\"mcpforunity://editor_state\"}}')",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call bdbad746ccbc4c518045fc4f58b3c2c4 resources/list '{}')",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call bdbad746ccbc4c518045fc4f58b3c2c4 resources/read '{\"uri\":\"mcpforunity://editor/state\"}')",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call bdbad746ccbc4c518045fc4f58b3c2c4 tools/call '{\"name\":\"read_console\",\"arguments\":{\"action\":\"get\",\"types\":[\"error\",\"warning\"],\"count\":15,\"format\":\"plain\"}}')",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call bdbad746ccbc4c518045fc4f58b3c2c4 tools/call '{\"name\":\"manage_scriptable_object\",\"arguments\":{\"action\":\"create\",\"type_name\":\"AboutFace\",\"folder_path\":\"Assets/Scripts/Waves/AboutFace\",\"asset_name\":\"About Face\"}}')",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call bdbad746ccbc4c518045fc4f58b3c2c4 tools/call '{\"name\":\"manage_scriptable_object\",\"arguments\":{\"action\":\"modify\",\"target\":\"Assets/Scripts/Waves/AboutFace/About Face.asset\",\"dry_run\":true,\"patches\":[{\"op\":\"set\",\"path\":\"waveName\",\"value\":\"About Face\"},{\"op\":\"set\",\"path\":\"isUnlocked\",\"value\":true}]}}')",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['result']['content'][0]['text'][:1000]\\)\")",
+      "Bash(sh /c/Users/grobb/AppData/Local/Temp/claude/c--Projects-Two-Knights/da73f326-f5cc-4d3e-8ef6-57481bde1b09/scratchpad/mcp.sh call bdbad746ccbc4c518045fc4f58b3c2c4 tools/call '{\"name\":\"manage_scriptable_object\",\"arguments\":{\"action\":\"modify\",\"target\":{\"path\":\"Assets/Scripts/Waves/AboutFace/About Face.asset\"},\"dry_run\":true,\"patches\":[{\"op\":\"set\",\"path\":\"waveName\",\"value\":\"About Face\"},{\"op\":\"set\",\"path\":\"isUnlocked\",\"value\":true}]}}')"
     ]
   }
 }
