@@ -2,6 +2,15 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
+// Where an offered upgrade sits within its chain/family, for UI display
+public struct UpgradeChainInfo
+{
+    public string ChainName;  // e.g. "Shadow Arrow"
+    public int Position;      // 1-based step of this upgrade within the chain
+    public int Length;        // total steps in the chain
+    public int OwnedCount;    // steps the target knight already owns in this chain
+}
+
 [CreateAssetMenu(fileName = "UpgradeManager", menuName = "Upgrades/Upgrade Manager")]
 public class UpgradeManager : ScriptableObject
 {
@@ -151,6 +160,57 @@ public class UpgradeManager : ScriptableObject
     public IEnumerable<BaseUpgrade> GetAvailableUpgrades(KnightTarget targetKnight)
     {
         return GetAvailableUpgradesFor(targetKnight);
+    }
+
+    // ---- Chain info (for the upgrade menu's progress pips) ----
+
+    // Depth of each upgrade in the unlockedBy DAG, memoized; assets don't change at runtime
+    [System.NonSerialized] private Dictionary<BaseUpgrade, int> _chainDepthCache;
+
+    public UpgradeChainInfo GetChainInfo(BaseUpgrade upgrade, KnightTarget targetKnight)
+    {
+        var owned = targetKnight == KnightTarget.LeftKnight ? _leftOwned : _rightOwned;
+        var family = upgrade.GetType();
+
+        int length = 0;
+        foreach (var up in allUpgrades)
+        {
+            if (up != null && up.GetType() == family)
+                length = Mathf.Max(length, GetChainDepth(up));
+        }
+
+        return new UpgradeChainInfo
+        {
+            ChainName = upgrade.ChainName,
+            Position = GetChainDepth(upgrade),
+            Length = length,
+            OwnedCount = owned.Count(u => u != null && u.GetType() == family)
+        };
+    }
+
+    private int GetChainDepth(BaseUpgrade upgrade)
+    {
+        _chainDepthCache ??= new Dictionary<BaseUpgrade, int>();
+        return GetChainDepth(upgrade, new HashSet<BaseUpgrade>());
+    }
+
+    private int GetChainDepth(BaseUpgrade upgrade, HashSet<BaseUpgrade> visiting)
+    {
+        if (_chainDepthCache.TryGetValue(upgrade, out int cached)) return cached;
+        if (!visiting.Add(upgrade)) return 1; // cycle in asset data; treat as a root
+
+        int parentDepth = 0;
+        foreach (var parent in upgrade.UnlockedBy)
+        {
+            // Skip null/self entries so malformed asset references can't recurse forever
+            if (parent == null || parent == upgrade) continue;
+            parentDepth = Mathf.Max(parentDepth, GetChainDepth(parent, visiting));
+        }
+
+        visiting.Remove(upgrade);
+        int depth = parentDepth + 1;
+        _chainDepthCache[upgrade] = depth;
+        return depth;
     }
 
     // Reset per-run state

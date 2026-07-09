@@ -1,3 +1,9 @@
+/* ============================================================
+   Gilded Vigil — warm near-black ground, one aged-gold accent.
+   Surfaces separate by value (ground → panel → card → lifted),
+   not by heavy outlines. Gold owns every interactive state.
+   ============================================================ */
+
 .upgrade-menu {
     flex-direction: column;
     align-items: stretch;
@@ -6,7 +12,7 @@
     height: 100%;
     padding: 0;
     margin: 0;
-    background-color: rgb(12, 20, 15);
+    background-color: rgb(22, 18, 12);
 }
 
 .layout-root {
@@ -25,12 +31,12 @@
     width: 56%;
     min-width: 560px;
     height: 100%;
-    background-color: rgb(18, 30, 22);
-    border-width: 4px;
-    border-color: rgb(35, 50, 40);
-    border-radius: 8px;
-    padding: 2%;
+    background-color: transparent;
+    border-width: 0;
+    padding: 2% 3%;
 }
+
+/* ---------- side status panels (frameless: value + one divider, no boxes) ---------- */
 
 .status-panel {
     flex-direction: column;
@@ -39,10 +45,8 @@
     width: 21%;
     min-width: 240px;
     height: 100%;
-    background-color: rgba(20, 30, 25, 0.9);
-    border-width: 4px;
-    border-color: rgb(35, 50, 40);
-    border-radius: 8px;
+    background-color: transparent;
+    border-width: 0;
     padding: 1.5%;
 }
 
@@ -50,58 +54,70 @@
 .status-panel.right { margin-left: 1%; }
 
 .status-title {
-    align-self: center;
+    align-self: stretch;
+    -unity-text-align: upper-center;
     font-size: 20px;
-    height: 24px;
-    color: rgb(240, 240, 230);
-    -unity-font-style: bold;
-    margin-bottom: 4px;
+    color: rgb(212, 162, 74);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 2px;
+    padding-bottom: 7px;
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(45, 38, 23);
 }
 
 .status-subtitle {
     align-self: center;
-    font-size: 14px;
-    color: rgb(220, 220, 210);
+    font-size: 12px;
+    color: rgb(141, 130, 102);
     -unity-font-style: bold;
-    margin-top: 8px;
+    letter-spacing: 3px;
+    margin-top: 12px;
     margin-bottom: 4px;
 }
 
 .stat-line {
     align-self: stretch;
-    -unity-text-align: upper-left;
+    -unity-text-align: upper-center;
     font-size: 14px;
-    color: rgb(215, 230, 220);
+    color: rgb(217, 207, 184);
     margin: 2px 0;
-    padding-left: 8px;
 }
 
 .upgrades-list {
     flex-grow: 1;
     margin-top: 6px;
     align-content: flex-start;
-    background-color: rgba(30, 45, 35, 0.5);
-    border-radius: 6px;
-    border-width: 1px;
-    border-color: rgba(60, 80, 70, 0.8);
+    background-color: rgb(28, 22, 14);
+    border-radius: 4px;
+    border-width: 0;
+    padding: 4px;
 }
 
+/* ---------- heading / status line ---------- */
+
 .selection-status {
-    font-size: 24px;
-    color: rgb(255, 255, 255);
+    font-size: 25px;
+    color: rgb(236, 228, 211);
     -unity-text-align: middle-center;
-    -unity-font-style: bold;
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
     max-width: 100%;
     white-space: normal;
+    margin-bottom: 4px;
 }
+
+/* ---------- card column ---------- */
 
 .menu-items {
     flex-direction: column;
     width: 100%;
-    border-radius: 8px;
-    padding: 1% 2% 2% 2%; /* add bottom padding to clear scaled bottom card */
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 1% 2%;
     border-width: 0;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 .upgrade-column {
@@ -110,16 +126,18 @@
     min-width: 100%;
     align-items: center;
     align-self: center;
+    flex-shrink: 0;
 }
 
 .menu-item {
     margin: 0;
     border-width: 2px;
-    border-radius: 8px;
-    color: rgb(245, 245, 235);
-    transition-property: background-color, border-color, scale, text-shadow;
-    transition-duration: 0.3s;
-    padding: 12px;
+    border-radius: 4px;
+    color: rgb(236, 228, 211);
+    transition-property: background-color, border-color, translate, scale, opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+    padding: 10px 16px 9px 16px;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
@@ -129,133 +147,182 @@
 .menu-item.upgrade {
     width: 100%;
     min-width: 0;
-    min-height: 20%;
-    background-color: rgba(35, 55, 40, 0.9);
-    border-color: rgb(60, 100, 70);
-    margin: 12px auto;
+    background-color: rgb(33, 26, 16);
+    border-color: rgb(58, 50, 34);
+    margin: 6px auto;
 }
 
+/* ---------- card anatomy ---------- */
+
+.card-top {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.upgrade-title {
+    font-size: 18px;
+    color: rgb(242, 234, 217);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    -unity-text-align: upper-left;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 1;
+}
+
+.upgrade-description {
+    font-size: 13px;
+    color: rgb(179, 168, 143);
+    -unity-font-style: normal;
+    -unity-text-align: upper-left;
+    flex-grow: 1;
+    white-space: normal;
+    margin-bottom: 2px;
+}
+
+.rarity-badge {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 12px;
+    flex-shrink: 0;
+}
+
+.rarity-diamond {
+    width: 7px;
+    height: 7px;
+    rotate: 45deg;
+    border-radius: 1px;
+    margin-right: 7px;
+}
+
+.upgrade-rarity {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1.5px;
+}
+
+/* rarity keeps its own semantic colors; size never changes */
+.menu-item.common .upgrade-rarity { color: rgb(176, 141, 87); }
+.menu-item.rare .upgrade-rarity { color: rgb(168, 198, 221); }
+.menu-item.epic .upgrade-rarity { color: rgb(227, 179, 65); }
+.menu-item.legendary .upgrade-rarity { color: rgb(177, 138, 224); }
+
+.menu-item.common .rarity-diamond { background-color: rgb(176, 141, 87); }
+.menu-item.rare .rarity-diamond { background-color: rgb(168, 198, 221); }
+.menu-item.epic .rarity-diamond { background-color: rgb(227, 179, 65); }
+.menu-item.legendary .rarity-diamond { background-color: rgb(177, 138, 224); }
+
+/* ---------- chain progress footer ---------- */
+
+.chain-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: rgb(45, 38, 23);
+}
+
+.chain-pips {
+    flex-direction: row;
+    align-items: center;
+}
+
+.pip {
+    width: 8px;
+    height: 8px;
+    rotate: 45deg;
+    border-radius: 1px;
+    margin-right: 7px;
+}
+
+.pip--owned { background-color: rgb(212, 162, 74); }
+
+.pip--offered {
+    background-color: transparent;
+    border-width: 2px;
+    border-color: rgb(212, 162, 74);
+}
+
+.pip--future { background-color: rgb(61, 53, 36); }
+
+.chain-label {
+    font-size: 11px;
+    color: rgb(141, 130, 102);
+    letter-spacing: 1px;
+    -unity-text-align: middle-right;
+}
+
+/* ---------- interactive states (gold owns them all) ---------- */
+
+.menu-item--selected { border-color: rgb(212, 162, 74); }
+
+/* focused card slides right on a transform — no reflow, neighbors stay put */
+.menu-item.upgrade.menu-item--selected {
+    background-color: rgb(42, 33, 19);
+    border-color: rgb(212, 162, 74);
+    translate: 8px 0;
+}
+
+.menu-item--chosen { border-color: rgb(240, 205, 120); }
+
+.menu-item.upgrade.menu-item--chosen {
+    background-color: rgb(51, 40, 21);
+    border-color: rgb(240, 205, 120);
+}
+
+.menu-item.upgrade.menu-item--chosen .upgrade-title { color: rgb(255, 248, 230); }
+
+.menu-item.upgrade.menu-item--chosen.menu-item--selected {
+    background-color: rgb(51, 40, 21);
+    border-color: rgb(240, 205, 120);
+}
+
+/* ---------- confirm button ---------- */
+
 .menu-item.confirm {
-    background-color: rgba(30, 40, 60, 0.9);
-    border-color: rgb(60, 85, 130);
-    margin: 12px auto;
+    background-color: rgb(212, 162, 74);
+    border-color: rgb(212, 162, 74);
+    color: rgb(36, 27, 13);
+    margin: 14px auto 8px auto;
 }
 
 .confirm-button {
     width: 50%;
     min-width: 220px;
     max-width: 350px;
-    height: 8%;
     align-self: center;
-    font-size: 18px;
+    padding: 10px 0;
+    font-size: 15px;
     -unity-font-style: bold;
+    letter-spacing: 3px;
 }
 
-.upgrade-title {
-    font-size: 16px;
-    color: rgb(255, 255, 245);
-    -unity-font-style: bold;
-    -unity-text-align: upper-left;
-    margin-bottom: 4px;
-    margin-top: 0;
-    padding-top: 0;
-}
-
-.upgrade-description {
-    font-size: 14px;
-    color: rgb(220, 220, 210);
-    -unity-font-style: normal;
-    -unity-text-align: upper-left;
-    flex-grow: 1;
-    white-space: normal;
-    -unity-text-overflow-position: end;
-    margin-bottom: 4px;
-}
-
-.upgrade-rarity {
-    font-size: 12px;
-    color: rgb(200, 200, 190);
-    -unity-font-style: italic;
-    -unity-text-align: lower-right;
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
-    flex-shrink: 0;
-}
-
-.menu-item--selected {
-    background-color: rgba(120, 160, 135, 0.95);
-        border-color: rgba(255, 255, 255, 1);
-
-    scale: 1.05;
-    border-width: 3px;
-}
-
-.menu-item--selected .upgrade-title {
-    color: rgb(255, 255, 255);
-}
-
-.menu-item--selected .upgrade-description {
-    color: rgb(240, 240, 230);
-}
-
-.menu-item--selected .upgrade-rarity {
-    color: rgb(220, 220, 210);
-}
-
-.menu-item--chosen {
-    scale: 1.08;
-}
-
-.menu-item--chosen.menu-item--selected {
-    scale: 1.08;
-    border-width: 5px;
-}
-
-.menu-item--chosen .upgrade-title {
-    color: rgb(255, 255, 255);
-    text-shadow: 3px 3px 4px rgba(0, 0, 0, 1);
-    padding: 0 12px;
-    scale: 1.05;
-}
-
-.menu-item--chosen .upgrade-description {
-    color: rgb(255, 255, 255);
-    text-shadow: 3px 3px 4px rgba(0, 0, 0, 1);
-    padding: 0 12px;
-    scale: 1.05;
-}
-
-.menu-item--chosen .upgrade-rarity {
-    color: rgb(255, 255, 255);
-    scale: 1.05;
-}
-
-/* Apply selected styling to confirm button when selected */
 .confirm-button.menu-item--selected {
-    background-color: rgba(80, 120, 170, 0.9);
-    border-color: rgb(150, 200, 255);
-    scale: 1.08;
-    border-width: 3px;
-    color: rgb(255, 255, 255);
+    background-color: rgb(240, 205, 120);
+    border-color: rgb(255, 232, 170);
+    color: rgb(36, 27, 13);
+    scale: 1.04;
 }
 
-/* Rarity styles: affect only rarity text color and size; keep BG and borders consistent */
-.menu-item.common .upgrade-rarity { color: rgb(205, 127, 50); font-size: 12px; }
-.menu-item.rare .upgrade-rarity { color: rgb(192, 192, 192); font-size: 14px; }
-.menu-item.epic .upgrade-rarity { color: rgb(212, 175, 55); font-size: 16px; }
-.menu-item.legendary .upgrade-rarity { color: rgb(128, 90, 213); font-size: 18px; }
+/* ---------- animation helper states (toggled from UpgradeMenu.cs) ---------- */
 
-/* Ensure selected/chosen border-color wins over base .menu-item.upgrade (specificity bump) */
-.menu-item.upgrade.menu-item--selected { 
-    border-color: rgb(150, 200, 175); 
-    background-color: rgba(44, 87, 61, 0.95);
+/* quick press pulse: class is added then removed ~90ms later */
+.menu-item--punch { transition-duration: 0.07s; }
+.menu-item.upgrade.menu-item--punch { scale: 1.02; }
+.confirm-button.menu-item--punch { scale: 1.12; }
+
+/* confirm flash on the chosen card while the confirm delay plays out */
+.menu-item.upgrade.menu-item--confirm-flash {
+    border-color: rgb(255, 236, 180);
+    background-color: rgb(72, 56, 27);
 }
-.menu-item.upgrade.menu-item--chosen {     
-    background-color: rgba(10, 26, 14, 0.9);
-    border-color: rgba(86, 255, 128, 1); }
-.menu-item.upgrade.menu-item--chosen.menu-item--selected { 
-    border-color: rgba(86, 255, 128, 1); 
-    background-color: rgba(44, 87, 61, 0.95);
-    border-width: 3px;
+
+/* entrance: cards start here, class removal staggers them into place */
+.card-enter {
+    opacity: 0;
+    translate: 0 16px;
 }

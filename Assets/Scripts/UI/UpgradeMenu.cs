@@ -47,6 +47,12 @@ public class UpgradeMenu : MonoBehaviour
     
     private const string SELECTED_CLASS = "menu-item--selected";
     private const string CHOSEN_CLASS = "menu-item--chosen";
+    private const string PUNCH_CLASS = "menu-item--punch";
+    private const string CONFIRM_FLASH_CLASS = "menu-item--confirm-flash";
+    private const string CARD_ENTER_CLASS = "card-enter";
+
+    // Blocks input while the confirm animation plays before the event fires
+    private bool _confirmPending = false;
 
     // Status panel UI refs
     private Label leftHealthLabel;
@@ -89,9 +95,19 @@ public class UpgradeMenu : MonoBehaviour
     void Start()
     {
         SetupUI();
-        
+
         // Initially hide the menu
         SetMenuVisible(false);
+    }
+
+    // uiDocument.rootVisualElement can still be null during Start (e.g. right after the
+    // UXML/USS reimport), which used to leave the menu permanently uninitialized and the
+    // raw template visible. Retry setup lazily until the panel exists.
+    private bool EnsureUI()
+    {
+        if (root != null) return true;
+        SetupUI();
+        return root != null;
     }
     
     private void OnEnable()
@@ -229,7 +245,7 @@ public class UpgradeMenu : MonoBehaviour
         {
             int index = i; // Capture for closure
             menuItems[i].RegisterCallback<ClickEvent>(_ => {
-                if (PauseMenu.IsPaused) return;
+                if (PauseMenu.IsPaused || _confirmPending) return;
                 currentSelectedIndex = index;
                 isConfirmButtonSelected = false;
                 SelectUpgrade(index);
@@ -241,7 +257,7 @@ public class UpgradeMenu : MonoBehaviour
         if (confirmButton != null)
         {
             confirmButton.clicked += () => {
-                if (PauseMenu.IsPaused) return;
+                if (PauseMenu.IsPaused || _confirmPending) return;
                 isConfirmButtonSelected = true;
                 UpdateSelection();
                 if (chosenUpgradeIndex >= 0)
@@ -336,6 +352,8 @@ public class UpgradeMenu : MonoBehaviour
     private bool CanProcessInput()
     {
         if (PauseMenu.IsPaused)
+            return false;
+        if (_confirmPending)
             return false;
         return Time.unscaledTime - lastInputTime >= inputCooldown;
     }
@@ -433,13 +451,18 @@ public class UpgradeMenu : MonoBehaviour
 
         // Update visual state for the newly chosen upgrade
         menuItems[upgradeIndex].AddToClassList(CHOSEN_CLASS);
+        Pulse(menuItems[upgradeIndex]);
 
-        // Update status text
-        if (selectionStatusLabel != null && currentUpgrades != null && upgradeIndex < currentUpgrades.Count)
-        {
-            string knightName = selectedKnight == KnightTarget.LeftKnight ? "Left Knight" : "Right Knight";
-            selectionStatusLabel.text = $"{currentUpgrades[upgradeIndex].UpgradeName} will be applied to {knightName}";
-        }
+        // Heading stays static ("Upgrade <knight>") so the cards never shift vertically;
+        // the chosen card's gold state carries the feedback instead.
+    }
+
+    // Quick press pulse: punch class in, removed a beat later (USS transition does the rest)
+    private void Pulse(VisualElement element)
+    {
+        if (element == null) return;
+        element.AddToClassList(PUNCH_CLASS);
+        element.schedule.Execute(() => element.RemoveFromClassList(PUNCH_CLASS)).StartingIn(90);
     }
     
     void ClearChosenUpgrade()
@@ -460,19 +483,34 @@ public class UpgradeMenu : MonoBehaviour
     
     void ConfirmUpgrade()
     {
+        if (_confirmPending) return;
         if (chosenUpgradeIndex >= 0 && chosenUpgradeIndex < currentUpgrades.Count)
         {
-            // Trigger the upgrade confirmed event
-            OnUpgradeConfirmed?.Invoke(chosenUpgradeIndex, chosenKnight);
-            // Refresh status lists now that an upgrade has been applied
-            RefreshStatusFromScene();
+            // Play the confirm animation (button punch + card flash), then fire the
+            // event a beat later so the player sees their pick land before the menu closes
+            _confirmPending = true;
+            Pulse(confirmButton);
+
+            var chosenCard = chosenUpgradeIndex < menuItems.Count ? menuItems[chosenUpgradeIndex] : null;
+            chosenCard?.AddToClassList(CONFIRM_FLASH_CLASS);
+
+            int confirmedIndex = chosenUpgradeIndex;
+            KnightTarget confirmedKnight = chosenKnight;
+            root.schedule.Execute(() =>
+            {
+                _confirmPending = false;
+                chosenCard?.RemoveFromClassList(CONFIRM_FLASH_CLASS);
+                OnUpgradeConfirmed?.Invoke(confirmedIndex, confirmedKnight);
+                // Refresh status lists now that an upgrade has been applied
+                RefreshStatusFromScene();
+            }).StartingIn(280);
         }
     }
     
     // Public method to show/hide the menu and populate upgrades
     public void SetMenuVisible(bool visible)
     {
-        if (root != null)
+        if (EnsureUI())
         {
             root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
             
@@ -481,6 +519,7 @@ public class UpgradeMenu : MonoBehaviour
             {
                 currentSelectedIndex = 0;
                 isConfirmButtonSelected = false;
+                _confirmPending = false;
                 // Decide which knight should receive the upgrade this wave
                 if (waveManager != null)
                 {
@@ -498,10 +537,32 @@ public class UpgradeMenu : MonoBehaviour
                 RefreshStatusFromScene();
                 PopulateUpgrades();
                 UpdateSelection();
-                
+                PlayEntranceAnimation();
+
                 // Force refresh the UI
                 root.MarkDirtyRepaint();
             }
+        }
+    }
+
+    // Stagger the visible cards (and confirm button) into place; .card-enter holds them
+    // transparent and offset, and removing it lets the USS transition play
+    private void PlayEntranceAnimation()
+    {
+        var entering = new List<VisualElement>();
+        foreach (var item in menuItems)
+        {
+            if (item.style.display == DisplayStyle.Flex) entering.Add(item);
+        }
+        if (confirmButton != null) entering.Add(confirmButton);
+
+        for (int i = 0; i < entering.Count; i++)
+        {
+            var element = entering[i];
+            element.RemoveFromClassList(PUNCH_CLASS);
+            element.RemoveFromClassList(CONFIRM_FLASH_CLASS);
+            element.AddToClassList(CARD_ENTER_CLASS);
+            element.schedule.Execute(() => element.RemoveFromClassList(CARD_ENTER_CLASS)).StartingIn(60 + i * 80);
         }
     }
 
@@ -569,12 +630,14 @@ public class UpgradeMenu : MonoBehaviour
                 var titleLabel = menuItems[i].Q<Label>("upgrade-title");
                 var descriptionLabel = menuItems[i].Q<Label>("upgrade-description");
                 var rarityLabel = menuItems[i].Q<Label>("upgrade-rarity");
-                
+
                 // Update the text content
                 if (titleLabel != null) titleLabel.text = upgrade.UpgradeName;
                 if (descriptionLabel != null) descriptionLabel.text = upgrade.Description;
-                if (rarityLabel != null) rarityLabel.text = upgrade.Rarity.ToString();
-                
+                if (rarityLabel != null) rarityLabel.text = upgrade.Rarity.ToString().ToUpperInvariant();
+
+                PopulateChainRow(menuItems[i], upgrade);
+
                 menuItems[i].style.display = DisplayStyle.Flex;
                 
                 // Add rarity styling
@@ -588,6 +651,44 @@ public class UpgradeMenu : MonoBehaviour
             {
                 menuItems[i].style.display = DisplayStyle.None;
             }
+        }
+    }
+
+    // Fill a card's chain-progress footer: one pip per step in the upgrade's chain,
+    // marking steps the target knight owns, the step on offer, and steps still ahead.
+    private void PopulateChainRow(VisualElement card, BaseUpgrade upgrade)
+    {
+        var chainRow = card.Q<VisualElement>("chain-row");
+        if (chainRow == null) return;
+
+        var info = upgradeManager.GetChainInfo(upgrade, selectedKnight);
+        if (info.Length <= 1)
+        {
+            // Standalone upgrades (no chain) don't need a progress footer
+            chainRow.style.display = DisplayStyle.None;
+            return;
+        }
+        chainRow.style.display = DisplayStyle.Flex;
+
+        var pips = chainRow.Q<VisualElement>("chain-pips");
+        if (pips != null)
+        {
+            pips.Clear();
+            for (int step = 1; step <= info.Length; step++)
+            {
+                var pip = new VisualElement();
+                pip.AddToClassList("pip");
+                if (step == info.Position) pip.AddToClassList("pip--offered");
+                else if (step <= info.OwnedCount) pip.AddToClassList("pip--owned");
+                else pip.AddToClassList("pip--future");
+                pips.Add(pip);
+            }
+        }
+
+        var chainLabel = chainRow.Q<Label>("chain-label");
+        if (chainLabel != null)
+        {
+            chainLabel.text = $"{info.ChainName.ToUpperInvariant()} · {NumberConverter.ToRoman(info.Position)} OF {NumberConverter.ToRoman(info.Length)}";
         }
     }
 
@@ -697,12 +798,12 @@ public class UpgradeMenu : MonoBehaviour
         if (chosenUpgradeIndex >= 0 && currentUpgrades != null && chosenUpgradeIndex < currentUpgrades.Count)
         {
             string chosenKnightName = chosenKnight == KnightTarget.LeftKnight ? "Left Knight" : "Right Knight";
-            selectionStatusLabel.text = $"{currentUpgrades[chosenUpgradeIndex].UpgradeName} will be applied to {chosenKnightName}";
+            selectionStatusLabel.text = $"{currentUpgrades[chosenUpgradeIndex].UpgradeName} will be applied to <color=#D4A24A>{chosenKnightName}</color>";
         }
         else
         {
             string knightName = selectedKnight == KnightTarget.LeftKnight ? "Left Knight" : "Right Knight";
-            selectionStatusLabel.text = $"Upgrade {knightName}";
+            selectionStatusLabel.text = $"Upgrade <color=#D4A24A>{knightName}</color>";
         }
     }
 }

@@ -16,6 +16,6 @@ MonoBehaviour:
   description: Arrows travel significantly faster. +150% Projectile Speed
   weight: 10
   unlockedBy:
-  - {fileID: 11400000}
+  - {fileID: 11400000, guid: 8a8ac69ee86f50342bf16a878d746a2b, type: 2}
   lockedBy: []
   speedMultiplier: 2.5

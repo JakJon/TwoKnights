@@ -10,7 +10,12 @@ description: How to create, configure, and register enemy waves in Two Knights �
 Two stationary knights at roughly (-2, 0) and (2, 0). Each player rotates an orbiting
 shield (radius ~1, `ShieldOrbit.cs`) with a joystick to block incoming threats — there is
 NO player movement. Difficulty therefore comes from the **direction, timing, and tempo**
-of attacks, never from spatial dodging. Visible field: x ∈ [-12, 12], y ∈ [-7, 7].
+of attacks, never from spatial dodging. Spawn bounds: x ∈ [-12, 12], y ∈ [-7, 7].
+NOTE (2026-07-09): the PixelPerfectCamera shows 20×11.25 units (x ±10, y ±5.625). The
+±12/±7 spawn bounds are playtested and confirmed fine with this view — spawns sit ~2 units
+deeper off-screen and just travel a beat longer before entering frame. No retune needed.
+For NEW waves: keep spawns at/beyond ±12/±7 as before, but put the meaningful on-screen
+action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
 
 ### Hard design rules
 1. **Projectiles must spawn out of frame** — outside x ∈ [-12,12], y ∈ [-7,7].
@@ -131,4 +136,18 @@ Script-change loop: `create_script` (args: `path`, `contents`) → `refresh_unit
 `compilation.is_compiling` is false → `read_console` (`types:["error"]`) → confirm the
 new type exists before creating assets of it (e.g. `execute_code` reflection lookup).
 `execute_code` uses CodeDom (C# 6 syntax — no `?.` on Unity objects, no string
-interpolation guarantees; `return` a string for output).
+interpolation guarantees; `return` a string for output). It REQUIRES
+`action:"execute"` alongside `code` (missing_argument error otherwise).
+
+More session-tested tool facts:
+- `manage_camera` `action:"screenshot"` (omit `camera`) captures the Game view
+  including UI Toolkit overlay UI → saves to `Assets/Screenshots/<name>.png`
+  (async, ~1-2s). Great for visually verifying UI changes in play mode; delete
+  the folder afterwards so it doesn't pollute Assets.
+- Calling `refresh_unity` while in play mode can disconnect/stop the editor
+  session mid-call. Stop play mode first, refresh, then re-enter play.
+- USS/UXML changes need a `refresh_unity` to reimport, and a menu re-show
+  (e.g. `SetMenuVisible(false)` then `(true)`) to re-resolve styles.
+- `manage_editor` `action:"play"/"stop"`, `manage_scene` `action:"load"` with
+  `path` work in edit mode; set `Time.timeScale = 0` via `execute_code` if you
+  need a stable play-mode screenshot without the game killing the knights.

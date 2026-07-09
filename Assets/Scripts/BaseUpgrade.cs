@@ -28,6 +28,19 @@ public abstract class BaseUpgrade : ScriptableObject
     public float Weight => weight;
     public IReadOnlyList<BaseUpgrade> UnlockedBy => unlockedBy;
     public IReadOnlyList<BaseUpgrade> LockedBy => lockedBy;
+
+    // Display name of the chain/family this upgrade belongs to (e.g. "Shadow Arrow").
+    // Defaults to the class name split on capitals with the "Upgrade" suffix dropped.
+    public virtual string ChainName
+    {
+        get
+        {
+            string n = GetType().Name;
+            const string suffix = "Upgrade";
+            if (n.EndsWith(suffix)) n = n.Substring(0, n.Length - suffix.Length);
+            return System.Text.RegularExpressions.Regex.Replace(n, "(\\B[A-Z])", " $1");
+        }
+    }
     
     // Calculate rarity based on weight ranges
     public UpgradeRarity Rarity

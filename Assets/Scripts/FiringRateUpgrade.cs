@@ -4,7 +4,9 @@ using UnityEngine;
 public class FiringRateUpgrade : BaseUpgrade
 {
     [SerializeField] private float rateMultiplier = 0.7f; // Lower cooldown = faster rate
-    
+
+    public override string ChainName => "Reload"; // assets are named Reload 1-4
+
     private void OnEnable()
     {
         if (string.IsNullOrEmpty(upgradeName))

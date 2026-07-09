@@ -4,7 +4,9 @@ using UnityEngine;
 public class HealthBoostUpgrade : BaseUpgrade
 {
     [SerializeField] private int healthIncrease = 25;
-    
+
+    public override string ChainName => "Health";
+
     private void OnEnable()
     {
         if (string.IsNullOrEmpty(upgradeName))
