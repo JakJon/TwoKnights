@@ -16,6 +16,7 @@ MonoBehaviour:
   description: Shadow arrow five. Your shadow arrow collection is complete. Deals
     20% damage of main arrow.
   weight: 80
+  order: 2
   unlockedBy:
   - {fileID: 11400000, guid: f176580e3be41e04d8afff9e4e2ae064, type: 2}
   lockedBy: []

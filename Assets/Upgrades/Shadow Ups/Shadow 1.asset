@@ -15,6 +15,7 @@ MonoBehaviour:
   upgradeName: Shadow Arrow
   description: Arrows spawn shadow copies that deal 20% damage
   weight: 100
+  order: 2
   unlockedBy: []
   lockedBy: []
   shadowArrowPrefab: {fileID: 8124615890466243421, guid: b06b2f4c55b919a458a9db7434633ee0, type: 3}

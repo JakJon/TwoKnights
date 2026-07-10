@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c422b4ac08014f489c69a3ec9ed2b4a, type: 3}
+  m_Name: Virulence 2
+  m_EditorClassIdentifier: 
+  upgradeName: Virulence II
+  description: Poison ticks 40% faster
+  weight: 40
+  order: 1
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: a62723b3a90741b4d16c1ed3e42657c1, type: 2}
+  lockedBy: []
+  tickDamageBonus: 0
+  tickRateMultiplier: 0.6

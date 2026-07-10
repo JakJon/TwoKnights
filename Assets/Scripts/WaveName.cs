@@ -24,7 +24,7 @@ public class WaveName : MonoBehaviour
     public void DisplayWaveName(int waveNumber, string waveName)
     {
         string romanNumeral = NumberConverter.ToRoman(waveNumber);
-        string formattedName = $"{romanNumeral}: {waveName}";
+        string formattedName = $"<color=#FFFFFF>{romanNumeral}</color> {waveName}";
         DisplayWaveName(formattedName);
     }
 

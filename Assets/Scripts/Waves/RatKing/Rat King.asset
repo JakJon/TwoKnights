@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 597fabe6bbe41a34abbc5db6917e0b17, type: 3}
+  m_Name: Rat King
+  m_EditorClassIdentifier: 
+  waveName: The Rat King
+  weight: 0
+  isUnlocked: 0
+  waveDescription: Gate boss of the Camp Fields. Circles the arena, fans arrows from
+    above and below, calls his swarm from the flanks.
+  unlockedAfterXWaves: -1
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  ratKingPrefab: {fileID: 6804790731799434195, guid: 5e132047ef3a3ef4e92e8d3fd5a65e5d, type: 3}
+  config:
+    health: 750
+    moveSpeed: 3
+    actionCooldown: 3.5
+    telegraphPause: 0.9
+    fanProjectiles: 5
+    fanArcDegrees: 60
+    fanArcCount: 1
+    batsPerSummon: 2
+    ratsPerSummonLate: 1
+    goldReward: 50
+    specialOnDeathReward: 50

@@ -630,22 +630,31 @@ public class UpgradeMenu : MonoBehaviour
                 var titleLabel = menuItems[i].Q<Label>("upgrade-title");
                 var descriptionLabel = menuItems[i].Q<Label>("upgrade-description");
                 var rarityLabel = menuItems[i].Q<Label>("upgrade-rarity");
+                var orderLabel = menuItems[i].Q<Label>("upgrade-order");
 
                 // Update the text content
                 if (titleLabel != null) titleLabel.text = upgrade.UpgradeName;
                 if (descriptionLabel != null) descriptionLabel.text = upgrade.Description;
                 if (rarityLabel != null) rarityLabel.text = upgrade.Rarity.ToString().ToUpperInvariant();
+                if (orderLabel != null) orderLabel.text = upgrade.Order.ToString().ToUpperInvariant();
 
                 PopulateChainRow(menuItems[i], upgrade);
 
                 menuItems[i].style.display = DisplayStyle.Flex;
-                
+
                 // Add rarity styling
                 menuItems[i].RemoveFromClassList("common");
                 menuItems[i].RemoveFromClassList("rare");
                 menuItems[i].RemoveFromClassList("epic");
                 menuItems[i].RemoveFromClassList("legendary");
                 menuItems[i].AddToClassList(upgrade.Rarity.ToString().ToLower());
+
+                // Order styling (class accent color + badge visibility)
+                foreach (UpgradeOrder o in System.Enum.GetValues(typeof(UpgradeOrder)))
+                {
+                    menuItems[i].RemoveFromClassList($"order--{o.ToString().ToLowerInvariant()}");
+                }
+                menuItems[i].AddToClassList($"order--{upgrade.Order.ToString().ToLowerInvariant()}");
             }
             else
             {

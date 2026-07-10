@@ -63,7 +63,8 @@ public class PlayerShooter : MonoBehaviour
         if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
         {
             // Add PoisonProjectile component to make this projectile poisonous
-            projectile.AddComponent<PoisonProjectile>();
+            PoisonProjectile poisonComponent = projectile.AddComponent<PoisonProjectile>();
+            poisonComponent.ConfigureFromBoost(poisonTipBoost);
         }
 
     // (Moved shadow spawn below after computing final damage)
@@ -150,7 +151,8 @@ public class PlayerShooter : MonoBehaviour
             // Independent poison chance per arrow
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
-                shadowArrow.AddComponent<PoisonProjectile>();
+                PoisonProjectile shadowPoison = shadowArrow.AddComponent<PoisonProjectile>();
+                shadowPoison.ConfigureFromBoost(poisonTipBoost);
             }
 
             // Velocity and lifetime same as main projectile

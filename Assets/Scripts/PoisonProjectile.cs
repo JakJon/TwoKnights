@@ -87,6 +87,15 @@ public class PoisonProjectile : MonoBehaviour
         poisonBubbles.StartBubbles();
     }
     
+    // Bend the serialized defaults by the firing knight's Serpent stats (Virulence).
+    // Called right after AddComponent, before Start.
+    public void ConfigureFromBoost(PoisonTipBoost boost)
+    {
+        if (boost == null) return;
+        poisonDamage += boost.TickDamageBonus;
+        poisonTickRate = Mathf.Max(0.2f, poisonTickRate * boost.TickRateMultiplier);
+    }
+
     // Method to apply poison to an enemy
     public void ApplyPoisonToEnemy(EnemyBase enemy, GameObject sourceProjectile)
     {

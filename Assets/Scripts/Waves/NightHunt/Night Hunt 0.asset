@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f82b69b1b0f22de40b7e7d2eaf9b63d5, type: 3}
+  m_Name: Night Hunt 0
+  m_EditorClassIdentifier: 
+  waveName: Night Hunt
+  weight: 100000000
+  isUnlocked: 0
+  waveDescription: 'The pack strikes together: wolf low, bat high. Kill the stalker
+    before the dive.'
+  unlockedAfterXWaves: 3
+  lockedAfterXWaves: 9
+  useEnemyTracking: 1
+  rounds: 2
+  strikeStagger: 3.5
+  roundOneWolf: 0
+  roundTwoWolf: 0
+  roundThreeWolf: 0

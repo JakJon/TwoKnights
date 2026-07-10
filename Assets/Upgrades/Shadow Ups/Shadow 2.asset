@@ -16,6 +16,7 @@ MonoBehaviour:
   description: A second Shadow arrow. Give your shadow a shadow. Deals 20% damage
     of main arrow.
   weight: 150
+  order: 2
   unlockedBy:
   - {fileID: 11400000, guid: a4721a1389389ba41970067eefe58f94, type: 2}
   lockedBy: []

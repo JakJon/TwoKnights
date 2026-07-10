@@ -18,9 +18,15 @@
                         <ui:VisualElement name="item-one" class="menu-item upgrade">
                             <ui:VisualElement class="card-top">
                                 <ui:Label text="Upgrade One" name="upgrade-title" class="upgrade-title" />
-                                <ui:VisualElement class="rarity-badge">
-                                    <ui:VisualElement class="rarity-diamond" />
-                                    <ui:Label text="COMMON" name="upgrade-rarity" class="upgrade-rarity" />
+                                <ui:VisualElement class="card-badges">
+                                    <ui:VisualElement class="order-badge">
+                                        <ui:VisualElement class="order-diamond" />
+                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
+                                    </ui:VisualElement>
+                                    <ui:VisualElement class="rarity-badge">
+                                        <ui:VisualElement class="rarity-diamond" />
+                                        <ui:Label text="COMMON" name="upgrade-rarity" class="upgrade-rarity" />
+                                    </ui:VisualElement>
                                 </ui:VisualElement>
                             </ui:VisualElement>
                             <ui:Label text="Description of upgrade one goes here" name="upgrade-description" class="upgrade-description" />
@@ -32,9 +38,15 @@
                         <ui:VisualElement name="item-two" class="menu-item upgrade">
                             <ui:VisualElement class="card-top">
                                 <ui:Label text="Upgrade Two" name="upgrade-title" class="upgrade-title" />
-                                <ui:VisualElement class="rarity-badge">
-                                    <ui:VisualElement class="rarity-diamond" />
-                                    <ui:Label text="RARE" name="upgrade-rarity" class="upgrade-rarity" />
+                                <ui:VisualElement class="card-badges">
+                                    <ui:VisualElement class="order-badge">
+                                        <ui:VisualElement class="order-diamond" />
+                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
+                                    </ui:VisualElement>
+                                    <ui:VisualElement class="rarity-badge">
+                                        <ui:VisualElement class="rarity-diamond" />
+                                        <ui:Label text="RARE" name="upgrade-rarity" class="upgrade-rarity" />
+                                    </ui:VisualElement>
                                 </ui:VisualElement>
                             </ui:VisualElement>
                             <ui:Label text="Description of upgrade two goes here" name="upgrade-description" class="upgrade-description" />
@@ -46,9 +58,15 @@
                         <ui:VisualElement name="item-three" class="menu-item upgrade">
                             <ui:VisualElement class="card-top">
                                 <ui:Label text="Upgrade Three" name="upgrade-title" class="upgrade-title" />
-                                <ui:VisualElement class="rarity-badge">
-                                    <ui:VisualElement class="rarity-diamond" />
-                                    <ui:Label text="EPIC" name="upgrade-rarity" class="upgrade-rarity" />
+                                <ui:VisualElement class="card-badges">
+                                    <ui:VisualElement class="order-badge">
+                                        <ui:VisualElement class="order-diamond" />
+                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
+                                    </ui:VisualElement>
+                                    <ui:VisualElement class="rarity-badge">
+                                        <ui:VisualElement class="rarity-diamond" />
+                                        <ui:Label text="EPIC" name="upgrade-rarity" class="upgrade-rarity" />
+                                    </ui:VisualElement>
                                 </ui:VisualElement>
                             </ui:VisualElement>
                             <ui:Label text="Description of upgrade three goes here" name="upgrade-description" class="upgrade-description" />

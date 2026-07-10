@@ -69,6 +69,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     }
     
     public bool IsPoisoned => isPoisoned;
+    public bool IsDead => isDead;
     // Stagger system
     protected bool isStaggered = false;
     protected AnimationClip originalAnimationClip;
@@ -107,6 +108,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             // Mark as dead immediately to prevent re-entrancy in the same frame
             isDead = true;
+            // Serpent effects fire on any death while poisoned, not just poison-tick deaths
+            TriggerPoisonDeathEffects();
             // Give death special to the player who fired the projectile
             GiveSpecialToPlayer(specialOnDeath, projectile);
 
@@ -151,12 +154,24 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     public virtual void ApplyPoison(int damage, float duration, float tickRate, GameObject sourceProjectile = null)
     {
-        // Add or update poison source
+        // Extract player tag from projectile tag
+        string playerTag = null;
         if (sourceProjectile != null)
         {
-            // Extract player tag from projectile tag
-            string playerTag = sourceProjectile.CompareTag("PlayerLeftProjectile") ? "PlayerLeft" : "PlayerRight";
-            
+            playerTag = sourceProjectile.CompareTag("PlayerLeftProjectile") ? "PlayerLeft" : "PlayerRight";
+        }
+        ApplyPoisonFromTag(damage, duration, tickRate, playerTag);
+    }
+
+    // Tag-based entry point so non-projectile poison (Miasma clouds, Plaguebringer
+    // bursts) still credits the right knight and can chain further spreads
+    public void ApplyPoisonFromTag(int damage, float duration, float tickRate, string playerTag)
+    {
+        if (isDead) return;
+
+        // Add or update poison source
+        if (!string.IsNullOrEmpty(playerTag))
+        {
             var existingSource = poisonSources.Find(ps => ps.playerTag == playerTag);
             if (existingSource != null)
             {
@@ -167,7 +182,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 poisonSources.Add(new PoisonSource(playerTag, damage)); // Add new source
             }
         }
-        
+
         // Stack poison damage and reset timer
         poisonDamage += damage;
         poisonTimer = duration; // Reset timer to new duration
@@ -253,6 +268,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                         yield break;
                     }
                     isDead = true;
+                    TriggerPoisonDeathEffects();
                     Debug.Log($"Enemy died from poison! Poison sources count: {poisonSources.Count}");
                     
                     // Stop poison bubbles but let them finish their animation
@@ -354,6 +370,69 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 }
             }
         }
+    }
+
+    // Serpent Order death effects (Miasma clouds, Plaguebringer bursts). Called from
+    // both death sites (arrow and poison tick) right after isDead flips, so subclass
+    // OnDeath overrides can't skip it.
+    protected void TriggerPoisonDeathEffects()
+    {
+        if (!isPoisoned || poisonSources.Count == 0) return;
+
+        PlayerStats.Increment("kills.poisoned");
+
+        // One cloud per death, using the strongest contributor's Miasma level;
+        // every Plaguebringer contributor gets their burst credit
+        int bestMiasmaLevel = 0;
+        string miasmaOwnerTag = null;
+
+        foreach (var source in poisonSources)
+        {
+            if (string.IsNullOrEmpty(source.playerTag)) continue;
+            GameObject player = GameObject.FindWithTag(source.playerTag);
+            PoisonTipBoost boost = player != null ? player.GetComponent<PoisonTipBoost>() : null;
+            if (boost == null) continue;
+
+            if (boost.MiasmaLevel > bestMiasmaLevel)
+            {
+                bestMiasmaLevel = boost.MiasmaLevel;
+                miasmaOwnerTag = source.playerTag;
+            }
+
+            if (boost.Plaguebringer)
+            {
+                PlagueBurst(source.playerTag);
+            }
+        }
+
+        if (bestMiasmaLevel > 0)
+        {
+            PoisonCloud.Spawn(transform.position, bestMiasmaLevel, miasmaOwnerTag);
+        }
+    }
+
+    // Plaguebringer: the victim's full poison stacks jump to nearby enemies, and the
+    // owning knight is paid in special. Spread poison carries the owner's tag, so
+    // chain deaths keep bursting.
+    private void PlagueBurst(string ownerTag)
+    {
+        const float burstRadius = 2.25f;
+        const float burstPoisonDuration = 6f;
+        const int burstSpecialBonus = 5;
+
+        int burstDamage = Mathf.Max(poisonDamage, 3);
+
+        foreach (var col in Physics2D.OverlapCircleAll(transform.position, burstRadius))
+        {
+            EnemyBase enemy = col.GetComponent<EnemyBase>();
+            if (enemy != null && enemy != this && !enemy.IsDead)
+            {
+                enemy.ApplyPoisonFromTag(burstDamage, burstPoisonDuration, 1f, ownerTag);
+            }
+        }
+
+        GiveSpecialToPlayer(burstSpecialBonus, ownerTag);
+        PoisonCloud.SpawnBurstEffect(transform.position);
     }
 
     protected virtual void OnDeath()

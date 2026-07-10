@@ -5,16 +5,28 @@ using System.Linq;
 using UnityEditor;
 #endif
 
+// How the run ended when a boss wave completes (None = keep playing)
+public enum RunOutcome
+{
+    None,
+    GateVictory, // first-ever gate boss kill on this map: run ends in victory
+    TrueVictory  // the map's true final boss has fallen
+}
+
 [CreateAssetMenu(fileName = "WaveManager", menuName = "Waves/Wave Manager")]
 public class WaveManager : ScriptableObject
 {
     [SerializeField] private List<BaseWave> availableWaves;
+    [SerializeField] private MapDefinition currentMap; // null = legacy flat pool
     private List<BaseWave> _remainingWaves;
     private BaseWave currentWave;
     private int _completedWavesCount = 0;
-    
+    private bool _gateBossDefeatedThisRun = false;
+
     public int CompletedWavesCount => _completedWavesCount;
     public int CurrentWaveNumber => _completedWavesCount + 1;
+    public MapDefinition CurrentMap => currentMap;
+    public RunOutcome PendingOutcome { get; private set; } = RunOutcome.None;
 
     public static WaveManager ActiveInstance { get; private set; }
 
@@ -22,11 +34,21 @@ public class WaveManager : ScriptableObject
     {
         ActiveInstance = this;
         RecalculateWeights();
-        _remainingWaves = new List<BaseWave>(availableWaves);
+        BeginRun();
+    }
 
-        // Reset progress when the ScriptableObject is enabled
-        // This ensures we always start at wave 1 in new game sessions
+    // Reset all per-run state. Called from OnEnable AND by the Spawner on scene
+    // start, so runs restart cleanly even without a domain reload (builds).
+    public void BeginRun()
+    {
         _completedWavesCount = 0;
+        _gateBossDefeatedThisRun = false;
+        PendingOutcome = RunOutcome.None;
+        var pool = (currentMap != null && currentMap.Waves.Count > 0)
+            ? currentMap.Waves
+            : (IReadOnlyList<BaseWave>)availableWaves;
+        _remainingWaves = pool != null ? new List<BaseWave>(pool) : new List<BaseWave>();
+        _remainingWaves.RemoveAll(w => w == null);
     }
 
     private void RecalculateWeights()
@@ -41,6 +63,67 @@ public class WaveManager : ScriptableObject
 
     public BaseWave SelectNextWave()
     {
+        // Boss scheduling: the gate boss owns its wave number until beaten this
+        // run; the true boss ends every run that reaches it
+        BaseWave scheduledBoss = GetScheduledBoss();
+        if (scheduledBoss != null)
+        {
+            currentWave = scheduledBoss;
+            return currentWave;
+        }
+
+        BaseWave picked = PickFromPool();
+        if (picked == null && currentMap != null)
+        {
+            // Pool ran dry mid-map: refill with the map's setlist (a repeat of a
+            // handcrafted wave beats a silent stall) and try once more
+            BeginRunPoolOnly();
+            picked = PickFromPool();
+
+            if (picked == null)
+            {
+                // Even the refilled pool has nothing playable at this wave count
+                // (unlock windows) — bring the next boss forward instead
+                picked = _gateBossDefeatedThisRun ? currentMap.TrueBoss : currentMap.GateBoss;
+                currentWave = picked;
+                return currentWave;
+            }
+        }
+
+        return picked;
+    }
+
+    private BaseWave GetScheduledBoss()
+    {
+        if (currentMap == null) return null;
+
+        if (!_gateBossDefeatedThisRun && currentMap.GateBoss != null
+            && CurrentWaveNumber >= currentMap.GateBossWaveNumber)
+        {
+            return currentMap.GateBoss;
+        }
+
+        if (_gateBossDefeatedThisRun && currentMap.TrueBoss != null
+            && CurrentWaveNumber >= currentMap.TrueBossWaveNumber)
+        {
+            return currentMap.TrueBoss;
+        }
+
+        return null;
+    }
+
+    // Refill only the wave pool, keeping wave count and boss state
+    private void BeginRunPoolOnly()
+    {
+        var pool = (currentMap != null && currentMap.Waves.Count > 0)
+            ? currentMap.Waves
+            : (IReadOnlyList<BaseWave>)availableWaves;
+        _remainingWaves = pool != null ? new List<BaseWave>(pool) : new List<BaseWave>();
+        _remainingWaves.RemoveAll(w => w == null);
+    }
+
+    private BaseWave PickFromPool()
+    {
         if (_remainingWaves == null || _remainingWaves.Count == 0)
             return null;
 
@@ -51,7 +134,7 @@ public class WaveManager : ScriptableObject
 
         // Calculate total weight for all playable waves
         float totalWeight = playableWaves.Sum(w => w.Weight);
-        
+
         // Random selection based on weights
         float random = Random.Range(0f, totalWeight);
         float current = 0f;
@@ -75,17 +158,44 @@ public class WaveManager : ScriptableObject
 
     public void WaveCompleted()
     {
-        if (currentWave != null)
+        if (currentWave == null) return;
+
+        BaseWave finished = currentWave;
+        currentWave.OnWaveComplete();
+        currentWave = null;
+
+        // Increment completed waves counter
+        _completedWavesCount++;
+        Debug.Log($"[WaveManager] Wave completed. Total completed waves: {_completedWavesCount}");
+
+        if (currentMap == null) return;
+
+        if (finished == currentMap.GateBoss && currentMap.GateBoss != null)
         {
-            currentWave.OnWaveComplete();
-            currentWave = null;
-            
-            // Increment completed waves counter
-            _completedWavesCount++;
-            Debug.Log($"[WaveManager] Wave completed. Total completed waves: {_completedWavesCount}");
+            _gateBossDefeatedThisRun = true;
+            bool firstClear = !MapProgressStore.IsGateCleared(currentMap.MapId);
+            MapProgressStore.MarkGateCleared(currentMap);
+            if (firstClear)
+            {
+                PendingOutcome = RunOutcome.GateVictory;
+            }
+            // Repeat kills: no outcome — the run continues into the deep waves
+        }
+        else if (finished == currentMap.TrueBoss && currentMap.TrueBoss != null)
+        {
+            MapProgressStore.MarkTrueCleared(currentMap);
+            PendingOutcome = RunOutcome.TrueVictory;
         }
     }
-    
+
+    // Read-and-clear so a victory can't fire twice
+    public RunOutcome ConsumePendingOutcome()
+    {
+        var outcome = PendingOutcome;
+        PendingOutcome = RunOutcome.None;
+        return outcome;
+    }
+
     public void ResetProgress()
     {
         _completedWavesCount = 0;

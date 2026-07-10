@@ -57,7 +57,11 @@ public class Spawner : MonoBehaviour
         {
             upgradeMenu.OnUpgradeConfirmed += OnUpgradeConfirmed;
         }
-        
+
+        // Fresh per-run state (wave count, boss flags, wave pool) even without
+        // a domain reload — matters for restarting runs in builds
+        waveManager.BeginRun();
+
         StartNextWave();
     }
 
@@ -95,6 +99,15 @@ public class Spawner : MonoBehaviour
 
         if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
         {
+            yield break;
+        }
+
+        // Boss outcomes: a first gate clear or a true-boss kill ends the run in victory
+        var outcome = waveManager.ConsumePendingOutcome();
+        if (outcome != RunOutcome.None && GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.OnVictory(waveManager.CurrentMap, outcome == RunOutcome.TrueVictory,
+                waveManager.CompletedWavesCount);
             yield break;
         }
 

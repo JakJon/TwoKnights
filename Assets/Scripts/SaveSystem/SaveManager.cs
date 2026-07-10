@@ -93,5 +93,10 @@ public static class SaveManager
             if (data.stats == null) data.stats = new System.Collections.Generic.List<StatEntry>();
             data.version = 4;
         }
+        if (data.version < 5)
+        {
+            if (data.maps == null) data.maps = new System.Collections.Generic.List<MapRecord>();
+            data.version = 5;
+        }
     }
 }

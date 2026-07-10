@@ -10,11 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6299f799a84fece41b0981d7fb4b7694, type: 3}
-  m_Name: PoisonTipUpgrade
+  m_Name: Venom Tip 3
   m_EditorClassIdentifier: 
-  upgradeName: Poison Tip
-  description: Arrows have 20% chance to poison enemies
-  weight: 125
-  unlockedBy: []
+  upgradeName: Venom Tip III
+  description: +40% poison chance. Every arrow drips venom
+  weight: 50
+  order: 1
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: 424a1fcf13016f1390393846f746f090, type: 2}
   lockedBy: []
-  poisonChanceIncrease: 20
+  poisonChanceIncrease: 40

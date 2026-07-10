@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   waveName: Chaotic Corners 4
   weight: 1000
-  isUnlocked: 1
+  isUnlocked: 0
   waveDescription: 
   unlockedAfterXWaves: 12
   lockedAfterXWaves: 16
@@ -27,3 +27,4 @@ MonoBehaviour:
   slimesSize: 2
   arcCount: 10
   arcDelay: 0.75
+  delayBetweenProjectiles: 0.1

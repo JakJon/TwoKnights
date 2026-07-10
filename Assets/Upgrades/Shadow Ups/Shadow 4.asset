@@ -16,6 +16,7 @@ MonoBehaviour:
   description: A fourth shadow arrow. A daisy chain of shadows. Deals 20% damage
     of main arrow.
   weight: 100
+  order: 2
   unlockedBy:
   - {fileID: 11400000, guid: 30e4f281e39903e41bb2bc4aa2029c04, type: 2}
   lockedBy: []

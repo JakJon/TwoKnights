@@ -885,15 +885,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.10000001
-    y: 0.085185185
-    width: 0.8000001
-    height: 0.8296296
+    x: 0
+    y: 0
+    width: 1
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7
+  orthographic size: 5.625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -2347,15 +2347,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: Wave Name
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 7d0c4f525ccc65440946f754ad0c42c9, type: 2}
-  m_sharedMaterial: {fileID: 5092966000153021758, guid: 7d0c4f525ccc65440946f754ad0c42c9, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 48388270be52546478561f7ae8ed85ca, type: 2}
+  m_sharedMaterial: {fileID: -2430566059947954217, guid: 48388270be52546478561f7ae8ed85ca, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 0.831, g: 0.635, b: 0.29, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2372,8 +2372,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 120
-  m_fontSizeBase: 120
+  m_fontSize: 80
+  m_fontSizeBase: 80
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2382,7 +2382,7 @@ MonoBehaviour:
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
-  m_characterSpacing: 0
+  m_characterSpacing: 4
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -2859,6 +2859,9 @@ MonoBehaviour:
   gameSceneName: Main
   transitionDelay: 2
   showDeathMessage: 1
+  victoryDelay: 5
+  gateVictoryGold: 100
+  trueVictoryGold: 250
 --- !u!4 &1862646575
 Transform:
   m_ObjectHideFlags: 0

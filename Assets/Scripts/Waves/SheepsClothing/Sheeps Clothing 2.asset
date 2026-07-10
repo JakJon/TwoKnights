@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d5dbd19163e995478b12dcc4ef6d9fd, type: 3}
+  m_Name: Sheeps Clothing 2
+  m_EditorClassIdentifier: 
+  waveName: Sheep's Clothing
+  weight: 100000000
+  isUnlocked: 0
+  waveDescription: A wall of slimes shields a stalking wolf. Break the wall before
+    the wolf breaks you.
+  unlockedAfterXWaves: 9
+  lockedAfterXWaves: 15
+  useEnemyTracking: 1
+  slimesPerWall: 4
+  slimeSize: 2
+  wolfType: 1

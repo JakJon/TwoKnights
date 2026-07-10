@@ -16,7 +16,13 @@ public class UpgradeManager : ScriptableObject
 {
     [SerializeField] private List<BaseUpgrade> allUpgrades = new List<BaseUpgrade>();
     [SerializeField] private int upgradesPerSelection = 3;
-    
+
+    // Organic specialization: each owned upgrade of an Order multiplies that Order's
+    // draw weight for that knight. Neutral upgrades never receive affinity.
+    private const float AffinityPerPick = 0.75f;
+    // Variety guarantee: at most this many cards of one Order per draft.
+    private const int MaxPerOrderPerDraft = 2;
+
     // Track owned upgrades per knight (unique per knight per run)
     private readonly HashSet<BaseUpgrade> _leftOwned = new HashSet<BaseUpgrade>();
     private readonly HashSet<BaseUpgrade> _rightOwned = new HashSet<BaseUpgrade>();
@@ -35,43 +41,62 @@ public class UpgradeManager : ScriptableObject
         var availableUpgrades = GetAvailableUpgradesFor(target).ToList();
         Debug.Log($"Available upgrades for {target}: {string.Join(", ", availableUpgrades.Select(u => u))}");
 
-        return SelectWeightedDistinct(availableUpgrades, upgradesPerSelection);
+        return SelectWeightedDistinct(availableUpgrades, upgradesPerSelection, OwnedSetFor(target));
     }
 
     // Get a random selection of available upgrades for a specific knight (does not change turn)
     public List<BaseUpgrade> GetRandomUpgradesFor(KnightTarget targetKnight)
     {
         var available = GetAvailableUpgradesFor(targetKnight).ToList();
-        return SelectWeightedDistinct(available, upgradesPerSelection);
+        return SelectWeightedDistinct(available, upgradesPerSelection, OwnedSetFor(targetKnight));
     }
-    
-    private BaseUpgrade GetWeightedRandomUpgrade(List<BaseUpgrade> upgrades)
+
+    private HashSet<BaseUpgrade> OwnedSetFor(KnightTarget targetKnight)
     {
-        // Calculate total weight for all available upgrades
-        float totalWeight = upgrades.Sum(u => u.Weight);
-        
+        return targetKnight == KnightTarget.LeftKnight ? _leftOwned : _rightOwned;
+    }
+
+    private int CountOwnedInOrder(HashSet<BaseUpgrade> owned, UpgradeOrder order)
+    {
+        return owned.Count(u => u != null && u.Order == order);
+    }
+
+    // Base weight bent by the knight's Order affinity; Neutral stays flat
+    private float EffectiveWeight(BaseUpgrade upgrade, HashSet<BaseUpgrade> owned)
+    {
+        if (upgrade.Order == UpgradeOrder.Neutral)
+            return upgrade.Weight;
+        return upgrade.Weight * (1f + AffinityPerPick * CountOwnedInOrder(owned, upgrade.Order));
+    }
+
+    private BaseUpgrade GetWeightedRandomUpgrade(List<BaseUpgrade> upgrades, HashSet<BaseUpgrade> owned)
+    {
+        // Calculate total effective weight for all available upgrades
+        float totalWeight = upgrades.Sum(u => EffectiveWeight(u, owned));
+
         // Random selection based on weights (similar to WaveManager)
         float randomValue = Random.Range(0f, totalWeight);
         float currentWeight = 0f;
 
         foreach (var upgrade in upgrades)
         {
-            currentWeight += upgrade.Weight;
+            currentWeight += EffectiveWeight(upgrade, owned);
             if (randomValue <= currentWeight)
             {
                 return upgrade;
             }
         }
-        
+
         // Fallback to last upgrade if something went wrong with weight calculation
         return upgrades.LastOrDefault();
     }
-    
-    private List<BaseUpgrade> SelectWeightedDistinct(List<BaseUpgrade> pool, int count)
+
+    private List<BaseUpgrade> SelectWeightedDistinct(List<BaseUpgrade> pool, int count, HashSet<BaseUpgrade> owned)
     {
         // Always enforce per-category uniqueness; if not enough unique categories exist, return fewer than count.
         var selected = new List<BaseUpgrade>();
         var usedTypes = new HashSet<System.Type>();
+        var orderCounts = new Dictionary<UpgradeOrder, int>();
         var temp = new List<BaseUpgrade>(pool);
 
         for (int i = 0; i < count && temp.Count > 0; i++)
@@ -84,9 +109,23 @@ public class UpgradeManager : ScriptableObject
                 break;
             }
 
-            var pick = GetWeightedRandomUpgrade(filtered);
+            // Variety guarantee: exclude Orders that already filled their per-draft
+            // quota — unless that would leave nothing to offer
+            var underCap = filtered.Where(u =>
+            {
+                orderCounts.TryGetValue(u.Order, out int used);
+                return used < MaxPerOrderPerDraft;
+            }).ToList();
+            if (underCap.Count > 0)
+            {
+                filtered = underCap;
+            }
+
+            var pick = GetWeightedRandomUpgrade(filtered, owned);
             selected.Add(pick);
             usedTypes.Add(pick.GetType());
+            orderCounts.TryGetValue(pick.Order, out int soFar);
+            orderCounts[pick.Order] = soFar + 1;
             temp.Remove(pick);
         }
         return selected;
@@ -94,12 +133,16 @@ public class UpgradeManager : ScriptableObject
     
     private IEnumerable<BaseUpgrade> GetAvailableUpgradesFor(KnightTarget targetKnight)
     {
-        var owned = targetKnight == KnightTarget.LeftKnight ? _leftOwned : _rightOwned;
+        var owned = OwnedSetFor(targetKnight);
 
         foreach (var up in allUpgrades)
         {
             if (owned.Contains(up))
                 continue; // unique per knight
+
+            // Capstone gating: needs enough owned upgrades of its Order first
+            if (up.RequiresOrderCount > 0 && CountOwnedInOrder(owned, up.Order) < up.RequiresOrderCount)
+                continue;
 
             // Conflict rule: if an upgrade exists in both arrays for this evaluation, treat as unlocked and optionally throw
             bool conflict = up.UnlockedBy.Any() && up.LockedBy.Any() && up.UnlockedBy.Intersect(up.LockedBy).Any();
@@ -204,6 +247,9 @@ public class UpgradeManager : ScriptableObject
         {
             // Skip null/self entries so malformed asset references can't recurse forever
             if (parent == null || parent == upgrade) continue;
+            // Cross-family prerequisites (e.g. a discipline unlocked by another chain's
+            // step) gate availability but don't extend this chain's pip count
+            if (parent.GetType() != upgrade.GetType()) continue;
             parentDepth = Mathf.Max(parentDepth, GetChainDepth(parent, visiting));
         }
 

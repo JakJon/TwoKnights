@@ -214,6 +214,56 @@
 .menu-item.epic .rarity-diamond { background-color: rgb(227, 179, 65); }
 .menu-item.legendary .rarity-diamond { background-color: rgb(177, 138, 224); }
 
+/* ---------- Order identity (class accent; gold still owns interaction) ---------- */
+
+.card-badges {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.order-badge {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 12px;
+    flex-shrink: 0;
+}
+
+.order-diamond {
+    width: 7px;
+    height: 7px;
+    rotate: 45deg;
+    border-radius: 1px;
+    margin-right: 7px;
+}
+
+.upgrade-order {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1.5px;
+}
+
+/* Neutral cards look exactly as before — no badge, no stripe */
+.menu-item.order--neutral .order-badge { display: none; }
+
+.menu-item.order--serpent .upgrade-order { color: rgb(126, 179, 91); }
+.menu-item.order--serpent .order-diamond { background-color: rgb(126, 179, 91); }
+.menu-item.order--shadow .upgrade-order { color: rgb(129, 128, 214); }
+.menu-item.order--shadow .order-diamond { background-color: rgb(129, 128, 214); }
+.menu-item.order--bulwark .upgrade-order { color: rgb(158, 168, 178); }
+.menu-item.order--bulwark .order-diamond { background-color: rgb(158, 168, 178); }
+.menu-item.order--ember .upgrade-order { color: rgb(226, 120, 63); }
+.menu-item.order--ember .order-diamond { background-color: rgb(226, 120, 63); }
+.menu-item.order--dawn .upgrade-order { color: rgb(240, 200, 170); }
+.menu-item.order--dawn .order-diamond { background-color: rgb(240, 200, 170); }
+
+/* idle cards carry their Order on the left edge; selection (below) overrides to gold */
+.menu-item.upgrade.order--serpent { border-left-color: rgb(126, 179, 91); }
+.menu-item.upgrade.order--shadow { border-left-color: rgb(129, 128, 214); }
+.menu-item.upgrade.order--bulwark { border-left-color: rgb(158, 168, 178); }
+.menu-item.upgrade.order--ember { border-left-color: rgb(226, 120, 63); }
+.menu-item.upgrade.order--dawn { border-left-color: rgb(240, 200, 170); }
+
 /* ---------- chain progress footer ---------- */
 
 .chain-row {

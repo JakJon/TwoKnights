@@ -28,11 +28,12 @@ public abstract class BaseWave : ScriptableObject
     public string Description => waveDescription;
     public bool UseEnemyTracking => useEnemyTracking;
     
-    // Get formatted wave name with wave number
+    // Get formatted wave name with wave number (white numeral via TMP rich text;
+    // the rest inherits the banner's gold)
     public string GetFormattedWaveName(int waveNumber)
     {
         string romanNumeral = NumberConverter.ToRoman(waveNumber);
-        return $"{romanNumeral}: {waveName}";
+        return $"<color=#FFFFFF>{romanNumeral}</color> {waveName}";
     }
 
     // Called to check if wave can be played (beyond just being unlocked)

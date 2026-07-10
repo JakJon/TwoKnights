@@ -16,6 +16,7 @@ MonoBehaviour:
   description: A third shadow arrow. It's getting dark. Deals 20% damage of main
     arrow.
   weight: 125
+  order: 2
   unlockedBy:
   - {fileID: 11400000, guid: d7b8457e9c1e210478728e300a66e681, type: 2}
   lockedBy: []

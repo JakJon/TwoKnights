@@ -14,6 +14,11 @@ public class GameSceneManager : MonoBehaviour
     [SerializeField] private float transitionDelay = 2f; // Delay before scene transition
     [SerializeField] private bool showDeathMessage = true;
 
+    [Header("Victory Settings")]
+    [SerializeField] private float victoryDelay = 5f; // Banner time before returning to camp
+    [SerializeField] private int gateVictoryGold = 100;
+    [SerializeField] private int trueVictoryGold = 250;
+
     private bool isTransitioningToCamp;
     public bool IsTransitioningToCamp => isTransitioningToCamp;
 
@@ -56,6 +61,54 @@ public class GameSceneManager : MonoBehaviour
         HideUpgradeMenuIfNeeded();
 
         StartCoroutine(HandlePlayerDeath());
+    }
+
+    /// <summary>
+    /// Called when a run ends in victory (first gate clear or true-boss kill):
+    /// banner, gold reward, then back to camp.
+    /// </summary>
+    public void OnVictory(MapDefinition map, bool trueVictory, int wavesCompleted)
+    {
+        if (isTransitioningToCamp)
+        {
+            return;
+        }
+
+        isTransitioningToCamp = true;
+
+        SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, wavesCompleted);
+        SaveManager.Save();
+
+        GoldManager.Instance?.AddGold(trueVictory ? trueVictoryGold : gateVictoryGold);
+
+        HideUpgradeMenuIfNeeded();
+
+        string banner;
+        if (trueVictory)
+        {
+            string mapName = map != null ? map.DisplayName : "The map";
+            banner = $"VICTORY!\n{mapName} is cleansed";
+        }
+        else
+        {
+            string bossName = map != null && map.GateBoss != null ? map.GateBoss.WaveName : "The boss";
+            banner = $"VICTORY!\n{bossName} has fallen";
+        }
+
+        StartCoroutine(HandleVictory(banner));
+    }
+
+    private IEnumerator HandleVictory(string banner)
+    {
+        var waveNameDisplay = FindFirstObjectByType<WaveName>(FindObjectsInactive.Include);
+        if (waveNameDisplay != null)
+        {
+            waveNameDisplay.DisplayWaveName(banner);
+        }
+
+        yield return new WaitForSecondsRealtime(victoryDelay);
+
+        LoadCampScene();
     }
 
     /// <summary>

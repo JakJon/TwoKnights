@@ -20,12 +20,16 @@ public abstract class BaseUpgrade : ScriptableObject
     [SerializeField] protected string upgradeName;
     [SerializeField] protected string description;
     [SerializeField] protected float weight = 1f; // Higher weight = more likely to be selected
+    [SerializeField] protected UpgradeOrder order = UpgradeOrder.Neutral;
+    [SerializeField] protected int requiresOrderCount = 0; // Owned upgrades of this Order needed before this appears (capstone gating)
     [SerializeField] protected List<BaseUpgrade> unlockedBy = new List<BaseUpgrade>();
     [SerializeField] protected List<BaseUpgrade> lockedBy = new List<BaseUpgrade>();
-    
+
     public string UpgradeName => upgradeName;
     public string Description => description;
     public float Weight => weight;
+    public UpgradeOrder Order => order;
+    public int RequiresOrderCount => requiresOrderCount;
     public IReadOnlyList<BaseUpgrade> UnlockedBy => unlockedBy;
     public IReadOnlyList<BaseUpgrade> LockedBy => lockedBy;
 

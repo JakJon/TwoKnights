@@ -3,8 +3,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PoisonTipUpgrade", menuName = "Upgrades/Poison Tip")]
 public class PoisonTipUpgrade : BaseUpgrade
 {
-    [SerializeField] private float poisonChanceIncrease = 100f; // 100% chance for testing
-    
+    [SerializeField] private float poisonChanceIncrease = 30f; // Added to the knight's poison chance
+
+    // Chain steps are named "Venom Tip I/II/III" on the assets
+    public override string ChainName => "Venom Tip";
+
     private void OnEnable()
     {
         if (string.IsNullOrEmpty(upgradeName))

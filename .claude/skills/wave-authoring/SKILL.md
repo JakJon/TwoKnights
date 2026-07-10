@@ -23,6 +23,23 @@ action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
    Shallow horizontal shots across the middle get absorbed by the wrong knight and
    never arrive. Keep trajectories ≥ ~30° away from horizontal, or originate them on
    the target's own side.
+3. **Never design a wave where shield-absorbing an ENEMY is the intended play.**
+   Any player damage resets the special streak (`PlayerHealth.TakeDamage` →
+   `ResetSpecialStreak`), and an enemy body hitting the shield still deals reduced
+   damage through it — so eating an enemy on the shield ends the combo. Blocking
+   PROJECTILES is damage-free and combo-safe. Therefore: every enemy must arrive
+   with enough exposed, in-range time to be shot down first; shield-eating an enemy
+   is the player's failure state, never the wave's solution.
+4. **Shield facing = shooting direction (one facing resource).** A knight cannot
+   block one direction and fire another (`PlayerShooter` fires along
+   `shield.Direction`). Projectile streams therefore STEER a knight's aim — great
+   for tension — but must release before an enemy arrival so the knight can swing
+   and shoot it in time.
+5. **Budget kills against the arrow economy.** Base arrow: 10 dmg on a ~1.5s
+   cooldown (~6.7 dps per knight, pre-upgrades). TTK in arrows: bat 1, size-1
+   slime 1, size-2 slime 2 (+2 for its splits), wolves 3/5/6 (brown/grey/black).
+   Rats are prefab-tuned and NOT one-shot kills — keep ≤ ~2 patrolling rats per
+   knight; big simultaneous rat counts are only feasible late, fully upgraded.
 
 ## Creating a new wave type
 
@@ -47,8 +64,8 @@ public class MyWave : BaseWave
   registered enemy AND projectile is dead before ending the wave.
 - Class names already taken (avoid collisions): `RatMischief` (inside the misnamed
   `TemplateWave.cs`), `RatMischef` [sic], `WolfCircles`, `BatSwarmWave`, `SlimesAndBats`,
-  `ChaoticCorners`, `Slimy`, `AboutFace`. `WolfPack.cs` and `Editor/WaveManagerEditor.cs`
-  are empty stubs.
+  `ChaoticCorners`, `Slimy`, `AboutFace`, `SheepsClothing`, `BelfryAndCellar`,
+  `NightHunt`. `WolfPack.cs` and `Editor/WaveManagerEditor.cs` are empty stubs.
 
 ## BaseWave gating — how CanPlay actually works (IMPORTANT)
 
@@ -102,6 +119,12 @@ SpawnOrb(Vector2 startPos, Vector2 endPos, bool isHealthOrb, float delay = 0)  /
 | Chaotic Corners | corner projectile arcs | always |
 | Bat Slime Boogie (SlimesAndBats) | escalating mixed sub-waves | always |
 | About Face / Whiplash / Vertigo (AboutFace) | opposite-direction flip volleys | 0–4 / 4–9 / 8+ (real windows) |
+| Sheep's Clothing 0–3 (SheepsClothing) | slime wall as arrow cover + stalking wolf | 1–7 / 5–11 / 9–15 / 13+ |
+| Belfry and Cellar 0–3 (BelfryAndCellar) | bat beat high/low + rat 15s-fuse pairs | 0–5 / 3–9 / 7–13 / 11+ |
+| Night Hunt 0–3 (NightHunt) | telegraphed wolf+bat pincer strikes | 3–9 / 7–13 / 11–17 / 15+ |
+
+NOTE (2026-07-09): the 12 assets above currently carry weight **100000000** (the
+guarantee-pick trick) for playtesting. Revert each to the house ~1000 once playtested.
 
 ## Creating instances & registering
 
@@ -151,3 +174,28 @@ More session-tested tool facts:
 - `manage_editor` `action:"play"/"stop"`, `manage_scene` `action:"load"` with
   `path` work in edit mode; set `Time.timeScale = 0` via `execute_code` if you
   need a stable play-mode screenshot without the game killing the knights.
+- **Play mode FREEZES while the editor app is unfocused** — this project has
+  `Application.runInBackground = false`, so `Time.time` stops advancing the
+  moment the editor loses OS focus (coroutines, waves, bosses all stall at
+  their current frame). Headless play-mode tests only advance if the user has
+  the editor focused; prefer edit-mode logic tests (call the ScriptableObject
+  methods directly, reflection-set private state) for flow verification.
+- **Screenshots are STALE FRAMES when the editor app is unfocused** (OS-level;
+  `InternalEditorUtility.isApplicationActive == false`): the Game view stops
+  repainting, so `manage_camera` screenshots return the last rendered frame no
+  matter what you changed — and `resolvedStyle` on UI Toolkit elements reads
+  defaults/stale values until a panel update runs. QueuePlayerLoopUpdate +
+  `EditorWindow.GetWindow(GameView).Repaint()` via `execute_code` forces ONE
+  style/layout pass (enough for `resolvedStyle` verification a call later), but
+  pixels still may not refresh — verify UI programmatically (class lists +
+  resolvedStyle after a forced repaint) instead of trusting screenshots.
+- `manage_camera` screenshot takes NO `name` argument — call with only
+  `{"action":"screenshot"}`; it names the file itself under Assets/Screenshots.
+- CodeDom `execute_code` can't resolve UI Toolkit extension methods like
+  `element.Q(...)` — call them as statics:
+  `UnityEngine.UIElements.UQueryExtensions.Q(root, "item-one", (string)null)`.
+- New .asset files can be authored as plain YAML text with hand-written .meta
+  files (guid = `openssl rand -hex 16`) — Unity adopts the pre-made guids on
+  refresh, which lets you write cross-referencing `unlockedBy`-style chains in
+  one pass without MCP patch calls. `m_Script` guid comes from the target
+  script's .cs.meta.
