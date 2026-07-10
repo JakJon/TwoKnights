@@ -16,6 +16,7 @@ public class CampMenuController : MonoBehaviour
     [SerializeField] private string returnButtonName = "return-button";
     [SerializeField] private string questsButtonName = "quests-button";
     [SerializeField] private string statsButtonName = "stats-button";
+    [SerializeField] private string resetButtonName = "reset-button";
     [SerializeField] private string exitButtonName = "exit-button";
 
     [Header("Scene Names")]
@@ -34,16 +35,24 @@ public class CampMenuController : MonoBehaviour
 
     [Header("Input Settings")]
     [SerializeField] private float inputCooldown = 0.2f;
+    [Tooltip("Ignore all input this long after the menu appears — swallows held buttons and first-frame phantom input after a scene load")]
+    [SerializeField] private float entryInputDelay = 0.4f;
 
     private UIDocument _uiDocument;
     private VisualElement _root;
     private VisualElement _menuContainer;
     private readonly List<Button> _menuButtons = new();
     private readonly List<Action> _buttonHandlers = new();
+    private readonly List<Action> _clickedWrappers = new();
     private int _currentIndex;
     private float _lastInputTime;
+    private Button _resetButton;
+    private bool _resetArmed;
 
     private const string SELECTED_CLASS = "menu-button--selected";
+    private const string ARMED_CLASS = "menu-button--armed";
+    private const string RESET_LABEL = "Reset All Data";
+    private const string RESET_CONFIRM_LABEL = "Confirm Wipe?";
 
     private void Awake()
     {
@@ -54,6 +63,14 @@ public class CampMenuController : MonoBehaviour
 
     private void OnEnable()
     {
+        // Arm the input grace period BEFORE anything can read input: without this,
+        // _lastInputTime is 0 and the cooldown is long expired mid-session, so a
+        // held button or a first-frame phantom Submit/Cancel (connected gamepads
+        // read as actuated on the first sampled frame after a scene load) would
+        // instantly activate the default-selected Return button and bounce the
+        // camp straight back into the game scene.
+        _lastInputTime = Time.unscaledTime + entryInputDelay - inputCooldown;
+
         RegisterCallbacks();
         HookAction(navigateUpAction, OnNavigateUp, true);
         HookAction(navigateDownAction, OnNavigateDown, true);
@@ -98,6 +115,7 @@ public class CampMenuController : MonoBehaviour
         _menuContainer = _root.Q<VisualElement>(menuContainerName);
         _menuButtons.Clear();
         _buttonHandlers.Clear();
+        _clickedWrappers.Clear();
 
         foreach (var button in _root.Query<Button>(className: "menu-button").ToList())
         {
@@ -115,14 +133,32 @@ public class CampMenuController : MonoBehaviour
                 case var name when name == statsButtonName:
                     handler = HandleStatsClicked;
                     break;
+                case var name when name == resetButtonName:
+                    handler = HandleResetClicked;
+                    _resetButton = button;
+                    break;
                 case var name when name == exitButtonName:
                     handler = HandleExitClicked;
                     break;
             }
 
+            // clicked fires from pointer clicks AND from UI Toolkit navigation
+            // submit on the focused button — the latter bypasses our input
+            // cooldown entirely, so a first-frame phantom Submit (gamepad axis
+            // sampled right after a scene load) could instantly activate the
+            // focused Return button and bounce camp back into the game. Gate
+            // every click through the same cooldown/grace window.
+            Action wrapper = null;
             if (handler != null)
             {
-                button.clicked += handler;
+                var captured = handler;
+                wrapper = () =>
+                {
+                    if (!CanProcessInput()) return;
+                    _lastInputTime = Time.unscaledTime;
+                    captured();
+                };
+                button.clicked += wrapper;
             }
 
             var index = _menuButtons.Count - 1;
@@ -130,6 +166,7 @@ public class CampMenuController : MonoBehaviour
             button.RegisterCallback<FocusInEvent>(_ => SetSelectedIndex(index));
 
             _buttonHandlers.Add(handler);
+            _clickedWrappers.Add(wrapper);
         }
 
         if (_menuButtons.Count == 0)
@@ -146,9 +183,9 @@ public class CampMenuController : MonoBehaviour
     {
         for (int i = 0; i < _menuButtons.Count; i++)
         {
-            if (_menuButtons[i] != null && _buttonHandlers[i] != null)
+            if (_menuButtons[i] != null && i < _clickedWrappers.Count && _clickedWrappers[i] != null)
             {
-                _menuButtons[i].clicked -= _buttonHandlers[i];
+                _menuButtons[i].clicked -= _clickedWrappers[i];
             }
         }
     }
@@ -287,6 +324,12 @@ public class CampMenuController : MonoBehaviour
 
         _currentIndex = Mathf.Clamp(index, 0, _menuButtons.Count - 1);
 
+        // Moving the selection away from an armed reset disarms it
+        if (_resetArmed && _resetButton != null && _menuButtons[_currentIndex] != _resetButton)
+        {
+            DisarmReset();
+        }
+
         for (int i = 0; i < _menuButtons.Count; i++)
         {
             if (_menuButtons[i] == null) continue;
@@ -361,6 +404,38 @@ public class CampMenuController : MonoBehaviour
         _menuContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
+    // Two-step wipe: first press arms the button, second press deletes the save
+    // (gold, honor, rank, quests, stats, map/boss progress) and reloads the camp
+    // so every manager reinitializes from a fresh SaveData.
+    private void HandleResetClicked()
+    {
+        if (!_resetArmed)
+        {
+            _resetArmed = true;
+            if (_resetButton != null)
+            {
+                _resetButton.text = RESET_CONFIRM_LABEL;
+                _resetButton.AddToClassList(ARMED_CLASS);
+            }
+            return;
+        }
+
+        SaveManager.DeleteSave();
+        Debug.Log("[CampMenu] Save data wiped. Reloading camp.");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void DisarmReset()
+    {
+        _resetArmed = false;
+        if (_resetButton != null)
+        {
+            _resetButton.text = RESET_LABEL;
+            _resetButton.RemoveFromClassList(ARMED_CLASS);
+        }
+    }
+
     private void HandleExitClicked()
     {
         // Placeholder behavior: quit application. In editor, just log.
@@ -374,6 +449,12 @@ public class CampMenuController : MonoBehaviour
 
     private void HandleCancel()
     {
+        if (_resetArmed)
+        {
+            DisarmReset();
+            return;
+        }
+
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.Hide();
@@ -387,18 +468,18 @@ public class CampMenuController : MonoBehaviour
             return;
         }
 
-        // If a specific button is selected, prefer activating that button's handler instead of exiting outright.
-        if (_menuButtons.Count > 0 && _currentIndex < _menuButtons.Count)
+        // Cancel must never ACTIVATE anything from the top menu: gamepads with a
+        // held or noisy button on the legacy "Cancel" mapping were instantly
+        // launching the game (Return is the default selection) or quitting via
+        // the old fall-through. Deliberate cancels just move the highlight to
+        // Exit; actually leaving takes an explicit confirm on that button.
+        for (int i = 0; i < _menuButtons.Count; i++)
         {
-            var selectedButton = _menuButtons[_currentIndex];
-            if (selectedButton != null && selectedButton.name == returnButtonName)
+            if (_menuButtons[i] != null && _menuButtons[i].name == exitButtonName)
             {
-                // Cancel while Return is highlighted should also return to battle.
-                HandleReturnClicked();
-                return;
+                SetSelectedIndex(i);
+                break;
             }
         }
-
-        HandleExitClicked();
     }
 }

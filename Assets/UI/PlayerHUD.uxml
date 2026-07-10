@@ -1,0 +1,39 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Style src="PlayerHUD.uss" />
+    <ui:VisualElement name="player-hud" class="player-hud" picking-mode="Ignore">
+        <ui:VisualElement name="left-hud" class="knight-hud hud-left" picking-mode="Ignore">
+            <ui:Label name="left-streak" class="streak-line" text="&#215;1 &#183; STREAK 0" picking-mode="Ignore" />
+            <ui:VisualElement class="bar-row" picking-mode="Ignore">
+                <ui:VisualElement class="bar" picking-mode="Ignore">
+                    <ui:VisualElement name="left-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
+                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="left-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement class="bar-row" picking-mode="Ignore">
+                <ui:VisualElement class="bar" picking-mode="Ignore">
+                    <ui:VisualElement name="left-special-fill" class="bar-fill special-fill" picking-mode="Ignore" />
+                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="left-special-label" class="bar-side-label" text="0 / 1000" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="right-hud" class="knight-hud hud-right" picking-mode="Ignore">
+            <ui:Label name="right-streak" class="streak-line" text="&#215;1 &#183; STREAK 0" picking-mode="Ignore" />
+            <ui:VisualElement class="bar-row" picking-mode="Ignore">
+                <ui:VisualElement class="bar" picking-mode="Ignore">
+                    <ui:VisualElement name="right-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
+                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="right-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement class="bar-row" picking-mode="Ignore">
+                <ui:VisualElement class="bar" picking-mode="Ignore">
+                    <ui:VisualElement name="right-special-fill" class="bar-fill special-fill" picking-mode="Ignore" />
+                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="right-special-label" class="bar-side-label" text="0 / 1000" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

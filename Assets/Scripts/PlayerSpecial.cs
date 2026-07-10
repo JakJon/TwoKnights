@@ -68,7 +68,7 @@ public class PlayerSpecial : MonoBehaviour
         _currentSpecialStreak = 0;
         streakEnded = false;
         _currentSpecialMultiplier = 1;
-        specialBar._multiplierIndicator.SetText($"x{_currentSpecialMultiplier}");
+        specialBar.SetStreak(_currentSpecialMultiplier, _currentSpecialStreak);
         _specialBarFilledSfxPlayed = false;
     }
 
@@ -117,7 +117,7 @@ public class PlayerSpecial : MonoBehaviour
                 _currentSpecialMultiplier = 1;
             }
 
-            specialBar._multiplierIndicator.SetText($"x{_currentSpecialMultiplier} STREAK: {_currentSpecialStreak} ");
+            specialBar.SetStreak(_currentSpecialMultiplier, _currentSpecialStreak);
         }
 
         int previousSpecial = _currentSpecial;

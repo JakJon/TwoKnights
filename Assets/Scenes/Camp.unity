@@ -754,6 +754,9 @@ MonoBehaviour:
   gameSceneName: Main
   transitionDelay: 2
   showDeathMessage: 1
+  victoryDelay: 5
+  gateVictoryGold: 100
+  trueVictoryGold: 250
 --- !u!21 &1259923104
 Material:
   serializedVersion: 8
@@ -945,16 +948,18 @@ MonoBehaviour:
   returnButtonName: return-button
   questsButtonName: quests-button
   statsButtonName: stats-button
+  resetButtonName: reset-button
   exitButtonName: exit-button
   gameplaySceneName: Main
   questPanel: {fileID: 1450641612}
   statsPanel: {fileID: 1450641613}
   menuContainerName: menu-container
-  navigateUpAction: {fileID: 0}
-  navigateDownAction: {fileID: 0}
-  confirmAction: {fileID: 0}
-  cancelAction: {fileID: 0}
+  navigateUpAction: {fileID: 533967465588344835, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  navigateDownAction: {fileID: 153658513545104228, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  confirmAction: {fileID: 1311751917744056038, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  cancelAction: {fileID: 8336509016467148339, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   inputCooldown: 0.2
+  entryInputDelay: 0.4
 --- !u!114 &1450641612
 MonoBehaviour:
   m_ObjectHideFlags: 0

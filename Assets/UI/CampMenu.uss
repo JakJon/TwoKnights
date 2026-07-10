@@ -60,6 +60,23 @@
     border-width: 3px;
 }
 
+.menu-button.danger {
+    background-color: #6E241B;
+    color: #F2D9CF;
+}
+
+.menu-button.danger:hover,
+.menu-button.danger:focus {
+    background-color: #93301F;
+}
+
+/* first press arms the wipe; second press confirms */
+.menu-button.danger.menu-button--armed {
+    background-color: #C22B1D;
+    color: #FFFFFF;
+    border-color: rgba(255, 180, 160, 1);
+}
+
 .menu-button--selected.menu-button.secondary {
     border-color: rgba(173, 205, 255, 1);
 }
