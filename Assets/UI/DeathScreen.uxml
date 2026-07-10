@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="death-screen" class="death-overlay">
+        <ui:VisualElement name="death-panel" class="death-panel">
+            <ui:Label text="Left Knight died from Wolf" name="death-message" class="death-message" />
+            <ui:VisualElement name="gold-summary" class="gold-summary">
+                <ui:Label text="GOLD THIS RUN" name="gold-caption" class="gold-caption" />
+                <ui:Label text="0" name="gold-amount" class="gold-amount" />
+            </ui:VisualElement>
+            <ui:VisualElement name="death-actions" class="death-actions">
+                <ui:Button text="Return to Camp" name="camp-button" class="death-button secondary" />
+                <ui:Button text="Go Again" name="go-again-button" class="death-button primary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

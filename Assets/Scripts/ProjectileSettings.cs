@@ -3,6 +3,8 @@ using UnityEngine;
 public class ProjectileSettings : MonoBehaviour
 {
     [SerializeField] public int damage = 10;
+    [Tooltip("Name shown on the death screen when this projectile lands the killing blow.")]
+    [SerializeField] private string sourceName = "an Arrow";
 
     void Start()
     {
@@ -38,7 +40,7 @@ public class ProjectileSettings : MonoBehaviour
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {
-                playerHealth.TakeDamage(damage);
+                playerHealth.TakeDamage(damage, sourceName);
             }
 
             Destroy(gameObject);

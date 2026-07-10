@@ -1950,6 +1950,74 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 18131672}
   m_SourcePrefab: {fileID: 100100000, guid: 74b3ac7da8f056b4695f9ad153180c22, type: 3}
+--- !u!1 &2124077066
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2124077069}
+  - component: {fileID: 2124077068}
+  - component: {fileID: 2124077067}
+  m_Layer: 5
+  m_Name: DeathScreen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2124077067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124077066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f6917068c6192c2682f8331426586a1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  uiDocument: {fileID: 2124077068}
+  styleSheet: {fileID: 7433441132597879392, guid: f468b7aacc266c282528f20640b4ca3d, type: 3}
+  mainSceneName: Main
+  campSceneName: Camp
+--- !u!114 &2124077068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124077066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_PanelSettings: {fileID: 11400000, guid: 328599d5326b60043bf46f7bbb09bf6a, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 3a92885e0609bfd913ef3a0754bc1cef, type: 3}
+  m_SortingOrder: 10
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+--- !u!4 &2124077069
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2124077066}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1969,3 +2037,4 @@ SceneRoots:
   - {fileID: 257200975}
   - {fileID: 902023513}
   - {fileID: 1746733230}
+  - {fileID: 2124077069}

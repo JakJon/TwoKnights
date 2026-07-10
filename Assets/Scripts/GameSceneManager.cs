@@ -38,9 +38,18 @@ public class GameSceneManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when the player dies - transitions to the camp scene
+    /// Called when the player dies - shows the death screen (or falls back to camp)
     /// </summary>
     public void OnPlayerDeath()
+    {
+        OnPlayerDeath(null, null);
+    }
+
+    /// <summary>
+    /// Called when the player dies. knightName e.g. "Left Knight",
+    /// causeOfDeath e.g. "Wolf" - both feed the death screen.
+    /// </summary>
+    public void OnPlayerDeath(string knightName, string causeOfDeath)
     {
         if (isTransitioningToCamp)
         {
@@ -49,7 +58,7 @@ public class GameSceneManager : MonoBehaviour
 
         isTransitioningToCamp = true;
 
-        Debug.Log("Player died! Transitioning to camp...");
+        Debug.Log($"Player died! {knightName ?? "A Knight"} killed by {causeOfDeath ?? "unknown"}.");
 
         if (WaveManager.ActiveInstance != null)
         {
@@ -60,7 +69,7 @@ public class GameSceneManager : MonoBehaviour
 
         HideUpgradeMenuIfNeeded();
 
-        StartCoroutine(HandlePlayerDeath());
+        StartCoroutine(HandlePlayerDeath(knightName, causeOfDeath));
     }
 
     /// <summary>
@@ -138,20 +147,27 @@ public class GameSceneManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private IEnumerator HandlePlayerDeath()
+    private IEnumerator HandlePlayerDeath(string knightName, string causeOfDeath)
     {
-        // Optional: Show death message or play death animation
-        if (showDeathMessage)
-        {
-            Debug.Log("You have fallen in battle...");
-            // You can add UI elements here later for death screen
-        }
-
-        // Wait for the specified delay
+        // Let the death moment land before covering the screen
         yield return new WaitForSecondsRealtime(transitionDelay);
 
-        // Load the camp scene
-        LoadCampScene();
+        var deathScreen = showDeathMessage
+            ? FindFirstObjectByType<DeathScreen>(FindObjectsInactive.Include)
+            : null;
+
+        if (deathScreen != null)
+        {
+            // Freeze the battlefield; the death screen buttons restore
+            // timeScale via LoadCampScene/LoadGameScene
+            Time.timeScale = 0f;
+            int runGold = GoldManager.Instance != null ? GoldManager.Instance.RunGold : 0;
+            deathScreen.Show(knightName, causeOfDeath, runGold);
+        }
+        else
+        {
+            LoadCampScene();
+        }
     }
 
     private void HideUpgradeMenuIfNeeded()

@@ -19,6 +19,11 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        TakeDamage(damage, null);
+    }
+
+    public void TakeDamage(int damage, string sourceName)
+    {
         currentHealth = Mathf.Max(0, currentHealth - damage);
         healthBar.SetValue(currentHealth);
 
@@ -34,7 +39,7 @@ public class PlayerHealth : MonoBehaviour
             // Player has died - trigger scene transition to camp
             if (GameSceneManager.Instance != null)
             {
-                GameSceneManager.Instance.OnPlayerDeath();
+                GameSceneManager.Instance.OnPlayerDeath(KnightDisplayName, sourceName);
             }
             else
             {
@@ -42,6 +47,16 @@ public class PlayerHealth : MonoBehaviour
                 Debug.LogWarning("GameSceneManager not found! Stopping game instead.");
                 Time.timeScale = 0;
             }
+        }
+    }
+
+    private string KnightDisplayName
+    {
+        get
+        {
+            if (CompareTag("PlayerLeft")) return "Left Knight";
+            if (CompareTag("PlayerRight")) return "Right Knight";
+            return "A Knight";
         }
     }
 

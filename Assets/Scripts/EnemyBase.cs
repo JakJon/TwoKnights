@@ -34,6 +34,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     [Header("Enemy Attributes")]
     [SerializeField] protected EnemyType attributes;
+    [Tooltip("Name shown on the death screen. Leave empty to derive from the class name (EnemyRatKing -> Rat King).")]
+    [SerializeField] protected string displayName = "";
 
     [Header("Sprite Flipping")]
     [SerializeField] protected float directionThreshold = 0.01f; 
@@ -591,9 +593,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
             PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
-            if (playerHealth != null) 
+            if (playerHealth != null)
             {
-                playerHealth.TakeDamage(GetShieldCollisionDamage());
+                playerHealth.TakeDamage(GetShieldCollisionDamage(), DisplayName);
             }
             Destroy(gameObject);
         }
@@ -601,9 +603,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-            if (playerHealth != null) 
+            if (playerHealth != null)
             {
-                playerHealth.TakeDamage(GetPlayerCollisionDamage());
+                playerHealth.TakeDamage(GetPlayerCollisionDamage(), DisplayName);
             }
             Destroy(gameObject);
         }
@@ -611,6 +613,27 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             // Allow derived classes to handle additional collision types
             OnAdditionalCollision(other);
+        }
+    }
+
+    // Name shown on the death screen when this enemy lands the killing blow
+    public string DisplayName
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(displayName))
+            {
+                return displayName;
+            }
+
+            string typeName = GetType().Name;
+            if (typeName.StartsWith("Enemy"))
+            {
+                typeName = typeName.Substring("Enemy".Length);
+            }
+
+            // Split CamelCase: "RatKing" -> "Rat King"
+            return System.Text.RegularExpressions.Regex.Replace(typeName, "(\\B[A-Z])", " $1");
         }
     }
 

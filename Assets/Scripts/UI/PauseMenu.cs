@@ -124,7 +124,7 @@ public class PauseMenu : MonoBehaviour
 
     private void OnTogglePause(InputAction.CallbackContext context)
     {
-        if (!IsInMainScene())
+        if (!IsInMainScene() || DeathScreen.IsVisible)
         {
             return;
         }
@@ -146,7 +146,7 @@ public class PauseMenu : MonoBehaviour
             return;
         }
 
-        if (!IsInMainScene())
+        if (!IsInMainScene() || DeathScreen.IsVisible)
         {
             return;
         }
