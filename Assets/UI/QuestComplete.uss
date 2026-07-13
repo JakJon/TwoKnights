@@ -1,0 +1,125 @@
+/* ============================================================
+   Quest complete panel — Gilded Vigil. Same anatomy as the
+   death screen: dark scrim, one raised panel, gold owns the
+   primary action.
+   ============================================================ */
+
+.qc-overlay {
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(10, 8, 5, 0.78);
+}
+
+.qc-panel {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40%;
+    min-width: 460px;
+    max-width: 640px;
+    padding: 44px 40px 36px 40px;
+    border-radius: 8px;
+    background-color: rgb(33, 26, 16);
+    border-width: 1px;
+    border-color: rgb(58, 50, 34);
+}
+
+.qc-caption {
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 4px;
+    color: rgb(141, 130, 102);
+    margin-bottom: 10px;
+}
+
+.qc-name {
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    font-size: 30px;
+    color: rgb(236, 228, 211);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    max-width: 100%;
+}
+
+.qc-ornament {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+    margin-bottom: 20px;
+}
+
+.qc-ornament-rule {
+    width: 56px;
+    height: 1px;
+    background-color: rgb(45, 38, 23);
+}
+
+.qc-ornament-diamond {
+    width: 7px;
+    height: 7px;
+    rotate: 45deg;
+    border-radius: 1px;
+    background-color: rgb(212, 162, 74);
+    margin: 0 10px;
+}
+
+/* ---------- reward ---------- */
+
+.qc-reward {
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.qc-reward-caption {
+    font-size: 13px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    color: rgb(141, 130, 102);
+    margin-bottom: 4px;
+}
+
+.qc-reward-amount {
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    font-size: 40px;
+    color: rgb(212, 162, 74);
+}
+
+/* ---------- continue ---------- */
+
+.qc-button {
+    min-width: 220px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    border-width: 2px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    background-color: rgb(212, 162, 74);
+    border-color: rgb(212, 162, 74);
+    color: rgb(36, 27, 13);
+    transition-property: background-color, border-color, color, scale;
+    transition-duration: 0.15s;
+}
+
+.qc-button:hover,
+.qc-button:focus {
+    background-color: rgb(240, 205, 120);
+    border-color: rgb(255, 232, 170);
+    color: rgb(36, 27, 13);
+    scale: 1.04;
+}
+
+.qc-button:active {
+    background-color: rgb(240, 205, 120);
+    border-color: rgb(255, 232, 170);
+    color: rgb(36, 27, 13);
+    scale: 1.02;
+}

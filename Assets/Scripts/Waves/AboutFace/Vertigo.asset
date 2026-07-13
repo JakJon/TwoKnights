@@ -22,14 +22,14 @@ MonoBehaviour:
   useEnemyTracking: 1
   burstCount: 4
   pairsPerBurst: 5
-  flipWindow: 0.7
+  flipWindow: 1
   flipWindowRampFactor: 0.85
-  delayBetweenPairs: 1
+  delayBetweenPairs: 1.25
   delayBetweenBursts: 2.5
   projectilesPerVolley: 2
   angleJitter: 45
   offscreenPadding: 0.5
   minAngleFromHorizontal: 30
   batsPerBurst: 2
-  wolfEscorts: 2
+  wolfEscorts: 1
   spawnManaOrb: 1

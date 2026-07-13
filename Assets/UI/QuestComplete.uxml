@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="quest-complete-screen" class="qc-overlay">
+        <ui:VisualElement name="quest-complete-panel" class="qc-panel">
+            <ui:Label text="QUEST COMPLETE" name="qc-caption" class="qc-caption" />
+            <ui:Label text="Rat Slayer Completed" name="qc-name" class="qc-name" />
+            <ui:VisualElement class="qc-ornament">
+                <ui:VisualElement class="qc-ornament-rule" />
+                <ui:VisualElement class="qc-ornament-diamond" />
+                <ui:VisualElement class="qc-ornament-rule" />
+            </ui:VisualElement>
+            <ui:VisualElement name="qc-reward" class="qc-reward">
+                <ui:Label text="REWARD" name="qc-reward-caption" class="qc-reward-caption" />
+                <ui:Label text="3 Honor" name="qc-reward-amount" class="qc-reward-amount" />
+            </ui:VisualElement>
+            <ui:Button text="Continue" name="qc-continue-button" class="qc-button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

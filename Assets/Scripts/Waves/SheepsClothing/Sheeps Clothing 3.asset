@@ -23,3 +23,4 @@ MonoBehaviour:
   slimesPerWall: 4
   slimeSize: 3
   wolfType: 2
+  secondsBeforeWolfAttack: 18

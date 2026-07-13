@@ -22,7 +22,7 @@ public class QuestPanel : MonoBehaviour
 
     private const string SELECTED_CLASS = "quest-list-item--selected";
     private const string COMPLETED_CLASS = "quest-list-item--completed";
-    private const string COMPLETED_CHECK = "<color=#FFD700>✔</color> ";
+    private const string COMPLETED_CHECK = "<color=#F0CD78>✔</color> ";
 
     private void Awake()
     {

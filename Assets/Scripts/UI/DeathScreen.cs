@@ -16,6 +16,7 @@ public class DeathScreen : MonoBehaviour
     private VisualElement _overlay;
     private Label _messageLabel;
     private Label _goldLabel;
+    private Label _waveLabel;
     private Button _campButton;
     private Button _goAgainButton;
 
@@ -62,6 +63,7 @@ public class DeathScreen : MonoBehaviour
         _overlay = _root.Q<VisualElement>("death-screen");
         _messageLabel = _root.Q<Label>("death-message");
         _goldLabel = _root.Q<Label>("gold-amount");
+        _waveLabel = _root.Q<Label>("wave-amount");
         _campButton = _root.Q<Button>("camp-button");
         _goAgainButton = _root.Q<Button>("go-again-button");
 
@@ -93,7 +95,7 @@ public class DeathScreen : MonoBehaviour
     /// <summary>
     /// Show the death screen. knightName e.g. "Left Knight", killerName e.g. "Wolf".
     /// </summary>
-    public void Show(string knightName, string killerName, int runGold)
+    public void Show(string knightName, string killerName, int runGold, int waveReached)
     {
         if (!EnsureUI())
         {
@@ -108,6 +110,11 @@ public class DeathScreen : MonoBehaviour
         if (_goldLabel != null)
         {
             _goldLabel.text = runGold.ToString();
+        }
+
+        if (_waveLabel != null)
+        {
+            _waveLabel.text = Mathf.Max(1, waveReached).ToString();
         }
 
         _root.style.display = DisplayStyle.Flex;

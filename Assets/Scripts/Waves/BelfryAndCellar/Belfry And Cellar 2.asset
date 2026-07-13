@@ -20,6 +20,6 @@ MonoBehaviour:
   unlockedAfterXWaves: 7
   lockedAfterXWaves: 13
   useEnemyTracking: 1
-  ratPairs: 4
-  batBeatSeconds: 3.5
-  beatDecay: 0.88
+  ratPairs: 3
+  secondsBetweenBats: 3.5
+  batSpeedUpMultiplier: 0.88

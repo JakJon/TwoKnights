@@ -60,16 +60,17 @@ public class GameSceneManager : MonoBehaviour
 
         Debug.Log($"Player died! {knightName ?? "A Knight"} killed by {causeOfDeath ?? "unknown"}.");
 
+        int waveReached = 1;
         if (WaveManager.ActiveInstance != null)
         {
-            int reached = WaveManager.ActiveInstance.CurrentWaveNumber;
-            SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, reached);
+            waveReached = WaveManager.ActiveInstance.CurrentWaveNumber;
+            SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, waveReached);
             SaveManager.Save();
         }
 
         HideUpgradeMenuIfNeeded();
 
-        StartCoroutine(HandlePlayerDeath(knightName, causeOfDeath));
+        StartCoroutine(HandlePlayerDeath(knightName, causeOfDeath, waveReached));
     }
 
     /// <summary>
@@ -147,7 +148,7 @@ public class GameSceneManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private IEnumerator HandlePlayerDeath(string knightName, string causeOfDeath)
+    private IEnumerator HandlePlayerDeath(string knightName, string causeOfDeath, int waveReached)
     {
         // Let the death moment land before covering the screen
         yield return new WaitForSecondsRealtime(transitionDelay);
@@ -162,7 +163,7 @@ public class GameSceneManager : MonoBehaviour
             // timeScale via LoadCampScene/LoadGameScene
             Time.timeScale = 0f;
             int runGold = GoldManager.Instance != null ? GoldManager.Instance.RunGold : 0;
-            deathScreen.Show(knightName, causeOfDeath, runGold);
+            deathScreen.Show(knightName, causeOfDeath, runGold, waveReached);
         }
         else
         {

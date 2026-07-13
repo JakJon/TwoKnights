@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "BelfryAndCellar", menuName = "Waves/Belfry and Cellar")]
 public class BelfryAndCellar : BaseWave
@@ -9,12 +10,14 @@ public class BelfryAndCellar : BaseWave
     // rat's built-in 15s fuse — spare arrows between bat beats must pay the rats down
     // before they charge. Beat accelerates after every rat pair.
 
-    [Tooltip("Rat pairs dropped into the cellar (one rat per knight). Each pair charges 15s after walking in")]
+    [Tooltip("How many pairs of rats spawn over the wave (one rat per knight, per pair). Each pair charges 15s after walking in")]
     [SerializeField] private int ratPairs = 3;
-    [Tooltip("Base seconds between bat crossings")]
-    [SerializeField] private float batBeatSeconds = 4f;
-    [Tooltip("Bat beat is multiplied by this after every rat pair (accelerating tempo)")]
-    [SerializeField] private float beatDecay = 0.9f;
+    [Tooltip("Seconds between one bat and the next at the start of the wave")]
+    [FormerlySerializedAs("batBeatSeconds")]
+    [SerializeField] private float secondsBetweenBats = 4f;
+    [Tooltip("Bats spawn faster as the wave goes on: the gap between bats is multiplied by this after every rat pair. 1 = no speed-up, 0.9 = 10% faster each time")]
+    [FormerlySerializedAs("beatDecay")]
+    [SerializeField] private float batSpeedUpMultiplier = 0.9f;
 
     private const float CycleSeconds = 12f;    // gap between rat pairs; the rat fuse itself is 15s
     private const float MinBeatSeconds = 1.5f; // never outpace the arrow cooldown
@@ -23,7 +26,7 @@ public class BelfryAndCellar : BaseWave
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
-        float beat = Mathf.Max(MinBeatSeconds, batBeatSeconds);
+        float beat = Mathf.Max(MinBeatSeconds, secondsBetweenBats);
         int batIndex = 0;
 
         for (int pair = 0; pair < ratPairs; pair++)
@@ -65,7 +68,7 @@ public class BelfryAndCellar : BaseWave
                 elapsed += beat;
             }
 
-            beat = Mathf.Max(MinBeatSeconds, beat * beatDecay);
+            beat = Mathf.Max(MinBeatSeconds, beat * batSpeedUpMultiplier);
         }
 
         MarkSpawningComplete();

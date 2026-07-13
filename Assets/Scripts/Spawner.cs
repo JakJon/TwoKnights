@@ -10,6 +10,7 @@ public class Spawner : MonoBehaviour
     [SerializeField] private WaveName waveNameDisplay;
     [SerializeField] private UpgradeMenu upgradeMenu; // New reference to upgrade menu
     [SerializeField] private UpgradeManager upgradeManager; // Reference to upgrade manager
+    [SerializeField] private QuestCompletePanel questCompletePanel; // Shown between wave end and upgrade menu
     [SerializeField] public GameObject projectilePrefab;
     [SerializeField] public GameObject brownRat;
     [SerializeField] public GameObject greyRat;
@@ -45,6 +46,12 @@ public class Spawner : MonoBehaviour
 
     void Awake()
     {
+        // UpgradeManager is a ScriptableObject, so owned/applied upgrade state
+        // survives scene reloads; clear it so each run starts fresh
+        if (upgradeManager != null)
+        {
+            upgradeManager.ResetRunState();
+        }
     }
 
     void Start()
@@ -56,6 +63,11 @@ public class Spawner : MonoBehaviour
         if (upgradeMenu != null)
         {
             upgradeMenu.OnUpgradeConfirmed += OnUpgradeConfirmed;
+        }
+
+        if (questCompletePanel == null)
+        {
+            questCompletePanel = FindFirstObjectByType<QuestCompletePanel>(FindObjectsInactive.Include);
         }
 
         // Fresh per-run state (wave count, boss flags, wave pool) even without
@@ -109,6 +121,15 @@ public class Spawner : MonoBehaviour
             GameSceneManager.Instance.OnVictory(waveManager.CurrentMap, outcome == RunOutcome.TrueVictory,
                 waveManager.CompletedWavesCount);
             yield break;
+        }
+
+        // Celebrate quests completed during the wave, one panel each,
+        // before the upgrade menu appears
+        if (questCompletePanel != null && questCompletePanel.HasPending)
+        {
+            Time.timeScale = 0f;
+            yield return StartCoroutine(questCompletePanel.ShowPendingPanels());
+            Time.timeScale = 1f;
         }
 
         // Show upgrade menu and pause game instead of immediately starting next wave

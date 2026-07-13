@@ -22,9 +22,9 @@ MonoBehaviour:
   useEnemyTracking: 1
   burstCount: 2
   pairsPerBurst: 3
-  flipWindow: 1.5
+  flipWindow: 2.5
   flipWindowRampFactor: 1
-  delayBetweenPairs: 1.5
+  delayBetweenPairs: 2
   delayBetweenBursts: 3
   projectilesPerVolley: 1
   angleJitter: 0

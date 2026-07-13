@@ -16,6 +16,8 @@ public class SheepsClothing : BaseWave
     [SerializeField] private int slimeSize = 2;
     [Tooltip("Wolf that stalks behind each wall")]
     [SerializeField] private WolfType wolfType = WolfType.Grey;
+    [Tooltip("Seconds the wolf stalks behind the wall before it lunges at the knight")]
+    [SerializeField] private float secondsBeforeWolfAttack = 18f;
 
     private const float WallSpawnX = 12.5f;         // just out of frame
     private const float WallSpreadY = 6f;           // vertical fan the wall covers
@@ -53,14 +55,22 @@ public class SheepsClothing : BaseWave
         }
 
         // The wolf: enters visibly behind the wall, then zigzags inward inside the
-        // wall's arrow shadow. When its path crosses WolfPeelX it ends and the wolf lunges.
+        // wall's arrow shadow. The path is budgeted by time: legs are added until
+        // secondsBeforeWolfAttack of walking is queued up (pacing in place at the
+        // peel line if it arrives early), then the path ends and the wolf lunges.
+        float wolfSpeed = wolfType == WolfType.Brown ? 3.5f : wolfType == WolfType.Grey ? 3f : 2.5f;
+        float pathBudget = wolfSpeed * Mathf.Max(0f, secondsBeforeWolfAttack);
         var waypoints = new List<Vector2> { new Vector2(side * 16f, 0f) };
+        Vector2 prev = waypoints[0];
         float x = WallSpawnX + 2f;
         int leg = 0;
-        while (x > WolfPeelX)
+        while (pathBudget > 0f)
         {
-            waypoints.Add(new Vector2(side * x, (leg % 2 == 0 ? 1f : -1f) * WolfZigzagAmplitude));
-            x -= WolfZigzagStepX;
+            Vector2 next = new Vector2(side * x, (leg % 2 == 0 ? 1f : -1f) * WolfZigzagAmplitude);
+            pathBudget -= Vector2.Distance(prev, next);
+            waypoints.Add(next);
+            prev = next;
+            x = Mathf.Max(WolfPeelX, x - WolfZigzagStepX);
             leg++;
         }
         spawner.SpawnWolf(waypoints, wallKnight, wolfType, 2f);
@@ -74,6 +84,7 @@ public class SheepsClothing : BaseWave
         spawner.SpawnOrb(new Vector2(-side * 8f, -9f), new Vector2(-side * 8f, 9f), false, 8f);
         spawner.SpawnOrb(new Vector2(side * 8f, -9f), new Vector2(side * 8f, 9f), true, 18f);
 
-        yield return new WaitForSeconds(RoundSeconds);
+        // Hold the round at least until the wolf has lunged, however long its stalk is
+        yield return new WaitForSeconds(Mathf.Max(RoundSeconds, secondsBeforeWolfAttack + 8f));
     }
 }

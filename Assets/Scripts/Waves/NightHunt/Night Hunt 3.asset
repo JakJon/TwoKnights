@@ -20,8 +20,9 @@ MonoBehaviour:
   unlockedAfterXWaves: 15
   lockedAfterXWaves: -1
   useEnemyTracking: 1
-  rounds: 4
-  strikeStagger: 2
+  strikeRounds: 4
+  secondsBetweenWolfAndBat: 2
+  circlesBeforeAttack: 1
   roundOneWolf: 1
   roundTwoWolf: 2
   roundThreeWolf: 2

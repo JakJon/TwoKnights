@@ -41,6 +41,11 @@ public class CampMenuController : MonoBehaviour
     private UIDocument _uiDocument;
     private VisualElement _root;
     private VisualElement _menuContainer;
+    private Label _goldLine;
+    private Label _honorLine;
+    private Label _rankLine;
+    private Label _waveLine;
+    private Label _questsLine;
     private readonly List<Button> _menuButtons = new();
     private readonly List<Action> _buttonHandlers = new();
     private readonly List<Action> _clickedWrappers = new();
@@ -79,6 +84,11 @@ public class CampMenuController : MonoBehaviour
         SetSelectedIndex(Mathf.Clamp(_currentIndex, 0, _menuButtons.Count - 1));
         if (questPanel != null) questPanel.OnCloseRequested += HandleSubPanelClosed;
         if (statsPanel != null) statsPanel.OnCloseRequested += HandleSubPanelClosed;
+        GoldManager.OnGoldChanged += HandleGoldChanged;
+        KnightRankManager.OnHonorChanged += HandleHonorChanged;
+        KnightRankManager.OnRankChanged += HandleRankChanged;
+        QuestProgress.OnQuestCompleted += HandleQuestCompleted;
+        RefreshStatusLines();
     }
 
     private void OnDisable()
@@ -90,6 +100,10 @@ public class CampMenuController : MonoBehaviour
         UnregisterCallbacks();
         if (questPanel != null) questPanel.OnCloseRequested -= HandleSubPanelClosed;
         if (statsPanel != null) statsPanel.OnCloseRequested -= HandleSubPanelClosed;
+        GoldManager.OnGoldChanged -= HandleGoldChanged;
+        KnightRankManager.OnHonorChanged -= HandleHonorChanged;
+        KnightRankManager.OnRankChanged -= HandleRankChanged;
+        QuestProgress.OnQuestCompleted -= HandleQuestCompleted;
     }
 
     private void Update()
@@ -113,6 +127,11 @@ public class CampMenuController : MonoBehaviour
         }
 
         _menuContainer = _root.Q<VisualElement>(menuContainerName);
+        _goldLine = _root.Q<Label>("gold-line");
+        _honorLine = _root.Q<Label>("honor-line");
+        _rankLine = _root.Q<Label>("rank-line");
+        _waveLine = _root.Q<Label>("wave-line");
+        _questsLine = _root.Q<Label>("quests-line");
         _menuButtons.Clear();
         _buttonHandlers.Clear();
         _clickedWrappers.Clear();
@@ -355,6 +374,47 @@ public class CampMenuController : MonoBehaviour
     private bool CanProcessInput()
     {
         return Time.unscaledTime - _lastInputTime >= inputCooldown;
+    }
+
+    // Side status panels replace the old TMP canvas HUD: same managers, same
+    // fallbacks to SaveData when a manager singleton isn't alive yet.
+    private void RefreshStatusLines()
+    {
+        HandleGoldChanged(GoldManager.Instance != null ? GoldManager.Instance.Gold : SaveManager.Data.gold);
+        HandleHonorChanged(KnightRankManager.Instance != null ? KnightRankManager.Instance.HonorPoints : SaveManager.Data.honorPoints);
+        HandleRankChanged(KnightRankManager.Instance != null ? KnightRankManager.Instance.KnightRank : SaveManager.Data.knightRank);
+
+        if (_waveLine != null)
+        {
+            _waveLine.text = $"Furthest Wave: {SaveManager.Data.furthestWave}";
+        }
+
+        if (_questsLine != null)
+        {
+            var quests = QuestDatabase.All;
+            int completed = quests.Count(q => QuestProgress.IsCompleted(q.Id));
+            _questsLine.text = $"Quests: {completed} / {quests.Count}";
+        }
+    }
+
+    private void HandleGoldChanged(int gold)
+    {
+        if (_goldLine != null) _goldLine.text = $"Gold: {gold}";
+    }
+
+    private void HandleHonorChanged(int honor)
+    {
+        if (_honorLine != null) _honorLine.text = $"Honor: {honor}";
+    }
+
+    private void HandleRankChanged(int rank)
+    {
+        if (_rankLine != null) _rankLine.text = $"Knight Rank {rank}";
+    }
+
+    private void HandleQuestCompleted(string questId)
+    {
+        RefreshStatusLines();
     }
 
     private void HandleReturnClicked()

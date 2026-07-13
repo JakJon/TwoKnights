@@ -2,9 +2,16 @@
     <ui:VisualElement name="death-screen" class="death-overlay">
         <ui:VisualElement name="death-panel" class="death-panel">
             <ui:Label text="Left Knight died from Wolf" name="death-message" class="death-message" />
-            <ui:VisualElement name="gold-summary" class="gold-summary">
-                <ui:Label text="GOLD THIS RUN" name="gold-caption" class="gold-caption" />
-                <ui:Label text="0" name="gold-amount" class="gold-amount" />
+            <ui:VisualElement name="run-summary" class="run-summary">
+                <ui:VisualElement name="gold-summary" class="summary-block">
+                    <ui:Label text="GOLD THIS RUN" name="gold-caption" class="summary-caption" />
+                    <ui:Label text="0" name="gold-amount" class="summary-amount" />
+                </ui:VisualElement>
+                <ui:VisualElement class="summary-divider" />
+                <ui:VisualElement name="wave-summary" class="summary-block">
+                    <ui:Label text="WAVE REACHED" name="wave-caption" class="summary-caption" />
+                    <ui:Label text="1" name="wave-amount" class="summary-amount" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="death-actions" class="death-actions">
                 <ui:Button text="Return to Camp" name="camp-button" class="death-button secondary" />

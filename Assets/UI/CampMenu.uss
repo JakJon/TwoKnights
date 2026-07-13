@@ -1,214 +1,369 @@
+/* ============================================================
+   Gilded Vigil — warm near-black ground, one aged-gold accent.
+   Surfaces separate by value (ground → panel → card → lifted),
+   not by heavy outlines. Gold owns every interactive state.
+   Same system as UpgradeMenu.uss.
+   ============================================================ */
+
 .camp-root {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.35);
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
+    padding: 0;
+    margin: 0;
+    background-color: rgb(22, 18, 12);
 }
 
-.camp-title {
-    font-size: 48px;
-    unity-font-style: bold;
-    color: #FFE6AA;
-    margin-bottom: 12px;
+.layout-root {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: 2%;
 }
+
+.center-content {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 56%;
+    min-width: 560px;
+    height: 100%;
+    background-color: transparent;
+    border-width: 0;
+    padding: 2% 3%;
+}
+
+/* ---------- side status panels (frameless: value + one divider, no boxes) ---------- */
+
+.status-panel {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    width: 21%;
+    min-width: 240px;
+    height: 100%;
+    background-color: transparent;
+    border-width: 0;
+    padding: 1.5%;
+}
+
+.status-panel.left { margin-right: 1%; }
+.status-panel.right { margin-left: 1%; }
+
+.status-title {
+    align-self: stretch;
+    -unity-text-align: upper-center;
+    font-size: 20px;
+    color: rgb(212, 162, 74);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 2px;
+    padding-bottom: 7px;
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(45, 38, 23);
+}
+
+.stat-line {
+    align-self: stretch;
+    -unity-text-align: upper-center;
+    font-size: 14px;
+    color: rgb(217, 207, 184);
+    margin: 2px 0;
+}
+
+/* ---------- title ---------- */
+
+.camp-title {
+    font-size: 34px;
+    color: rgb(236, 228, 211);
+    -unity-text-align: middle-center;
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 4px;
+}
+
+.title-ornament {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    margin-bottom: 22px;
+}
+
+.ornament-rule {
+    width: 64px;
+    height: 1px;
+    background-color: rgb(45, 38, 23);
+}
+
+.ornament-diamond {
+    width: 7px;
+    height: 7px;
+    rotate: 45deg;
+    border-radius: 1px;
+    background-color: rgb(212, 162, 74);
+    margin: 0 10px;
+}
+
+/* ---------- menu column (buttons follow the card anatomy) ---------- */
 
 .menu-container {
     flex-direction: column;
-    gap: 12px;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
     width: 100%;
+    max-width: 420px;
+    align-self: center;
 }
 
 .menu-button {
-    width: 260px;
-    height: 64px;
-    font-size: 22px;
-    unity-text-align: middle-center;
-    -unity-font-style: bold;
-    background-color: #FF8C42;
-    color: #000000;
-    border-radius: 6px;
+    width: 100%;
+    margin: 5px 0;
+    padding: 13px 18px;
+    background-color: rgb(33, 26, 16);
     border-width: 2px;
-    border-color: rgba(0, 0, 0, 0.25);
-    transition-property: background-color, border-color, color, scale;
-    transition-duration: 0.2s;
+    border-radius: 4px;
+    border-color: rgb(58, 50, 34);
+    color: rgb(217, 207, 184);
+    font-size: 15px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    -unity-text-align: middle-center;
+    transition-property: background-color, border-color, color, translate, scale;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
 }
 
+/* focused button slides right on a transform — no reflow, neighbors stay put */
+.menu-button.menu-button--selected {
+    background-color: rgb(42, 33, 19);
+    border-color: rgb(212, 162, 74);
+    color: rgb(242, 234, 217);
+    translate: 8px 0;
+}
+
+/* primary action is solid gold, like the upgrade confirm button */
+.menu-button.primary {
+    background-color: rgb(212, 162, 74);
+    border-color: rgb(212, 162, 74);
+    color: rgb(36, 27, 13);
+}
+
+.menu-button.primary.menu-button--selected {
+    background-color: rgb(240, 205, 120);
+    border-color: rgb(255, 232, 170);
+    color: rgb(36, 27, 13);
+    translate: 0 0;
+    scale: 1.04;
+}
+
+/* quiet exit: recedes into the ground until focused */
 .menu-button.secondary {
-    background-color: #425bff;
-    color: #ffffff;
+    background-color: transparent;
+    border-color: rgb(45, 38, 23);
+    color: rgb(141, 130, 102);
 }
 
-.menu-button:hover,
-.menu-button:focus {
-    background-color: #FFB067;
-    border-color: rgba(255, 255, 255, 0.75);
+.menu-button.secondary.menu-button--selected {
+    background-color: rgb(42, 33, 19);
+    border-color: rgb(212, 162, 74);
+    color: rgb(242, 234, 217);
 }
 
-.menu-button.secondary:hover,
-.menu-button.secondary:focus {
-    background-color: #7485ff;
-}
-
-.menu-button--selected {
-    scale: 1.05;
-    border-color: rgba(255, 255, 255, 1);
-    border-width: 3px;
-}
-
+/* danger keeps a muted ember identity; gold still takes over on focus */
 .menu-button.danger {
-    background-color: #6E241B;
-    color: #F2D9CF;
+    background-color: rgb(33, 26, 16);
+    border-color: rgb(74, 40, 28);
+    color: rgb(205, 133, 105);
 }
 
-.menu-button.danger:hover,
-.menu-button.danger:focus {
-    background-color: #93301F;
+.menu-button.danger.menu-button--selected {
+    background-color: rgb(42, 33, 19);
+    border-color: rgb(212, 162, 74);
+    color: rgb(216, 148, 120);
 }
 
 /* first press arms the wipe; second press confirms */
-.menu-button.danger.menu-button--armed {
-    background-color: #C22B1D;
-    color: #FFFFFF;
-    border-color: rgba(255, 180, 160, 1);
+.menu-button.danger.menu-button--armed,
+.menu-button.danger.menu-button--armed.menu-button--selected {
+    background-color: rgb(96, 32, 20);
+    border-color: rgb(226, 120, 63);
+    color: rgb(255, 235, 225);
 }
 
-.menu-button--selected.menu-button.secondary {
-    border-color: rgba(173, 205, 255, 1);
-}
+/* ---------- overlay panels (quests / stats) ---------- */
 
-.camp-hint {
-    font-size: 18px;
-    color: #FFFFFF;
-    opacity: 0.8;
-}
-
-.quest-panel {
+.overlay-panel {
     position: absolute;
-    width: 80%;
-    height: 80%;
-    left: 10%;
+    left: 12%;
+    right: 12%;
     top: 10%;
-    background-color: rgba(18, 24, 32, 0.98);
-    border-width: 3px;
-    border-color: #FFE6AA;
-    border-radius: 10px;
+    bottom: 10%;
+    background-color: rgb(28, 22, 14);
+    border-width: 0;
+    border-radius: 6px;
+    padding: 22px 26px;
     flex-direction: column;
-    padding: 16px;
 }
 
-.quest-panel-header {
+.overlay-header {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    height: 48px;
-    border-bottom-width: 2px;
-    border-bottom-color: rgba(255, 230, 170, 0.35);
-    margin-bottom: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(45, 38, 23);
 }
 
-.quest-panel-title {
-    font-size: 32px;
+.overlay-title {
+    font-size: 22px;
+    color: rgb(212, 162, 74);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 2px;
+}
+
+.overlay-close-button {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: rgb(58, 50, 34);
+    color: rgb(141, 130, 102);
+    font-size: 14px;
     -unity-font-style: bold;
-    color: #FFE6AA;
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
 }
 
-.quest-close-button {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    -unity-font-style: bold;
-    background-color: #425bff;
-    color: #ffffff;
-    border-radius: 6px;
-    border-width: 2px;
-    border-color: rgba(0, 0, 0, 0.25);
+.overlay-close-button:hover,
+.overlay-close-button:focus {
+    background-color: rgb(42, 33, 19);
+    border-color: rgb(212, 162, 74);
+    color: rgb(212, 162, 74);
 }
 
-.quest-close-button:hover,
-.quest-close-button:focus {
-    background-color: #7485ff;
-}
+/* ---------- quest overlay body ---------- */
 
 .quest-panel-body {
     flex-direction: row;
     flex-grow: 1;
 }
 
+/* the list is a well: it drops back to the ground value */
 .quest-list {
-    width: 33%;
+    width: 34%;
     min-width: 220px;
-    background-color: rgba(30, 40, 55, 0.6);
-    border-width: 1px;
-    border-color: rgba(255, 230, 170, 0.2);
-    border-radius: 6px;
-    margin-right: 12px;
+    margin-right: 16px;
+    background-color: rgb(22, 18, 12);
+    border-width: 0;
+    border-radius: 4px;
+    padding: 4px;
 }
 
 .quest-list-item {
-    padding: 12px;
-    font-size: 18px;
-    color: #FFE6AA;
+    margin: 0;
+    padding: 12px 14px;
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 0;
+    border-left-width: 2px;
+    border-left-color: transparent;
     border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 230, 170, 0.15);
+    border-bottom-color: rgb(45, 38, 23);
+    font-size: 14px;
+    color: rgb(217, 207, 184);
     -unity-text-align: middle-left;
-    background-color: rgba(0, 0, 0, 0);
-    border-left-width: 0;
-    border-right-width: 0;
-    border-top-width: 0;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    transition-property: background-color, color;
+    transition-property: background-color, border-color, color;
     transition-duration: 0.15s;
+    transition-timing-function: ease-out;
 }
 
 .quest-list-item:hover {
-    background-color: rgba(255, 230, 170, 0.1);
+    background-color: rgb(33, 26, 16);
 }
 
 .quest-list-item--selected {
-    background-color: rgba(255, 230, 170, 0.2);
-    color: #FFFFFF;
+    background-color: rgb(42, 33, 19);
+    border-left-color: rgb(212, 162, 74);
+    color: rgb(242, 234, 217);
     -unity-font-style: bold;
 }
 
 .quest-list-item--completed {
-    color: rgba(170, 170, 170, 0.7);
+    color: rgb(141, 130, 102);
     -unity-font-style: italic;
 }
 
 .quest-list-item--completed.quest-list-item--selected {
-    color: rgba(210, 210, 210, 1);
+    color: rgb(179, 168, 143);
 }
 
-.quest-detail-reward--active {
-    color: #9ED982;
+.quest-details {
+    flex-grow: 1;
+    background-color: rgb(33, 26, 16);
+    border-width: 0;
+    border-radius: 4px;
+    padding: 20px;
+    flex-direction: column;
 }
 
-.quest-detail-reward--completed {
-    color: #FFD700;
-    -unity-font-style: bold;
+.quest-detail-name {
+    font-size: 22px;
+    color: rgb(242, 234, 217);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    margin-bottom: 10px;
+    white-space: normal;
+}
+
+.quest-detail-description {
+    font-size: 14px;
+    color: rgb(179, 168, 143);
+    white-space: normal;
+    flex-grow: 1;
+    margin-bottom: 10px;
 }
 
 .quest-detail-progress {
-    font-size: 16px;
-    color: #CFE9FF;
+    font-size: 13px;
+    color: rgb(217, 207, 184);
     -unity-font-style: bold;
+    letter-spacing: 1px;
     margin-bottom: 8px;
 }
 
+.quest-detail-reward {
+    font-size: 14px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.quest-detail-reward--active {
+    color: rgb(212, 162, 74);
+}
+
+.quest-detail-reward--completed {
+    color: rgb(240, 205, 120);
+}
+
+/* ---------- stats overlay body ---------- */
+
 .stats-list {
     flex-grow: 1;
-    background-color: rgba(30, 40, 55, 0.6);
-    border-width: 1px;
-    border-color: rgba(255, 230, 170, 0.2);
-    border-radius: 6px;
+    background-color: rgb(22, 18, 12);
+    border-width: 0;
+    border-radius: 4px;
+    padding: 4px;
 }
 
 .stats-row {
@@ -217,49 +372,16 @@
     align-items: center;
     padding: 10px 16px;
     border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 230, 170, 0.12);
+    border-bottom-color: rgb(45, 38, 23);
 }
 
 .stats-label {
-    font-size: 18px;
-    color: #E8E8E8;
+    font-size: 14px;
+    color: rgb(217, 207, 184);
 }
 
 .stats-value {
-    font-size: 18px;
-    color: #FFE6AA;
+    font-size: 14px;
+    color: rgb(212, 162, 74);
     -unity-font-style: bold;
-}
-
-.quest-details {
-    flex-grow: 1;
-    background-color: rgba(30, 40, 55, 0.6);
-    border-width: 1px;
-    border-color: rgba(255, 230, 170, 0.2);
-    border-radius: 6px;
-    padding: 18px;
-    flex-direction: column;
-}
-
-.quest-detail-name {
-    font-size: 26px;
-    -unity-font-style: bold;
-    color: #FFE6AA;
-    margin-bottom: 12px;
-    white-space: normal;
-}
-
-.quest-detail-description {
-    font-size: 16px;
-    color: #E8E8E8;
-    white-space: normal;
-    flex-grow: 1;
-    margin-bottom: 12px;
-}
-
-.quest-detail-reward {
-    font-size: 18px;
-    -unity-font-style: bold;
-    color: #9ED982;
-    white-space: normal;
 }
