@@ -19,6 +19,7 @@ public class DeathScreen : MonoBehaviour
     private Label _waveLabel;
     private Button _campButton;
     private Button _goAgainButton;
+    private Button _retryWaveButton;
 
     public static bool IsVisible { get; private set; }
 
@@ -66,6 +67,7 @@ public class DeathScreen : MonoBehaviour
         _waveLabel = _root.Q<Label>("wave-amount");
         _campButton = _root.Q<Button>("camp-button");
         _goAgainButton = _root.Q<Button>("go-again-button");
+        _retryWaveButton = _root.Q<Button>("retry-wave-button");
 
         if (_campButton != null)
         {
@@ -76,6 +78,13 @@ public class DeathScreen : MonoBehaviour
         {
             _goAgainButton.clicked += OnGoAgainClicked;
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_retryWaveButton != null)
+        {
+            _retryWaveButton.clicked += OnRetryWaveClicked;
+        }
+#endif
 
         Hide();
     }
@@ -115,6 +124,16 @@ public class DeathScreen : MonoBehaviour
         if (_waveLabel != null)
         {
             _waveLabel.text = Mathf.Max(1, waveReached).ToString();
+        }
+
+        // Dev builds: a Test Mode run gets a third option to re-fight the wave
+        if (_retryWaveButton != null)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            _retryWaveButton.style.display = TestRunConfig.ActiveRun ? DisplayStyle.Flex : DisplayStyle.None;
+#else
+            _retryWaveButton.style.display = DisplayStyle.None;
+#endif
         }
 
         _root.style.display = DisplayStyle.Flex;
@@ -178,6 +197,26 @@ public class DeathScreen : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // Rebuild the exact run state (wave number + both loadouts, snapshotted
+    // from the live UpgradeManager so mid-run picks are included) and force
+    // the wave that killed you as the next wave.
+    private void OnRetryWaveClicked()
+    {
+        var waveManager = WaveManager.ActiveInstance;
+        var upgradeManager = Resources.Load<UpgradeManager>("UpgradeManager");
+        if (waveManager != null && upgradeManager != null)
+        {
+            TestRunConfig.Set(waveManager.CurrentWaveNumber,
+                upgradeManager.GetAppliedUpgrades(KnightTarget.LeftKnight),
+                upgradeManager.GetAppliedUpgrades(KnightTarget.RightKnight));
+            TestRunConfig.RetryWave = waveManager.CurrentWave;
+        }
+
+        OnGoAgainClicked(); // hide + reload the game scene
+    }
+#endif
+
     private void OnDestroy()
     {
         IsVisible = false;
@@ -191,5 +230,12 @@ public class DeathScreen : MonoBehaviour
         {
             _goAgainButton.clicked -= OnGoAgainClicked;
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_retryWaveButton != null)
+        {
+            _retryWaveButton.clicked -= OnRetryWaveClicked;
+        }
+#endif
     }
 }

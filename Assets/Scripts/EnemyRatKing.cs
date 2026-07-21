@@ -17,7 +17,6 @@ public class EnemyRatKing : EnemyBase
         public float telegraphPause = 0.9f; // glow warning before each attack
         public int fanProjectiles = 5;
         public float fanArcDegrees = 60f;
-        public int fanArcCount = 1;
         public int batsPerSummon = 2;
         public int ratsPerSummonLate = 1; // rats join summons from phase 2
         public int goldReward = 50;
@@ -40,6 +39,10 @@ public class EnemyRatKing : EnemyBase
 
     // Fans only from stops this far off the horizontal midline (steep angles)
     private const float FanMinHeight = 2.5f;
+
+    // Wave banner runs 5s from wave start (WaveName.cs); the king spawns 1.5s in,
+    // so the health bar fades in once the banner has finished fading out
+    private const float HealthBarRevealDelay = 3.5f;
 
     private Spawner _spawner;
     private Config _config;
@@ -64,7 +67,7 @@ public class EnemyRatKing : EnemyBase
         }
     }
 
-    public void Initialize(Spawner spawner, Config config)
+    public void Initialize(Spawner spawner, Config config, string bossTitle = null)
     {
         _spawner = spawner;
         _config = config;
@@ -72,6 +75,17 @@ public class EnemyRatKing : EnemyBase
         health = config.health;
         goldOnDeath = config.goldReward;
         specialOnDeath = config.specialOnDeathReward;
+        BossHealthBar.Show(string.IsNullOrEmpty(bossTitle) ? DisplayName : bossTitle);
+        StartCoroutine(RevealHealthBarAfterBanner());
+    }
+
+    private IEnumerator RevealHealthBarAfterBanner()
+    {
+        yield return new WaitForSeconds(HealthBarRevealDelay);
+        if (!isDead)
+        {
+            BossHealthBar.Reveal();
+        }
     }
 
     private void Start()
@@ -95,6 +109,12 @@ public class EnemyRatKing : EnemyBase
 
     private void Update()
     {
+        // Push health every frame so poison ticks and mid-action hits all show
+        if (_config != null && _maxHealth > 0f)
+        {
+            BossHealthBar.SetFraction(isDead ? 0f : health / _maxHealth);
+        }
+
         if (isDead || _acting || _config == null) return;
 
         _sinceLastAction += Time.deltaTime;
@@ -178,11 +198,12 @@ public class EnemyRatKing : EnemyBase
         var direction = transform.position.x >= 0f
             ? Spawner.ArcDirection.Clockwise
             : Spawner.ArcDirection.CounterClockwise;
+        // Always a single arc per volley: stacked arcs interleave into confusing
+        // back-to-back projectile pairs. Phases escalate via projectile count instead.
         int projectiles = _config.fanProjectiles + (Phase - 1);
-        int arcs = Phase == 3 ? _config.fanArcCount + 1 : _config.fanArcCount;
 
         _spawner.SpawnProjectileArc(target, direction, transform.position,
-            _config.fanArcDegrees, projectiles, 0.12f, arcs, 0.35f);
+            _config.fanArcDegrees, projectiles, 0.12f);
     }
 
     private void SummonAdds()
@@ -206,7 +227,7 @@ public class EnemyRatKing : EnemyBase
                 Vector2 patrolSpot = new Vector2(
                     knight.position.x + Random.Range(-2.5f, 2.5f),
                     Random.Range(-3f, 3f));
-                _spawner.SpawnRat(patrolSpot, _spawner.brownRat, 0f, knight);
+                _spawner.SpawnRat(patrolSpot, _spawner.brownRat, 0f, knight, bypassTierGate: true);
             }
         }
     }
@@ -249,4 +270,10 @@ public class EnemyRatKing : EnemyBase
     }
 
     public override float GetMaxHealth() => _maxHealth > 0f ? _maxHealth : health;
+
+    // Covers death, despawn, and scene unload alike
+    private void OnDestroy()
+    {
+        BossHealthBar.Hide();
+    }
 }

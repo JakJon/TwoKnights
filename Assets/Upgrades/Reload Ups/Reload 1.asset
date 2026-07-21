@@ -13,8 +13,12 @@ MonoBehaviour:
   m_Name: Reload 1
   m_EditorClassIdentifier: 
   upgradeName: 'Quick Reload '
-  description: Less downtime between arrows. +30% Fire Rate
+  description: Shortens time between shots.
   weight: 100
   unlockedBy: []
   lockedBy: []
-  rateMultiplier: 0.7
+  stats:
+  - valueText: +20%
+    labelText: FIRE RATE
+    isPositive: 1
+  rateMultiplier: 0.8

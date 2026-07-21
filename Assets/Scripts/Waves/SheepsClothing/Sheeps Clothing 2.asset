@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sheeps Clothing 2
   m_EditorClassIdentifier: 
   waveName: Sheep's Clothing
-  weight: 100000000
+  weight: 1000
   isUnlocked: 0
   waveDescription: A wall of slimes shields a stalking wolf. Break the wall before
     the wolf breaks you.
@@ -23,4 +23,4 @@ MonoBehaviour:
   slimesPerWall: 4
   slimeSize: 2
   wolfType: 1
-  secondsBeforeWolfAttack: 18
+  secondsBeforeWolfAttack: 3

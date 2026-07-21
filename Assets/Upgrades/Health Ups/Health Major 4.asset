@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Health Major 4
   m_EditorClassIdentifier: 
   upgradeName: Major Health Boost
-  description: A large increase to your maximum health. +50 Max Health. Boost 4,
+  description: A large increase to your maximum health.
   weight: 40
   unlockedBy:
   - {fileID: 11400000, guid: 7774771bbc16cdb41a61d76f1cc01219, type: 2}
@@ -22,4 +22,8 @@ MonoBehaviour:
   lockedBy:
   - {fileID: 11400000, guid: c30856e2299312d4da708eb6be0535b9, type: 2}
   - {fileID: 11400000, guid: 7645648c800d7494bb3437a6ee9bdf92, type: 2}
+  stats:
+  - valueText: +50
+    labelText: MAX HEALTH
+    isPositive: 1
   healthIncrease: 50

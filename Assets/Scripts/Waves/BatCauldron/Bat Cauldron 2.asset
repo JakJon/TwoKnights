@@ -24,4 +24,4 @@ MonoBehaviour:
   delayBetweenRings: 15
   ringRadius: 12
   projectileAmount: 6
-  projectileDelay: 3
+  projectileDelay: 1

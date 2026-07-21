@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: Shadow 5
   m_EditorClassIdentifier: 
   upgradeName: Shadow Arrow Five
-  description: Shadow arrow five. Your shadow arrow collection is complete. Deals
-    20% damage of main arrow.
-  weight: 80
+  description: A fifth shadow arrow completes the set.
+  weight: 30
   order: 2
   unlockedBy:
   - {fileID: 11400000, guid: f176580e3be41e04d8afff9e4e2ae064, type: 2}
   lockedBy: []
+  stats:
+  - valueText: 20%
+    labelText: DAMAGE
+    isPositive: 1
   shadowArrowPrefab: {fileID: 8124615890466243421, guid: b06b2f4c55b919a458a9db7434633ee0, type: 3}
   shadowArrowAmount: 5

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fde099df052a934f8c8706301342ce2, type: 3}
   m_Name: Belfry And Cellar 1
   m_EditorClassIdentifier: 
-  waveName: Belfry and Cellar
-  weight: 100000000
+  waveName: Belfry and Cellar II
+  weight: 1000
   isUnlocked: 0
   waveDescription: Bats on the beat upstairs, rat fuses burning below. Spend your
     spare arrows wisely.

@@ -20,6 +20,10 @@ public class Spawner : MonoBehaviour
     [SerializeField] public GameObject greyWolfPrefab;
     [SerializeField] public GameObject brownWolfPrefab;
     [SerializeField] public GameObject blackWolfPrefab;
+    [SerializeField] public GameObject darkBat;
+    [Tooltip("Every Nth bat of a wave spawns as a dark bat once past the gate boss. Deterministic — wave content must never roll dice")]
+    [SerializeField] private int darkBatInterval = 4;
+    private int _batCallCount; // bat spawn calls this wave, in wave-script order
     [SerializeField] public GameObject healthOrbPrefab;
     [SerializeField] public GameObject manaOrbPrefab;
 
@@ -74,23 +78,168 @@ public class Spawner : MonoBehaviour
         // a domain reload — matters for restarting runs in builds
         waveManager.BeginRun();
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        ApplyTestRunConfigIfPending();
+#endif
+
         StartNextWave();
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // Dev-only Test Mode: consume a setup authored in the camp — jump the wave
+    // counter and pre-apply the chosen upgrades before the first wave spawns.
+    private void ApplyTestRunConfigIfPending()
+    {
+        TestRunConfig.ActiveRun = TestRunConfig.Pending;
+        if (!TestRunConfig.Pending) return;
+
+        waveManager.ApplyTestStart(TestRunConfig.StartWave);
+
+        // Interleave L/R picks so UpgradeManager's turn alternation ends up in
+        // a natural state; each list is already ordered lowest tier first.
+        var left = TestRunConfig.LeftUpgrades;
+        var right = TestRunConfig.RightUpgrades;
+        int most = Mathf.Max(left.Count, right.Count);
+        for (int i = 0; i < most; i++)
+        {
+            if (i < left.Count && left[i] != null && upgradeManager != null)
+                upgradeManager.ApplyUpgrade(left[i], KnightTarget.LeftKnight);
+            if (i < right.Count && right[i] != null && upgradeManager != null)
+                upgradeManager.ApplyUpgrade(right[i], KnightTarget.RightKnight);
+        }
+
+        Debug.Log($"[TestMode] Starting at wave {TestRunConfig.StartWave} with " +
+                  $"{left.Count} left / {right.Count} right upgrade levels.");
+        TestRunConfig.Clear();
+    }
+#endif
 
     public void StartNextWave()
     {
         if (_isWaveInProgress || _isUpgradeMenuActive)
             return;
 
-        var nextWave = waveManager.SelectNextWave();
-        if (nextWave != null)
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Test runs choose every wave by hand (or via the AutoPickWave hook)
+        if (TestRunConfig.ActiveRun)
         {
-            if (waveNameDisplay != null)
-                waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
-            _isWaveInProgress = true;
-            StartCoroutine(RunWave(nextWave));
+            if (_isWavePickerActive) return;
+            StartCoroutine(PickNextWaveThenStart());
+            return;
+        }
+#endif
+
+        BeginWave(waveManager.SelectNextWave());
+    }
+
+    private void BeginWave(BaseWave nextWave)
+    {
+        if (nextWave == null) return;
+        if (waveNameDisplay != null)
+            waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
+        _isWaveInProgress = true;
+        _batCallCount = 0; // dark-bat cadence restarts every wave
+        StartCoroutine(RunWave(nextWave));
+    }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private bool _isWavePickerActive;
+
+    // Dev-only Test Mode: before each wave, surface everything the selector
+    // could pick (scheduled boss + playable pool) and let the tester decide.
+    private IEnumerator PickNextWaveThenStart()
+    {
+        _isWavePickerActive = true;
+
+        // Death-screen retry: force the wave that killed you, once
+        var retryWave = TestRunConfig.RetryWave;
+        if (retryWave != null)
+        {
+            TestRunConfig.RetryWave = null;
+            _isWavePickerActive = false;
+            waveManager.ForceSelectWave(retryWave);
+            BeginWave(retryWave);
+            yield break;
+        }
+
+        var scheduledBoss = waveManager.PeekScheduledBoss();
+        var pool = waveManager.GetPlayableCandidates();
+        var locked = waveManager.GetLockedCandidates();
+
+        // Automation hook: a named wave (or "*" for weighted random) skips the
+        // UI entirely so MCP-driven validation never stalls on input
+        string auto = TestRunConfig.AutoPickWave;
+        if (!string.IsNullOrEmpty(auto))
+        {
+            BaseWave match = null;
+            if (auto != "*")
+            {
+                if (scheduledBoss != null && string.Equals(scheduledBoss.name, auto, System.StringComparison.OrdinalIgnoreCase))
+                    match = scheduledBoss;
+                foreach (var wave in pool)
+                {
+                    if (match != null) break;
+                    if (string.Equals(wave.name, auto, System.StringComparison.OrdinalIgnoreCase))
+                        match = wave;
+                }
+                // Locked waves are fair game for automation — forcing a wave
+                // outside its unlock window is a legitimate test
+                foreach (var wave in locked)
+                {
+                    if (match != null) break;
+                    if (string.Equals(wave.name, auto, System.StringComparison.OrdinalIgnoreCase))
+                        match = wave;
+                }
+                if (match == null)
+                    Debug.LogWarning($"[TestMode] AutoPickWave '{auto}' matched no candidate; using weighted random.");
+            }
+            _isWavePickerActive = false;
+            if (match != null)
+            {
+                waveManager.ForceSelectWave(match);
+                BeginWave(match);
+            }
+            else
+            {
+                BeginWave(waveManager.SelectNextWave());
+            }
+            yield break;
+        }
+
+        var picker = TestWavePicker.GetOrCreate();
+        if (picker == null)
+        {
+            // No UI to piggyback on — behave like a normal run
+            _isWavePickerActive = false;
+            BeginWave(waveManager.SelectNextWave());
+            yield break;
+        }
+
+        BaseWave chosen = null;
+        bool decided = false;
+
+        Time.timeScale = 0f;
+        picker.Show(scheduledBoss, pool, locked, waveManager.CurrentWaveNumber, wave =>
+        {
+            chosen = wave;
+            decided = true;
+        });
+        while (!decided) yield return null;
+        Time.timeScale = 1f;
+
+        _isWavePickerActive = false;
+
+        if (chosen != null)
+        {
+            waveManager.ForceSelectWave(chosen);
+            BeginWave(chosen);
+        }
+        else
+        {
+            BeginWave(waveManager.SelectNextWave()); // "Random" row / B button
         }
     }
+#endif
 
     private IEnumerator RunWave(BaseWave wave)
     {
@@ -198,14 +347,34 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget)
+    // Brown/black rats and black wolves are deep-forest enemies: they only
+    // spawn once the run is past the map's gate boss (the rat king on wave 10).
+    // Earlier waves get the grey stand-in instead, so wave assets whose unlock
+    // windows straddle the boss stay playable on both sides of it.
+    private bool EliteTierUnlocked
     {
-        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget));
+        get
+        {
+            if (waveManager == null) return true;
+            var map = waveManager.CurrentMap;
+            int gateBossWave = map != null ? map.GateBossWaveNumber : 10;
+            return waveManager.CurrentWaveNumber > gateBossWave;
+        }
     }
 
-    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget)
+    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate = false)
+    {
+        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassTierGate));
+    }
+
+    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate)
     {
         yield return new WaitForSeconds(delay);
+        // bypassTierGate lets the rat king summon his brown brood mid-fight
+        if (!bypassTierGate && !EliteTierUnlocked && (ratType == brownRat || ratType == blackRat))
+        {
+            ratType = greyRat;
+        }
         GameObject enemy = Instantiate(ratType);
         enemy.transform.position = targetPosition;
 
@@ -238,13 +407,23 @@ public class Spawner : MonoBehaviour
 
     public void SpawnBat(Vector2 spawnPosition, float delay)
     {
-        StartCoroutine(SpawnBatAfterDelay(spawnPosition, delay));
+        // Decide dark-vs-normal at CALL time, in wave-script order: coroutine
+        // wake-up order ties on equal delays, so deciding after the wait would
+        // make the pattern non-deterministic. Same wave = same bats, always.
+        _batCallCount++;
+        GameObject prefab = bat;
+        if (EliteTierUnlocked && darkBat != null && darkBatInterval > 0
+            && _batCallCount % darkBatInterval == 0)
+        {
+            prefab = darkBat;
+        }
+        StartCoroutine(SpawnBatAfterDelay(prefab, spawnPosition, delay));
     }
 
-    private IEnumerator SpawnBatAfterDelay(Vector2 spawnPosition, float delay)
+    private IEnumerator SpawnBatAfterDelay(GameObject prefab, Vector2 spawnPosition, float delay)
     {
         yield return new WaitForSeconds(delay);
-        GameObject enemy = Instantiate(bat);
+        GameObject enemy = Instantiate(prefab);
         enemy.transform.position = spawnPosition;
     }
 
@@ -257,6 +436,11 @@ public class Spawner : MonoBehaviour
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
+
+        if (wolfType == WolfType.Black && !EliteTierUnlocked)
+        {
+            wolfType = WolfType.Grey;
+        }
 
         GameObject prefabToUse = null;
         switch (wolfType)

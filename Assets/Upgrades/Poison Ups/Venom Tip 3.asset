@@ -13,11 +13,15 @@ MonoBehaviour:
   m_Name: Venom Tip 3
   m_EditorClassIdentifier: 
   upgradeName: Venom Tip III
-  description: +40% poison chance. Every arrow drips venom
+  description: Nearly every arrow drips venom.
   weight: 50
   order: 1
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 424a1fcf13016f1390393846f746f090, type: 2}
   lockedBy: []
+  stats:
+  - valueText: +40%
+    labelText: CHANCE
+    isPositive: 1
   poisonChanceIncrease: 40

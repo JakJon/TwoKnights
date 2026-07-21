@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: Shadow 1
   m_EditorClassIdentifier: 
   upgradeName: Shadow Arrow
-  description: Arrows spawn shadow copies that deal 20% damage
+  description: Arrows spawn a shadow copy that deals damage.
   weight: 100
   order: 2
   unlockedBy: []
   lockedBy: []
+  stats:
+  - valueText: 20%
+    labelText: DAMAGE
+    isPositive: 1
   shadowArrowPrefab: {fileID: 8124615890466243421, guid: b06b2f4c55b919a458a9db7434633ee0, type: 3}
   shadowArrowAmount: 1

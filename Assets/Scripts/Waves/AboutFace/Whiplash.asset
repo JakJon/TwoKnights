@@ -12,20 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
   m_Name: Whiplash
   m_EditorClassIdentifier: 
-  waveName: Whiplash
+  waveName: Whiplash II
   weight: 1000
   isUnlocked: 0
   waveDescription: Opposite volleys arrive faster and slightly off-angle, with bats
     drifting in.
-  unlockedAfterXWaves: 4
-  lockedAfterXWaves: 10
+  unlockedAfterXWaves: 10
+  lockedAfterXWaves: 16
   useEnemyTracking: 1
   burstCount: 3
   pairsPerBurst: 4
   flipWindow: 1.5
   flipWindowRampFactor: 0.9
-  delayBetweenPairs: 1.5
-  delayBetweenBursts: 3
+  delayBetweenPairs: 3
+  delayBetweenBursts: 4
   projectilesPerVolley: 1
   angleJitter: 15
   offscreenPadding: 2

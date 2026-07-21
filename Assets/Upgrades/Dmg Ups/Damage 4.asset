@@ -13,10 +13,13 @@ MonoBehaviour:
   m_Name: Damage 4
   m_EditorClassIdentifier: 
   upgradeName: Incredible Damage
-  description: A huge increase in damage per arrow. A single arrow will fall most
-    foes. +12 Damage
+  description: A huge increase in damage per arrow.
   weight: 35
   unlockedBy:
   - {fileID: 11400000, guid: 9b240762b90fb4e4cac7474405b82202, type: 2}
   lockedBy: []
+  stats:
+  - valueText: +12
+    labelText: DAMAGE
+    isPositive: 1
   damageIncrease: 12

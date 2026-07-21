@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Miasma 1
   m_EditorClassIdentifier: 
   upgradeName: Miasma I
-  description: Enemies that die poisoned leave a venom cloud that poisons those nearby
+  description: Poisoned enemies leave a venom cloud on death.
   weight: 40
   order: 1
   requiresOrderCount: 0

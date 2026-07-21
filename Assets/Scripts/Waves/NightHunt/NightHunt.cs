@@ -26,7 +26,11 @@ public class NightHunt : BaseWave
     [Tooltip("Wolf color used in rounds 3 and up")]
     [SerializeField] private WolfType roundThreeWolf = WolfType.Brown;
 
-    private const float StalkRadius = 5f;
+    // The stalk circle must stay entirely on the wolf's own half: with knights at
+    // x = +-2, a knight-centered radius-5 circle swung to x = -+3 and clipped the
+    // OTHER knight on the first pass. Centering further out keeps the loop clear.
+    private const float StalkRadius = 3.5f;
+    private const float StalkCenterX = 3.5f;
     private const float EntryPathLength = 8f;     // bottom corner to the first circle point
     private const float ArcStepDegrees = 15f;
     private const float LungeSeconds = 2f;
@@ -83,7 +87,7 @@ public class NightHunt : BaseWave
     private void LaunchStrike(Spawner spawner, float side, WolfType wolfType, float delay)
     {
         Transform knight = side > 0 ? spawner.RightPlayer : spawner.LeftPlayer;
-        Vector2 center = new Vector2(side * 2f, 0f);
+        Vector2 center = new Vector2(side * StalkCenterX, 0f);
 
         // Stalk: in from the bottom corner, then full circles around the knight
         // (the menace/pre-chip window), ending on a quarter arc below before the lunge

@@ -72,6 +72,30 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     
     public bool IsPoisoned => isPoisoned;
     public bool IsDead => isDead;
+
+    // Fired with the credited knight's tag ("PlayerLeft"/"PlayerRight") whenever
+    // that knight's damage kills an enemy — Thousand Cuts (Shadow Order) listens
+    public static event System.Action<string> OnEnemyKilledBy;
+
+    // Highest health this enemy has had; GetMaxHealth needs it because `health`
+    // is mutated in place by damage (and some enemies set health after Awake)
+    protected float peakHealth;
+
+    protected static void RaiseEnemyKilledBy(string playerTag)
+    {
+        if (!string.IsNullOrEmpty(playerTag))
+        {
+            OnEnemyKilledBy?.Invoke(playerTag);
+        }
+    }
+
+    protected static string PlayerTagFromProjectile(GameObject projectile)
+    {
+        if (projectile == null) return null;
+        if (projectile.CompareTag("PlayerLeftProjectile")) return "PlayerLeft";
+        if (projectile.CompareTag("PlayerRightProjectile")) return "PlayerRight";
+        return null;
+    }
     // Stagger system
     protected bool isStaggered = false;
     protected AnimationClip originalAnimationClip;
@@ -82,7 +106,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         spriteRenderer = GetComponent<SpriteRenderer>();
         glowManager = GetComponent<GlowManager>(); // Cache the component
         animator = GetComponent<Animator>(); // Cache the animator
-        
+        peakHealth = health;
+
         BaseWave.RegisterEnemy(gameObject); // Register for wave tracking
     }
 
@@ -90,6 +115,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     {
         // Ignore any damage once death has been triggered
         if (isDead) return;
+        // Track the pre-damage peak so GetMaxHealth stays correct even for
+        // enemies that raise their health after Awake (slime sizes, boss init)
+        peakHealth = Mathf.Max(peakHealth, health);
         // Extension point for pre-damage effects
         OnBeforeDamageApplied(damage, projectile);
         
@@ -114,6 +142,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             TriggerPoisonDeathEffects();
             // Give death special to the player who fired the projectile
             GiveSpecialToPlayer(specialOnDeath, projectile);
+            RaiseEnemyKilledBy(PlayerTagFromProjectile(projectile));
 
             // Play death sound
             if (deathSound != null && AudioManager.Instance != null)
@@ -283,6 +312,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                         {
                             Debug.Log($"Giving death special to poison contributor with player tag: {poisonSource.playerTag}");
                             GiveSpecialToPlayer(specialOnDeath, poisonSource.playerTag);
+                            RaiseEnemyKilledBy(poisonSource.playerTag);
                         }
                         else
                         {
@@ -640,6 +670,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // Public getter for health (useful for UI or other systems)
     public float GetHealth() => health;
     
-    // Public getter for max health (if needed)
-    public virtual float GetMaxHealth() => health;
+    // Public getter for max health (Killing Blow thresholds depend on this
+    // being the real maximum, not the mutated current value)
+    public virtual float GetMaxHealth() => Mathf.Max(peakHealth, health);
 }

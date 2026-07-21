@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Gilded Vigil - Pine / tree line
+Columns: 4
+# Frame the arena edges; darkest values in the scene live here.
+ 14  20  16	pine-1 0e1410
+ 24  36  26	pine-2 18241a
+ 36  54  38	pine-3 243626
+ 51  72  47	pine-4 33482f

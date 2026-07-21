@@ -15,6 +15,14 @@ public enum KnightTarget
     RightKnight
 }
 
+[System.Serializable]
+public struct UpgradeStat
+{
+    public string valueText;   // "+30%", "+10", "15%"
+    public string labelText;   // "FIRE RATE", "MAX HEALTH", "" allowed
+    public bool isPositive;    // authored judgment call, not sign-derived
+}
+
 public abstract class BaseUpgrade : ScriptableObject
 {
     [SerializeField] protected string upgradeName;
@@ -24,6 +32,7 @@ public abstract class BaseUpgrade : ScriptableObject
     [SerializeField] protected int requiresOrderCount = 0; // Owned upgrades of this Order needed before this appears (capstone gating)
     [SerializeField] protected List<BaseUpgrade> unlockedBy = new List<BaseUpgrade>();
     [SerializeField] protected List<BaseUpgrade> lockedBy = new List<BaseUpgrade>();
+    [SerializeField] protected List<UpgradeStat> stats = new List<UpgradeStat>();
 
     public string UpgradeName => upgradeName;
     public string Description => description;
@@ -32,6 +41,7 @@ public abstract class BaseUpgrade : ScriptableObject
     public int RequiresOrderCount => requiresOrderCount;
     public IReadOnlyList<BaseUpgrade> UnlockedBy => unlockedBy;
     public IReadOnlyList<BaseUpgrade> LockedBy => lockedBy;
+    public IReadOnlyList<UpgradeStat> Stats => stats;
 
     // Display name of the chain/family this upgrade belongs to (e.g. "Shadow Arrow").
     // Defaults to the class name split on capitals with the "Upgrade" suffix dropped.

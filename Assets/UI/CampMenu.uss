@@ -356,6 +356,164 @@
     color: rgb(240, 205, 120);
 }
 
+/* ---------- test mode (dev builds only) ---------- */
+
+/* the test overlay owns the whole screen — the upgrade list is long */
+#test-panel {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 0;
+}
+
+/* dev button keeps a cooler, utilitarian identity so it reads as a tool */
+.menu-button.test {
+    border-color: rgb(38, 52, 58);
+    color: rgb(122, 160, 170);
+}
+
+.menu-button.test.menu-button--selected {
+    background-color: rgb(30, 38, 40);
+    border-color: rgb(122, 160, 170);
+    color: rgb(196, 222, 228);
+}
+
+.test-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 3px;
+    border-left-width: 2px;
+    border-left-color: transparent;
+}
+
+.test-row--selected {
+    background-color: rgb(42, 33, 19);
+    border-left-color: rgb(212, 162, 74);
+}
+
+.test-row-name {
+    font-size: 14px;
+    color: rgb(217, 207, 184);
+}
+
+.test-row--selected .test-row-name {
+    color: rgb(242, 234, 217);
+    -unity-font-style: bold;
+}
+
+.test-row-value {
+    font-size: 14px;
+    color: rgb(212, 162, 74);
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.test-budget-line {
+    font-size: 13px;
+    color: rgb(179, 168, 143);
+    -unity-text-align: middle-center;
+    margin: 6px 0;
+    letter-spacing: 1px;
+}
+
+.test-budget-line--over {
+    color: rgb(216, 110, 80);
+    -unity-font-style: bold;
+}
+
+.test-upgrade-list {
+    flex-grow: 1;
+    background-color: rgb(22, 18, 12);
+    border-width: 0;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+/* section headers are selectable rows that expand/collapse their chain */
+.test-section-header {
+    font-size: 12px;
+    color: rgb(141, 130, 102);
+    letter-spacing: 2px;
+    -unity-font-style: bold;
+    padding: 10px 14px 8px 14px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(45, 38, 23);
+    border-left-width: 2px;
+    border-left-color: transparent;
+}
+
+.test-section-header.test-row--selected {
+    background-color: rgb(42, 33, 19);
+    border-left-color: rgb(212, 162, 74);
+    color: rgb(240, 205, 120);
+}
+
+/* per-knight toggle chips on each upgrade row */
+.test-toggle {
+    width: 34px;
+    padding: 3px 0;
+    margin-left: 8px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: rgb(58, 50, 34);
+    background-color: transparent;
+    color: rgb(141, 130, 102);
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.test-toggle--on {
+    background-color: rgb(212, 162, 74);
+    border-color: rgb(212, 162, 74);
+    color: rgb(36, 27, 13);
+}
+
+.test-start-row {
+    margin-top: 8px;
+    padding: 11px 14px;
+    background-color: rgb(33, 26, 16);
+    border-width: 2px;
+    border-radius: 4px;
+    border-color: rgb(58, 50, 34);
+    justify-content: center;
+}
+
+.test-start-row.test-row--selected {
+    background-color: rgb(212, 162, 74);
+    border-color: rgb(212, 162, 74);
+}
+
+.test-start-row.test-start-row--blocked {
+    border-color: rgb(74, 40, 28);
+}
+
+.test-start-label {
+    font-size: 15px;
+    color: rgb(217, 207, 184);
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    -unity-text-align: middle-center;
+}
+
+.test-start-row.test-row--selected .test-start-label {
+    color: rgb(36, 27, 13);
+}
+
+.test-start-row.test-start-row--blocked .test-start-label {
+    color: rgb(205, 133, 105);
+}
+
+.test-hint-line {
+    font-size: 11px;
+    color: rgb(141, 130, 102);
+    -unity-text-align: middle-center;
+    margin-top: 8px;
+}
+
 /* ---------- stats overlay body ---------- */
 
 .stats-list {

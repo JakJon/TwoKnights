@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Health Epic 2
   m_EditorClassIdentifier: 
   upgradeName: Incredible Health Boost
-  description: Lucky Find! A massive addition to your max health. +100 Max Health.
-    Boost 2.
+  description: Lucky find! A massive addition to your max health.
   weight: 2
   unlockedBy:
   - {fileID: 11400000, guid: 4ec4f9f5d54c6884bb666bff4fcdaca4, type: 2}
@@ -24,4 +23,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a4bf8312de5084e478981043ff0f0780, type: 2}
   - {fileID: 11400000, guid: 369f8169389948f429fe7584feee0941, type: 2}
   - {fileID: 11400000, guid: 61e81fbabd2699e46b01ca33224767eb, type: 2}
+  stats:
+  - valueText: +100
+    labelText: MAX HEALTH
+    isPositive: 1
   healthIncrease: 100

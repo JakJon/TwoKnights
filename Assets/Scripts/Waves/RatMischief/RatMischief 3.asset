@@ -20,6 +20,6 @@ MonoBehaviour:
   lockedAfterXWaves: 16
   useEnemyTracking: 1
   waveOccurences: 3
-  baseRatCount: 3
+  baseRatCount: 4
   projectileCount: 10
   projectileDelay: 0.5

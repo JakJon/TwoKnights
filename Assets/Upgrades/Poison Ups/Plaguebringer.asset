@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Plaguebringer
   m_EditorClassIdentifier: 
   upgradeName: Plaguebringer
-  description: Enemies that die poisoned burst. Venom leaps to nearby foes and feeds
-    your special
+  description: Poisoned deaths burst, spreading venom and feeding your special.
   weight: 10
   order: 1
   requiresOrderCount: 4

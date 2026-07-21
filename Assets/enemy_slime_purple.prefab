@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 527821915735605099}
   - component: {fileID: -790149733252760527}
   m_Layer: 0
-  m_Name: enemy_slime_purple
+  m_Name: Enemy_Slime_Purple
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

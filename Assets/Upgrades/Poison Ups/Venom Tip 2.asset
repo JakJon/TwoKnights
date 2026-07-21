@@ -13,11 +13,18 @@ MonoBehaviour:
   m_Name: Venom Tip 2
   m_EditorClassIdentifier: 
   upgradeName: Venom Tip II
-  description: +30% poison chance. 60% of arrows carry venom
+  description: More arrows carry venom, more often.
   weight: 80
   order: 1
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 46f6a57d562150fdeb38380b67b6e7a9, type: 2}
   lockedBy: []
+  stats:
+  - valueText: +30%
+    labelText: CHANCE
+    isPositive: 1
+  - valueText: '60%'
+    labelText: ARROWS
+    isPositive: 1
   poisonChanceIncrease: 30

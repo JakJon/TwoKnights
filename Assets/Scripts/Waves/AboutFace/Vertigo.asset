@@ -12,20 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
   m_Name: Vertigo
   m_EditorClassIdentifier: 
-  waveName: Vertigo
+  waveName: whiplash III
   weight: 1000
   isUnlocked: 0
   waveDescription: Relentless point-blank flips from every direction while wolves
     and bats close in.
-  unlockedAfterXWaves: 8
+  unlockedAfterXWaves: 15
   lockedAfterXWaves: -1
   useEnemyTracking: 1
   burstCount: 4
   pairsPerBurst: 5
   flipWindow: 1
-  flipWindowRampFactor: 0.85
-  delayBetweenPairs: 1.25
-  delayBetweenBursts: 2.5
+  flipWindowRampFactor: 0.9
+  delayBetweenPairs: 3
+  delayBetweenBursts: 3
   projectilesPerVolley: 2
   angleJitter: 45
   offscreenPadding: 0.5

@@ -9,6 +9,9 @@ public class PoisonResourceManager : ScriptableObject
     
     [Tooltip("Sprite to use for poison bubbles (fallback if no prefab)")]
     public Sprite poisonBubbleSprite;
+
+    [Tooltip("Soft cloud puff used by miasma / Serpent's Breath clouds (drawn white, tinted in code)")]
+    public Sprite poisonPuffSprite;
     
     [Header("Settings")]
     [Tooltip("Default bubble rate for enemies")]
@@ -43,5 +46,10 @@ public class PoisonResourceManager : ScriptableObject
     public Sprite GetPoisonBubbleSprite()
     {
         return poisonBubbleSprite;
+    }
+
+    public Sprite GetPoisonPuffSprite()
+    {
+        return poisonPuffSprite;
     }
 }

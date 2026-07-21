@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: Shadow 4
   m_EditorClassIdentifier: 
   upgradeName: Shadow Arrow Four
-  description: A fourth shadow arrow. A daisy chain of shadows. Deals 20% damage
-    of main arrow.
-  weight: 100
+  description: A fourth shadow arrow joins the fray.
+  weight: 50
   order: 2
   unlockedBy:
   - {fileID: 11400000, guid: 30e4f281e39903e41bb2bc4aa2029c04, type: 2}
   lockedBy: []
+  stats:
+  - valueText: 20%
+    labelText: DAMAGE
+    isPositive: 1
   shadowArrowPrefab: {fileID: 8124615890466243421, guid: b06b2f4c55b919a458a9db7434633ee0, type: 3}
   shadowArrowAmount: 4

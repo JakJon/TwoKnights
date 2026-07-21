@@ -28,10 +28,12 @@ public class RapidFire : MonoBehaviour
 
     private IEnumerator RapidFireRoutine(PlayerShooter shooter)
     {
+        // Auto-fire + a no-cooldown window. Never write cooldownTime here: the
+        // old hardcoded restore (1.5) silently erased Reload upgrades after
+        // every special.
         shooter.rapidFireEnabled = true;
-        shooter.cooldownTime = .1f;
+        shooter.OpenNoCooldownWindow(6f, 0.16f);
         yield return new WaitForSeconds(6f);
         shooter.rapidFireEnabled = false;
-        shooter.cooldownTime = 1.5f;
     }
 }

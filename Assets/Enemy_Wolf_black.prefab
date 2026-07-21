@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 6288241264135378578}
   - component: {fileID: 8976855551065846411}
   m_Layer: 0
-  m_Name: Enemy_Wolf_black
+  m_Name: Enemy_Wolf_Black
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

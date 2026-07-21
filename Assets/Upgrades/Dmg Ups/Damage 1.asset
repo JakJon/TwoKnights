@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: Damage 1
   m_EditorClassIdentifier: 
   upgradeName: Minor Damage Boost
-  description: A small increade in damage per arrow. Even small improvements make
-    a difference!  +2 Damage Per Arrow
+  description: A small increase in damage per arrow.
   weight: 100
   unlockedBy: []
   lockedBy: []
+  stats:
+  - valueText: +2
+    labelText: DAMAGE
+    isPositive: 1
   damageIncrease: 2

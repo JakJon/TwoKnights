@@ -13,9 +13,13 @@ MonoBehaviour:
   m_Name: Fire Speed 2
   m_EditorClassIdentifier: 
   upgradeName: Blazing Firing Speed
-  description: Arrows travel significantly faster. +150% Projectile Speed
+  description: Arrows travel blindingly fast now.
   weight: 10
   unlockedBy:
   - {fileID: 11400000, guid: 8a8ac69ee86f50342bf16a878d746a2b, type: 2}
   lockedBy: []
+  stats:
+  - valueText: +150%
+    labelText: PROJECTILE SPEED
+    isPositive: 1
   speedMultiplier: 2.5

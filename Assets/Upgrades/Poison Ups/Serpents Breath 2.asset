@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d79113585103b1409bbc7e47439ecc5, type: 3}
+  m_Name: Serpents Breath 2
+  m_EditorClassIdentifier: 
+  upgradeName: Serpent's Breath II
+  description: Higher chance to exhale a longer-lasting cloud.
+  weight: 60
+  order: 1
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: 1a5202610e413aa37024e4b37e4899ec, type: 2}
+  lockedBy: []
+  stats:
+  - valueText: 50%
+    labelText: CHANCE
+    isPositive: 1
+  cloudChance: 50
+  cloudDuration: 5
+  largeCloud: 0

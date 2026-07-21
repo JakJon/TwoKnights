@@ -64,8 +64,11 @@ public class GameSceneManager : MonoBehaviour
         if (WaveManager.ActiveInstance != null)
         {
             waveReached = WaveManager.ActiveInstance.CurrentWaveNumber;
-            SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, waveReached);
-            SaveManager.Save();
+            if (!IsTestRun())
+            {
+                SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, waveReached);
+                SaveManager.Save();
+            }
         }
 
         HideUpgradeMenuIfNeeded();
@@ -86,8 +89,11 @@ public class GameSceneManager : MonoBehaviour
 
         isTransitioningToCamp = true;
 
-        SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, wavesCompleted);
-        SaveManager.Save();
+        if (!IsTestRun())
+        {
+            SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, wavesCompleted);
+            SaveManager.Save();
+        }
 
         GoldManager.Instance?.AddGold(trueVictory ? trueVictoryGold : gateVictoryGold);
 
@@ -119,6 +125,16 @@ public class GameSceneManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(victoryDelay);
 
         LoadCampScene();
+    }
+
+    // A wave jumped to via Test Mode shouldn't count as legitimate progress
+    private static bool IsTestRun()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        return TestRunConfig.ActiveRun;
+#else
+        return false;
+#endif
     }
 
     /// <summary>

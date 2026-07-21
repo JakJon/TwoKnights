@@ -12,20 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
   m_Name: About Face
   m_EditorClassIdentifier: 
-  waveName: About Face
+  waveName: Whiplash
   weight: 1000
   isUnlocked: 0
   waveDescription: Volleys strike from one side, then snap in from the opposite side.
     Keep that shield turning!
-  unlockedAfterXWaves: 0
-  lockedAfterXWaves: 5
+  unlockedAfterXWaves: 5
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   burstCount: 2
-  pairsPerBurst: 3
+  pairsPerBurst: 2
   flipWindow: 2.5
   flipWindowRampFactor: 1
-  delayBetweenPairs: 2
-  delayBetweenBursts: 3
+  delayBetweenPairs: 4
+  delayBetweenBursts: 5
   projectilesPerVolley: 1
   angleJitter: 0
   offscreenPadding: 4

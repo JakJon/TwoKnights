@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Gilded Vigil - Stone
+Columns: 4
+# Rocks, ruins, anything hard. Cool gray with a blue bias.
+ 35  36  42	stone-1 23242a
+ 56  58  65	stone-2 383a41
+ 82  85  92	stone-3 52555c
+113 117 122	stone-4 71757a

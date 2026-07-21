@@ -25,6 +25,7 @@ public class WaveManager : ScriptableObject
 
     public int CompletedWavesCount => _completedWavesCount;
     public int CurrentWaveNumber => _completedWavesCount + 1;
+    public BaseWave CurrentWave => currentWave;
     public MapDefinition CurrentMap => currentMap;
     public RunOutcome PendingOutcome { get; private set; } = RunOutcome.None;
 
@@ -187,6 +188,61 @@ public class WaveManager : ScriptableObject
             PendingOutcome = RunOutcome.TrueVictory;
         }
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // Dev-only Test Mode: jump the run to the given wave number. Starting past
+    // the gate boss wave treats the gate as already beaten this run (like a real
+    // run that got there); starting ON the boss wave still spawns the boss.
+    public void ApplyTestStart(int startWave)
+    {
+        _completedWavesCount = Mathf.Max(0, startWave - 1);
+        if (currentMap != null && currentMap.GateBoss != null && startWave > currentMap.GateBossWaveNumber)
+        {
+            _gateBossDefeatedThisRun = true;
+        }
+    }
+
+    // What SelectNextWave would be forced to pick right now (null = pool draw)
+    public BaseWave PeekScheduledBoss()
+    {
+        return GetScheduledBoss();
+    }
+
+    // Every pool wave the weighted draw could currently land on. Mirrors
+    // SelectNextWave's dry-pool refill so the picker sees the same candidates
+    // the real selector would.
+    public List<BaseWave> GetPlayableCandidates()
+    {
+        var playable = _remainingWaves != null
+            ? _remainingWaves.Where(w => w != null && w.CanPlay(_completedWavesCount)).ToList()
+            : new List<BaseWave>();
+        if (playable.Count == 0 && currentMap != null)
+        {
+            BeginRunPoolOnly();
+            playable = _remainingWaves.Where(w => w != null && w.CanPlay(_completedWavesCount)).ToList();
+        }
+        return playable;
+    }
+
+    // Pool waves whose unlock windows currently exclude them. The picker shows
+    // these under a collapsed "locked" section so a dev can still force one.
+    // Call after GetPlayableCandidates so a dry-pool refill has already run.
+    public List<BaseWave> GetLockedCandidates()
+    {
+        return _remainingWaves != null
+            ? _remainingWaves.Where(w => w != null && !w.CanPlay(_completedWavesCount)).ToList()
+            : new List<BaseWave>();
+    }
+
+    // Test Mode picker chose a wave: install it exactly as PickFromPool would
+    // (bosses aren't pool entries, so removing is a no-op for them)
+    public void ForceSelectWave(BaseWave wave)
+    {
+        if (wave == null) return;
+        currentWave = wave;
+        _remainingWaves?.Remove(wave);
+    }
+#endif
 
     // Read-and-clear so a victory can't fire twice
     public RunOutcome ConsumePendingOutcome()

@@ -13,9 +13,15 @@ MonoBehaviour:
   m_Name: Reload 4
   m_EditorClassIdentifier: 
   upgradeName: Semi-Automatic Bow
-  description: Reloading is a thing of the past. +15% Fire Rate
+  description: Reloading is a thing of the past.
   weight: 3
+  order: 0
+  requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: eb588a9a45e2cd9419101e00e384f7ad, type: 2}
   lockedBy: []
-  rateMultiplier: 0.25
+  stats:
+  - valueText: +40%
+    labelText: FIRE RATE
+    isPositive: 1
+  rateMultiplier: 0.6

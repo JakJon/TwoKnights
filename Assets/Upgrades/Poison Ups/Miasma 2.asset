@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Miasma 2
   m_EditorClassIdentifier: 
   upgradeName: Miasma II
-  description: Venom clouds grow larger and linger longer
+  description: Venom clouds grow larger and linger longer.
   weight: 30
   order: 1
   requiresOrderCount: 0

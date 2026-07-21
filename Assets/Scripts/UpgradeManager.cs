@@ -31,8 +31,8 @@ public class UpgradeManager : ScriptableObject
     private KnightTarget _nextTarget = KnightTarget.LeftKnight;
     
     // Track applied upgrades per knight for UI/status
-    private readonly List<string> _leftApplied = new List<string>();
-    private readonly List<string> _rightApplied = new List<string>();
+    private readonly List<BaseUpgrade> _leftApplied = new List<BaseUpgrade>();
+    private readonly List<BaseUpgrade> _rightApplied = new List<BaseUpgrade>();
     
     // Get a random selection of available upgrades for the next knight in turn
     public List<BaseUpgrade> GetRandomUpgrades()
@@ -176,15 +176,15 @@ public class UpgradeManager : ScriptableObject
         if (knight != null && upgrade != null)
         {
             upgrade.ApplyUpgrade(knight);
-            // Record applied upgrade name for status panels
+            // Record applied upgrade for status panels
             if (targetKnight == KnightTarget.LeftKnight)
             {
-                _leftApplied.Add(upgrade.UpgradeName);
+                _leftApplied.Add(upgrade);
                 _leftOwned.Add(upgrade);
             }
             else
             {
-                _rightApplied.Add(upgrade.UpgradeName);
+                _rightApplied.Add(upgrade);
                 _rightOwned.Add(upgrade);
             }
 
@@ -193,8 +193,36 @@ public class UpgradeManager : ScriptableObject
         }
     }
 
-    // Expose applied upgrade names for UI
+    // Expose applied upgrade names for UI: one line per chain, showing only the
+    // highest tier owned (e.g. "Phantom Blade II", never its lower steps as well).
+    // The line keeps the slot where the chain's first pick landed.
     public IEnumerable<string> GetAppliedUpgradeNames(KnightTarget targetKnight)
+    {
+        var applied = targetKnight == KnightTarget.LeftKnight ? _leftApplied : _rightApplied;
+        var names = new List<string>();
+        var seenFamilies = new HashSet<System.Type>();
+        foreach (var upgrade in applied)
+        {
+            if (upgrade == null || !seenFamilies.Add(upgrade.GetType()))
+                continue;
+
+            var best = upgrade;
+            foreach (var other in applied)
+            {
+                if (other != null && other.GetType() == best.GetType() && GetChainDepth(other) > GetChainDepth(best))
+                    best = other;
+            }
+            names.Add(best.UpgradeName);
+        }
+        return names;
+    }
+
+    // Every registered upgrade asset, gating ignored (Test Mode picker, tooling)
+    public IReadOnlyList<BaseUpgrade> AllUpgrades => allUpgrades;
+
+    // Live applied lists in application order (lower tiers first). Test Mode's
+    // death-screen retry snapshots these to rebuild the same loadout.
+    public IReadOnlyList<BaseUpgrade> GetAppliedUpgrades(KnightTarget targetKnight)
     {
         return targetKnight == KnightTarget.LeftKnight ? _leftApplied : _rightApplied;
     }

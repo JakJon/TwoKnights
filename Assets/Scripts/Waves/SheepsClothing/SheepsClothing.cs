@@ -16,16 +16,16 @@ public class SheepsClothing : BaseWave
     [SerializeField] private int slimeSize = 2;
     [Tooltip("Wolf that stalks behind each wall")]
     [SerializeField] private WolfType wolfType = WolfType.Grey;
-    [Tooltip("Seconds the wolf stalks behind the wall before it lunges at the knight")]
+    [Tooltip("Seconds the wolf paces up and down behind the wall before it peels off and lunges. Does NOT change the spacing between the two ambush rounds")]
     [SerializeField] private float secondsBeforeWolfAttack = 18f;
 
     private const float WallSpawnX = 12.5f;         // just out of frame
     private const float WallSpreadY = 6f;           // vertical fan the wall covers
     private const float WolfZigzagAmplitude = 1.75f;
-    private const float WolfZigzagStepX = 0.5f;     // net inward crawl per zigzag leg
+    private const float WolfPaceStartX = 10.5f;     // pacing starts just inside frame, behind the crawling wall
     private const float WolfPeelX = 7f;             // wolf abandons cover here and lunges
-    private const float RoundSeconds = 26f;
-    private const float BreatherSeconds = 6f;
+    private const float RoundSeconds = 7.5f;
+    private const float BreatherSeconds = 2f;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
@@ -54,25 +54,20 @@ public class SheepsClothing : BaseWave
             spawner.SpawnSlime(size, spawnPos, i * 0.4f, wallKnight);
         }
 
-        // The wolf: enters visibly behind the wall, then zigzags inward inside the
-        // wall's arrow shadow. The path is budgeted by time: legs are added until
-        // secondsBeforeWolfAttack of walking is queued up (pacing in place at the
-        // peel line if it arrives early), then the path ends and the wolf lunges.
+        // The wolf: enters visibly behind the wall, then paces up and down in the
+        // wall's arrow shadow, drifting inward with the slimes. secondsBeforeWolfAttack
+        // only sets how long that vertical pacing lasts — the path always ends at the
+        // peel line, so the lunge starts from the same on-screen spot every time.
         float wolfSpeed = wolfType == WolfType.Brown ? 3.5f : wolfType == WolfType.Grey ? 3f : 2.5f;
-        float pathBudget = wolfSpeed * Mathf.Max(0f, secondsBeforeWolfAttack);
+        float paceDistance = wolfSpeed * Mathf.Max(0f, secondsBeforeWolfAttack);
+        int paceLegs = Mathf.CeilToInt(paceDistance / (2f * WolfZigzagAmplitude));
         var waypoints = new List<Vector2> { new Vector2(side * 16f, 0f) };
-        Vector2 prev = waypoints[0];
-        float x = WallSpawnX + 2f;
-        int leg = 0;
-        while (pathBudget > 0f)
+        for (int leg = 0; leg < paceLegs; leg++)
         {
-            Vector2 next = new Vector2(side * x, (leg % 2 == 0 ? 1f : -1f) * WolfZigzagAmplitude);
-            pathBudget -= Vector2.Distance(prev, next);
-            waypoints.Add(next);
-            prev = next;
-            x = Mathf.Max(WolfPeelX, x - WolfZigzagStepX);
-            leg++;
+            float x = Mathf.Lerp(WolfPaceStartX, WolfPeelX, (leg + 1f) / (paceLegs + 1f));
+            waypoints.Add(new Vector2(side * x, (leg % 2 == 0 ? 1f : -1f) * WolfZigzagAmplitude));
         }
+        waypoints.Add(new Vector2(side * WolfPeelX, 0f));
         spawner.SpawnWolf(waypoints, wallKnight, wolfType, 2f);
 
         // Steep pin shots steer the off knight (blocked projectiles are combo-safe)
@@ -82,9 +77,10 @@ public class SheepsClothing : BaseWave
         // Mana orb sweeps the off knight's side; health orb threads behind the wall late,
         // so collecting it means shooting through a gap in the (split) slime line
         spawner.SpawnOrb(new Vector2(-side * 8f, -9f), new Vector2(-side * 8f, 9f), false, 8f);
-        spawner.SpawnOrb(new Vector2(side * 8f, -9f), new Vector2(side * 8f, 9f), true, 18f);
+        spawner.SpawnOrb(new Vector2(side * 8f, -9f), new Vector2(side * 8f, 9f), true, 6f);
 
-        // Hold the round at least until the wolf has lunged, however long its stalk is
-        yield return new WaitForSeconds(Mathf.Max(RoundSeconds, secondsBeforeWolfAttack + 8f));
+        // Fixed hold: the gap between the two ambushes never moves, no matter
+        // how long the wolf's pacing stalk is tuned
+        yield return new WaitForSeconds(RoundSeconds);
     }
 }

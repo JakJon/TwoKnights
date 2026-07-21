@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Health Mid 2
   m_EditorClassIdentifier: 
   upgradeName: Moderate Health Boost
-  description: A decent boost to your max health. +25 Max Health. Boost 2.
+  description: A decent boost to your max health.
   weight: 65
   unlockedBy:
   - {fileID: 11400000, guid: 4ec4f9f5d54c6884bb666bff4fcdaca4, type: 2}
@@ -23,4 +23,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b40856a60fbb28d4fbcdd2d9d8b84c2b, type: 2}
   - {fileID: 11400000, guid: a4bf8312de5084e478981043ff0f0780, type: 2}
   - {fileID: 11400000, guid: 61e81fbabd2699e46b01ca33224767eb, type: 2}
+  stats:
+  - valueText: +25
+    labelText: MAX HEALTH
+    isPositive: 1
   healthIncrease: 25

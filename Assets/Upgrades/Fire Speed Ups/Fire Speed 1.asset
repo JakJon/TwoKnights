@@ -13,8 +13,12 @@ MonoBehaviour:
   m_Name: Fire Speed 1
   m_EditorClassIdentifier: 
   upgradeName: Quick Firing Speed
-  description: Arrows travel significantly faster. +50% Projectile Speed
+  description: Arrows travel significantly faster.
   weight: 60
   unlockedBy: []
   lockedBy: []
+  stats:
+  - valueText: +50%
+    labelText: PROJECTILE SPEED
+    isPositive: 1
   speedMultiplier: 1.5

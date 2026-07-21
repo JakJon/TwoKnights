@@ -29,7 +29,10 @@
                                     </ui:VisualElement>
                                 </ui:VisualElement>
                             </ui:VisualElement>
-                            <ui:Label text="Description of upgrade one goes here" name="upgrade-description" class="upgrade-description" />
+                            <ui:VisualElement class="card-body">
+                                <ui:Label text="Description of upgrade one goes here" name="upgrade-description" class="upgrade-description" />
+                                <ui:VisualElement name="stat-badges" class="stat-badges" />
+                            </ui:VisualElement>
                             <ui:VisualElement name="chain-row" class="chain-row">
                                 <ui:VisualElement name="chain-pips" class="chain-pips" />
                                 <ui:Label text="" name="chain-label" class="chain-label" />
@@ -49,7 +52,10 @@
                                     </ui:VisualElement>
                                 </ui:VisualElement>
                             </ui:VisualElement>
-                            <ui:Label text="Description of upgrade two goes here" name="upgrade-description" class="upgrade-description" />
+                            <ui:VisualElement class="card-body">
+                                <ui:Label text="Description of upgrade two goes here" name="upgrade-description" class="upgrade-description" />
+                                <ui:VisualElement name="stat-badges" class="stat-badges" />
+                            </ui:VisualElement>
                             <ui:VisualElement name="chain-row" class="chain-row">
                                 <ui:VisualElement name="chain-pips" class="chain-pips" />
                                 <ui:Label text="" name="chain-label" class="chain-label" />
@@ -69,7 +75,10 @@
                                     </ui:VisualElement>
                                 </ui:VisualElement>
                             </ui:VisualElement>
-                            <ui:Label text="Description of upgrade three goes here" name="upgrade-description" class="upgrade-description" />
+                            <ui:VisualElement class="card-body">
+                                <ui:Label text="Description of upgrade three goes here" name="upgrade-description" class="upgrade-description" />
+                                <ui:VisualElement name="stat-badges" class="stat-badges" />
+                            </ui:VisualElement>
                             <ui:VisualElement name="chain-row" class="chain-row">
                                 <ui:VisualElement name="chain-pips" class="chain-pips" />
                                 <ui:Label text="" name="chain-label" class="chain-label" />

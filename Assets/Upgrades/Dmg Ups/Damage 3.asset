@@ -13,10 +13,13 @@ MonoBehaviour:
   m_Name: Damage 3
   m_EditorClassIdentifier: 
   upgradeName: Major Damage Increase
-  description: A significant increase to your damage per arrow. Every shot packs
-    a punch now. +8 Damage
+  description: A significant increase to your damage per arrow.
   weight: 75
   unlockedBy:
   - {fileID: 11400000, guid: 69d2a7afd7a20ba48a471b469e2e8770, type: 2}
   lockedBy: []
+  stats:
+  - valueText: +8
+    labelText: DAMAGE
+    isPositive: 1
   damageIncrease: 8

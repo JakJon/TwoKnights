@@ -24,6 +24,8 @@
                     <ui:Button name="stats-button" class="menu-button" text="Stats" />
                     <ui:Button name="reset-button" class="menu-button danger" text="Reset All Data" />
                     <ui:Button name="exit-button" class="menu-button secondary" text="Exit" />
+                    <!-- Hidden dev button: revealed by LT+RT+LB+RB (or F9) in editor/dev builds -->
+                    <ui:Button name="test-button" class="menu-button test" text="Test Mode" style="display: none;" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
@@ -59,6 +61,24 @@
                 <ui:Button name="stats-close-button" class="overlay-close-button" text="X" />
             </ui:VisualElement>
             <ui:ScrollView name="stats-list" class="stats-list" />
+        </ui:VisualElement>
+
+        <!-- Test Mode Overlay (dev builds only; rows are built in code) -->
+        <ui:VisualElement name="test-panel" class="overlay-panel" style="display: none;">
+            <ui:VisualElement class="overlay-header">
+                <ui:Label text="Test Mode" class="overlay-title" />
+                <ui:Button name="test-close-button" class="overlay-close-button" text="X" />
+            </ui:VisualElement>
+            <ui:VisualElement name="test-wave-row" class="test-row">
+                <ui:Label text="Starting Wave" class="test-row-name" />
+                <ui:Label name="test-wave-value" text="&#9664; 1 &#9654;" class="test-row-value" />
+            </ui:VisualElement>
+            <ui:Label name="test-budget-line" text="" class="test-budget-line" />
+            <ui:ScrollView name="test-upgrade-list" class="test-upgrade-list" />
+            <ui:VisualElement name="test-start-row" class="test-row test-start-row">
+                <ui:Label name="test-start-label" text="Begin Run" class="test-start-label" />
+            </ui:VisualElement>
+            <ui:Label text="&#9650;&#9660; move   A expand / choose   &#9664; toggle Left Knight   &#9654; toggle Right Knight   Start jump to Begin Run   B back" class="test-hint-line" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

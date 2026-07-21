@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: Venom Tip 1
   m_EditorClassIdentifier: 
   upgradeName: Venom Tip I
-  description: Arrows have a 30% chance to poison enemies
+  description: Arrows can poison enemies on hit.
   weight: 100
   order: 1
   requiresOrderCount: 0
   unlockedBy: []
   lockedBy: []
+  stats:
+  - valueText: 30%
+    labelText: CHANCE
+    isPositive: 1
   poisonChanceIncrease: 30

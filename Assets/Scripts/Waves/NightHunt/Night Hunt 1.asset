@@ -22,7 +22,7 @@ MonoBehaviour:
   useEnemyTracking: 1
   strikeRounds: 3
   secondsBetweenWolfAndBat: 3
-  circlesBeforeAttack: 2
+  circlesBeforeAttack: 1
   roundOneWolf: 0
   roundTwoWolf: 0
   roundThreeWolf: 1

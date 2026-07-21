@@ -125,7 +125,7 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: dark
     originalName: 
-    pivot: {x: 0.44444448, y: 0}
+    pivot: {x: 0.5, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -133,7 +133,7 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 9
+      width: 5
       height: 1
     spriteID: a5c99ecf4d822b44280c945996a88ec1
     spriteBone: []
@@ -143,7 +143,7 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 3, y: 4}
+    uvTransform: {x: 4, y: 4}
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
@@ -164,7 +164,7 @@ ScriptedImporter:
       cellRect:
         x: 0
         y: 0
-        width: 10
+        width: 5
         height: 1
       spriteId: a5c99ecf4d822b44280c945996a88ec1
     linkedCells: []
@@ -185,5 +185,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 10, y: 1}
-  previousTextureSize: {x: 32, y: 16}
+  canvasSize: {x: 5, y: 1}
+  previousTextureSize: {x: 16, y: 16}

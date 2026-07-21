@@ -19,7 +19,9 @@ public class RatKingWave : BaseWave
         var boss = bossObject.GetComponent<EnemyRatKing>();
         if (boss != null)
         {
-            boss.Initialize(spawner, config);
+            // The wave asset's name ("The Rat King" / "The Rat King Ascendant")
+            // doubles as the health bar title
+            boss.Initialize(spawner, config, WaveName);
         }
         else
         {

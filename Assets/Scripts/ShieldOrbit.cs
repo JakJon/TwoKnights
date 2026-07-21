@@ -8,6 +8,9 @@ public class ShieldOrbit : MonoBehaviour
     public float CurrentAngle => _currentAngle;
     public Vector2 Direction => _direction;
 
+    // Confusion status (dark bat sonar) flips the joystick while active
+    public bool InvertControls { get; set; }
+
     private float _currentAngle;
     private Vector2 _direction;
 
@@ -53,6 +56,7 @@ public class ShieldOrbit : MonoBehaviour
     {
         // Read joystick input
         Vector2 input = shieldInputAction?.ReadValue<Vector2>() ?? Vector2.zero;
+        if (InvertControls) input = -input;
 
         if (input.magnitude > .5f) // Deadzone check
         {

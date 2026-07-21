@@ -1,0 +1,24 @@
+GIMP Palette
+Name: Gilded Vigil - Environment
+Columns: 5
+# Two Knights environment palette. Groups: ground, pine, dirt, stone, accents.
+ 23  29  20	ground-1 171d14
+ 35  43  28	ground-2 232b1c
+ 47  58  36	ground-3 2f3a24
+ 61  74  45	ground-4 3d4a2d
+ 77  92  56	ground-5 4d5c38
+ 14  20  16	pine-1 0e1410
+ 24  36  26	pine-2 18241a
+ 36  54  38	pine-3 243626
+ 51  72  47	pine-4 33482f
+ 43  32  24	dirt-1 2b2018
+ 62  47  32	dirt-2 3e2f20
+ 84  64  42	dirt-3 54402a
+107  84  54	dirt-4 6b5436
+ 35  36  42	stone-1 23242a
+ 56  58  65	stone-2 383a41
+ 82  85  92	stone-3 52555c
+113 117 122	stone-4 71757a
+212 162  74	accent-gold d4a24a
+194 112  63	accent-leaf c2703f
+143 179 209	accent-sky 8fb3d1

@@ -22,6 +22,25 @@ public class PlayerShooter : MonoBehaviour
     public float cooldownTime = 1.5f;
     public bool rapidFireEnabled = false;
 
+    // No-cooldown window: shared by the RapidFire special and Thousand Cuts
+    // (Shadow capstone). Never mutate cooldownTime for temporary effects — it's
+    // the persistent, upgrade-modified value (Reload upgrades multiply it).
+    private float _noCooldownUntil = -1f;
+    // While a window is open, the cooldown collapses to this floor (seconds
+    // between shots) instead of the full cooldownTime. Callers pick the floor so
+    // Rapid Fire and Thousand Cuts can each tune how fast they fire.
+    private float _noCooldownFloor = 0.16f;
+
+    public void OpenNoCooldownWindow(float duration, float cooldownFloor = 0.16f)
+    {
+        // Fresh window resets the floor; overlapping windows keep the fastest one
+        if (Time.time >= _noCooldownUntil)
+            _noCooldownFloor = cooldownFloor;
+        else
+            _noCooldownFloor = Mathf.Min(_noCooldownFloor, cooldownFloor);
+        _noCooldownUntil = Mathf.Max(_noCooldownUntil, Time.time + duration);
+    }
+
     private void OnEnable()
     {
         shootAction.action.performed += _ => _isHoldingButton = true;
@@ -73,14 +92,22 @@ public class PlayerShooter : MonoBehaviour
         projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
         
         // Apply damage bonus to the projectile
+        NinjaBoost ninjaBoost = GetComponent<NinjaBoost>();
         PlayerProjectile playerProjectileComponent = projectile.GetComponent<PlayerProjectile>();
         if (playerProjectileComponent != null)
         {
             playerProjectileComponent.damage += damageBonus;
+            playerProjectileComponent.ownerNinjaBoost = ninjaBoost;
         }
 
         // Capture final main projectile damage to drive shadow damage scaling
         int mainProjectileFinalDamage = playerProjectileComponent != null ? playerProjectileComponent.damage : 0;
+
+        // Shuriken Fan (Shadow Order): the main shot splits into angled copies
+        if (ninjaBoost != null && ninjaBoost.ShurikenLevel > 0)
+        {
+            SpawnShurikens(ninjaBoost, spawnPosition, mainProjectileFinalDamage, poisonTipBoost);
+        }
 
         // Check if shadow arrow(s) should be spawned
         ShadowArrowBoost shadowArrowBoost = GetComponent<ShadowArrowBoost>();
@@ -98,6 +125,11 @@ public class PlayerShooter : MonoBehaviour
     while (elapsed < cooldownTime)
     {
             elapsed += Time.deltaTime;
+            // An open no-cooldown window collapses the cooldown to its floor
+            if (Time.time < _noCooldownUntil && elapsed >= _noCooldownFloor)
+            {
+                break;
+            }
             float progress = elapsed / cooldownTime;
             float remainingFill = 1f - progress; // Start at 1, go to 0
             shield.SetReloadBarFill(remainingFill);
@@ -108,6 +140,59 @@ public class PlayerShooter : MonoBehaviour
         shield.SetReloadBarVisible(false);
         AudioManager.Instance.PlaySFX(AudioManager.Instance.reload);
         _canShoot = true;
+    }
+
+    // Shuriken Fan: angled copies of the main arrow at 35% damage; each rolls
+    // its own poison chance so Serpent/Shadow cross-builds keep their bite
+    private void SpawnShurikens(NinjaBoost ninjaBoost, Vector2 spawnPosition, int mainDamage, PoisonTipBoost poisonTipBoost)
+    {
+        int shurikenDamage = Mathf.Max(1, Mathf.RoundToInt(mainDamage * 0.35f));
+
+        // Prefab travels with the upgrade (see ShurikenFanUpgrade); arrow as fallback
+        GameObject fanPrefab = ninjaBoost.ShurikenPrefab != null ? ninjaBoost.ShurikenPrefab : playerProjectilePrefab;
+
+        var angles = new System.Collections.Generic.List<float> { -12f, 12f };
+        if (ninjaBoost.ShurikenLevel >= 2)
+        {
+            angles.Add(-24f);
+            angles.Add(24f);
+        }
+
+        // Perpendicular to the shot direction: fan each shuriken out along it so
+        // they start spaced apart instead of stacking on the muzzle and colliding
+        Vector2 perpendicular = new Vector2(-shield.Direction.y, shield.Direction.x);
+        const float lateralSpacing = 0.3f; // world units per 12° of fan angle
+
+        foreach (float angle in angles)
+        {
+            Vector2 direction = Quaternion.Euler(0, 0, angle) * shield.Direction;
+            Vector2 shurikenSpawn = spawnPosition + perpendicular * (angle / 12f * lateralSpacing);
+            GameObject shuriken = Instantiate(fanPrefab, shurikenSpawn,
+                Quaternion.Euler(0, 0, shield.CurrentAngle + angle));
+            shuriken.tag = gameObject.tag + "Projectile";
+
+            if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
+            {
+                PoisonProjectile poison = shuriken.AddComponent<PoisonProjectile>();
+                poison.ConfigureFromBoost(poisonTipBoost);
+            }
+
+            Rigidbody2D shurikenBody = shuriken.GetComponent<Rigidbody2D>();
+            shurikenBody.linearVelocity = direction * projectileSpeed;
+
+            // Spin toward its side of the fan; the prefab's sprite pivots on center
+            if (ninjaBoost.ShurikenPrefab != null)
+                shurikenBody.angularVelocity = angle >= 0f ? 540f : -540f;
+
+            PlayerProjectile projectileComponent = shuriken.GetComponent<PlayerProjectile>();
+            if (projectileComponent != null)
+            {
+                projectileComponent.damage = shurikenDamage;
+                projectileComponent.ownerNinjaBoost = ninjaBoost;
+            }
+
+            StartCoroutine(DestroyProjectile(shuriken));
+        }
     }
 
     // New projectile destruction coroutine
@@ -161,10 +246,12 @@ public class PlayerShooter : MonoBehaviour
 
                 // Damage reduced by multiplier relative to the main projectile's final damage
                 int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowArrowBoost.GetDamageMultiplier());
+                var shadowNinjaBoost = GetComponent<NinjaBoost>();
                 var shadowProjComponents = shadowArrow.GetComponentsInChildren<PlayerProjectile>(true);
                 foreach (var comp in shadowProjComponents)
                 {
                     comp.damage = scaledShadowDamage;
+                    comp.ownerNinjaBoost = shadowNinjaBoost;
                 }
 
             // Next shadow trails this one; update leader to the new shadow arrow GameObject

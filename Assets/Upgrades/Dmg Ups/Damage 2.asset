@@ -13,10 +13,13 @@ MonoBehaviour:
   m_Name: Damage 2
   m_EditorClassIdentifier: 
   upgradeName: Moderate Damage Boost
-  description: A moderate boost to your damage per arrow. Nothing to shrug at. +4
-    Damage
+  description: A moderate boost to your damage per arrow.
   weight: 100
   unlockedBy:
   - {fileID: 11400000, guid: 499448e98d4c1964a88084fcd5591da7, type: 2}
   lockedBy: []
+  stats:
+  - valueText: +4
+    labelText: DAMAGE
+    isPositive: 1
   damageIncrease: 4

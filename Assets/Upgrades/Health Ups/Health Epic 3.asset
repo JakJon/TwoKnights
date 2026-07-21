@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Health Epic 3
   m_EditorClassIdentifier: 
   upgradeName: Incredible Health Boost
-  description: A massive addition to your max health. +100 Max Health. Boost 3,
+  description: A massive addition to your max health.
   weight: 6
   unlockedBy:
   - {fileID: 11400000, guid: b40856a60fbb28d4fbcdd2d9d8b84c2b, type: 2}
@@ -23,4 +23,8 @@ MonoBehaviour:
   lockedBy:
   - {fileID: 11400000, guid: 3d99d5f4aa0f44a4092384cac58140da, type: 2}
   - {fileID: 11400000, guid: 9c75a28dd39af6542a8d26a5124f38af, type: 2}
+  stats:
+  - valueText: +100
+    labelText: MAX HEALTH
+    isPositive: 1
   healthIncrease: 100

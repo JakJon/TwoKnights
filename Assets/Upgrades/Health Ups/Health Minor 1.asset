@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: Health Minor 1
   m_EditorClassIdentifier: 
   upgradeName: Minor Health Boost
-  description: A small boost to your max health. +10 Max Health. Boost 1.
+  description: A small boost to your max health.
   weight: 100
   unlockedBy: []
   lockedBy:
   - {fileID: 11400000, guid: 4ec4f9f5d54c6884bb666bff4fcdaca4, type: 2}
   - {fileID: 11400000, guid: 4cc75edd22705814788da12026ec520b, type: 2}
+  stats:
+  - valueText: +10
+    labelText: MAX HEALTH
+    isPositive: 1
   healthIncrease: 10

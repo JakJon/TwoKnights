@@ -58,12 +58,24 @@ public class CampMenuController : MonoBehaviour
     private const string ARMED_CLASS = "menu-button--armed";
     private const string RESET_LABEL = "Reset All Data";
     private const string RESET_CONFIRM_LABEL = "Confirm Wipe?";
+    // Present in the UXML for all builds; only dev builds ever reveal it
+    private const string TEST_BUTTON_NAME = "test-button";
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private TestModePanel testModePanel;
+    private static bool _testModeUnlocked; // combo entered once = unlocked for the whole session
+#endif
 
     private void Awake()
     {
         _uiDocument = GetComponent<UIDocument>();
         if (questPanel == null) questPanel = GetComponent<QuestPanel>();
         if (statsPanel == null) statsPanel = GetComponent<StatsPanel>();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // Added in code so the scene needs no extra wiring
+        testModePanel = GetComponent<TestModePanel>();
+        if (testModePanel == null) testModePanel = gameObject.AddComponent<TestModePanel>();
+#endif
     }
 
     private void OnEnable()
@@ -84,6 +96,9 @@ public class CampMenuController : MonoBehaviour
         SetSelectedIndex(Mathf.Clamp(_currentIndex, 0, _menuButtons.Count - 1));
         if (questPanel != null) questPanel.OnCloseRequested += HandleSubPanelClosed;
         if (statsPanel != null) statsPanel.OnCloseRequested += HandleSubPanelClosed;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (testModePanel != null) testModePanel.OnCloseRequested += HandleSubPanelClosed;
+#endif
         GoldManager.OnGoldChanged += HandleGoldChanged;
         KnightRankManager.OnHonorChanged += HandleHonorChanged;
         KnightRankManager.OnRankChanged += HandleRankChanged;
@@ -100,6 +115,9 @@ public class CampMenuController : MonoBehaviour
         UnregisterCallbacks();
         if (questPanel != null) questPanel.OnCloseRequested -= HandleSubPanelClosed;
         if (statsPanel != null) statsPanel.OnCloseRequested -= HandleSubPanelClosed;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (testModePanel != null) testModePanel.OnCloseRequested -= HandleSubPanelClosed;
+#endif
         GoldManager.OnGoldChanged -= HandleGoldChanged;
         KnightRankManager.OnHonorChanged -= HandleHonorChanged;
         KnightRankManager.OnRankChanged -= HandleRankChanged;
@@ -109,6 +127,9 @@ public class CampMenuController : MonoBehaviour
     private void Update()
     {
         HandleFallbackInput();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        CheckTestModeCombo();
+#endif
     }
 
     private void RegisterCallbacks()
@@ -126,6 +147,12 @@ public class CampMenuController : MonoBehaviour
             return;
         }
 
+        // UI Toolkit's built-in dpad/stick navigation moves focus on its own,
+        // stacked on top of our action-driven Navigate — every press moved the
+        // highlight TWO items. All camp navigation is driven explicitly (menu,
+        // quest, stats, test panels), so swallow the runtime nav-move entirely.
+        _root.RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
+
         _menuContainer = _root.Q<VisualElement>(menuContainerName);
         _goldLine = _root.Q<Label>("gold-line");
         _honorLine = _root.Q<Label>("honor-line");
@@ -138,7 +165,20 @@ public class CampMenuController : MonoBehaviour
 
         foreach (var button in _root.Query<Button>(className: "menu-button").ToList())
         {
-            _menuButtons.Add(button);
+            // Test Mode button: hidden and unnavigable until the dev combo
+            // unlocks it; release builds never register it at all
+            if (button.name == TEST_BUTTON_NAME)
+            {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (_testModeUnlocked)
+                {
+                    button.style.display = DisplayStyle.Flex;
+                    RegisterMenuButton(button, HandleTestModeClicked);
+                }
+#endif
+                continue;
+            }
+
             Action handler = null;
 
             switch (button.name)
@@ -161,31 +201,7 @@ public class CampMenuController : MonoBehaviour
                     break;
             }
 
-            // clicked fires from pointer clicks AND from UI Toolkit navigation
-            // submit on the focused button — the latter bypasses our input
-            // cooldown entirely, so a first-frame phantom Submit (gamepad axis
-            // sampled right after a scene load) could instantly activate the
-            // focused Return button and bounce camp back into the game. Gate
-            // every click through the same cooldown/grace window.
-            Action wrapper = null;
-            if (handler != null)
-            {
-                var captured = handler;
-                wrapper = () =>
-                {
-                    if (!CanProcessInput()) return;
-                    _lastInputTime = Time.unscaledTime;
-                    captured();
-                };
-                button.clicked += wrapper;
-            }
-
-            var index = _menuButtons.Count - 1;
-            button.RegisterCallback<MouseEnterEvent>(_ => SetSelectedIndex(index));
-            button.RegisterCallback<FocusInEvent>(_ => SetSelectedIndex(index));
-
-            _buttonHandlers.Add(handler);
-            _clickedWrappers.Add(wrapper);
+            RegisterMenuButton(button, handler);
         }
 
         if (_menuButtons.Count == 0)
@@ -196,6 +212,43 @@ public class CampMenuController : MonoBehaviour
         {
             SetSelectedIndex(0);
         }
+    }
+
+    private void OnNavigationMove(NavigationMoveEvent evt)
+    {
+        evt.StopPropagation();
+        _root?.focusController?.IgnoreEvent(evt);
+    }
+
+    private void RegisterMenuButton(Button button, Action handler)
+    {
+        _menuButtons.Add(button);
+
+        // clicked fires from pointer clicks AND from UI Toolkit navigation
+        // submit on the focused button — the latter bypasses our input
+        // cooldown entirely, so a first-frame phantom Submit (gamepad axis
+        // sampled right after a scene load) could instantly activate the
+        // focused Return button and bounce camp back into the game. Gate
+        // every click through the same cooldown/grace window.
+        Action wrapper = null;
+        if (handler != null)
+        {
+            var captured = handler;
+            wrapper = () =>
+            {
+                if (!CanProcessInput()) return;
+                _lastInputTime = Time.unscaledTime;
+                captured();
+            };
+            button.clicked += wrapper;
+        }
+
+        var index = _menuButtons.Count - 1;
+        button.RegisterCallback<MouseEnterEvent>(_ => SetSelectedIndex(index));
+        button.RegisterCallback<FocusInEvent>(_ => SetSelectedIndex(index));
+
+        _buttonHandlers.Add(handler);
+        _clickedWrappers.Add(wrapper);
     }
 
     private void UnregisterCallbacks()
@@ -227,6 +280,7 @@ public class CampMenuController : MonoBehaviour
     private void OnNavigateUp(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
+        if (TestPanelHandlesInput()) return;
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.NavigateUp();
@@ -244,6 +298,7 @@ public class CampMenuController : MonoBehaviour
     private void OnNavigateDown(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
+        if (TestPanelHandlesInput()) return;
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.NavigateDown();
@@ -261,6 +316,7 @@ public class CampMenuController : MonoBehaviour
     private void OnConfirm(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
+        if (TestPanelHandlesInput()) return;
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.Confirm();
@@ -280,13 +336,27 @@ public class CampMenuController : MonoBehaviour
     private void OnCancel(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
+        if (TestPanelHandlesInput()) return;
         HandleCancel();
         _lastInputTime = Time.unscaledTime;
+    }
+
+    // The Test Mode panel polls its own gamepad/keyboard input (it needs
+    // left/right, which the camp actions don't provide), so the camp menu must
+    // go quiet while it is open or both would react to the same press
+    private bool TestPanelHandlesInput()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        return testModePanel != null && testModePanel.IsVisible;
+#else
+        return false;
+#endif
     }
 
     private void HandleFallbackInput()
     {
         if (!CanProcessInput()) return;
+        if (TestPanelHandlesInput()) return;
 
         bool usedInput = false;
         bool questPanelOpen = questPanel != null && questPanel.IsVisible;
@@ -457,6 +527,44 @@ public class CampMenuController : MonoBehaviour
         SetMenuContainerVisible(true);
         SetSelectedIndex(_currentIndex);
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // Dev cheat: holding LT+RT+LB+RB together on the camp menu (or pressing F9
+    // on keyboard, for gamepad-free editor sessions) reveals the Test Mode
+    // button for the rest of the session.
+    private void CheckTestModeCombo()
+    {
+        if (_testModeUnlocked) return;
+        if ((questPanel != null && questPanel.IsVisible) ||
+            (statsPanel != null && statsPanel.IsVisible)) return;
+
+        var gamepad = Gamepad.current;
+        bool combo = gamepad != null
+            && gamepad.leftTrigger.isPressed && gamepad.rightTrigger.isPressed
+            && gamepad.leftShoulder.isPressed && gamepad.rightShoulder.isPressed;
+
+        var keyboard = Keyboard.current;
+        bool devKey = keyboard != null && keyboard.f9Key.wasPressedThisFrame;
+
+        if (!combo && !devKey) return;
+
+        _testModeUnlocked = true;
+        var button = _root?.Q<Button>(TEST_BUTTON_NAME);
+        if (button != null && !_menuButtons.Contains(button))
+        {
+            button.style.display = DisplayStyle.Flex;
+            RegisterMenuButton(button, HandleTestModeClicked);
+        }
+        Debug.Log("[CampMenu] Test Mode unlocked.");
+    }
+
+    private void HandleTestModeClicked()
+    {
+        if (testModePanel == null) return;
+        SetMenuContainerVisible(false);
+        testModePanel.Show();
+    }
+#endif
 
     private void SetMenuContainerVisible(bool visible)
     {

@@ -16,12 +16,12 @@ MonoBehaviour:
   weight: 1000
   isUnlocked: 0
   waveDescription: 
-  unlockedAfterXWaves: 12
-  lockedAfterXWaves: 16
+  unlockedAfterXWaves: 15
+  lockedAfterXWaves: 20
   useEnemyTracking: 1
-  batsPerRing: 12
+  batsPerRing: 10
   numberOfRings: 4
-  delayBetweenRings: 8
-  ringRadius: 11
-  projectileAmount: 12
-  projectileDelay: 3
+  delayBetweenRings: 12
+  ringRadius: 12
+  projectileAmount: 6
+  projectileDelay: 1

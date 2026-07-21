@@ -28,7 +28,6 @@ MonoBehaviour:
     telegraphPause: 0.9
     fanProjectiles: 5
     fanArcDegrees: 60
-    fanArcCount: 1
     batsPerSummon: 2
     ratsPerSummonLate: 1
     goldReward: 50

@@ -40,6 +40,14 @@ action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
    slime 1, size-2 slime 2 (+2 for its splits), wolves 3/5/6 (brown/grey/black).
    Rats are prefab-tuned and NOT one-shot kills — keep ≤ ~2 patrolling rats per
    knight; big simultaneous rat counts are only feasible late, fully upgraded.
+6. **No randomness inside a wave (owner's design pillar, stated 2026-07-19).**
+   Given a wave, its content must play out identically every run — players
+   learn exact spawn timings/positions. WHICH wave is picked stays weighted-
+   random (WaveManager pool), but wave scripts must not roll dice for enemy
+   composition, positions, or timings. For "varied but fixed" sequences use a
+   golden-ratio stride over the legal range with a per-wave step counter that
+   RESETS in SpawnWave (SO state persists between runs) — see AboutFace.cs,
+   refactored to this pattern 2026-07-19.
 
 ## Creating a new wave type
 
@@ -70,16 +78,19 @@ public class MyWave : BaseWave
 ## BaseWave gating — how CanPlay actually works (IMPORTANT)
 
 ```
-if (isUnlocked) return true;                        // SHORT-CIRCUITS — windows ignored!
-if (lockedAfterXWaves >= 0 && count >= lockedAfterXWaves) return false;
+if (lockedAfterXWaves >= 0 && count >= lockedAfterXWaves) return false;  // lock beats EVERYTHING
+if (isUnlocked) return true;                        // skips the unlock window only
 if (unlockedAfterXWaves >= 0) return count >= unlockedAfterXWaves;
 return false;                                       // all defaults => NEVER plays
 ```
 
-- To use unlock/lock windows, set `isUnlocked: 0` and give `unlockedAfterXWaves` a value
+(Precedence changed 2026-07-19: the lock window used to be inert on `isUnlocked: 1`
+assets; now it is a hard cutoff that overrides `isUnlocked`.)
+
+- To use an unlock window, set `isUnlocked: 0` and give `unlockedAfterXWaves` a value
   ≥ 0 (use 0 for "available from the start").
-- `isUnlocked: 1` = always playable; any window values on that asset are **inert**
-  (several legacy assets, e.g. Stalkers, are in this state — their locks never apply).
+- `isUnlocked: 1` = available from wave 1, but `lockedAfterXWaves` still applies;
+  only the `unlockedAfterXWaves` value is inert on such assets.
 - `isUnlocked: 0` with both windows at -1 = never plays.
 - `weight` biases the weighted-random pick; ~1000 is the house convention.
 - Each asset plays **at most once per run** (WaveManager removes it after selection).
@@ -94,7 +105,7 @@ Positions: `LeftPlayer`/`RightPlayer` (Transforms), `aboveLeftPlayer(-2,7)`,
 `leftOfLeftPlayer(-12,0)`, `rightOfRightPlayer(12,0)`, corners `(±12, ±6)`.
 
 ```csharp
-SpawnRat(Vector2 targetPos, GameObject ratType, float delay, Transform playerTarget)
+SpawnRat(Vector2 targetPos, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate = false)
 SpawnSlime(int size, Vector2 spawnPos, float delay, Transform targetPlayer)   // size 1-3, 3 = king, splits
 SpawnBat(Vector2 spawnPos, float delay)                                        // no target
 SpawnWolf(List<Vector2> waypoints, Transform targetKnight, WolfType type, float delay = 0)
@@ -108,13 +119,29 @@ SpawnOrb(Vector2 startPos, Vector2 endPos, bool isHealthOrb, float delay = 0)  /
 (`CircleLeftThenRight`, `ClockwiseCircle`, `RectangleLoopCW`, `HorizontalSweep`, plus
 `Offset`/`Scale` helpers). Enums serialize as ints in .asset YAML.
 
+NOTE (2026-07-18) — **elite tier gate**: while `CurrentWaveNumber <= GateBossWaveNumber`
+(rat king, wave 10), the Spawner silently downgrades at spawn time: brown/black rats →
+`greyRat`, `WolfType.Black` → `Grey` (brown wolves are the weakest tier and stay). So a
+wave asset may *request* elite enemies in any window — pre-king plays get the grey
+stand-in, post-king plays get the real thing (this is why straddling windows like
+Night Hunt 1 / Belfry 2 need no per-asset splits). `bypassTierGate: true` on SpawnRat
+exempts boss summons (EnemyRatKing's brood). Post-gate-boss, every 4th `SpawnBat`
+call of a wave (`Spawner.darkBatInterval`, counter resets each wave, decided at
+CALL time in wave-script order) substitutes Enemy_Bat_Dark.prefab — a sonar-firing
+bat that Confuses a knight (reversed shield controls, 5s) unless the sonar is
+blocked/slashed/shot. DETERMINISTIC by design — see rule 6. The arena backdrop
+swaps in step:
+`BackgroundController` on the BackGround_Forest scene object switches to the deep-forest
+sprite at wave 11 (stage list is serialized on the component — add entries there for
+future areas).
+
 ## Existing waves & difficulty windows (keep new waves coherent)
 
 | Wave (class) | Pattern | Effective window |
 |---|---|---|
-| Bat Cauldron (BatSwarmWave) | concentric bat rings | early (nominal lock @4, inert — isUnlocked:1) |
-| Rat Mischief (RatMischef) | staggered rat formations + arc | nominal 4–8 (inert) |
-| Stalkers (WolfCircles) | wolves on circle paths | nominal lock @10 (inert) |
+| Bat Cauldron (BatSwarmWave) | concentric bat rings | 0–4 (lock real since 2026-07-19; unlock inert — isUnlocked:1) |
+| Rat Mischief (RatMischef) | staggered rat formations + arc | 0–8 (lock real; nominal unlock @4 inert) |
+| Stalkers (WolfCircles) | wolves on circle paths | 0–10 (lock real) |
 | Sticky Situation (Slimy) | side slime streams + volleys | always |
 | Chaotic Corners | corner projectile arcs | always |
 | Bat Slime Boogie (SlimesAndBats) | escalating mixed sub-waves | always |

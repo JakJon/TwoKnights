@@ -19,6 +19,7 @@ public class PauseMenu : MonoBehaviour
     private VisualElement _root;
     private VisualElement _mainActions;
     private VisualElement _confirmActions;
+    private Label _waveLabel;
     private Button _resumeButton;
     private Button _quitButton;
     private Button _confirmYesButton;
@@ -74,6 +75,7 @@ public class PauseMenu : MonoBehaviour
 
         _mainActions = _root.Q<VisualElement>("main-actions");
         _confirmActions = _root.Q<VisualElement>("confirm-actions");
+        _waveLabel = _root.Q<Label>("pause-wave");
         _resumeButton = _root.Q<Button>("resume-button");
         _quitButton = _root.Q<Button>("quit-button");
         _confirmYesButton = _root.Q<Button>("confirm-yes");
@@ -160,6 +162,7 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 0f;
         SetPausedState(true);
 
+        UpdateWaveLabel();
         HideConfirmPrompt();
         ShowMenu();
         FocusResumeButton();
@@ -259,6 +262,31 @@ public class PauseMenu : MonoBehaviour
         }
 
         _root.style.display = DisplayStyle.None;
+    }
+
+    private void UpdateWaveLabel()
+    {
+        if (_waveLabel == null)
+        {
+            return;
+        }
+
+        var waveManager = WaveManager.ActiveInstance;
+        if (waveManager != null)
+        {
+            string label = $"WAVE {NumberConverter.ToRoman(waveManager.CurrentWaveNumber)}";
+            var wave = waveManager.CurrentWave;
+            if (wave != null && !string.IsNullOrEmpty(wave.WaveName))
+            {
+                label += $" · {wave.WaveName.ToUpperInvariant()}";
+            }
+            _waveLabel.text = label;
+            _waveLabel.style.display = DisplayStyle.Flex;
+        }
+        else
+        {
+            _waveLabel.style.display = DisplayStyle.None;
+        }
     }
 
     private void FocusResumeButton()

@@ -21,7 +21,7 @@ public class AboutFace : BaseWave
     [Header("Volleys")]
     [Tooltip("Projectiles per volley direction")]
     [SerializeField] private int projectilesPerVolley = 1;
-    [Tooltip("Max degrees the opposite volley deviates from a true 180 flip")]
+    [Tooltip("Degrees the opposite volley deviates from a true 180 flip; the deviation alternates direction each volley")]
     [SerializeField] private float angleJitter = 0f;
     [Tooltip("Extra distance beyond the screen edge where projectiles spawn; larger = more reaction time")]
     [SerializeField] private float offscreenPadding = 4f;
@@ -39,8 +39,18 @@ public class AboutFace : BaseWave
     private const float FieldX = 12f;
     private const float FieldY = 7f;
 
+    // Volley angles walk the legal top arc in a fixed golden-ratio stride —
+    // varied directions, but the exact same sequence every run (design rule 6:
+    // wave content never rolls dice). Steps through ~0.50, 0.88, 0.26, 0.65...
+    // of the arc; consecutive volleys (left knight, then right) land far apart.
+    private const float ArcStride = 0.382f;
+    private int _volleyStep;
+
     public override IEnumerator SpawnWave(Spawner spawner)
     {
+        // ScriptableObject state persists between runs — reset so every run
+        // of this wave plays the identical sequence
+        _volleyStep = 0;
         float window = flipWindow;
 
         for (int wolf = 0; wolf < wolfEscorts; wolf++)
@@ -53,8 +63,12 @@ public class AboutFace : BaseWave
         {
             for (int bat = 0; bat < batsPerBurst; bat++)
             {
+                // Even spread across the field, alternating top/bottom edges —
+                // the same entry points every run
                 float batY = bat % 2 == 0 ? FieldY + 1f : -FieldY - 1f;
-                spawner.SpawnBat(new Vector2(Random.Range(-FieldX, FieldX), batY), bat * 0.5f);
+                float spreadT = batsPerBurst > 1 ? (float)bat / (batsPerBurst - 1) : 0.5f;
+                float batX = Mathf.Lerp(-FieldX, FieldX, spreadT);
+                spawner.SpawnBat(new Vector2(batX, batY), bat * 0.5f);
             }
 
             for (int pair = 0; pair < pairsPerBurst; pair++)
@@ -85,9 +99,12 @@ public class AboutFace : BaseWave
         // First volley from the top arc; follow-up from the mirrored bottom arc after the flip window.
         // Angles stay minAngleFromHorizontal degrees away from horizontal so neither volley's
         // path can cross the other knight, and spawn points are pushed out of frame.
-        float baseAngle = Random.Range(minAngleFromHorizontal, 180f - minAngleFromHorizontal);
-        float flipAngle = baseAngle + 180f + Random.Range(-angleJitter, angleJitter);
+        float sweep = Mathf.Repeat(0.5f + _volleyStep * ArcStride, 1f);
+        float baseAngle = Mathf.Lerp(minAngleFromHorizontal, 180f - minAngleFromHorizontal, sweep);
+        float jitter = angleJitter * (_volleyStep % 2 == 0 ? 1f : -1f);
+        float flipAngle = baseAngle + 180f + jitter;
         flipAngle = Mathf.Clamp(flipAngle, 180f + minAngleFromHorizontal, 360f - minAngleFromHorizontal);
+        _volleyStep++;
 
         for (int i = 0; i < projectilesPerVolley; i++)
         {

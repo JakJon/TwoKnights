@@ -1,0 +1,56 @@
+GIMP Palette
+Name: Two Knights - Sprites
+Columns: 7
+# Shared mob/prop palettes. Mirrors Assets/Graphics/palletes/*.aseprite strips.
+# fur_grey - Wolf_Gray, grey_rat
+ 70  70  70	grey-1 464646
+ 86  86  86	grey-2 565656
+105 106 106	grey-3 696a6a
+135 137 137	grey-4 878989
+158 158 158	grey-5 9e9e9e
+# fur_brown - Wolf_brown, brown_rat, PlayerMan hair/skin family
+ 70  36  30	brown-1 46241e
+ 92  48  40	brown-2 5c3028
+102  57  49	brown-3 663931
+122  77  68	brown-4 7a4d44
+193 142  90	brown-5 c18e5a
+217 160 102	brown-6 d9a066
+242 186 129	brown-7 f2ba81
+# fur_dark - Wolf_black, basic_rat, bomb
+ 26  23  57	dark-1 1a1739
+ 29  26  55	dark-2 1d1a37
+ 34  32  52	dark-3 222034
+ 42  40  63	dark-4 2a283f
+ 51  49  76	dark-5 33314c
+# shadow_purple - slime_basic, bat_basic
+ 76  25 108	purple-1 4c196c
+ 87  32 121	purple-2 572079
+113  55 148	purple-3 713794
+171 116 205	purple-4 ab74cd
+# accent_mauve - rat ears/noses, shield, swords, projectile
+ 57  34  50	mauve-1 392232
+ 69  40  60	mauve-2 45283c
+ 88  53  77	mauve-3 58354d
+120  70 104	mauve-4 784668
+152 100 136	mauve-5 986488
+204 152 188	mauve-6 cc98bc
+# accents_common - outlines, teeth/claws, eyes
+  0   0   0	outline-black 000000
+255 255 255	highlight-white ffffff
+163 163 163	tooth-grey-1 a3a3a3
+201 201 201	tooth-grey-2 c9c9c9
+222 222 222	tooth-grey-3 dedede
+ 48  96 130	eye-blue 306082
+# poison_green - poison_bubble, Serpent line
+ 70 136  22	poison-1 468816
+106 190  48	poison-2 6abe30
+153 229  80	poison-3 99e550
+191 228 165	poison-4 bfe4a5
+# pickups_fx - orbs, bomb fuse
+172  50  50	health-dark ac3232
+217  87  99	health-light d95763
+ 63  63 116	mana-dark 3f3f74
+ 91 110 225	mana-light 5b6ee1
+255 242   0	fuse-yellow fff200
+255 173   0	fuse-orange ffad00
+225   0   0	fuse-red e10000

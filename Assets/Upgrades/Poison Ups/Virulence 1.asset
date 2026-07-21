@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: Virulence 1
   m_EditorClassIdentifier: 
   upgradeName: Virulence I
-  description: Poison ticks deal +2 damage
+  description: Poison ticks deal more damage.
   weight: 50
   order: 1
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 46f6a57d562150fdeb38380b67b6e7a9, type: 2}
   lockedBy: []
+  stats:
+  - valueText: +2
+    labelText: DAMAGE
+    isPositive: 1
   tickDamageBonus: 2
   tickRateMultiplier: 1

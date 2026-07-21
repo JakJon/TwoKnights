@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Night Hunt 2
   m_EditorClassIdentifier: 
   waveName: Night Hunt
-  weight: 100000000
+  weight: 1000
   isUnlocked: 0
   waveDescription: 'The pack strikes together: wolf low, bat high. Kill the stalker
     before the dive.'

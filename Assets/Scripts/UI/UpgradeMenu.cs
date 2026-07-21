@@ -639,6 +639,7 @@ public class UpgradeMenu : MonoBehaviour
                 if (orderLabel != null) orderLabel.text = upgrade.Order.ToString().ToUpperInvariant();
 
                 PopulateChainRow(menuItems[i], upgrade);
+                PopulateStatBadges(menuItems[i], upgrade);
 
                 menuItems[i].style.display = DisplayStyle.Flex;
 
@@ -698,6 +699,34 @@ public class UpgradeMenu : MonoBehaviour
         if (chainLabel != null)
         {
             chainLabel.text = $"{info.ChainName.ToUpperInvariant()} · {NumberConverter.ToRoman(info.Position)} OF {NumberConverter.ToRoman(info.Length)}";
+        }
+    }
+
+    // Fill a card's stat-badge column: one arrow badge per structured stat on the
+    // upgrade (green = buff, red = downside).
+    private void PopulateStatBadges(VisualElement card, BaseUpgrade upgrade)
+    {
+        var container = card.Q<VisualElement>("stat-badges");
+        if (container == null) return;
+
+        container.Clear();
+        if (upgrade.Stats.Count == 0)
+        {
+            container.style.display = DisplayStyle.None;
+            return;
+        }
+        container.style.display = DisplayStyle.Flex;
+
+        foreach (var stat in upgrade.Stats)
+        {
+            string arrow = stat.isPositive ? "▲" : "▼";
+            string text = string.IsNullOrEmpty(stat.labelText)
+                ? $"{arrow} {stat.valueText}"
+                : $"{arrow} {stat.valueText} {stat.labelText}";
+            var badge = new Label(text);
+            badge.AddToClassList("stat-badge");
+            badge.AddToClassList(stat.isPositive ? "stat-badge--buff" : "stat-badge--bane");
+            container.Add(badge);
         }
     }
 

@@ -45,8 +45,16 @@ darts). The run's story becomes *the pair*.
   bar). Poison inverts the arrow economy — a poisoned wolf dies eventually even
   unattended, so Serpent knights can afford to switch targets; big-count waves are the
   Serpent showcase.
-- **Shadow (Ninja)** — action economy (Shadow 1–5 exist): Shuriken Fan multishot,
-  Killing Blow executes, capstone *Thousand Cuts* (no cooldown for 2s after a kill).
+- **Shadow (Ninja)** — action economy: Serpent wins by patience, Shadow wins by
+  volume. Disciplines (12 upgrades): Shadow Arrows I–V (existing chain; retune
+  weights descending 100→30), Shuriken Fan I–II (main shot splits ±12°/±24° at
+  35% dmg, rolls poison per shuriken), Killing Blow I–II (execute enemies below
+  15%→25% max HP — never bosses), Phantom Blade I–II (sword swings leave a
+  shadow clone that repeats the swing at 50% dmg — the sword door, mirroring
+  Serpent's Breath), capstone **Thousand Cuts** (requires 4 Shadow: every kill
+  erases the firing cooldown for 2s; reuses RapidFire tech). Starting picks:
+  Shadow Arrows I + Phantom Blade I; Shuriken/Killing Blow unlock off Shadow
+  Arrows I. New `NinjaBoost` knight stat sheet mirrors `PoisonTipBoost`.
 - **Bulwark (Tank)** — the shield is the weapon: Thorned Aegis (reflect blocks),
   Stalwart (blocks charge special), Widened Guard (bigger arc), capstone *Unbreakable*
   (the damage streak-reset is suppressed once per wave).

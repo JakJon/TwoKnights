@@ -12,9 +12,14 @@ public class PoisonCloud : MonoBehaviour
     private const float CloudPoisonDuration = 6f;
     private const float ParticleLifetime = 1.6f;
 
+    // A traveling cloud despawns once fully outside the playfield
+    private const float OffscreenX = 13f;
+    private const float OffscreenY = 8f;
+
     private float radius;
     private float duration;
     private string ownerTag;
+    private Vector2 velocity = Vector2.zero; // Serpent's Breath clouds drift
 
     private float elapsed;
     private float sinceLastCheck;
@@ -29,8 +34,24 @@ public class PoisonCloud : MonoBehaviour
         cloudObject.transform.position = position;
         var cloud = cloudObject.AddComponent<PoisonCloud>();
         cloud.radius = level >= 2 ? 2.0f : 1.4f;
-        cloud.duration = level >= 2 ? 5f : 3f;
+        cloud.duration = level >= 2 ? 10f : 3f;
         cloud.ownerTag = ownerTag;
+        cloud.BuildCloudParticles();
+        return cloud;
+    }
+
+    // Serpent's Breath: a cloud exhaled by a sword swing that drifts along the
+    // shield facing until its time runs out or it leaves the playfield
+    public static PoisonCloud SpawnTraveling(Vector2 position, Vector2 direction, float duration,
+        bool large, string ownerTag, float speed = 1.5f)
+    {
+        var cloudObject = new GameObject("PoisonCloud");
+        cloudObject.transform.position = position;
+        var cloud = cloudObject.AddComponent<PoisonCloud>();
+        cloud.radius = large ? 1.6f : 0.9f;
+        cloud.duration = duration;
+        cloud.ownerTag = ownerTag;
+        cloud.velocity = direction.normalized * speed;
         cloud.BuildCloudParticles();
         return cloud;
     }
@@ -64,13 +85,21 @@ public class PoisonCloud : MonoBehaviour
         elapsed += Time.deltaTime;
         sinceLastCheck += Time.deltaTime;
 
+        if (velocity != Vector2.zero && !emissionStopped)
+        {
+            transform.position += (Vector3)(velocity * Time.deltaTime);
+        }
+
         if (sinceLastCheck >= CheckInterval)
         {
             sinceLastCheck = 0f;
             PoisonEnemiesInside();
         }
 
-        if (elapsed >= duration && !emissionStopped)
+        bool offscreen = Mathf.Abs(transform.position.x) > OffscreenX
+            || Mathf.Abs(transform.position.y) > OffscreenY;
+
+        if ((elapsed >= duration || offscreen) && !emissionStopped)
         {
             emissionStopped = true;
             if (particles != null)
@@ -156,12 +185,20 @@ public class PoisonCloud : MonoBehaviour
         if (renderer != null)
         {
             var material = new Material(Shader.Find("Sprites/Default"));
-            Sprite bubbleSprite = PoisonResourceManager.Instance != null
-                ? PoisonResourceManager.Instance.GetPoisonBubbleSprite()
-                : null;
-            if (bubbleSprite != null)
+            // Prefer the dedicated puff sprite (white, code-tinted); fall back
+            // to the bubble sprite so clouds still render without it
+            Sprite cloudSprite = null;
+            if (PoisonResourceManager.Instance != null)
             {
-                material.mainTexture = bubbleSprite.texture;
+                cloudSprite = PoisonResourceManager.Instance.GetPoisonPuffSprite();
+                if (cloudSprite == null)
+                {
+                    cloudSprite = PoisonResourceManager.Instance.GetPoisonBubbleSprite();
+                }
+            }
+            if (cloudSprite != null)
+            {
+                material.mainTexture = cloudSprite.texture;
             }
             renderer.material = material;
         }

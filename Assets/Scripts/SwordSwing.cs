@@ -18,10 +18,12 @@ public class SwordSwing : MonoBehaviour
 
     private InputAction swordInputAction;
     private bool canSwing = true;
+    private int currentSwingDamage; // Full damage for real swings, halved for Phantom Blade echoes
     private Transform swordSpriteTransform;
     private Transform slashSpriteTransform;
     private HashSet<GameObject> damagedEnemies;
     private ShieldOrbit shield;
+    private GameObject owningKnight;
 
     void Awake()
     {
@@ -37,6 +39,14 @@ public class SwordSwing : MonoBehaviour
         }
         AddDamageDetection(swordSpriteTransform);
         AddDamageDetection(slashSpriteTransform);
+
+        // The sword attack lives under its knight (knight_left/knight_right) —
+        // Serpent's Breath reads the knight's poison boost per swing
+        var parentHealth = GetComponentInParent<PlayerHealth>();
+        if (parentHealth != null)
+        {
+            owningKnight = parentHealth.gameObject;
+        }
     }
 
     void Update()
@@ -52,12 +62,40 @@ public class SwordSwing : MonoBehaviour
     {
         canSwing = false;
         damagedEnemies = new HashSet<GameObject>();
+        currentSwingDamage = swingDamage;
+        TryExhaleSerpentsBreath();
         if (swordSpriteTransform == null || slashSpriteTransform == null)
         {
             canSwing = true;
             yield break;
         }
         float shieldAngle = shield.CurrentAngle;
+        yield return StartCoroutine(AnimateSwingArc(shieldAngle, totalEffectDuration - swingDuration, swingDuration));
+
+        // Phantom Blade (Shadow Order): dark after-images repeat the swing. They
+        // trail the real swing after a short beat, then whip through at 2x speed.
+        NinjaBoost ninja = owningKnight != null ? owningKnight.GetComponent<NinjaBoost>() : null;
+        int echoCount = ninja != null ? ninja.PhantomLevel : 0;
+        for (int i = 0; i < echoCount; i++)
+        {
+            yield return new WaitForSeconds(0.1f);
+            damagedEnemies = new HashSet<GameObject>();
+            currentSwingDamage = Mathf.Max(1, swingDamage / 2);
+            SetSwingTint(PhantomTint);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.swordSwing);
+            yield return StartCoroutine(AnimateSwingArc(shieldAngle, 0.025f, swingDuration * 0.5f));
+            SetSwingTint(Color.white);
+        }
+        currentSwingDamage = swingDamage;
+
+        yield return new WaitForSeconds(cooldownTime);
+        canSwing = true;
+    }
+
+    // One full swing animation pass (sprites on -> arc -> hold -> sprites off);
+    // shared by the real swing and its Phantom Blade echoes
+    private IEnumerator AnimateSwingArc(float shieldAngle, float endHold, float arcDuration)
+    {
         float startAngle = shieldAngle - 45f;
         float endAngle = shieldAngle + 45f;
         swordSpriteTransform.gameObject.SetActive(true);
@@ -71,15 +109,15 @@ public class SwordSwing : MonoBehaviour
         Vector3 swordStartPos = (new Vector3(Mathf.Cos(startAngleRad), Mathf.Sin(startAngleRad), 0) * 0.8f) + rotationOffset;
         swordSpriteTransform.localPosition = swordStartPos;
         swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, startAngle - 90f);
-        
+
         // Activate slash sprite immediately
         slashSpriteTransform.gameObject.SetActive(true);
-        
+
         float elapsed = 0f;
-        while (elapsed < swingDuration)
+        while (elapsed < arcDuration)
         {
             elapsed += Time.deltaTime;
-            float progress = elapsed / swingDuration;
+            float progress = elapsed / arcDuration;
             float currentAngle = Mathf.Lerp(startAngle, endAngle, progress);
             float currentAngleRad = currentAngle * Mathf.Deg2Rad;
             Vector3 swordCurrentPos = (new Vector3(Mathf.Cos(currentAngleRad), Mathf.Sin(currentAngleRad), 0) * 1f) + rotationOffset;
@@ -91,11 +129,34 @@ public class SwordSwing : MonoBehaviour
         Vector3 swordEndPos = (new Vector3(Mathf.Cos(endAngleRad), Mathf.Sin(endAngleRad), 0) * .8f) + rotationOffset;
         swordSpriteTransform.localPosition = swordEndPos;
         swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, endAngle - 90f);
-        yield return new WaitForSeconds(totalEffectDuration - swingDuration);
+        yield return new WaitForSeconds(endHold);
         swordSpriteTransform.gameObject.SetActive(false);
         slashSpriteTransform.gameObject.SetActive(false);
-        yield return new WaitForSeconds(cooldownTime);
-        canSwing = true;
+    }
+
+    private static readonly Color PhantomTint = new Color(0.45f, 0.4f, 0.75f, 0.75f);
+
+    private void SetSwingTint(Color tint)
+    {
+        var swordSprite = swordSpriteTransform.GetComponent<SpriteRenderer>();
+        if (swordSprite != null) swordSprite.color = tint;
+        var slashSprite = slashSpriteTransform.GetComponent<SpriteRenderer>();
+        if (slashSprite != null) slashSprite.color = tint;
+    }
+
+    // Serpent's Breath: swings can exhale a venom cloud that drifts along the
+    // shield facing. Chance/duration/size live on the knight's PoisonTipBoost.
+    private void TryExhaleSerpentsBreath()
+    {
+        if (owningKnight == null || shield == null) return;
+
+        PoisonTipBoost boost = owningKnight.GetComponent<PoisonTipBoost>();
+        if (boost == null || !boost.ShouldExhaleSwordCloud()) return;
+
+        Vector2 direction = shield.Direction;
+        Vector2 origin = (Vector2)owningKnight.transform.position + direction * 1.3f;
+        PoisonCloud.SpawnTraveling(origin, direction, boost.SwordCloudDuration,
+            boost.SwordCloudLarge, owningKnight.tag);
     }
 
     private void AddDamageDetection(Transform spriteTransform)
@@ -116,8 +177,11 @@ public class SwordSwing : MonoBehaviour
         if (enemyBase != null)
         {
             GameObject tempProjectile = new GameObject("SwordHit");
-            tempProjectile.tag = gameObject.tag + "Projectile";
-            enemyBase.TakeDamage(swingDamage, tempProjectile);
+            // Credit the OWNING knight: the sword object itself is untagged, so
+            // using its own tag produced "UntaggedProjectile" and sword kills
+            // fed the wrong knight's special
+            tempProjectile.tag = (owningKnight != null ? owningKnight.tag : gameObject.tag) + "Projectile";
+            enemyBase.TakeDamage(currentSwingDamage, tempProjectile);
             Destroy(tempProjectile);
             damagedEnemies.Add(enemy);
         }
