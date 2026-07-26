@@ -9,6 +9,9 @@ public class SaveData
     public int furthestWave = 0;
     public int honorPoints = 0;
     public int knightRank = 1;
+    // Level select reopens here; empty on old saves, which resolves to the
+    // first unlocked map (see MapSelection.Resolve)
+    public string lastPlayedMapId = "";
     public List<QuestCompletion> completedQuests = new List<QuestCompletion>();
     public List<StatEntry> stats = new List<StatEntry>();
     public List<MapRecord> maps = new List<MapRecord>();

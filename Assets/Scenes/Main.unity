@@ -997,6 +997,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1142004717
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1142004719}
+  - component: {fileID: 1142004718}
+  m_Layer: 0
+  m_Name: RailNetwork
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1142004718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1142004717}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cacb977fa21b8e441a02349033917e88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pieces:
+  - kind: 0
+    prefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
+  fallbackPiecePrefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
+  trackParent: {fileID: 0}
+  viewCamera: {fileID: 519420031}
+--- !u!4 &1142004719
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1142004717}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1226890385
 GameObject:
   m_ObjectHideFlags: 0
@@ -1163,11 +1213,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.08
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5.63
+      value: -5.625
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1228,11 +1278,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stages:
   - label: Forest
+    mapId: camp_fields
     fromWaveNumber: 1
     sprite: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
   - label: Deep Forest
+    mapId: camp_fields
     fromWaveNumber: 11
     sprite: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+  - label: Mine
+    mapId: mine
+    fromWaveNumber: 1
+    sprite: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
 --- !u!1 &1490680652
 GameObject:
   m_ObjectHideFlags: 0
@@ -1295,6 +1351,7 @@ MonoBehaviour:
   darkBatInterval: 4
   healthOrbPrefab: {fileID: 5377450148777122619, guid: 46857fb8ddd904347b4a1908686016f8, type: 3}
   manaOrbPrefab: {fileID: 2554317483899268719, guid: a00f45b9aa5502440b3f2738a884e8f7, type: 3}
+  railNetwork: {fileID: 1142004718}
 --- !u!1 &1520333980
 GameObject:
   m_ObjectHideFlags: 0
@@ -2332,3 +2389,4 @@ SceneRoots:
   - {fileID: 2124077069}
   - {fileID: 913371069}
   - {fileID: 1384493411}
+  - {fileID: 1142004719}

@@ -17,8 +17,8 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: A wall of slimes shields a stalking wolf. Break the wall before
     the wolf breaks you.
-  unlockedAfterXWaves: 13
-  lockedAfterXWaves: -1
+  unlockedAfterXWaves: 16
+  lockedAfterXWaves: 19
   useEnemyTracking: 1
   slimesPerWall: 4
   slimeSize: 3

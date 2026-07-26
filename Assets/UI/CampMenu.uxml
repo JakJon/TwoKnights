@@ -63,6 +63,16 @@
             <ui:ScrollView name="stats-list" class="stats-list" />
         </ui:VisualElement>
 
+        <!-- Level Select Overlay (panes are built in code from the MapCatalog) -->
+        <ui:VisualElement name="map-select-panel" class="overlay-panel map-select-panel" style="display: none;">
+            <ui:VisualElement class="overlay-header">
+                <ui:Label text="Choose Your Ground" class="overlay-title" />
+                <ui:Button name="map-close-button" class="overlay-close-button" text="X" />
+            </ui:VisualElement>
+            <ui:VisualElement name="map-pane-row" class="map-pane-row" />
+            <ui:Label text="&#9664;&#9654; choose   A begin   B back" class="map-hint-line" />
+        </ui:VisualElement>
+
         <!-- Test Mode Overlay (dev builds only; rows are built in code) -->
         <ui:VisualElement name="test-panel" class="overlay-panel" style="display: none;">
             <ui:VisualElement class="overlay-header">

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71c4817d83de46e44aafc7d87ab58ff6, type: 3}
+  m_Name: The Mine
+  m_EditorClassIdentifier: 
+  mapId: mine
+  displayName: The Mine
+  unlockedByDefault: 1
+  previewImage: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
+  tagline: Rails, carts, and the dark below
+  waves:
+  - {fileID: 11400000, guid: 81abf34fe97395d48b43cbb55f58edad, type: 2}
+  gateBoss: {fileID: 0}
+  gateBossWaveNumber: 15
+  trueBoss: {fileID: 0}
+  trueBossWaveNumber: 25
+  unlocksMapId: 

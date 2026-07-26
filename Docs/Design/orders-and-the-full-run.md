@@ -80,11 +80,23 @@ darts). The run's story becomes *the pair*.
   extended waves beyond the gate, leading to the map's **true final boss** deeper in
   (~wave 20+ for Map 1), and **(b)** the **next map** — the camp map-select becomes a
   fan of open areas the player chooses between, not a strict ladder.
-- **Map 2 — "The Belfry":** mobs that twist the one player verb (shield rotation):
-  Gargoyle (telegraphed dives), Wraith (arrow-immune except on the bell's beat), Belfry
-  Spider (webs slow shield rotation). Gate boss *The Bell Warden* — a rhythm boss.
-  Map 3+ repeats the pattern (Crypt: armored mobs resist arrows but not DoT — a
-  Serpent/Ember showcase). **A map is the unit of content.**
+- **Map 2 — "The Mine"** (replaced the planned Belfry, 2026-07-25): a dark cave map
+  whose signature is **rails and mine carts**. Track is scenery that reconfigures per
+  wave — a straight horizontal line, vertical shafts, a full loop — and carts ride it
+  as moving hazards the knights must read and shoot around. The rail network is the
+  map's structural verb the way the bell was going to be the Belfry's rhythm one.
+  - *Shipped:* `RailLayout` (a track shape as data), `RailNetwork` (builds/clears it),
+    `RailSegment` + `SpriteFlipbook` (600ms fall, then a dust puff), and the first
+    wave **Choo Choo** — a full-width track laid on a 0.15s cascade over a slow
+    four-position projectile cycle. Only the horizontal rail piece has art;
+    `RailPieceKind` already names the vertical and corner pieces so loops and shafts
+    are a sprite away, not a rewrite.
+  - *Open:* cart prefab and cart movement along a layout, mine mobs, ~15 waves,
+    gate boss. `The Mine.asset` is `unlockedByDefault` while it's being built out —
+    gate it behind the Rat King once it has a real setlist.
+  - The Belfry's ideas (Gargoyle dives, Wraith, rhythm boss) are unspent and can move
+    to a later map. Map 3+ repeats the pattern (Crypt: armored mobs resist arrows but
+    not DoT — a Serpent/Ember showcase). **A map is the unit of content.**
 - **Post-victory chase:** handcrafted per-map **Trials** (modifier runs), not endless
   scaling. Far-future.
 
@@ -103,6 +115,6 @@ per Order, lit when unlocked.
 |---|---|
 | **A** | Orders framework + full Serpent class + card styling + particles |
 | **B** | `MapDefinition`, gate-boss/true-boss flow, Rat King, victory screen, stall fixed, map unlocks |
-| **C** | Map 2 "The Belfry": new mobs, ~15 waves, Bell Warden, camp map select |
+| **C** | Map 2 "The Mine": camp level select + rail system + Choo Choo *(done)*; carts, mine mobs, ~15 waves, gate boss *(open)* |
 | **D** | Bulwark/Ember/Dawn + duo upgrades |
 | **E** | Camp skill tree, class/map quest lines, gold sinks |

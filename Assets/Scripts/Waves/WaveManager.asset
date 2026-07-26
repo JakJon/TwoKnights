@@ -48,4 +48,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fd648e2f5936313409b6aa70387f4394, type: 2}
   - {fileID: 11400000, guid: c894df30f276d5941aa6e17a306741b7, type: 2}
   - {fileID: 11400000, guid: e89c0b74e50623e499b78faa296fb806, type: 2}
+  - {fileID: 11400000, guid: 81abf34fe97395d48b43cbb55f58edad, type: 2}
   currentMap: {fileID: 11400000, guid: caee2bf3b6441296067b792ad12c66ec, type: 2}

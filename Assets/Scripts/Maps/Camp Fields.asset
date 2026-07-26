@@ -15,6 +15,8 @@ MonoBehaviour:
   mapId: camp_fields
   displayName: The Camp Fields
   unlockedByDefault: 1
+  previewImage: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
+  tagline: Where the vigil began
   waves:
   - {fileID: 11400000, guid: bc25a2b379c5c53448aecc87bd1d5c0e, type: 2}
   - {fileID: 11400000, guid: 89b9ad4b7ed0b1c4cb476e0e90068429, type: 2}
@@ -63,4 +65,4 @@ MonoBehaviour:
   gateBossWaveNumber: 10
   trueBoss: {fileID: 11400000, guid: 78df8b0376aafcad03e8e87a8fb15849, type: 2}
   trueBossWaveNumber: 20
-  unlocksMapId: belfry
+  unlocksMapId: mine

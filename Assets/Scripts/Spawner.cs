@@ -26,6 +26,8 @@ public class Spawner : MonoBehaviour
     private int _batCallCount; // bat spawn calls this wave, in wave-script order
     [SerializeField] public GameObject healthOrbPrefab;
     [SerializeField] public GameObject manaOrbPrefab;
+    [Tooltip("Mine-map track builder. Waves ask for a RailLayout through Spawner.Rails.")]
+    [SerializeField] private RailNetwork railNetwork;
 
     private Transform _leftPlayer;
     private Transform _rightPlayer;
@@ -46,6 +48,17 @@ public class Spawner : MonoBehaviour
     public Vector2 topRightCorner => new Vector2(12, 6);
     public Vector2 bottomLeftCorner => new Vector2(-12, -6);
     public Vector2 bottomRightCorner => new Vector2(12, -6);
+
+    // Null on maps with no track in the scene — wave scripts must null-check
+    public RailNetwork Rails
+    {
+        get
+        {
+            if (railNetwork == null)
+                railNetwork = FindFirstObjectByType<RailNetwork>(FindObjectsInactive.Include);
+            return railNetwork;
+        }
+    }
     #endregion
 
     void Awake()
@@ -139,6 +152,9 @@ public class Spawner : MonoBehaviour
             waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
         _isWaveInProgress = true;
         _batCallCount = 0; // dark-bat cadence restarts every wave
+        // Last wave's track comes down as this one starts, so rails stay up
+        // through the wave-complete beat and the upgrade menu
+        if (Rails != null) Rails.ClearAll();
         StartCoroutine(RunWave(nextWave));
     }
 

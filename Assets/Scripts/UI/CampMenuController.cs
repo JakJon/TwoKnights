@@ -25,6 +25,7 @@ public class CampMenuController : MonoBehaviour
     [Header("Sub Panels")]
     [SerializeField] private QuestPanel questPanel;
     [SerializeField] private StatsPanel statsPanel;
+    [SerializeField] private MapSelectPanel mapSelectPanel;
     [SerializeField] private string menuContainerName = "menu-container";
 
     [Header("Input Actions")]
@@ -71,6 +72,8 @@ public class CampMenuController : MonoBehaviour
         _uiDocument = GetComponent<UIDocument>();
         if (questPanel == null) questPanel = GetComponent<QuestPanel>();
         if (statsPanel == null) statsPanel = GetComponent<StatsPanel>();
+        if (mapSelectPanel == null) mapSelectPanel = GetComponent<MapSelectPanel>();
+        if (mapSelectPanel == null) mapSelectPanel = gameObject.AddComponent<MapSelectPanel>();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         // Added in code so the scene needs no extra wiring
         testModePanel = GetComponent<TestModePanel>();
@@ -96,6 +99,11 @@ public class CampMenuController : MonoBehaviour
         SetSelectedIndex(Mathf.Clamp(_currentIndex, 0, _menuButtons.Count - 1));
         if (questPanel != null) questPanel.OnCloseRequested += HandleSubPanelClosed;
         if (statsPanel != null) statsPanel.OnCloseRequested += HandleSubPanelClosed;
+        if (mapSelectPanel != null)
+        {
+            mapSelectPanel.OnCloseRequested += HandleSubPanelClosed;
+            mapSelectPanel.OnMapChosen += HandleMapChosen;
+        }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (testModePanel != null) testModePanel.OnCloseRequested += HandleSubPanelClosed;
 #endif
@@ -115,6 +123,11 @@ public class CampMenuController : MonoBehaviour
         UnregisterCallbacks();
         if (questPanel != null) questPanel.OnCloseRequested -= HandleSubPanelClosed;
         if (statsPanel != null) statsPanel.OnCloseRequested -= HandleSubPanelClosed;
+        if (mapSelectPanel != null)
+        {
+            mapSelectPanel.OnCloseRequested -= HandleSubPanelClosed;
+            mapSelectPanel.OnMapChosen -= HandleMapChosen;
+        }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (testModePanel != null) testModePanel.OnCloseRequested -= HandleSubPanelClosed;
 #endif
@@ -280,7 +293,7 @@ public class CampMenuController : MonoBehaviour
     private void OnNavigateUp(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
-        if (TestPanelHandlesInput()) return;
+        if (PanelPollsOwnInput()) return;
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.NavigateUp();
@@ -298,7 +311,7 @@ public class CampMenuController : MonoBehaviour
     private void OnNavigateDown(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
-        if (TestPanelHandlesInput()) return;
+        if (PanelPollsOwnInput()) return;
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.NavigateDown();
@@ -316,7 +329,7 @@ public class CampMenuController : MonoBehaviour
     private void OnConfirm(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
-        if (TestPanelHandlesInput()) return;
+        if (PanelPollsOwnInput()) return;
         if (questPanel != null && questPanel.IsVisible)
         {
             questPanel.Confirm();
@@ -336,16 +349,17 @@ public class CampMenuController : MonoBehaviour
     private void OnCancel(InputAction.CallbackContext context)
     {
         if (!CanProcessInput()) return;
-        if (TestPanelHandlesInput()) return;
+        if (PanelPollsOwnInput()) return;
         HandleCancel();
         _lastInputTime = Time.unscaledTime;
     }
 
-    // The Test Mode panel polls its own gamepad/keyboard input (it needs
-    // left/right, which the camp actions don't provide), so the camp menu must
-    // go quiet while it is open or both would react to the same press
-    private bool TestPanelHandlesInput()
+    // Level select and Test Mode poll their own gamepad/keyboard input (both
+    // need left/right, which the camp actions don't provide), so the camp menu
+    // must go quiet while either is open or both would react to the same press
+    private bool PanelPollsOwnInput()
     {
+        if (mapSelectPanel != null && mapSelectPanel.IsVisible) return true;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         return testModePanel != null && testModePanel.IsVisible;
 #else
@@ -356,7 +370,7 @@ public class CampMenuController : MonoBehaviour
     private void HandleFallbackInput()
     {
         if (!CanProcessInput()) return;
-        if (TestPanelHandlesInput()) return;
+        if (PanelPollsOwnInput()) return;
 
         bool usedInput = false;
         bool questPanelOpen = questPanel != null && questPanel.IsVisible;
@@ -489,7 +503,27 @@ public class CampMenuController : MonoBehaviour
         RefreshStatusLines();
     }
 
+    // Start no longer drops straight into a run — it opens the level select,
+    // which decides which map the run plays
     private void HandleReturnClicked()
+    {
+        if (mapSelectPanel == null)
+        {
+            Debug.LogWarning("CampMenuController: no MapSelectPanel; starting the run directly.");
+            StartRun();
+            return;
+        }
+
+        SetMenuContainerVisible(false);
+        mapSelectPanel.Show();
+    }
+
+    private void HandleMapChosen(MapDefinition map)
+    {
+        StartRun();
+    }
+
+    private void StartRun()
     {
         if (GameSceneManager.Instance != null)
         {
@@ -591,6 +625,9 @@ public class CampMenuController : MonoBehaviour
         }
 
         SaveManager.DeleteSave();
+        // The pick is a static and survives the scene reload, so without this a
+        // map that the wipe just re-locked would still be the next run's map
+        MapSelection.Clear();
         Debug.Log("[CampMenu] Save data wiped. Reloading camp.");
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);

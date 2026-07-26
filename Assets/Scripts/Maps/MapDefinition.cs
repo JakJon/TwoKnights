@@ -13,6 +13,12 @@ public class MapDefinition : ScriptableObject
     [SerializeField] private string displayName = "The Camp Fields";
     [SerializeField] private bool unlockedByDefault = false;
 
+    [Header("Level select")]
+    [Tooltip("Pane artwork. Currently the map's own backdrop sprite; swap for dedicated key art when it exists.")]
+    [SerializeField] private Sprite previewImage;
+    [Tooltip("One-line flavour under the map name on the level select pane")]
+    [SerializeField] private string tagline = "";
+
     [Header("Setlist (weighted pool, each plays once per run)")]
     [SerializeField] private List<BaseWave> waves = new List<BaseWave>();
 
@@ -31,6 +37,8 @@ public class MapDefinition : ScriptableObject
     public string MapId => mapId;
     public string DisplayName => displayName;
     public bool UnlockedByDefault => unlockedByDefault;
+    public Sprite PreviewImage => previewImage;
+    public string Tagline => tagline;
     public IReadOnlyList<BaseWave> Waves => waves;
     public BaseWave GateBoss => gateBoss;
     public int GateBossWaveNumber => gateBossWaveNumber;

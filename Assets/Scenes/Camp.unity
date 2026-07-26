@@ -1143,6 +1143,7 @@ GameObject:
   - component: {fileID: 1450641611}
   - component: {fileID: 1450641612}
   - component: {fileID: 1450641613}
+  - component: {fileID: 1450641614}
   m_Layer: 5
   m_Name: Camp Menu
   m_TagString: Untagged
@@ -1204,6 +1205,7 @@ MonoBehaviour:
   gameplaySceneName: Main
   questPanel: {fileID: 1450641612}
   statsPanel: {fileID: 1450641613}
+  mapSelectPanel: {fileID: 1450641614}
   menuContainerName: menu-container
   navigateUpAction: {fileID: 533967465588344835, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   navigateDownAction: {fileID: 153658513545104228, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
@@ -1234,6 +1236,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fbcad18d93509cc4da6a9afffc3fae71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 1450641609}
+--- !u!114 &1450641614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1450641608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bfcba6213b356147b97865af792f084, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   uiDocument: {fileID: 1450641609}

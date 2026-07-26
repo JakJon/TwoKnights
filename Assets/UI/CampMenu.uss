@@ -356,6 +356,125 @@
     color: rgb(240, 205, 120);
 }
 
+/* ---------- level select ----------
+   Tall panes side by side: artwork on top, name plate beneath. The selected
+   pane is the only lit one — everything else drops toward the ground value so
+   the cursor is unmistakable at a glance across the room. */
+
+.map-select-panel {
+    left: 6%;
+    right: 6%;
+    top: 8%;
+    bottom: 8%;
+}
+
+.map-pane-row {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    flex-grow: 1;
+    padding: 10px 0;
+}
+
+.map-pane {
+    flex-direction: column;
+    align-items: stretch;
+    width: 260px;
+    max-width: 30%;
+    margin: 0 12px;
+    padding: 10px;
+    background-color: rgb(28, 22, 14);
+    border-width: 2px;
+    border-radius: 5px;
+    border-color: rgb(58, 50, 34);
+    transition-property: background-color, border-color, scale, opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+    opacity: 0.72;
+}
+
+.map-pane--selected {
+    background-color: rgb(42, 33, 19);
+    border-color: rgb(212, 162, 74);
+    scale: 1.04;
+    opacity: 1;
+}
+
+/* the artwork well: recessed, and it owns most of the pane's height */
+.map-pane-image {
+    flex-grow: 1;
+    min-height: 180px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    background-color: rgb(22, 18, 12);
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* locked maps read as unlit stone — the art is there but drained */
+.map-pane--locked .map-pane-image {
+    opacity: 0.28;
+}
+
+.map-pane-name {
+    -unity-text-align: middle-center;
+    font-size: 18px;
+    color: rgb(217, 207, 184);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 2px;
+    white-space: normal;
+}
+
+.map-pane--selected .map-pane-name {
+    color: rgb(242, 234, 217);
+}
+
+.map-pane--locked .map-pane-name {
+    color: rgb(141, 130, 102);
+}
+
+.map-pane-tagline {
+    -unity-text-align: middle-center;
+    font-size: 12px;
+    color: rgb(141, 130, 102);
+    margin-top: 4px;
+    white-space: normal;
+}
+
+.map-pane-status {
+    -unity-text-align: middle-center;
+    font-size: 12px;
+    color: rgb(212, 162, 74);
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top-width: 1px;
+    border-top-color: rgb(45, 38, 23);
+}
+
+.map-pane-status--locked {
+    color: rgb(122, 112, 88);
+}
+
+.map-pane-status--cleared {
+    color: rgb(240, 205, 120);
+}
+
+.map-hint-line {
+    font-size: 11px;
+    color: rgb(141, 130, 102);
+    -unity-text-align: middle-center;
+    margin-top: 6px;
+}
+
+.map-empty-line {
+    font-size: 14px;
+    color: rgb(141, 130, 102);
+    -unity-text-align: middle-center;
+    flex-grow: 1;
+}
+
 /* ---------- test mode (dev builds only) ---------- */
 
 /* the test overlay owns the whole screen — the upgrade list is long */
