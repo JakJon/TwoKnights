@@ -74,7 +74,19 @@ public class PlayerShooter : MonoBehaviour
         // Create projectile
         Vector2 spawnPosition = shield.transform.position;
         Quaternion spawnRotation = Quaternion.Euler(0, 0, shield.CurrentAngle);
-        GameObject projectile = Instantiate(playerProjectilePrefab, spawnPosition, spawnRotation);
+
+        // Ember: the deterministic fireball cadence. Every Nth shot leaves the
+        // shield as a fireball instead of an arrow — a counter, not a roll, so the
+        // player can count to five and time the big one into a cluster.
+        EmberBoost emberBoost = GetComponent<EmberBoost>();
+        bool isFireball = emberBoost != null && emberBoost.AdvanceShotAndCheckFireball();
+        GameObject prefabToFire = playerProjectilePrefab;
+        if (isFireball && emberBoost.FireballPrefab != null)
+        {
+            prefabToFire = emberBoost.FireballPrefab;
+        }
+
+        GameObject projectile = Instantiate(prefabToFire, spawnPosition, spawnRotation);
         projectile.tag = gameObject.tag + "Projectile";
 
         // Check if this projectile should be poisoned
@@ -88,9 +100,10 @@ public class PlayerShooter : MonoBehaviour
 
     // (Moved shadow spawn below after computing final damage)
 
-        // Set velocity
-        projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
-        
+        // Set velocity — a fireball lobs slower so the player can read it coming
+        float launchSpeed = isFireball ? projectileSpeed * FireballSpeedFactor : projectileSpeed;
+        projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * launchSpeed;
+
         // Apply damage bonus to the projectile
         NinjaBoost ninjaBoost = GetComponent<NinjaBoost>();
         PlayerProjectile playerProjectileComponent = projectile.GetComponent<PlayerProjectile>();
@@ -100,13 +113,36 @@ public class PlayerShooter : MonoBehaviour
             playerProjectileComponent.ownerNinjaBoost = ninjaBoost;
         }
 
-        // Capture final main projectile damage to drive shadow damage scaling
+        // Capture final main projectile damage to drive shadow damage scaling.
+        // Read BEFORE the fireball multiplier so shadow arrows and shurikens keep
+        // scaling off a normal arrow instead of spiking every Nth shot.
         int mainProjectileFinalDamage = playerProjectileComponent != null ? playerProjectileComponent.damage : 0;
+
+        if (playerProjectileComponent != null && emberBoost != null)
+        {
+            // Ignited Tips: independent roll per projectile, same as poison
+            if (emberBoost.ShouldIgnite())
+            {
+                playerProjectileComponent.ignitesOnHit = true;
+                FireFx.AttachArrowTrail(projectile);
+                // Fireballs always ignite and announce themselves with their own launch sound
+                if (!isFireball)
+                {
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.arrowIgnite);
+                }
+            }
+
+            if (isFireball)
+            {
+                ConfigureFireball(projectile, playerProjectileComponent, emberBoost, mainProjectileFinalDamage);
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.fireballLaunch);
+            }
+        }
 
         // Shuriken Fan (Shadow Order): the main shot splits into angled copies
         if (ninjaBoost != null && ninjaBoost.ShurikenLevel > 0)
         {
-            SpawnShurikens(ninjaBoost, spawnPosition, mainProjectileFinalDamage, poisonTipBoost);
+            SpawnShurikens(ninjaBoost, spawnPosition, mainProjectileFinalDamage, poisonTipBoost, emberBoost);
         }
 
         // Check if shadow arrow(s) should be spawned
@@ -114,7 +150,7 @@ public class PlayerShooter : MonoBehaviour
         if (shadowArrowBoost != null && shadowArrowBoost.GetShadowArrowPrefab() != null)
         {
             // Spawn chain asynchronously with small delay between spawns so they don't all appear at once
-            StartCoroutine(SpawnShadowArrows(shadowArrowBoost, projectile, shield.Direction, spawnRotation, gameObject.tag + "Projectile", poisonTipBoost, mainProjectileFinalDamage));
+            StartCoroutine(SpawnShadowArrows(shadowArrowBoost, projectile, shield.Direction, spawnRotation, gameObject.tag + "Projectile", poisonTipBoost, mainProjectileFinalDamage, emberBoost));
         }
 
         // Start lifetime countdown
@@ -142,11 +178,34 @@ public class PlayerShooter : MonoBehaviour
         _canShoot = true;
     }
 
+    // Ember tuning knobs
+    private const float FireballSpeedFactor = 0.7f;
+    private const float FireballDirectDamageFactor = 1.5f;
+
+    // A fireball is a sanctioned ignition source: it always lights what it touches
+    // and always leaves a crater. Blast damage stays at a normal arrow's value; the
+    // direct hit is what's multiplied.
+    private void ConfigureFireball(GameObject projectile, PlayerProjectile component,
+        EmberBoost emberBoost, int baseDamage)
+    {
+        component.damage = Mathf.Max(1, Mathf.RoundToInt(baseDamage * FireballDirectDamageFactor));
+        component.ignitesOnHit = true;
+
+        FireballProjectile fireball = projectile.AddComponent<FireballProjectile>();
+        fireball.blastRadius = emberBoost.FireballBlastRadius;
+        fireball.blastDamage = Mathf.Max(1, baseDamage);
+        fireball.ownerBoost = emberBoost;
+        fireball.ownerTag = gameObject.tag;
+    }
+
     // Shuriken Fan: angled copies of the main arrow at 35% damage; each rolls
     // its own poison chance so Serpent/Shadow cross-builds keep their bite
-    private void SpawnShurikens(NinjaBoost ninjaBoost, Vector2 spawnPosition, int mainDamage, PoisonTipBoost poisonTipBoost)
+    private void SpawnShurikens(NinjaBoost ninjaBoost, Vector2 spawnPosition, int mainDamage, PoisonTipBoost poisonTipBoost, EmberBoost emberBoost)
     {
         int shurikenDamage = Mathf.Max(1, Mathf.RoundToInt(mainDamage * 0.35f));
+
+        // One swish per volley, not per shuriken
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.shurikenThrow);
 
         // Prefab travels with the upgrade (see ShurikenFanUpgrade); arrow as fallback
         GameObject fanPrefab = ninjaBoost.ShurikenPrefab != null ? ninjaBoost.ShurikenPrefab : playerProjectilePrefab;
@@ -189,6 +248,15 @@ public class PlayerShooter : MonoBehaviour
             {
                 projectileComponent.damage = shurikenDamage;
                 projectileComponent.ownerNinjaBoost = ninjaBoost;
+                // Shurikens don't absorb fire/poison from the field — only the main shot does
+                projectileComponent.absorbsFieldEffects = false;
+
+                // Independent ignite roll per shuriken, mirroring the poison roll
+                if (emberBoost != null && emberBoost.ShouldIgnite())
+                {
+                    projectileComponent.ignitesOnHit = true;
+                    FireFx.AttachArrowTrail(shuriken);
+                }
             }
 
             StartCoroutine(DestroyProjectile(shuriken));
@@ -207,11 +275,14 @@ public class PlayerShooter : MonoBehaviour
     }
 
     // Spawns the chain of shadow arrows with a 0.1s delay between each
-    private IEnumerator SpawnShadowArrows(ShadowArrowBoost shadowArrowBoost, GameObject initialLeader, Vector2 direction, Quaternion rotation, string projectileTag, PoisonTipBoost poisonTipBoost, int mainProjectileFinalDamage)
+    private IEnumerator SpawnShadowArrows(ShadowArrowBoost shadowArrowBoost, GameObject initialLeader, Vector2 direction, Quaternion rotation, string projectileTag, PoisonTipBoost poisonTipBoost, int mainProjectileFinalDamage, EmberBoost emberBoost)
     {
         int amount = shadowArrowBoost.GetShadowArrowAmount();
         if (amount <= 0)
             yield break;
+
+        // One echo swish per chain — the arrows land 0.05s apart, per-arrow would machine-gun
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.shadowArrow);
 
         GameObject leaderGO = initialLeader;
         for (int i = 0; i < amount; i++)
@@ -248,10 +319,20 @@ public class PlayerShooter : MonoBehaviour
                 int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowArrowBoost.GetDamageMultiplier());
                 var shadowNinjaBoost = GetComponent<NinjaBoost>();
                 var shadowProjComponents = shadowArrow.GetComponentsInChildren<PlayerProjectile>(true);
+                // One ignite roll for the arrow, applied to all its components, so a
+                // multi-part shadow arrow can't roll ignite several times over
+                bool shadowIgnites = emberBoost != null && emberBoost.ShouldIgnite();
                 foreach (var comp in shadowProjComponents)
                 {
                     comp.damage = scaledShadowDamage;
                     comp.ownerNinjaBoost = shadowNinjaBoost;
+                    comp.ignitesOnHit = shadowIgnites;
+                    // Shadow arrows don't absorb fire/poison from the field — only the main shot does
+                    comp.absorbsFieldEffects = false;
+                }
+                if (shadowIgnites)
+                {
+                    FireFx.AttachArrowTrail(shadowArrow);
                 }
 
             // Next shadow trails this one; update leader to the new shadow arrow GameObject

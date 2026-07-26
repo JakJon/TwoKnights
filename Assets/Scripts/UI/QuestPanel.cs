@@ -189,6 +189,7 @@ public class QuestPanel : MonoBehaviour
     {
         if (_questButtons.Count == 0) return;
         int next = _selectedIndex <= 0 ? _questButtons.Count - 1 : _selectedIndex - 1;
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiMove);
         SelectQuest(next);
     }
 
@@ -196,6 +197,7 @@ public class QuestPanel : MonoBehaviour
     {
         if (_questButtons.Count == 0) return;
         int next = (_selectedIndex + 1) % _questButtons.Count;
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiMove);
         SelectQuest(next);
     }
 
@@ -236,6 +238,7 @@ public class QuestPanel : MonoBehaviour
 
     private void HandleCloseClicked()
     {
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiCancel);
         Hide();
         OnCloseRequested?.Invoke();
     }

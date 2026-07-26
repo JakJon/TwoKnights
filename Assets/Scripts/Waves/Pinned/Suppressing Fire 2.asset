@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1f5162858ac1404ca117b4d454c8b5e, type: 3}
+  m_Name: Suppressing Fire 2
+  m_EditorClassIdentifier: 
+  waveName: Suppressing Fire 2
+  weight: 600
+  isUnlocked: 0
+  waveDescription: Sweeps to track, then reversals to punish the tracking.
+  unlockedAfterXWaves: 8
+  lockedAfterXWaves: 12
+  useEnemyTracking: 1
+  pinnedKnight: 1
+  anchorSequence: 0000000001000000
+  anchorHoldSeconds: 22
+  switchGapSeconds: 0
+  secondsBetweenRocks: 0.5
+  pauseEveryNRocks: 0
+  pauseSeconds: 0
+  anchorRadius: 12
+  tier: 2
+  arcRadius: 12
+  wiperDegreesPerSecond: 20
+  secondsBetweenShots: 0.85
+  reverseEveryNShots: 0
+  patternSeconds: 44
+  batCount: 3

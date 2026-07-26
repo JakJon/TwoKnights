@@ -115,6 +115,7 @@ public class StatsPanel : MonoBehaviour
 
     private void HandleCloseClicked()
     {
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiCancel);
         Hide();
         OnCloseRequested?.Invoke();
     }

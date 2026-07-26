@@ -20,11 +20,20 @@ public class EnemyRat : EnemyBase
     private bool _isSpawning = true;
     private float _chaseTimer;
     private Transform _assignedPlayer;
-    private bool _hasPlayedChaseSFX = false; 
+    private bool _hasPlayedChaseSFX = false;
+    private Vector2? _entryPoint;
 
     public void InitializeTarget(Transform playerTarget)
     {
         _assignedPlayer = playerTarget;
+    }
+
+    // Enter from a specific point (e.g. the rat king's body) instead of the
+    // nearest screen edge. Must be called before Start runs, i.e. same frame
+    // as Instantiate.
+    public void SetEntryPoint(Vector2 entryPoint)
+    {
+        _entryPoint = entryPoint;
     }
 
     void Start()
@@ -40,11 +49,10 @@ public class EnemyRat : EnemyBase
 
         // Spawning setup
         _targetPosition = transform.position;
-        transform.position = GetAdjustedSpawnPosition(_targetPosition);
+        transform.position = _entryPoint ?? GetAdjustedSpawnPosition(_targetPosition);
         _startPos = _targetPosition; // Patrol will use this as center point
         _spriteRenderer = GetComponent<SpriteRenderer>();
         StartCoroutine(EnterScreenRoutine());
-        AudioManager.Instance.PlaySFX(AudioManager.Instance.ratSpawn);
     }
 
     private IEnumerator EnterScreenRoutine()

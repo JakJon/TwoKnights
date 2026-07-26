@@ -131,6 +131,7 @@ public class QuestCompletePanel : MonoBehaviour
             _root.style.display = DisplayStyle.Flex;
             IsVisible = true;
             _dismissed = false;
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.questComplete);
 
             if (_continueButton != null)
             {

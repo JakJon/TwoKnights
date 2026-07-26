@@ -5,6 +5,9 @@ public class ProjectileMovement : MonoBehaviour
     private Transform _target;
     [SerializeField] private float _speed = .75f;
 
+    // Bosses read this to pace volleys so overlapping fans stay blockable
+    public float Speed => _speed;
+
     // Call this when spawning the projectile
     public void Initialize(Transform target, Vector2 spawnPosition)
     {

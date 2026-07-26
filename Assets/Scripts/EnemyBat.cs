@@ -22,9 +22,9 @@ public class EnemyBat : EnemyBase
         specialOnDeath = 10;
         shieldDamage = 10;
         playerDamage = damage;
-        hurtSound = AudioManager.Instance.ratHurt;  // TODO: Replace with bat hurt sound
-        deathSound = AudioManager.Instance.ratDeath; // TODO: Replace with bat death sound
-        
+        hurtSound = AudioManager.Instance.batHurt;
+        deathSound = AudioManager.Instance.batDeath;
+
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _initialPosition = transform.position;
         

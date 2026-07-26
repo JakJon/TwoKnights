@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Amethyst Hollow - Stone
+Columns: 4
+# Boulders, stalagmites, ruins. Value-matched to gilded-vigil-stone; bias violet, not blue.
+ 37  35  48	stone-1 252330
+ 58  55  73	stone-2 3a3749
+ 85  81 103	stone-3 555167
+117 112 135	stone-4 757087

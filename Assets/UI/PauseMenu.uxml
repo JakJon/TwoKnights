@@ -4,6 +4,18 @@
             <ui:Label text="Paused" name="pause-title" class="pause-title" />
             <ui:Label text="WAVE I" name="pause-wave" class="pause-wave" />
             <ui:VisualElement name="pause-divider" class="pause-divider" />
+            <ui:VisualElement name="pause-loadout" class="pause-loadout">
+                <ui:VisualElement name="loadout-left" class="loadout-column">
+                    <ui:Label text="LEFT KNIGHT" name="loadout-left-title" class="loadout-title" />
+                    <ui:VisualElement name="loadout-left-list" class="loadout-list" />
+                </ui:VisualElement>
+                <ui:VisualElement name="loadout-divider" class="loadout-divider" />
+                <ui:VisualElement name="loadout-right" class="loadout-column">
+                    <ui:Label text="RIGHT KNIGHT" name="loadout-right-title" class="loadout-title" />
+                    <ui:VisualElement name="loadout-right-list" class="loadout-list" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="pause-divider-2" class="pause-divider" />
             <ui:VisualElement name="pause-body" class="pause-body">
                 <ui:VisualElement name="main-actions" class="actions-container">
                     <ui:Button text="RESUME" name="resume-button" class="menu-button primary" />

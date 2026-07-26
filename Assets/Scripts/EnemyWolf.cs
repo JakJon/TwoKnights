@@ -40,9 +40,8 @@ public class EnemyWolf : EnemyBase
         shieldDamage = 10;
         playerDamage = damage;
 
-        // Temporary SFX placeholders (replace with wolf SFX when available)
-        hurtSound = AudioManager.Instance != null ? AudioManager.Instance.ratHurt : null; // TODO: wolf hurt
-        deathSound = AudioManager.Instance != null ? AudioManager.Instance.ratDeath : null; // TODO: wolf death
+        hurtSound = AudioManager.Instance != null ? AudioManager.Instance.wolfHurt : null;
+        deathSound = AudioManager.Instance != null ? AudioManager.Instance.wolfDeath : null;
 
         // Configure stats by type
         switch (wolfType)
@@ -75,11 +74,6 @@ public class EnemyWolf : EnemyBase
             _isChasing = true;
         }
 
-        // Spawn SFX (placeholder)
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.ratSpawn);
-        }
     }
 
     private void Update()
@@ -97,7 +91,7 @@ public class EnemyWolf : EnemyBase
         {
             if (!_hasPlayedChaseSFX && AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.ratChase); // placeholder
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.wolfGrowl);
                 _hasPlayedChaseSFX = true;
             }
             ChaseTarget();

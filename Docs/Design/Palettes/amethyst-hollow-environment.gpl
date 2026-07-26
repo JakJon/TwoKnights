@@ -1,0 +1,31 @@
+GIMP Palette
+Name: Amethyst Hollow - Environment
+Columns: 5
+# Map 2 cave environment palette. Groups: ground, wall, stone, grit, crystal, fungus, accents.
+ 25  19  49	ground-1 191331
+ 39  29  66	ground-2 271d42
+ 51  38  81	ground-3 332651
+ 65  48  99	ground-4 413063
+ 80  59 119	ground-5 503b77
+ 12   9  20	wall-1 0c0914
+ 21  15  36	wall-2 150f24
+ 31  23  53	wall-3 1f1735
+ 44  32  73	wall-4 2c2049
+ 37  35  48	stone-1 252330
+ 58  55  73	stone-2 3a3749
+ 85  81 103	stone-3 555167
+117 112 135	stone-4 757087
+ 42  33  38	grit-1 2a2126
+ 65  50  48	grit-2 413230
+ 92  71  64	grit-3 5c4740
+110  86  75	grit-4 6e564b
+ 74  33 131	crystal-1 4a2183
+123  54 196	crystal-2 7b36c4
+169 104 238	crystal-3 a968ee
+220 182 255	crystal-4 dcb6ff
+ 26  79  82	fungus-1 1a4f52
+ 46 142 134	fungus-2 2e8e86
+ 99 214 180	fungus-3 63d6b4
+212 162  74	accent-gold d4a24a
+194 112  63	accent-ember c2703f
+143 179 209	accent-sky 8fb3d1

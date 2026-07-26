@@ -385,6 +385,7 @@ public class UpgradeMenu : MonoBehaviour
         {
             currentSelectedIndex = Mathf.Max(0, currentSelectedIndex - 1);
         }
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiMove);
         UpdateSelection();
     }
 
@@ -404,6 +405,7 @@ public class UpgradeMenu : MonoBehaviour
         {
             isConfirmButtonSelected = true;
         }
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiMove);
         UpdateSelection();
     }
 
@@ -444,6 +446,8 @@ public class UpgradeMenu : MonoBehaviour
 
         // Clear previous selection - this should remove visual styling from any previously chosen upgrade
         ClearChosenUpgrade();
+
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
 
         // Set new selection
         chosenUpgradeIndex = upgradeIndex;
@@ -489,6 +493,7 @@ public class UpgradeMenu : MonoBehaviour
             // Play the confirm animation (button punch + card flash), then fire the
             // event a beat later so the player sees their pick land before the menu closes
             _confirmPending = true;
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.upgradeConfirm);
             Pulse(confirmButton);
 
             var chosenCard = chosenUpgradeIndex < menuItems.Count ? menuItems[chosenUpgradeIndex] : null;
@@ -537,6 +542,7 @@ public class UpgradeMenu : MonoBehaviour
                 RefreshStatusFromScene();
                 PopulateUpgrades();
                 UpdateSelection();
+                AudioManager.Instance?.PlaySFX(AudioManager.Instance.upgradeMenuOpen);
                 PlayEntranceAnimation();
 
                 // Force refresh the UI

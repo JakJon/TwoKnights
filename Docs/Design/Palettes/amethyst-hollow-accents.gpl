@@ -1,0 +1,7 @@
+GIMP Palette
+Name: Amethyst Hollow - Accents
+Columns: 3
+# Deliberately IDENTICAL to gilded-vigil-accents. Pickups must read the same on every map.
+212 162  74	accent-gold d4a24a
+194 112  63	accent-ember c2703f
+143 179 209	accent-sky 8fb3d1

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sfxr": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["Tools/sfxr-mcp/server.js"]
+    }
+  }
+}

@@ -36,7 +36,6 @@ public class ProjectileSettings : MonoBehaviour
         // Check for player collision
         if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.playerHurt);
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {

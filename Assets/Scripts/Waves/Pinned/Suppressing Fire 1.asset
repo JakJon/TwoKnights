@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1f5162858ac1404ca117b4d454c8b5e, type: 3}
+  m_Name: Suppressing Fire 1
+  m_EditorClassIdentifier: 
+  waveName: Suppressing Fire 1
+  weight: 600
+  isUnlocked: 0
+  waveDescription: The right knight is nailed down. Volleys answer the left knight
+    one at a time.
+  unlockedAfterXWaves: 4
+  lockedAfterXWaves: 8
+  useEnemyTracking: 1
+  pinnedKnight: 1
+  anchorSequence: 00000000
+  anchorHoldSeconds: 38
+  switchGapSeconds: 0
+  secondsBetweenRocks: 0.5
+  pauseEveryNRocks: 0
+  pauseSeconds: 0
+  anchorRadius: 12
+  tier: 1
+  arcRadius: 12
+  wiperDegreesPerSecond: 12
+  secondsBetweenShots: 1
+  reverseEveryNShots: 0
+  patternSeconds: 38
+  batCount: 2

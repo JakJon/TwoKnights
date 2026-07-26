@@ -51,6 +51,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fd648e2f5936313409b6aa70387f4394, type: 2}
   - {fileID: 11400000, guid: c894df30f276d5941aa6e17a306741b7, type: 2}
   - {fileID: 11400000, guid: e89c0b74e50623e499b78faa296fb806, type: 2}
+  - {fileID: 11400000, guid: be6c728509d5b7448a7285e500105059, type: 2}
+  - {fileID: 11400000, guid: 8987a7e16f785804c85f6531c0fca306, type: 2}
+  - {fileID: 11400000, guid: 9aa8e34b804abcf4c834d4f5185ee552, type: 2}
+  - {fileID: 11400000, guid: 17b6bede1649bd94893cfb311a3b8590, type: 2}
+  - {fileID: 11400000, guid: 994aacfc78e5c834783bb67065810bde, type: 2}
+  - {fileID: 11400000, guid: 29eb114cf2667a94b892227dfa14c407, type: 2}
+  - {fileID: 11400000, guid: 20249c8dbb26624459358f071773c695, type: 2}
+  - {fileID: 11400000, guid: 05ba42be3bd82f146be94880f48e9291, type: 2}
   gateBoss: {fileID: 11400000, guid: 6767c128b721f54cc031ffd692c9971c, type: 2}
   gateBossWaveNumber: 10
   trueBoss: {fileID: 11400000, guid: 78df8b0376aafcad03e8e87a8fb15849, type: 2}

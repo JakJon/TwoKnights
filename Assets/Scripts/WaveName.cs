@@ -23,6 +23,9 @@ public class WaveName : MonoBehaviour
 
     public void DisplayWaveName(int waveNumber, string waveName)
     {
+        // Only numbered wave banners get the sting — the victory banner reuses
+        // the string overload and brings its own fanfare
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.waveStart);
         string romanNumeral = NumberConverter.ToRoman(waveNumber);
         string formattedName = $"<color=#FFFFFF>{romanNumeral}</color> {waveName}";
         DisplayWaveName(formattedName);

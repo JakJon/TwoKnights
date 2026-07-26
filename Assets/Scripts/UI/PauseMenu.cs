@@ -19,6 +19,8 @@ public class PauseMenu : MonoBehaviour
     private VisualElement _root;
     private VisualElement _mainActions;
     private VisualElement _confirmActions;
+    private VisualElement _loadoutLeftList;
+    private VisualElement _loadoutRightList;
     private Label _waveLabel;
     private Button _resumeButton;
     private Button _quitButton;
@@ -75,6 +77,8 @@ public class PauseMenu : MonoBehaviour
 
         _mainActions = _root.Q<VisualElement>("main-actions");
         _confirmActions = _root.Q<VisualElement>("confirm-actions");
+        _loadoutLeftList = _root.Q<VisualElement>("loadout-left-list");
+        _loadoutRightList = _root.Q<VisualElement>("loadout-right-list");
         _waveLabel = _root.Q<Label>("pause-wave");
         _resumeButton = _root.Q<Button>("resume-button");
         _quitButton = _root.Q<Button>("quit-button");
@@ -161,8 +165,10 @@ public class PauseMenu : MonoBehaviour
         _previousTimeScale = Time.timeScale;
         Time.timeScale = 0f;
         SetPausedState(true);
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiOpen);
 
         UpdateWaveLabel();
+        UpdateLoadout();
         HideConfirmPrompt();
         ShowMenu();
         FocusResumeButton();
@@ -194,6 +200,7 @@ public class PauseMenu : MonoBehaviour
 
         SetPausedState(false);
         _confirmingQuit = false;
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiCancel);
 
         if (!EnsureUI())
         {
@@ -207,6 +214,7 @@ public class PauseMenu : MonoBehaviour
     private void PauseForQuitConfirm()
     {
         _confirmingQuit = true;
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
         if (_mainActions != null)
         {
             _mainActions.style.display = DisplayStyle.None;
@@ -286,6 +294,62 @@ public class PauseMenu : MonoBehaviour
         else
         {
             _waveLabel.style.display = DisplayStyle.None;
+        }
+    }
+
+    // Fill both knight columns with the upgrades they've drafted this run, one row
+    // per chain (highest tier only), color-railed by Order like the draft cards.
+    private void UpdateLoadout()
+    {
+        var manager = Resources.Load<UpgradeManager>("UpgradeManager");
+        PopulateColumn(_loadoutLeftList, manager, KnightTarget.LeftKnight);
+        PopulateColumn(_loadoutRightList, manager, KnightTarget.RightKnight);
+    }
+
+    private void PopulateColumn(VisualElement list, UpgradeManager manager, KnightTarget target)
+    {
+        if (list == null)
+        {
+            return;
+        }
+
+        list.Clear();
+
+        bool any = false;
+        if (manager != null)
+        {
+            foreach (var row in manager.GetAppliedUpgradeSummary(target))
+            {
+                var chip = new Label(row.Name);
+                chip.AddToClassList("loadout-chip");
+                string orderClass = OrderClass(row.Order);
+                if (orderClass != null)
+                {
+                    chip.AddToClassList(orderClass);
+                }
+                list.Add(chip);
+                any = true;
+            }
+        }
+
+        if (!any)
+        {
+            var empty = new Label("No upgrades yet");
+            empty.AddToClassList("loadout-empty");
+            list.Add(empty);
+        }
+    }
+
+    private static string OrderClass(UpgradeOrder order)
+    {
+        switch (order)
+        {
+            case UpgradeOrder.Serpent: return "order--serpent";
+            case UpgradeOrder.Shadow: return "order--shadow";
+            case UpgradeOrder.Ember: return "order--ember";
+            case UpgradeOrder.Bulwark: return "order--bulwark";
+            case UpgradeOrder.Dawn: return "order--dawn";
+            default: return null; // Neutral: no color rail
         }
     }
 

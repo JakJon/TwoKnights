@@ -146,46 +146,58 @@ public class TestModePanel : MonoBehaviour
         randomizeHint.AddToClassList("test-row-value");
         randomizeRow.Add(randomizeHint);
         int randomizeIndex = _rows.Count;
-        randomizeRow.RegisterCallback<MouseEnterEvent>(_ => SetSelectedIndex(randomizeIndex));
+        randomizeRow.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(randomizeIndex));
         randomizeRow.RegisterCallback<ClickEvent>(_ => RandomizeLoadout());
         _rows.Add(new Row { Kind = RowKind.Randomize, Element = randomizeRow });
         _list.Add(randomizeRow);
 
         if (_upgradeManager != null)
         {
+            // Chain families grouped under their Order (Ember, Serpent, Shadow,
+            // ...) with Neutral's classless filler chains sunk to the bottom;
+            // categories and the chains inside them both read alphabetically.
             // One collapsible section per chain family, one row per upgrade
             // asset inside it. Asset names ("Shadow 3", "Venom Tip 2") are the
             // dev-facing labels.
-            var families = _upgradeManager.AllUpgrades
+            var categories = _upgradeManager.AllUpgrades
                 .Where(u => u != null)
                 .GroupBy(u => u.GetType())
-                .OrderBy(g => g.First().ChainName);
+                .GroupBy(f => f.First().Order)
+                .OrderBy(c => c.Key == UpgradeOrder.Neutral ? 1 : 0)
+                .ThenBy(c => c.Key.ToString());
 
-            foreach (var family in families)
+            foreach (var category in categories)
             {
-                var header = new Label();
-                header.AddToClassList("test-section-header");
-                var sectionRow = new Row
-                {
-                    Kind = RowKind.Section,
-                    Element = header,
-                    HeaderTitle = family.First().ChainName.ToUpperInvariant()
-                };
-                int headerIndex = _rows.Count;
-                header.RegisterCallback<MouseEnterEvent>(_ => SetSelectedIndex(headerIndex));
-                header.RegisterCallback<ClickEvent>(_ => ToggleSection(sectionRow));
-                _rows.Add(sectionRow);
-                _list.Add(header);
+                var categoryLabel = new Label(CategoryTitle(category.Key));
+                categoryLabel.AddToClassList("test-category-header");
+                _list.Add(categoryLabel);
 
-                var tiers = family
-                    .OrderBy(u => _upgradeManager.GetChainInfo(u, KnightTarget.LeftKnight).Position)
-                    .ThenBy(u => u.name);
-                foreach (var upgrade in tiers)
+                foreach (var family in category.OrderBy(f => f.First().ChainName))
                 {
-                    _list.Add(CreateUpgradeRow(upgrade, sectionRow));
+                    var header = new Label();
+                    header.AddToClassList("test-section-header");
+                    var sectionRow = new Row
+                    {
+                        Kind = RowKind.Section,
+                        Element = header,
+                        HeaderTitle = family.First().ChainName.ToUpperInvariant()
+                    };
+                    int headerIndex = _rows.Count;
+                    header.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(headerIndex));
+                    header.RegisterCallback<ClickEvent>(_ => ToggleSection(sectionRow));
+                    _rows.Add(sectionRow);
+                    _list.Add(header);
+
+                    var tiers = family
+                        .OrderBy(u => _upgradeManager.GetChainInfo(u, KnightTarget.LeftKnight).Position)
+                        .ThenBy(u => u.name);
+                    foreach (var upgrade in tiers)
+                    {
+                        _list.Add(CreateUpgradeRow(upgrade, sectionRow));
+                    }
+
+                    UpdateSectionHeader(sectionRow);
                 }
-
-                UpdateSectionHeader(sectionRow);
             }
         }
 
@@ -193,7 +205,7 @@ public class TestModePanel : MonoBehaviour
         if (startRow != null)
         {
             int index = _rows.Count;
-            startRow.RegisterCallback<MouseEnterEvent>(_ => SetSelectedIndex(index));
+            startRow.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(index));
             startRow.RegisterCallback<ClickEvent>(_ => TryStartRun());
             _rows.Add(new Row { Kind = RowKind.Start, Element = startRow });
         }
@@ -220,7 +232,7 @@ public class TestModePanel : MonoBehaviour
         rowElement.Add(toggles);
 
         int index = _rows.Count;
-        rowElement.RegisterCallback<MouseEnterEvent>(_ => SetSelectedIndex(index));
+        rowElement.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(index));
         leftToggle.RegisterCallback<ClickEvent>(_ => ToggleUpgrade(upgrade, KnightTarget.LeftKnight));
         rightToggle.RegisterCallback<ClickEvent>(_ => ToggleUpgrade(upgrade, KnightTarget.RightKnight));
 
@@ -236,6 +248,19 @@ public class TestModePanel : MonoBehaviour
         _rows.Add(row);
         section.Children.Add(row);
         return rowElement;
+    }
+
+    private static string CategoryTitle(UpgradeOrder order)
+    {
+        switch (order)
+        {
+            case UpgradeOrder.Serpent: return "SERPENT — POISON";
+            case UpgradeOrder.Shadow: return "SHADOW — NINJA";
+            case UpgradeOrder.Ember: return "EMBER — FIRE";
+            case UpgradeOrder.Bulwark: return "BULWARK — TANK";
+            case UpgradeOrder.Dawn: return "DAWN — HEALING";
+            default: return "NEUTRAL";
+        }
     }
 
     private void ToggleSection(Row section)
@@ -296,9 +321,9 @@ public class TestModePanel : MonoBehaviour
         int vertical = ApplyRepeat(rawVertical, ref _heldVertical, ref _nextVerticalRepeat, out _);
         int horizontal = ApplyRepeat(rawHorizontal, ref _heldHorizontal, ref _nextHorizontalRepeat, out bool horizontalFirstPress);
 
-        bool confirm = (gp != null && gp.buttonSouth.wasPressedThisFrame)
+        bool confirm = MenuGamepad.SubmitPressed(gp)
                        || (kb != null && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame));
-        bool cancel = (gp != null && gp.buttonEast.wasPressedThisFrame)
+        bool cancel = MenuGamepad.CancelPressed(gp)
                       || (kb != null && kb.escapeKey.wasPressedThisFrame);
         // Start (or Tab) skips the list and lands on Begin Run
         bool jumpToStart = (gp != null && gp.startButton.wasPressedThisFrame)
@@ -355,7 +380,17 @@ public class TestModePanel : MonoBehaviour
         SetSelectedIndex(index);
     }
 
-    private void SetSelectedIndex(int index)
+    // Controller scrolling slides rows under a stationary cursor, which fires
+    // enter/hover events and used to steal the selection mid-list. Only real
+    // pointer movement (PointerMove) may move it, and hovering must not
+    // re-scroll the list out from under the mouse.
+    private void OnRowHovered(int index)
+    {
+        if (index == _selectedIndex) return;
+        SetSelectedIndex(index, scrollIntoView: false);
+    }
+
+    private void SetSelectedIndex(int index, bool scrollIntoView = true)
     {
         if (_rows.Count == 0) return;
         _selectedIndex = Mathf.Clamp(index, 0, _rows.Count - 1);
@@ -366,7 +401,7 @@ public class TestModePanel : MonoBehaviour
         }
 
         var selected = _rows[_selectedIndex];
-        if (selected.Kind != RowKind.Wave && selected.Kind != RowKind.Start && _list != null)
+        if (scrollIntoView && selected.Kind != RowKind.Wave && selected.Kind != RowKind.Start && _list != null)
         {
             _list.ScrollTo(selected.Element);
         }

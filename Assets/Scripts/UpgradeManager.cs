@@ -193,13 +193,20 @@ public class UpgradeManager : ScriptableObject
         }
     }
 
-    // Expose applied upgrade names for UI: one line per chain, showing only the
-    // highest tier owned (e.g. "Phantom Blade II", never its lower steps as well).
-    // The line keeps the slot where the chain's first pick landed.
-    public IEnumerable<string> GetAppliedUpgradeNames(KnightTarget targetKnight)
+    // One display row per owned chain for a knight: the highest tier's name and Order.
+    public struct AppliedUpgradeInfo
+    {
+        public string Name;
+        public UpgradeOrder Order;
+    }
+
+    // Expose the applied loadout for UI: one row per chain, showing only the highest
+    // tier owned (e.g. "Phantom Blade II", never its lower steps as well). Rows keep
+    // the slot where the chain's first pick landed.
+    public IEnumerable<AppliedUpgradeInfo> GetAppliedUpgradeSummary(KnightTarget targetKnight)
     {
         var applied = targetKnight == KnightTarget.LeftKnight ? _leftApplied : _rightApplied;
-        var names = new List<string>();
+        var rows = new List<AppliedUpgradeInfo>();
         var seenFamilies = new HashSet<System.Type>();
         foreach (var upgrade in applied)
         {
@@ -212,9 +219,16 @@ public class UpgradeManager : ScriptableObject
                 if (other != null && other.GetType() == best.GetType() && GetChainDepth(other) > GetChainDepth(best))
                     best = other;
             }
-            names.Add(best.UpgradeName);
+            rows.Add(new AppliedUpgradeInfo { Name = best.UpgradeName, Order = best.Order });
         }
-        return names;
+        return rows;
+    }
+
+    // Names-only view of the same rows, for callers that don't need the Order.
+    public IEnumerable<string> GetAppliedUpgradeNames(KnightTarget targetKnight)
+    {
+        foreach (var row in GetAppliedUpgradeSummary(targetKnight))
+            yield return row.Name;
     }
 
     // Every registered upgrade asset, gating ignored (Test Mode picker, tooling)

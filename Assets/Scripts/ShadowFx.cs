@@ -6,6 +6,8 @@ public static class ShadowFx
     // Killing Blow: a quick dark-violet slash burst where the execute landed
     public static void ExecuteFlash(Vector2 position)
     {
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.executeFlash);
+
         var burstObject = new GameObject("ShadowExecuteFlash");
         burstObject.transform.position = position;
 

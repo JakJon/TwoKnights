@@ -403,6 +403,7 @@ public class CampMenuController : MonoBehaviour
         if (_menuButtons.Count == 0) return;
 
         _currentIndex = (_currentIndex + direction + _menuButtons.Count) % _menuButtons.Count;
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiMove);
         SetSelectedIndex(_currentIndex);
         _lastInputTime = Time.unscaledTime;
     }
@@ -437,6 +438,7 @@ public class CampMenuController : MonoBehaviour
     private void ActivateCurrentButton()
     {
         if (_menuButtons.Count == 0) return;
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
         var handler = _buttonHandlers[_currentIndex];
         handler?.Invoke();
     }

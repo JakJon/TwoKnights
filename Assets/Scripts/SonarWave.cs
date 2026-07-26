@@ -84,10 +84,7 @@ public class SonarWave : MonoBehaviour
 
         if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
         {
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.playerHurt);
-            }
+            // Sonar confuses rather than damages — the confusion warble is the feedback
             ConfusionEffect.Apply(other.gameObject, confusionDuration, confusionIconSprite);
             Destroy(gameObject);
         }

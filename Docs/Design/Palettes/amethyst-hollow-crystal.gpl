@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Amethyst Hollow - Crystal (amethyst)
+Columns: 4
+# Hero decoration. Reads emissive by value + saturation. Clusters, never fields.
+ 74  33 131	crystal-1 4a2183
+123  54 196	crystal-2 7b36c4
+169 104 238	crystal-3 a968ee
+220 182 255	crystal-4 dcb6ff

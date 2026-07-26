@@ -24,6 +24,13 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage, string sourceName)
     {
+        // The one unified knight-damage sound: every damage source funnels
+        // through here, so nothing else should play its own hit feedback
+        if (damage > 0)
+        {
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.playerHurt);
+        }
+
         currentHealth = Mathf.Max(0, currentHealth - damage);
         healthBar.SetValue(currentHealth);
 

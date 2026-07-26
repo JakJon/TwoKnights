@@ -879,6 +879,257 @@ MonoBehaviour:
   honorText: {fileID: 1512017364}
   rankFormat: Knight Rank {0}
   honorFormat: 'Honor: {0}'
+--- !u!1 &1436245483
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1436245485}
+  - component: {fileID: 1436245484}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1436245484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436245483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4db282bd157304047b17f993897aaa6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerHurt:
+    clip: {fileID: 8300000, guid: 7fc75cfed01919641b13f9ed49cb8e63, type: 3}
+    volume: 0.624
+  projectileSpawn:
+    clip: {fileID: 8300000, guid: 49cf648fd997c1c43b1cb5a577c72a5a, type: 3}
+    volume: 0.351
+  playerProjectile:
+    clip: {fileID: 8300000, guid: e458663bf6189ae4689da97499ece328, type: 3}
+    volume: 0.355
+  reload:
+    clip: {fileID: 8300000, guid: 4a129dfbd240a474abfbd58d511826dc, type: 3}
+    volume: 0.412
+  projectileShield:
+    clip: {fileID: 8300000, guid: 5bf2d0d31dc557442a923a71be45d776, type: 3}
+    volume: 0.676
+  enemyShield:
+    clip: {fileID: 8300000, guid: 3e3d619f94d8e7f4c9069425e2b3592a, type: 3}
+    volume: 0.462
+  enemyPlayer:
+    clip: {fileID: 8300000, guid: cb4df1f42fd93614d8860f6a2412283d, type: 3}
+    volume: 0.407
+  rightMulti2:
+    clip: {fileID: 8300000, guid: 71a27bf5babf3af439ca09904b81ebd5, type: 3}
+    volume: 0.385
+  rightMulti3:
+    clip: {fileID: 8300000, guid: 91b4ab3643dc8f34689a152914cff21c, type: 3}
+    volume: 0.385
+  rightMulti4:
+    clip: {fileID: 8300000, guid: 4c8c8ea2bfe46d844840629cc178fd08, type: 3}
+    volume: 0.385
+  leftMulti2:
+    clip: {fileID: 8300000, guid: cf3c7c7f838e2814fba40fd2a658e418, type: 3}
+    volume: 0.38
+  leftMulti3:
+    clip: {fileID: 8300000, guid: d5a785374a8d93749aba93191149c488, type: 3}
+    volume: 0.38
+  leftMulti4:
+    clip: {fileID: 8300000, guid: dfa390fee52f9aa4099df1b17e48599a, type: 3}
+    volume: 0.38
+  multiFull:
+    clip: {fileID: 8300000, guid: 9511f8aaa97a5994c9f54ce1be25b680, type: 3}
+    volume: 0.372
+  healSpecial:
+    clip: {fileID: 8300000, guid: c8b34dd0f92e2bf4d88549a07795d9ef, type: 3}
+    volume: 0.359
+  leftSpecial:
+    clip: {fileID: 8300000, guid: 6c6531d3cd0a0714b84b51f6a6949698, type: 3}
+    volume: 0.403
+  rightSpecial:
+    clip: {fileID: 8300000, guid: e9486f5ff16d2ec4aad9dc57325d50db, type: 3}
+    volume: 0.417
+  ratChase:
+    clip: {fileID: 8300000, guid: 9f6f158320ba6ec4db672698a9ec552d, type: 3}
+    volume: 0.237
+  ratDeath:
+    clip: {fileID: 8300000, guid: 12e9190cc900dd547a3f4921325a83f6, type: 3}
+    volume: 0.462
+  ratSpawn:
+    clip: {fileID: 8300000, guid: 9476ac0c34cf93e40b0789c948a54cc3, type: 3}
+    volume: 0.442
+  ratHurt:
+    clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
+    volume: 0.457
+  orbFlyBy:
+    clip: {fileID: 8300000, guid: da56234f8cbcad34f9e90698d50e0366, type: 3}
+    volume: 0.389
+  orbCollect:
+    clip: {fileID: 8300000, guid: 82204f53459724a4ca5b1a300e24bea6, type: 3}
+    volume: 0.437
+  slimeHit:
+    clip: {fileID: 8300000, guid: 131ad9abd1639694ea72c2b9d6bc46ad, type: 3}
+    volume: 0.413
+  slimeDeath:
+    clip: {fileID: 8300000, guid: 003d2de273295d44cb3e2d3fc7a92502, type: 3}
+    volume: 0.757
+  slimeSplit:
+    clip: {fileID: 8300000, guid: bb334b27b79ac694591c47bec315fcc0, type: 3}
+    volume: 1
+  poisoned:
+    clip: {fileID: 8300000, guid: 9a012b9c02495924f870007e665d556c, type: 3}
+    volume: 0.923
+  swordSwing:
+    clip: {fileID: 8300000, guid: bd2a1f0841ba8af44bb36a2f49312d43, type: 3}
+    volume: 0.519
+  arrowIgnite:
+    clip: {fileID: 8300000, guid: 05d2bdbe2fd01544386ca0954c0701cd, type: 3}
+    volume: 1
+  fireballLaunch:
+    clip: {fileID: 8300000, guid: a391dcbdcf1980944be9a74943801253, type: 3}
+    volume: 0.966
+  fireballExplode:
+    clip: {fileID: 8300000, guid: 55acdc1cde416ba4ea9f7fb55ec6c488, type: 3}
+    volume: 1
+  shurikenThrow:
+    clip: {fileID: 8300000, guid: a024afbd1a55ddd42b640a134422e38a, type: 3}
+    volume: 0.923
+  shadowArrow:
+    clip: {fileID: 8300000, guid: 6c01e11159d305841be692d756738ce2, type: 3}
+    volume: 0.832
+  phantomStrike:
+    clip: {fileID: 8300000, guid: 00abe28760a90f240b7cf2768d2a080a, type: 3}
+    volume: 0.684
+  executeFlash:
+    clip: {fileID: 8300000, guid: 3c3fd10339ea91c4083c273951b55a75, type: 3}
+    volume: 0.944
+  poisonBurst:
+    clip: {fileID: 8300000, guid: 7dccdaa921667b748a14dcc4d5b4d677, type: 3}
+    volume: 0.403
+  confusion:
+    clip: {fileID: 8300000, guid: 1b6612899d114b64eaa0ef985af9cae4, type: 3}
+    volume: 0.279
+  batScreech:
+    clip: {fileID: 8300000, guid: 0d1dfd28aa36f074980bc4a194e0b5c6, type: 3}
+    volume: 0.331
+  batFlutter:
+    clip: {fileID: 8300000, guid: b7fe583f4f5bfee47bcdb101c4cafa8c, type: 3}
+    volume: 0.182
+  batHurt:
+    clip: {fileID: 8300000, guid: 58f1b7924705af344b505ba8dd24a6de, type: 3}
+    volume: 0.355
+  batDeath:
+    clip: {fileID: 8300000, guid: 9cb822d0683a9bc489d308dc8a17f486, type: 3}
+    volume: 0.372
+  batBite:
+    clip: {fileID: 8300000, guid: 31b2912269104e04b9e2a1150919fddf, type: 3}
+    volume: 0.343
+  sonarPing:
+    clip: {fileID: 8300000, guid: af35761c3b0eb6541895f27ed1726fda, type: 3}
+    volume: 0.468
+  wolfHowl:
+    clip: {fileID: 8300000, guid: 66b9ecf9f85edbb45a33f616b0a9ed91, type: 3}
+    volume: 0.376
+  wolfGrowl:
+    clip: {fileID: 8300000, guid: bec8071d16ed3044f920feb2cf4a2612, type: 3}
+    volume: 0.363
+  wolfHurt:
+    clip: {fileID: 8300000, guid: ec50d1cf156808f40b7276728674f87b, type: 3}
+    volume: 0.646
+  wolfDeath:
+    clip: {fileID: 8300000, guid: 2c6d9f0a57739984ba714b9778363a4f, type: 3}
+    volume: 0.49
+  wolfBite:
+    clip: {fileID: 8300000, guid: b6b69ad1ceee9094bad25319d3d7fe21, type: 3}
+    volume: 0.881
+  slimeSpawn:
+    clip: {fileID: 8300000, guid: 3d954dd03056bdc45a8139d4ec3b30ea, type: 3}
+    volume: 0.372
+  slimeSmack:
+    clip: {fileID: 8300000, guid: df823b757c7b83c468ca666786ecb4af, type: 3}
+    volume: 0.462
+  bossBanner:
+    clip: {fileID: 8300000, guid: 1db1fe0a7a1be6449b37e5e5a58cc50d, type: 3}
+    volume: 0.582
+  bossTelegraph:
+    clip: {fileID: 8300000, guid: 1ed40c4a6f984974a8e53a9fdecd32c1, type: 3}
+    volume: 0.32
+  bossFan:
+    clip: {fileID: 8300000, guid: 1fdc8e8cdab06f9489578030540c60a4, type: 3}
+    volume: 0.495
+  bossSummon:
+    clip: {fileID: 8300000, guid: a58a37e1101c8534d97b5a7fc8ddf264, type: 3}
+    volume: 0.302
+  bossRoar:
+    clip: {fileID: 8300000, guid: e0115c5f5c2c4be488bbce70c288462e, type: 3}
+    volume: 1
+  bossHurt:
+    clip: {fileID: 8300000, guid: 2c5098585f632fd49839e4e537dfc08b, type: 3}
+    volume: 0.305
+  bossDeath:
+    clip: {fileID: 8300000, guid: 534c93805f76a9044819f706b196a834, type: 3}
+    volume: 0.804
+  waveStart:
+    clip: {fileID: 8300000, guid: 70006ee9bd87125458d3afd254040dd2, type: 3}
+    volume: 0.452
+  waveComplete:
+    clip: {fileID: 8300000, guid: 5cd6f7ef0a77f6e4fbfb06653e6ba122, type: 3}
+    volume: 0.473
+  victoryFanfare:
+    clip: {fileID: 8300000, guid: 68da18f8410a90b47a5a9b0d3e0b8f52, type: 3}
+    volume: 0.525
+  deathSting:
+    clip: {fileID: 8300000, guid: f5e313693cb5cb3428ea7eac8657c37e, type: 3}
+    volume: 0.407
+  questComplete:
+    clip: {fileID: 8300000, guid: 9d11603b947576e449535cb540059879, type: 3}
+    volume: 0.432
+  rankUp:
+    clip: {fileID: 8300000, guid: 9a9038088ca518448aecb834c2cdffe8, type: 3}
+    volume: 0.624
+  uiMove:
+    clip: {fileID: 8300000, guid: f0f7fde3d21c67144bfcb421ab2d583c, type: 3}
+    volume: 0.295
+  uiConfirm:
+    clip: {fileID: 8300000, guid: 13814ff6e4550e946bb1fb46061af1e3, type: 3}
+    volume: 0.26
+  uiCancel:
+    clip: {fileID: 8300000, guid: e3b1b9410d8569941b7bf93b3824a19d, type: 3}
+    volume: 0.26
+  uiOpen:
+    clip: {fileID: 8300000, guid: 308da8490f5923f468c3958b72223fa2, type: 3}
+    volume: 0.229
+  upgradeMenuOpen:
+    clip: {fileID: 8300000, guid: 1459ac512e132844aac0be836509b3c9, type: 3}
+    volume: 0.248
+  upgradeConfirm:
+    clip: {fileID: 8300000, guid: 2027db11d2c74c540adc04facffbffb8, type: 3}
+    volume: 0.452
+--- !u!4 &1436245485
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436245483}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1450641608
 GameObject:
   m_ObjectHideFlags: 0
@@ -1698,3 +1949,4 @@ SceneRoots:
   - {fileID: 906879868}
   - {fileID: 200550515}
   - {fileID: 885464745}
+  - {fileID: 1436245485}

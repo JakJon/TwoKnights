@@ -1,0 +1,13 @@
+{
+  "name": "sfxr-mcp",
+  "version": "1.0.0",
+  "description": "Local MCP server generating retro sfxr sound effects as WAV files for Two Knights",
+  "type": "module",
+  "main": "server.js",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "jsfxr": "^1.4.1",
+    "zod": "^3.25.76"
+  }
+}

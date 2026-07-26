@@ -58,12 +58,18 @@ public class GameSceneManager : MonoBehaviour
 
         isTransitioningToCamp = true;
 
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.deathSting);
+
         Debug.Log($"Player died! {knightName ?? "A Knight"} killed by {causeOfDeath ?? "unknown"}.");
 
         int waveReached = 1;
+        string waveName = null;
         if (WaveManager.ActiveInstance != null)
         {
             waveReached = WaveManager.ActiveInstance.CurrentWaveNumber;
+            waveName = WaveManager.ActiveInstance.CurrentWave != null
+                ? WaveManager.ActiveInstance.CurrentWave.WaveName
+                : null;
             if (!IsTestRun())
             {
                 SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, waveReached);
@@ -73,7 +79,7 @@ public class GameSceneManager : MonoBehaviour
 
         HideUpgradeMenuIfNeeded();
 
-        StartCoroutine(HandlePlayerDeath(knightName, causeOfDeath, waveReached));
+        StartCoroutine(HandlePlayerDeath(knightName, causeOfDeath, waveReached, waveName));
     }
 
     /// <summary>
@@ -116,6 +122,7 @@ public class GameSceneManager : MonoBehaviour
 
     private IEnumerator HandleVictory(string banner)
     {
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.victoryFanfare);
         var waveNameDisplay = FindFirstObjectByType<WaveName>(FindObjectsInactive.Include);
         if (waveNameDisplay != null)
         {
@@ -164,7 +171,7 @@ public class GameSceneManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private IEnumerator HandlePlayerDeath(string knightName, string causeOfDeath, int waveReached)
+    private IEnumerator HandlePlayerDeath(string knightName, string causeOfDeath, int waveReached, string waveName)
     {
         // Let the death moment land before covering the screen
         yield return new WaitForSecondsRealtime(transitionDelay);
@@ -179,7 +186,7 @@ public class GameSceneManager : MonoBehaviour
             // timeScale via LoadCampScene/LoadGameScene
             Time.timeScale = 0f;
             int runGold = GoldManager.Instance != null ? GoldManager.Instance.RunGold : 0;
-            deathScreen.Show(knightName, causeOfDeath, runGold, waveReached);
+            deathScreen.Show(knightName, causeOfDeath, runGold, waveReached, waveName);
         }
         else
         {

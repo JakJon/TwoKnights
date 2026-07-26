@@ -46,6 +46,7 @@ public class KnightRankManager : MonoBehaviour
         OnHonorChanged?.Invoke(honorPoints);
         if (rankedUp)
         {
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.rankUp);
             OnRankChanged?.Invoke(knightRank);
             OnRankUp?.Invoke(knightRank);
         }

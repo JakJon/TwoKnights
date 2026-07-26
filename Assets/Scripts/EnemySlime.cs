@@ -62,7 +62,7 @@ public class EnemySlime : EnemyBase
         playerDamage = 20; // Base damage, will be multiplied by size
         hurtSound = AudioManager.Instance.slimeHit;
         deathSound = AudioManager.Instance.slimeDeath;
-        
+
         InitializeSlime();
     }
 

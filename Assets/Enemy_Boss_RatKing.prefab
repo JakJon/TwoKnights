@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -4251562775646740944, guid: f6376f2fbfa16e048859f033fc7d6fb0, type: 3}
+  m_Sprite: {fileID: 8050924164509670459, guid: 813ee0632ab6e744cbbf98f917b077e6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -102,7 +102,7 @@ Animator:
   m_GameObject: {fileID: 6804790731799434195}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 4274440257338441495, guid: f6376f2fbfa16e048859f033fc7d6fb0, type: 3}
+  m_Controller: {fileID: -6608667576528719530, guid: 813ee0632ab6e744cbbf98f917b077e6, type: 3}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -179,7 +179,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0}
-    oldSize: {x: 0.9375, y: 0.71875}
+    oldSize: {x: 0.3, y: 0.23}
     newSize: {x: 0.9375, y: 0.71875}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -229,4 +229,5 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 12e9190cc900dd547a3f4921325a83f6, type: 3}
     volume: 1
   attributes: 1
+  displayName: 
   directionThreshold: 0.01

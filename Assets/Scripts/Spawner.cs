@@ -258,6 +258,11 @@ public class Spawner : MonoBehaviour
         _isWaveInProgress = false;
         waveManager.WaveCompleted();
 
+        // Ember fire dies with the wave, not the run. Scorched Earth zones never
+        // expire on their own, so without this the next wave would begin inside
+        // the last one's inferno and the difficulty curve would invert.
+        FireField.ClearAll();
+
         if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
         {
             yield break;
@@ -271,6 +276,10 @@ public class Spawner : MonoBehaviour
                 waveManager.CompletedWavesCount);
             yield break;
         }
+
+        // Let the wave-complete fanfare ring over the cleared arena before any
+        // menus appear
+        yield return new WaitForSeconds(2f);
 
         // Celebrate quests completed during the wave, one panel each,
         // before the upgrade menu appears
@@ -362,12 +371,12 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate = false)
+    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate = false, Vector2? entryPoint = null)
     {
-        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassTierGate));
+        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassTierGate, entryPoint));
     }
 
-    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate)
+    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate, Vector2? entryPoint)
     {
         yield return new WaitForSeconds(delay);
         // bypassTierGate lets the rat king summon his brown brood mid-fight
@@ -382,6 +391,12 @@ public class Spawner : MonoBehaviour
         if (enemyRat != null)
         {
             enemyRat.InitializeTarget(playerTarget);
+            // entryPoint makes the rat scurry in from there (e.g. out of the
+            // rat king) instead of walking in from the nearest screen edge
+            if (entryPoint.HasValue)
+            {
+                enemyRat.SetEntryPoint(entryPoint.Value);
+            }
         }
     }
 
@@ -499,10 +514,23 @@ public class Spawner : MonoBehaviour
         pm.Initialize(targetPlayer, spawnPosition);
     }
 
-    public void SpawnProjectileArc(Transform targetPlayer, ArcDirection direction, Vector2 arcStart, float arcDegrees, int projectileCount, 
+    private Vector2 ArcCenterFor(Transform targetPlayer)
+    {
+        return (targetPlayer == _leftPlayer) ? new Vector2(-2, 0) : new Vector2(2, 0);
+    }
+
+    // Seconds an arc-volley projectile takes to reach its knight from arcStart.
+    // Mirrors SpawnProjectileArc's geometry so bosses can pace their volleys.
+    public float ProjectileArcFlightSeconds(Transform targetPlayer, Vector2 arcStart)
+    {
+        float radius = Vector2.Distance(arcStart, ArcCenterFor(targetPlayer));
+        return radius / projectilePrefab.GetComponent<ProjectileMovement>().Speed;
+    }
+
+    public void SpawnProjectileArc(Transform targetPlayer, ArcDirection direction, Vector2 arcStart, float arcDegrees, int projectileCount,
         float delayBetweenProjectiles, int arcCount = 1, float delayBetweenArcs = 0f)
     {
-        Vector2 arcCenter = (targetPlayer == _leftPlayer) ? new Vector2(-2, 0) : new Vector2(2, 0);
+        Vector2 arcCenter = ArcCenterFor(targetPlayer);
         float radius = Vector2.Distance(arcStart, arcCenter);
         StartCoroutine(SpawnProjectileArcCoroutine(targetPlayer, direction, arcCenter, radius, arcStart, arcDegrees, projectileCount, 
             delayBetweenProjectiles, arcCount, delayBetweenArcs));

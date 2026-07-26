@@ -102,9 +102,10 @@ public class DeathScreen : MonoBehaviour
     }
 
     /// <summary>
-    /// Show the death screen. knightName e.g. "Left Knight", killerName e.g. "Wolf".
+    /// Show the death screen. knightName e.g. "Left Knight", killerName e.g. "Wolf",
+    /// waveName e.g. "Rat Mischief" (the wave the player fell on).
     /// </summary>
-    public void Show(string knightName, string killerName, int runGold, int waveReached)
+    public void Show(string knightName, string killerName, int runGold, int waveReached, string waveName = null)
     {
         if (!EnsureUI())
         {
@@ -113,7 +114,7 @@ public class DeathScreen : MonoBehaviour
 
         if (_messageLabel != null)
         {
-            _messageLabel.text = BuildMessage(knightName, killerName);
+            _messageLabel.text = BuildMessage(knightName, killerName, waveName);
         }
 
         if (_goldLabel != null)
@@ -155,20 +156,24 @@ public class DeathScreen : MonoBehaviour
         }
     }
 
-    private static string BuildMessage(string knightName, string killerName)
+    // e.g. "Left Knight died from Wolf on Rat Mischief". The wave name used to sit
+    // under the wave number; it now rides in the death message instead.
+    private static string BuildMessage(string knightName, string killerName, string waveName)
     {
         string knight = string.IsNullOrEmpty(knightName) ? "A Knight" : knightName;
+        string onWave = string.IsNullOrEmpty(waveName) ? string.Empty : $" on {waveName}";
 
         if (string.IsNullOrEmpty(killerName))
         {
-            return $"{knight} has fallen";
+            return $"{knight} has fallen{onWave}";
         }
 
-        return $"{knight} died from {killerName}";
+        return $"{knight} died from {killerName}{onWave}";
     }
 
     private void OnReturnToCampClicked()
     {
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
         Hide();
 
         if (GameSceneManager.Instance != null)
@@ -184,6 +189,7 @@ public class DeathScreen : MonoBehaviour
 
     private void OnGoAgainClicked()
     {
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
         Hide();
 
         if (GameSceneManager.Instance != null)

@@ -23,6 +23,7 @@ public class ConfusionEffect : MonoBehaviour
         {
             effect = knight.AddComponent<ConfusionEffect>();
         }
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.confusion);
         effect.Begin(duration, iconSprite);
     }
 

@@ -1,0 +1,9 @@
+GIMP Palette
+Name: Amethyst Hollow - Ground (cave floor)
+Columns: 5
+# The playfield. Value-matched to gilded-vigil-ground so the arena reads the same; hue rotated to violet.
+ 25  19  49	ground-1 191331
+ 39  29  66	ground-2 271d42
+ 51  38  81	ground-3 332651
+ 65  48  99	ground-4 413063
+ 80  59 119	ground-5 503b77

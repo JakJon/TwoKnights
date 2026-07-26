@@ -74,6 +74,17 @@
     color: rgb(212, 162, 74);
 }
 
+.summary-subcaption {
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: italic;
+    font-size: 17px;
+    color: rgb(217, 207, 184);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    max-width: 220px;
+    margin-top: 2px;
+}
+
 /* ---------- actions ---------- */
 
 .death-actions {

@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Amethyst Hollow - Wall / cave mouth
+Columns: 4
+# Frames the arena edges; darkest values in the scene live here. Cave equivalent of the pine line.
+ 12   9  20	wall-1 0c0914
+ 21  15  36	wall-2 150f24
+ 31  23  53	wall-3 1f1735
+ 44  32  73	wall-4 2c2049

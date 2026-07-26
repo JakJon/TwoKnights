@@ -205,7 +205,7 @@ public class TestWavePicker : MonoBehaviour
 
         var entry = new Entry { Wave = wave, Element = row, Name = name };
         int index = _entries.Count;
-        row.RegisterCallback<MouseEnterEvent>(_ => SetSelectedIndex(index));
+        row.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(index));
         row.RegisterCallback<ClickEvent>(_ => Activate(entry));
         _entries.Add(entry);
         _scroll.Add(row);
@@ -250,7 +250,17 @@ public class TestWavePicker : MonoBehaviour
         return !entry.IsLockedWave || _lockedExpanded;
     }
 
-    private void SetSelectedIndex(int index)
+    // Controller scrolling slides rows under a stationary cursor, which fires
+    // enter/hover events and used to steal the selection mid-list. Only real
+    // pointer movement (PointerMove) may move it, and hovering must not
+    // re-scroll the list out from under the mouse.
+    private void OnRowHovered(int index)
+    {
+        if (index == _selectedIndex) return;
+        SetSelectedIndex(index, scrollIntoView: false);
+    }
+
+    private void SetSelectedIndex(int index, bool scrollIntoView = true)
     {
         if (_entries.Count == 0) return;
         _selectedIndex = Mathf.Clamp(index, 0, _entries.Count - 1);
@@ -261,7 +271,7 @@ public class TestWavePicker : MonoBehaviour
             _entries[i].Element.style.borderLeftColor = selected ? Gold : Color.clear;
             _entries[i].Name.style.color = selected ? Bright : (_entries[i].IsLockedWave ? Dim : Text);
         }
-        _scroll?.ScrollTo(_entries[_selectedIndex].Element);
+        if (scrollIntoView) _scroll?.ScrollTo(_entries[_selectedIndex].Element);
     }
 
     private void Update()
@@ -280,9 +290,9 @@ public class TestWavePicker : MonoBehaviour
 
         int vertical = ApplyRepeat(rawVertical, ref _heldVertical, ref _nextVerticalRepeat);
 
-        bool confirm = (gp != null && gp.buttonSouth.wasPressedThisFrame)
+        bool confirm = MenuGamepad.SubmitPressed(gp)
                        || (kb != null && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame));
-        bool cancel = (gp != null && gp.buttonEast.wasPressedThisFrame)
+        bool cancel = MenuGamepad.CancelPressed(gp)
                       || (kb != null && kb.escapeKey.wasPressedThisFrame);
 
         if (vertical != 0 && _entries.Count > 0)

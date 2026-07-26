@@ -161,6 +161,8 @@ public class WaveManager : ScriptableObject
     {
         if (currentWave == null) return;
 
+        AudioManager.Instance?.PlaySFX(AudioManager.Instance.waveComplete);
+
         BaseWave finished = currentWave;
         currentWave.OnWaveComplete();
         currentWave = null;

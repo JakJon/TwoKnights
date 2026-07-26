@@ -12,6 +12,15 @@ public class PoisonCloud : MonoBehaviour
     private const float CloudPoisonDuration = 6f;
     private const float ParticleLifetime = 1.6f;
 
+    // The swirl fills ~0.85 of the cloud radius, so damage/pickup reach 1.15x keeps
+    // the hitbox a hair past the drawn edge instead of short of it. Visuals unchanged.
+    private const float HitboxScale = 1.15f;
+
+    // Every live, still-emitting cloud, so a passing arrow can be poisoned by the
+    // field it flies through (see PlayerProjectile). Registry rather than colliders:
+    // clouds are pure particle systems with no physics body.
+    private static readonly List<PoisonCloud> _active = new List<PoisonCloud>();
+
     // A traveling cloud despawns once fully outside the playfield
     private const float OffscreenX = 13f;
     private const float OffscreenY = 8f;
@@ -59,6 +68,8 @@ public class PoisonCloud : MonoBehaviour
     // One-shot radial pop for Plaguebringer bursts; cleans itself up
     public static void SpawnBurstEffect(Vector2 position)
     {
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.poisonBurst);
+
         var burstObject = new GameObject("PlagueBurst");
         burstObject.transform.position = position;
         var burst = CreateParticleSystem(burstObject, new Color(0.55f, 0.85f, 0.35f, 0.9f));
@@ -78,6 +89,33 @@ public class PoisonCloud : MonoBehaviour
         burst.Play();
         burst.Emit(28);
         Destroy(burstObject, 1.5f);
+    }
+
+    private void OnEnable()
+    {
+        if (!_active.Contains(this)) _active.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        _active.Remove(this);
+    }
+
+    // True if the point sits inside any live cloud — an arrow flying through picks
+    // up poison and becomes a poisoned arrow (its own owner is credited on hit, so
+    // the cloud's tag is irrelevant here). Stopped/fading clouds no longer count.
+    public static bool SampleAt(Vector2 position)
+    {
+        for (int i = 0; i < _active.Count; i++)
+        {
+            PoisonCloud cloud = _active[i];
+            if (cloud == null || cloud.emissionStopped) continue;
+            float dx = cloud.transform.position.x - position.x;
+            float dy = cloud.transform.position.y - position.y;
+            float hitRadius = cloud.radius * HitboxScale;
+            if (dx * dx + dy * dy <= hitRadius * hitRadius) return true;
+        }
+        return false;
     }
 
     private void Update()
@@ -114,7 +152,7 @@ public class PoisonCloud : MonoBehaviour
     private void PoisonEnemiesInside()
     {
         if (emissionStopped) return;
-        foreach (var col in Physics2D.OverlapCircleAll(transform.position, radius))
+        foreach (var col in Physics2D.OverlapCircleAll(transform.position, radius * HitboxScale))
         {
             EnemyBase enemy = col.GetComponent<EnemyBase>();
             if (enemy == null || enemy.IsDead || alreadyPoisoned.Contains(enemy)) continue;

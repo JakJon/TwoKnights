@@ -432,6 +432,18 @@
     padding: 4px;
 }
 
+/* Order category banner above each group of chain sections */
+.test-category-header {
+    font-size: 14px;
+    color: rgb(212, 162, 74);
+    letter-spacing: 3px;
+    -unity-font-style: bold;
+    padding: 16px 14px 4px 8px;
+    border-bottom-width: 2px;
+    border-bottom-color: rgb(212, 162, 74);
+    margin-bottom: 2px;
+}
+
 /* section headers are selectable rows that expand/collapse their chain */
 .test-section-header {
     font-size: 12px;

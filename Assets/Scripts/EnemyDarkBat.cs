@@ -39,8 +39,8 @@ public class EnemyDarkBat : EnemyBase
         playerDamage = damage;
         if (AudioManager.Instance != null)
         {
-            hurtSound = AudioManager.Instance.ratHurt;  // TODO: Replace with bat hurt sound
-            deathSound = AudioManager.Instance.ratDeath; // TODO: Replace with bat death sound
+            hurtSound = AudioManager.Instance.batHurt;
+            deathSound = AudioManager.Instance.batDeath;
         }
 
         _spriteRenderer = GetComponent<SpriteRenderer>();
@@ -155,7 +155,7 @@ public class EnemyDarkBat : EnemyBase
         }
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.projectileSpawn);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.sonarPing);
         }
     }
 }

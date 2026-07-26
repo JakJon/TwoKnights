@@ -29,8 +29,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [SerializeField] protected float damageTextStackSeparation = 0.25f; // Vertical spacing between stacked texts
 
     [Header("Audio")]
-    [SerializeField] protected SoundEffect hurtSound; 
-    [SerializeField] protected SoundEffect deathSound; 
+    [SerializeField] protected SoundEffect hurtSound;
+    [SerializeField] protected SoundEffect deathSound;
 
     [Header("Enemy Attributes")]
     [SerializeField] protected EnemyType attributes;
@@ -72,6 +72,43 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     
     public bool IsPoisoned => isPoisoned;
     public bool IsDead => isDead;
+
+    // ---- Ember Order: ignition ----
+    // An ignited enemy is on fire: it takes the standardized fire dps directly (so
+    // an Ignited-Tips arrow deals damage on its own, no ground fire required), AND
+    // it becomes a walking torch that drips fire trails and panics. Only a fireball
+    // or an arrow that carries ignite may call Ignite() — the ignition pillar. See
+    // Docs/Design/ember-order.md.
+    //
+    // Burns STACK: every Ignite() adds an independent burn — its own dps (the igniting
+    // knight's zone dps) on its own 8s timer. Total on-body dps is the sum of live
+    // stacks, so re-igniting a burning enemy piles heat on; as each timer runs out the
+    // dps steps back down, like a real fire dying in stages.
+    private struct BurnStack
+    {
+        public float expiresAt;
+        public float dps;
+        public string ownerTag;
+        public EmberBoost ownerBoost; // drives that stack's trail/panic if it's dominant
+    }
+
+    private readonly List<BurnStack> _burnStacks = new List<BurnStack>();
+    private ParticleSystem _emberFlame; // on-body flame while burning
+
+    private const float FireTickInterval = 0.25f; // how often the fields are sampled
+    private const float FireFlushInterval = 1f;   // how often accrued damage lands as a number
+    private const float MinTrailMoveSqr = 0.0004f; // ~0.02u — don't stack zones on a standing enemy
+
+    private float _pendingFireDamage; // fractional dps accumulator
+    private float _sinceFireTick;
+    private float _sinceFireFlush;
+    private string _lastFireOwnerTag; // owner credited at the next flush
+    private float _sinceTrailDrop;
+    private Vector3 _lastTrailPosition;
+    private Vector3 _previousPosition;
+    private bool _emberTrackingStarted;
+
+    public bool IsIgnited => _burnStacks.Count > 0;
 
     // Fired with the credited knight's tag ("PlayerLeft"/"PlayerRight") whenever
     // that knight's damage kills an enemy — Thousand Cuts (Shadow Order) listens
@@ -467,6 +504,255 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         PoisonCloud.SpawnBurstEffect(transform.position);
     }
 
+    // ================= Ember Order =================
+
+    // THE IGNITION PILLAR: the ONLY callers of this are PlayerProjectile (an arrow
+    // that carries ignite) and FireballProjectile. Fire zones must never reach it —
+    // if fire could start fire, the arena self-immolates and the player stops
+    // mattering. See Docs/Design/ember-order.md.
+    //
+    // Each call adds an independent burn stack, so hitting a burning enemy with
+    // another ignited arrow/fireball piles heat on rather than merely refreshing.
+    public void Ignite(string playerTag)
+    {
+        if (isDead || string.IsNullOrEmpty(playerTag)) return;
+
+        // Resolve the igniting knight's stat sheet; this stack's dps and (if it's
+        // the dominant one) its trail/panic all read from it.
+        GameObject owner = GameObject.FindWithTag(playerTag);
+        EmberBoost ownerBoost = owner != null ? owner.GetComponent<EmberBoost>() : null;
+        float stackDps = ownerBoost != null ? ownerBoost.ZoneDps : EmberBoost.BaseZoneDps;
+
+        bool wasIgnited = IsIgnited;
+        _burnStacks.Add(new BurnStack
+        {
+            expiresAt = Time.time + EmberBoost.IgniteDuration,
+            dps = stackDps,
+            ownerTag = playerTag,
+            ownerBoost = ownerBoost
+        });
+
+        if (!wasIgnited)
+        {
+            _sinceTrailDrop = 0f;
+            _lastTrailPosition = transform.position;
+        }
+
+        // Visible flame riding the enemy, so a burning enemy reads as on fire and
+        // not merely tinted. Re-igniting just resumes the existing one.
+        if (_emberFlame == null)
+        {
+            _emberFlame = FireFx.AttachEnemyFlame(gameObject);
+        }
+        else
+        {
+            var em = _emberFlame.emission;
+            em.enabled = true;
+            if (!_emberFlame.isPlaying) _emberFlame.Play();
+        }
+
+        // Ignition owns the glow while it burns — it's much shorter than poison,
+        // whose glow resumes on its own next tick if it's still running
+        glowManager?.StartGlow(new Color(1f, 0.45f, 0.12f), EmberBoost.IgniteDuration, 6f, 0.8f);
+    }
+
+    // Sum of live burn dps (on-body). Also reports the dominant stack's owner/boost —
+    // the hottest burn — for kill credit and for driving trail/panic.
+    private float BurnDps(out string dominantTag, out EmberBoost dominantBoost)
+    {
+        float total = 0f;
+        float best = -1f;
+        dominantTag = null;
+        dominantBoost = null;
+        for (int i = 0; i < _burnStacks.Count; i++)
+        {
+            BurnStack s = _burnStacks[i];
+            total += s.dps;
+            if (s.dps > best)
+            {
+                best = s.dps;
+                dominantTag = s.ownerTag;
+                dominantBoost = s.ownerBoost;
+            }
+        }
+        return total;
+    }
+
+    // Drop burns whose timer ran out. Returns true while any remain.
+    private bool PruneBurnStacks()
+    {
+        float now = Time.time;
+        for (int i = _burnStacks.Count - 1; i >= 0; i--)
+        {
+            if (_burnStacks[i].expiresAt <= now)
+            {
+                _burnStacks.RemoveAt(i);
+            }
+        }
+        return _burnStacks.Count > 0;
+    }
+
+    // Runs after every subclass Update (no enemy declares LateUpdate), so it sees
+    // the movement they just performed. That's what lets Searing Panic and Fire
+    // Trail work on every enemy — including the Rat King and anything added later —
+    // without touching a single subclass.
+    protected virtual void LateUpdate()
+    {
+        if (isDead) return;
+
+        if (!_emberTrackingStarted)
+        {
+            _emberTrackingStarted = true;
+            _previousPosition = transform.position;
+            _lastTrailPosition = transform.position;
+        }
+
+        bool burning = PruneBurnStacks();
+        if (!burning && _emberFlame != null && _emberFlame.emission.enabled)
+        {
+            var em = _emberFlame.emission;
+            em.enabled = false;
+            _emberFlame.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+
+        if (burning)
+        {
+            // The dominant (hottest) burn's knight owns trail + panic this frame
+            string dominantTag;
+            EmberBoost dominantBoost;
+            BurnDps(out dominantTag, out dominantBoost);
+            ApplySearingPanic(dominantBoost);
+            DropFireTrail(dominantBoost);
+        }
+
+        _previousPosition = transform.position;
+
+        TickFire();
+    }
+
+    // Multiplies whatever movement the subclass just did, along its own heading.
+    // Works regardless of how that enemy moves (MoveTowards, Lerp, waypoints).
+    private void ApplySearingPanic(EmberBoost boost)
+    {
+        if (boost == null || IsStaggered) return;
+
+        float multiplier = boost.PanicSpeedMultiplier;
+        if (multiplier <= 1f) return;
+
+        Vector3 delta = transform.position - _previousPosition;
+        if (delta.sqrMagnitude <= 1e-8f) return;
+
+        transform.position += delta * (multiplier - 1f);
+    }
+
+    private void DropFireTrail(EmberBoost boost)
+    {
+        if (boost == null || !boost.HasFireTrail) return;
+
+        _sinceTrailDrop += Time.deltaTime;
+        if (_sinceTrailDrop < EmberBoost.TrailDropInterval) return;
+        _sinceTrailDrop = 0f;
+
+        // Only paint where the enemy actually travelled
+        if ((transform.position - _lastTrailPosition).sqrMagnitude < MinTrailMoveSqr) return;
+
+        boost.PlaceZone(transform.position,
+            boost.TrailZoneRadius,
+            boost.TrailZoneDuration);
+        _lastTrailPosition = transform.position;
+    }
+
+    // Fire damage has two sources — being ignited (on-body) and standing in a fire
+    // zone (ground) — and an enemy takes the HOTTER of the two, never their sum, so
+    // an ignited enemy walking its own trail isn't billed twice for one fire.
+    //
+    // Enemies poll the field rather than the field damaging enemies; that one-way
+    // direction is what keeps FireField structurally unable to reach Ignite().
+    private void TickFire()
+    {
+        _sinceFireTick += Time.deltaTime;
+        if (_sinceFireTick < FireTickInterval) return;
+
+        float elapsed = _sinceFireTick;
+        _sinceFireTick = 0f;
+
+        float dps = 0f;
+        string ownerTag = null;
+
+        // On fire: the SUM of every live burn stack, each sized to its igniting
+        // knight's Ember investment (base 2.0, up to 4.0 per stack). Stacking is what
+        // makes a second ignited arrow pile heat on instead of just refreshing.
+        if (IsIgnited)
+        {
+            string dominantTag;
+            EmberBoost dominantBoost;
+            dps = BurnDps(out dominantTag, out dominantBoost);
+            ownerTag = dominantTag;
+        }
+
+        // Ground fire under this enemy — take it only if it burns hotter
+        float zoneDps;
+        string zoneOwner;
+        if (FireField.Sample(transform.position, out zoneDps, out zoneOwner) && zoneDps > dps)
+        {
+            dps = zoneDps;
+            ownerTag = zoneOwner;
+        }
+
+        if (dps > 0f)
+        {
+            _pendingFireDamage += dps * elapsed;
+            _lastFireOwnerTag = ownerTag; // survives to the flush even if fire just expired
+        }
+
+        // Land accrued damage as ONE number per second, so the figure on screen IS
+        // the dps: a base burn pops "2", a full build "4", stacks bigger. Flushing
+        // on every accumulator crossing instead showed a stream of "1"s that read
+        // as 1 dps no matter the actual rate.
+        _sinceFireFlush += elapsed;
+        if (_sinceFireFlush < FireFlushInterval) return;
+        _sinceFireFlush = 0f;
+
+        if (_pendingFireDamage < 1f) return;
+
+        int whole = Mathf.FloorToInt(_pendingFireDamage);
+        _pendingFireDamage -= whole;
+        ApplyFireDamage(whole, _lastFireOwnerTag);
+    }
+
+    // Deliberately NOT routed through TakeDamage: that fires StaggerRoutine, and a
+    // once-a-second stagger would stun-lock anything standing in fire (subclasses
+    // skip movement while staggered), freezing the very movement Fire Trail needs.
+    // Mirrors the poison tick's inline damage path instead.
+    protected void ApplyFireDamage(int damage, string ownerTag)
+    {
+        if (isDead || damage <= 0) return;
+
+        peakHealth = Mathf.Max(peakHealth, health);
+        health -= damage;
+        ShowDamageText(damage, new Color(1f, 0.55f, 0.2f)); // ember orange
+
+        if (health > 0) return;
+
+        isDead = true;
+        // A poisoned enemy finished off by fire still owes Serpent its death effects
+        TriggerPoisonDeathEffects();
+        PlayerStats.Increment("kills.burned");
+
+        if (!string.IsNullOrEmpty(ownerTag))
+        {
+            GiveSpecialToPlayer(specialOnDeath, ownerTag);
+            RaiseEnemyKilledBy(ownerTag);
+        }
+
+        if (deathSound != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(deathSound);
+        }
+
+        OnDeath();
+    }
+
     protected virtual void OnDeath()
     {
         if (goldOnDeath > 0)
@@ -479,8 +765,24 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Unregister this enemy from wave tracking before destroying
         BaseWave.UnregisterEnemy(gameObject);
 
+        // Damage numbers are parented to us for stacking; the killing-blow text
+        // spawns the same frame we die, so detach any still-animating texts
+        // before Destroy takes them with it (otherwise the final hit never shows)
+        DetachDamageTexts();
+
         // Default behavior: destroy the game object
         Destroy(gameObject);
+    }
+
+    // Reparent floating damage numbers to the scene root so they outlive this
+    // enemy's destruction and finish their fade-and-rise on their own.
+    protected void DetachDamageTexts()
+    {
+        var texts = GetComponentsInChildren<DamageText>(true);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            texts[i].transform.SetParent(null, true);
+        }
     }
 
     protected virtual string StatKey
@@ -631,7 +933,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
         else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyPlayer);
+            // Damage feedback (the unified grunt) plays inside PlayerHealth.TakeDamage
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {

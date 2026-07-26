@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1f5162858ac1404ca117b4d454c8b5e, type: 3}
+  m_Name: Suppressing Fire 3
+  m_EditorClassIdentifier: 
+  waveName: Suppressing Fire 3
+  weight: 600
+  isUnlocked: 0
+  waveDescription: Three origins in rotation, each volley tighter than the last.
+  unlockedAfterXWaves: 12
+  lockedAfterXWaves: 16
+  useEnemyTracking: 1
+  pinnedKnight: 1
+  anchorSequence: 000000000100000002000000
+  anchorHoldSeconds: 17
+  switchGapSeconds: 0
+  secondsBetweenRocks: 0.5
+  pauseEveryNRocks: 0
+  pauseSeconds: 0
+  anchorRadius: 12
+  tier: 3
+  arcRadius: 12
+  wiperDegreesPerSecond: 28
+  secondsBetweenShots: 0.7
+  reverseEveryNShots: 7
+  patternSeconds: 51
+  batCount: 4

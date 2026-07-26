@@ -64,6 +64,7 @@ public class SwordSwing : MonoBehaviour
         damagedEnemies = new HashSet<GameObject>();
         currentSwingDamage = swingDamage;
         TryExhaleSerpentsBreath();
+        TryHurlFirebrand();
         if (swordSpriteTransform == null || slashSpriteTransform == null)
         {
             canSwing = true;
@@ -82,7 +83,7 @@ public class SwordSwing : MonoBehaviour
             damagedEnemies = new HashSet<GameObject>();
             currentSwingDamage = Mathf.Max(1, swingDamage / 2);
             SetSwingTint(PhantomTint);
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.swordSwing);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.phantomStrike);
             yield return StartCoroutine(AnimateSwingArc(shieldAngle, 0.025f, swingDuration * 0.5f));
             SetSwingTint(Color.white);
         }
@@ -157,6 +158,38 @@ public class SwordSwing : MonoBehaviour
         Vector2 origin = (Vector2)owningKnight.transform.position + direction * 1.3f;
         PoisonCloud.SpawnTraveling(origin, direction, boost.SwordCloudDuration,
             boost.SwordCloudLarge, owningKnight.tag);
+    }
+
+    // Firebrand (Ember Order): a swing can hurl a spread of fireballs along the
+    // shield facing. Rank II raises the COUNT, not the odds — the rare moment hits
+    // harder rather than happening more often, so it stays a payoff you can't fish
+    // for and the sword doesn't become a primary fire delivery system.
+    private const float FirebrandSpeed = 7f;
+    private const float FirebrandLifetime = 4f;
+    private const float FirebrandDirectDamageFactor = 1.5f;
+
+    private void TryHurlFirebrand()
+    {
+        if (owningKnight == null || shield == null) return;
+
+        EmberBoost boost = owningKnight.GetComponent<EmberBoost>();
+        if (boost == null || boost.FireballPrefab == null || !boost.ShouldHurlFirebrand()) return;
+
+        float[] angles = boost.FirebrandCount >= 3
+            ? new float[] { -20f, 0f, 20f }
+            : new float[] { -15f, 15f };
+
+        Vector2 facing = shield.Direction;
+        Vector2 origin = (Vector2)owningKnight.transform.position + facing * 1.1f;
+        int directDamage = Mathf.Max(1, Mathf.RoundToInt(swingDamage * FirebrandDirectDamageFactor));
+
+        foreach (float angle in angles)
+        {
+            Vector2 direction = Quaternion.Euler(0f, 0f, angle) * facing;
+            FireballProjectile.Spawn(boost.FireballPrefab, origin, direction, FirebrandSpeed,
+                directDamage, swingDamage, boost.FireballBlastRadius, boost,
+                owningKnight.tag, FirebrandLifetime);
+        }
     }
 
     private void AddDamageDetection(Transform spriteTransform)

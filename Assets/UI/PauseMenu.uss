@@ -51,6 +51,71 @@
     margin: 0 8px 18px 8px;
 }
 
+/* ---- Loadout: each knight's owned upgrades, one row per chain ---- */
+
+.pause-loadout {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.loadout-column {
+    flex-direction: column;
+    align-items: stretch;
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.loadout-divider {
+    width: 1px;
+    background-color: rgb(58, 50, 34);
+    margin: 2px 18px;
+}
+
+.loadout-title {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+    color: rgb(212, 162, 74);
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+}
+
+.loadout-list {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* one owned upgrade — a left color-rail keyed to its Order, like the draft cards */
+.loadout-chip {
+    font-size: 12px;
+    color: rgb(217, 207, 184);
+    -unity-text-align: middle-left;
+    white-space: normal;
+    padding: 3px 8px;
+    margin: 2px 0;
+    border-radius: 3px;
+    background-color: rgb(42, 34, 21);
+    border-left-width: 3px;
+    border-left-color: rgb(58, 50, 34);
+}
+
+.loadout-chip.order--serpent { border-left-color: rgb(126, 179, 91); }
+.loadout-chip.order--shadow { border-left-color: rgb(129, 128, 214); }
+.loadout-chip.order--ember { border-left-color: rgb(226, 120, 63); }
+.loadout-chip.order--bulwark { border-left-color: rgb(158, 168, 178); }
+.loadout-chip.order--dawn { border-left-color: rgb(240, 200, 170); }
+
+/* placeholder when a knight has taken nothing yet */
+.loadout-empty {
+    font-size: 12px;
+    color: rgb(120, 110, 90);
+    -unity-font-style: italic;
+    -unity-text-align: middle-center;
+    padding: 6px 0;
+}
+
 .pause-body {
     flex-direction: column;
     align-items: stretch;

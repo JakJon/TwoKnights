@@ -7,19 +7,35 @@
 Serpent poisons a body and walks away. Shadow kills faster. **Ember sets the field on
 fire, and enemies are just how the fire gets around.**
 
-Being on fire barely hurts an enemy. Ignition is not a damage-over-time effect — it's a
-*carrier state*. An ignited enemy is a walking torch that drips fire onto the ground
-behind it, panics and runs faster. The damage lives in the fire **on the ground**, not on
-the enemy.
+An ignited enemy is on fire: it takes the **standardized fire dps** directly (base 2.0/s,
+scaling with Ember investment — see below), it drips fire onto the ground behind it as it
+moves, and it panics. So a lone Ignited-Tips hit deals damage on its own; the trails and
+craters then add *more* fire the enemy — and everything behind it — has to stand in.
 
-That separates Ember from Serpent at the concept level rather than the spreadsheet level.
-Poison is a timer on a body. Ember is terrain.
+**Burns stack.** Each ignite that lands on an already-burning enemy adds an *independent*
+burn — its own dps (that knight's zone dps) on its own 8s timer. Five ignited arrows in a
+body burn it at 5× until, one by one, each timer runs out and the dps steps back down,
+the way a real fire dies in stages. Ground fire is still taken as the *hotter* of
+"sum of my burns" vs "the zone under me," never both, so walking your own trail isn't
+double-billed.
+
+That still separates Ember from Serpent at the concept level. Poison is a slow timer you
+apply and forget on one body; Ember is a short, hot burn that turns the enemy into a
+moving brush painting damage across the whole approach lane. Poison is a timer on a body.
+Ember is terrain — plus the torch that draws it.
 
 ## THE PILLAR: only your shots can ignite
 
-**An enemy can be ignited by exactly two things — a fireball, or an arrow that rolled
-ignite.** Nothing else. Walking through fire does *not* ignite you; it deals flat fire
-damage and nothing more.
+**An enemy can be ignited by exactly two things — a fireball, or an arrow that carries
+ignite.** Nothing else. An *enemy* walking through fire does *not* ignite; it takes flat
+fire damage and nothing more.
+
+An **arrow** flying through fire is the one nuance: it *becomes* an ignited arrow (and an
+arrow through a poison cloud becomes a poisoned arrow), picking up that carrier state just
+as if it had rolled it — so it's still one of the two sanctioned sources doing the
+igniting, not the ground. It stays player-gated: you still have to aim it and land it, so
+the runaway loop below never closes. Shadow arrows and shurikens do **not** pick effects
+up this way — only a knight's main arrow does.
 
 This is the rule the whole Order is built on, and it must not be relaxed anywhere:
 
@@ -32,8 +48,9 @@ This is the rule the whole Order is built on, and it must not be relaxed anywher
 
 ### Fire zones
 
-The single primitive: a circle of burning ground dealing **1 damage/second** to anything
-inside (starting value — expect to tune this once it's on screen). Zones never ignite.
+The single primitive: a circle of burning ground dealing **2 damage/second** to anything
+inside (tuning value — its damage hitbox reaches ~1.15× the drawn flame radius so the edge
+isn't a dead zone). Zones never ignite.
 
 Placed by fireball craters, and by ignited enemies as they run.
 
@@ -44,10 +61,13 @@ multiplier chain:
 
 | | dps |
 |---|---|
-| Base | 1.0 |
+| Base | 2.0 |
 | Fire Trail I / II | +0.5 each |
 | Searing Panic I / II | +0.5 each |
-| **Full Ember build** | **3.0** |
+| **Full Ember build** | **4.0** |
+
+This is the dps of a single zone *and* of a single burn stack. Two ignited arrows from a
+full build burn a body at 8.0/s combined until their timers stagger out.
 
 ## The roster (13 upgrades)
 
