@@ -22,6 +22,22 @@ public class PlayerSpecial : MonoBehaviour
     // Add this field to track if SFX has been played for the current streak
     private bool _specialBarFilledSfxPlayed = false;
 
+    // Hit-based special gain is frozen while the player's own special is running.
+    // Rapid Fire lands so many arrows in its 6s that the bar would refill before
+    // the special even ended. Deadline-based (not a flag) so it always expires,
+    // even if the effect's coroutine is killed early.
+    private float _gainFrozenUntil = -1f;
+    public bool SpecialGainFrozen => Time.time < _gainFrozenUntil;
+
+    /// <summary>
+    /// Blocks special gain from hits for <paramref name="duration"/> seconds.
+    /// Overlapping calls extend the freeze rather than shortening it.
+    /// </summary>
+    public void FreezeSpecialGain(float duration)
+    {
+        _gainFrozenUntil = Mathf.Max(_gainFrozenUntil, Time.time + duration);
+    }
+
     void Start()
     {
         streakEnded = false;
@@ -74,6 +90,10 @@ public class PlayerSpecial : MonoBehaviour
 
     public void updateSpecial(int amountToGain)
     {
+        // Special is active: the bar and the streak both hold where they are.
+        // Nothing is lost, it just doesn't build until the special is over.
+        if (SpecialGainFrozen)
+            return;
 
         if (!streakEnded)
         {

@@ -83,6 +83,10 @@
                 <ui:Label text="Starting Wave" class="test-row-name" />
                 <ui:Label name="test-wave-value" text="&#9664; 1 &#9654;" class="test-row-value" />
             </ui:VisualElement>
+            <ui:VisualElement name="test-map-row" class="test-row">
+                <ui:Label text="Map" class="test-row-name" />
+                <ui:Label name="test-map-value" text="&#9664; The Camp Fields &#9654;" class="test-row-value" />
+            </ui:VisualElement>
             <ui:Label name="test-budget-line" text="" class="test-budget-line" />
             <ui:ScrollView name="test-upgrade-list" class="test-upgrade-list" />
             <ui:VisualElement name="test-start-row" class="test-row test-start-row">

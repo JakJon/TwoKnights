@@ -347,7 +347,7 @@ public class PauseMenu : MonoBehaviour
             case UpgradeOrder.Serpent: return "order--serpent";
             case UpgradeOrder.Shadow: return "order--shadow";
             case UpgradeOrder.Ember: return "order--ember";
-            case UpgradeOrder.Bulwark: return "order--bulwark";
+            case UpgradeOrder.Guardian: return "order--guardian";
             case UpgradeOrder.Dawn: return "order--dawn";
             default: return null; // Neutral: no color rail
         }

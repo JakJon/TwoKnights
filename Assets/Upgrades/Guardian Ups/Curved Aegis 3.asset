@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f36d5a0fa84f3d8c3b5fe5920d800d, type: 3}
+  m_Name: Curved Aegis 3
+  m_EditorClassIdentifier: 
+  upgradeName: Curved Aegis III
+  description: It cups you like a shell.
+  weight: 12
+  order: 3
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: 2a35fa6ce8f9415ea24f3991b5510cdf, type: 2}
+  lockedBy: []
+  stats:
+  - valueText: 41°
+    labelText: SHIELD ARC
+    isPositive: 1
+  curveRadius: 1.4

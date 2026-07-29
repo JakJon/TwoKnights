@@ -137,7 +137,7 @@ public class EnemyRatKing : EnemyBase
         // Push health every frame so poison ticks and mid-action hits all show
         if (_config != null && _maxHealth > 0f)
         {
-            BossHealthBar.SetFraction(isDead ? 0f : health / _maxHealth);
+            BossHealthBar.SetHealth(isDead ? 0f : health, _maxHealth);
         }
 
         if (isDead || _acting || _config == null) return;

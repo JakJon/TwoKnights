@@ -26,6 +26,11 @@ public static class MapSelection
     // play from the editor) still lands on a real map.
     public static MapDefinition Resolve()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // A pending Test Mode setup names its own map — and may name a locked
+        // one, which is the point of Test Mode
+        if (TestRunConfig.Pending && TestRunConfig.Map != null) return TestRunConfig.Map;
+#endif
         if (_selected != null) return _selected;
 
         var catalog = MapCatalog.Instance;

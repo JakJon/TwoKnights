@@ -508,6 +508,17 @@
     border-left-color: transparent;
 }
 
+/* The wave and map rows are the panel's fixed chrome, sitting above the
+   scrolling list. Without flex-shrink: 0 the tall list squeezes them until
+   their labels spill over each other; they also carry more weight than a
+   single upgrade row, so they get more room than one. */
+#test-wave-row,
+#test-map-row {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    margin-bottom: 4px;
+}
+
 .test-row--selected {
     background-color: rgb(42, 33, 19);
     border-left-color: rgb(212, 162, 74);
@@ -604,6 +615,7 @@
 }
 
 .test-start-row {
+    flex-shrink: 0; /* chrome, like the wave/map rows — the list gives up the space */
     margin-top: 8px;
     padding: 11px 14px;
     background-color: rgb(33, 26, 16);

@@ -23,4 +23,9 @@ MonoBehaviour:
   gateBossWaveNumber: 15
   trueBoss: {fileID: 0}
   trueBossWaveNumber: 25
-  unlocksMapId: 
+  stages:
+  - label: Mine
+    fromWaveNumber: 1
+    backdrop: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
+    ventureLine:
+  unlocksMapId:

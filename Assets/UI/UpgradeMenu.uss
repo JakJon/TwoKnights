@@ -281,8 +281,8 @@
 .menu-item.order--serpent .order-diamond { background-color: rgb(126, 179, 91); }
 .menu-item.order--shadow .upgrade-order { color: rgb(129, 128, 214); }
 .menu-item.order--shadow .order-diamond { background-color: rgb(129, 128, 214); }
-.menu-item.order--bulwark .upgrade-order { color: rgb(158, 168, 178); }
-.menu-item.order--bulwark .order-diamond { background-color: rgb(158, 168, 178); }
+.menu-item.order--guardian .upgrade-order { color: rgb(158, 168, 178); }
+.menu-item.order--guardian .order-diamond { background-color: rgb(158, 168, 178); }
 .menu-item.order--ember .upgrade-order { color: rgb(226, 120, 63); }
 .menu-item.order--ember .order-diamond { background-color: rgb(226, 120, 63); }
 .menu-item.order--dawn .upgrade-order { color: rgb(240, 200, 170); }
@@ -291,7 +291,7 @@
 /* idle cards carry their Order on the left edge; selection (below) overrides to gold */
 .menu-item.upgrade.order--serpent { border-left-color: rgb(126, 179, 91); }
 .menu-item.upgrade.order--shadow { border-left-color: rgb(129, 128, 214); }
-.menu-item.upgrade.order--bulwark { border-left-color: rgb(158, 168, 178); }
+.menu-item.upgrade.order--guardian { border-left-color: rgb(158, 168, 178); }
 .menu-item.upgrade.order--ember { border-left-color: rgb(226, 120, 63); }
 .menu-item.upgrade.order--dawn { border-left-color: rgb(240, 200, 170); }
 

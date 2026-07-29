@@ -19,6 +19,13 @@ public static class TestRunConfig
     // picker moment of the rebuilt run forces the exact wave that killed you.
     public static BaseWave RetryWave;
 
+    // The ground the test run plays on, honoured by MapSelection.Resolve() while
+    // a config is Pending. Kept out of MapSelection/the save so a dev detour
+    // never rewrites the level select's remembered pick, and — like AutoPickWave
+    // — not cleared by Clear(), so "Try Wave Again" re-fights on the same map.
+    // Null = fall back to the normal level-select chain.
+    public static MapDefinition Map;
+
     // Automation hook for the per-wave picker (MCP-driven validation must not
     // stall on UI): null/empty = show the picker; "*" = weighted random with no
     // UI; anything else = the candidate wave asset with that name, falling back

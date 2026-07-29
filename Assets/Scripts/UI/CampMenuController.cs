@@ -160,11 +160,20 @@ public class CampMenuController : MonoBehaviour
             return;
         }
 
-        // UI Toolkit's built-in dpad/stick navigation moves focus on its own,
-        // stacked on top of our action-driven Navigate — every press moved the
-        // highlight TWO items. All camp navigation is driven explicitly (menu,
-        // quest, stats, test panels), so swallow the runtime nav-move entirely.
-        _root.RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
+        // The camp scene has no EventSystem, so UI Toolkit drives its own
+        // navigation off the focused element, stacked on top of our
+        // action-driven menu. Move did it first: every press moved the
+        // highlight TWO items. Submit/Cancel are the same leak and worse —
+        // they fire `clicked` on whatever Button holds focus, which with a
+        // sub-panel open (menu container hidden, focus stale behind it) meant
+        // one A press both worked the panel AND activated a camp button or the
+        // panel's own close X, bouncing the player out of Test Mode / level
+        // select. All camp navigation is driven explicitly (menu, quest, stats,
+        // map, test panels) and confirm/cancel come from the Menu action map,
+        // so swallow the runtime navigation events entirely.
+        _root.RegisterCallback<NavigationMoveEvent>(SwallowNavigation, TrickleDown.TrickleDown);
+        _root.RegisterCallback<NavigationSubmitEvent>(SwallowNavigation, TrickleDown.TrickleDown);
+        _root.RegisterCallback<NavigationCancelEvent>(SwallowNavigation, TrickleDown.TrickleDown);
 
         _menuContainer = _root.Q<VisualElement>(menuContainerName);
         _goldLine = _root.Q<Label>("gold-line");
@@ -227,7 +236,9 @@ public class CampMenuController : MonoBehaviour
         }
     }
 
-    private void OnNavigationMove(NavigationMoveEvent evt)
+    // IgnoreEvent as well as StopPropagation: stopping propagation alone still
+    // lets the focus controller run its default action for the event.
+    private void SwallowNavigation(EventBase evt)
     {
         evt.StopPropagation();
         _root?.focusController?.IgnoreEvent(evt);
@@ -242,7 +253,9 @@ public class CampMenuController : MonoBehaviour
         // cooldown entirely, so a first-frame phantom Submit (gamepad axis
         // sampled right after a scene load) could instantly activate the
         // focused Return button and bounce camp back into the game. Gate
-        // every click through the same cooldown/grace window.
+        // every click through the same cooldown/grace window, and never let
+        // one through while a sub-panel owns input: the camp stops touching
+        // _lastInputTime then, so the cooldown alone would always be expired.
         Action wrapper = null;
         if (handler != null)
         {
@@ -250,6 +263,7 @@ public class CampMenuController : MonoBehaviour
             wrapper = () =>
             {
                 if (!CanProcessInput()) return;
+                if (PanelPollsOwnInput()) return;
                 _lastInputTime = Time.unscaledTime;
                 captured();
             };

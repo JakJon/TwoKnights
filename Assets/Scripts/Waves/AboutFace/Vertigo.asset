@@ -24,8 +24,8 @@ MonoBehaviour:
   pairsPerBurst: 5
   flipWindow: 1
   flipWindowRampFactor: 0.9
-  delayBetweenPairs: 3
-  delayBetweenBursts: 3
+  delayBetweenPairs: 4
+  delayBetweenBursts: 5
   projectilesPerVolley: 2
   angleJitter: 45
   offscreenPadding: 0.5

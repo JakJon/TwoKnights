@@ -1274,21 +1274,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0a821d98434ff24e8212ea22be3dd81, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stages:
-  - label: Forest
-    mapId: camp_fields
-    fromWaveNumber: 1
-    sprite: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
-  - label: Deep Forest
-    mapId: camp_fields
-    fromWaveNumber: 11
-    sprite: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
-  - label: Mine
-    mapId: mine
-    fromWaveNumber: 1
-    sprite: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &1490680652
 GameObject:
   m_ObjectHideFlags: 0
@@ -1755,6 +1742,12 @@ MonoBehaviour:
   slimeSmack:
     clip: {fileID: 8300000, guid: df823b757c7b83c468ca666786ecb4af, type: 3}
     volume: 0.462
+  giantSlimeHurt:
+    clip: {fileID: 8300000, guid: 71c805dd6be987e40a4d18ab24a81a39, type: 3}
+    volume: 1
+  giantSlimeDeath:
+    clip: {fileID: 8300000, guid: de5e7a3dae7205d419377f73563e8eb1, type: 3}
+    volume: 1
   bossBanner:
     clip: {fileID: 8300000, guid: 1db1fe0a7a1be6449b37e5e5a58cc50d, type: 3}
     volume: 0.582

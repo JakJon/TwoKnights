@@ -3,9 +3,12 @@
     <ui:VisualElement name="player-hud" class="player-hud" picking-mode="Ignore">
         <ui:VisualElement name="boss-hud" class="boss-hud" picking-mode="Ignore">
             <ui:Label name="boss-title" class="boss-title" text="THE RAT KING" picking-mode="Ignore" />
-            <ui:VisualElement class="bar boss-bar" picking-mode="Ignore">
-                <ui:VisualElement name="boss-health-fill" class="bar-fill boss-health-fill" picking-mode="Ignore" />
-                <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+            <ui:VisualElement class="bar-row" picking-mode="Ignore">
+                <ui:VisualElement class="bar boss-bar" picking-mode="Ignore">
+                    <ui:VisualElement name="boss-health-fill" class="bar-fill boss-health-fill" picking-mode="Ignore" />
+                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="boss-health-amount" class="bar-side-label boss-health-amount" text="3000 / 3000" picking-mode="Ignore" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="left-hud" class="knight-hud hud-left" picking-mode="Ignore">
@@ -42,5 +45,10 @@
                 <ui:Label name="right-special-label" class="bar-side-label" text="0 / 1000" picking-mode="Ignore" />
             </ui:VisualElement>
         </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="venture-curtain" class="venture-curtain" picking-mode="Ignore">
+        <ui:VisualElement name="venture-fill" class="venture-fill" picking-mode="Ignore" />
+        <ui:VisualElement name="venture-tiles" class="venture-tiles" picking-mode="Ignore" />
+        <ui:Label name="venture-line" class="venture-line" picking-mode="Ignore" />
     </ui:VisualElement>
 </ui:UXML>

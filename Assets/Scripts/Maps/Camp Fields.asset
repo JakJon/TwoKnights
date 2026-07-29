@@ -63,6 +63,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 05ba42be3bd82f146be94880f48e9291, type: 2}
   gateBoss: {fileID: 11400000, guid: 6767c128b721f54cc031ffd692c9971c, type: 2}
   gateBossWaveNumber: 10
-  trueBoss: {fileID: 11400000, guid: 78df8b0376aafcad03e8e87a8fb15849, type: 2}
+  trueBoss: {fileID: 11400000, guid: 922e5ba9684734244a1ddbf6f374e186, type: 2}
   trueBossWaveNumber: 20
+  stages:
+  - label: Forest
+    fromWaveNumber: 1
+    backdrop: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
+    ventureLine:
+  - label: Deep Forest
+    fromWaveNumber: 11
+    backdrop: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+    ventureLine: The knights venture deeper into the forest.
   unlocksMapId: mine

@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 444e31b3dc9e50d43b4163afff323fab, type: 3}
+  m_Name: Crimson Twins
+  m_EditorClassIdentifier: 
+  waveName: The Crimson Twins
+  weight: 0
+  isUnlocked: 0
+  waveDescription: True boss of the Camp Fields. Two giant red slimes close in from
+    either flank, mirroring every volley. Whatever they touch, dies.
+  unlockedAfterXWaves: -1
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  leftSlimePrefab: {fileID: 64493653098631706, guid: 7fa482d398d8a094cbea94a20d2c418f, type: 3}
+  rightSlimePrefab: {fileID: 4972239602981436121, guid: 0f218a1bb9ec46c4c8c0b7cc55d813ba, type: 3}
+  fireballPrefab: {fileID: 7093908751807976193, guid: bdb50481952b3304e8f4cc7cd2bec27f, type: 3}
+  spawnCorner: {x: 13.5, y: 2.5}
+  entranceDelay: 1.5
+  config:
+    health: 1500
+    scale: 6
+    approachSpeed: 0.07171875
+    contactDamage: 9999
+    wardPhaseDistanceFraction: 0.5
+    volleyInterval: 3.5
+    telegraphPause: 0.8
+    fireballSpeed: 2.4
+    fireballDamage: 15
+    fireballLifetime: 12
+    fireballScale: 2.2
+    arcDegrees: 160
+    arcSeconds: 1.3
+    homingTurnRate: 80
+    straightShotsPerVolley: 2
+    straightShotStagger: 0.3
+    wardRadius: 3.6
+    wardRadiusSwing: 3
+    wardPulseSeconds: 4
+    wardDegreesPerSecond: 110
+    wardRespawnSeconds: 3
+    wardScale: 3.1
+    goldReward: 100
+    specialOnDeathReward: 60
+  adds:
+    interval: 10
+    perInterval: 2
+    firstDelay: 4
+    topEntry: {x: 0, y: 7}
+    bottomEntry: {x: 0, y: -7}
+  orbs:
+    manaOrbs: 3
+    finalHealthOrb: 1
+    lane: -4.5
+    travelX: 12

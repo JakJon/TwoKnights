@@ -1058,6 +1058,12 @@ MonoBehaviour:
   slimeSmack:
     clip: {fileID: 8300000, guid: df823b757c7b83c468ca666786ecb4af, type: 3}
     volume: 0.462
+  giantSlimeHurt:
+    clip: {fileID: 8300000, guid: 71c805dd6be987e40a4d18ab24a81a39, type: 3}
+    volume: 1
+  giantSlimeDeath:
+    clip: {fileID: 8300000, guid: de5e7a3dae7205d419377f73563e8eb1, type: 3}
+    volume: 1
   bossBanner:
     clip: {fileID: 8300000, guid: 1db1fe0a7a1be6449b37e5e5a58cc50d, type: 3}
     volume: 0.582

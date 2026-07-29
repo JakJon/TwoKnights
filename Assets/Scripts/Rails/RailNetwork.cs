@@ -31,12 +31,22 @@ public class RailNetwork : MonoBehaviour
 
     private readonly List<RailPlacement> _placements = new List<RailPlacement>();
     private readonly List<RailSegment> _live = new List<RailSegment>();
+    private readonly List<RailLine> _lines = new List<RailLine>();
+    private readonly List<MineCart> _carts = new List<MineCart>();
     private bool _warnedMissingPiece;
 
     public static RailNetwork Instance { get; private set; }
 
     /// <summary>Pieces currently on the field.</summary>
     public IReadOnlyList<RailSegment> Live => _live;
+
+    /// <summary>
+    /// The current track as travel-ordered lines, one per run of the laid
+    /// layout and in the same order. This is what riders follow.
+    /// </summary>
+    public IReadOnlyList<RailLine> Lines => _lines;
+
+    public int LineCount => _lines.Count;
 
     /// <summary>Seconds until the last piece of the most recent Lay has landed.</summary>
     public float LayDuration { get; private set; }
@@ -65,6 +75,9 @@ public class RailNetwork : MonoBehaviour
         Vector2 center, halfExtents;
         GetViewBounds(out center, out halfExtents);
         layout.BuildPlacements(_placements, center, halfExtents);
+        // Resolved up front, before a single piece has landed, so a wave can
+        // release carts against the finished shape of the track immediately
+        layout.BuildLines(_lines, center, halfExtents);
 
         Transform parent = ResolveParent();
         float stagger = layout.FallStagger;
@@ -103,13 +116,60 @@ public class RailNetwork : MonoBehaviour
         LayDuration = 0f;
     }
 
+    /// <summary>Look up one of the current track's lines by index.</summary>
+    public bool TryGetLine(int index, out RailLine line)
+    {
+        if (index >= 0 && index < _lines.Count)
+        {
+            line = _lines[index];
+            return true;
+        }
+        line = default(RailLine);
+        return false;
+    }
+
+    /// <summary>
+    /// Put a cart on line <paramref name="lineIndex"/> and start it rolling the
+    /// way that line faces. <paramref name="speed"/> of 0 or less leaves the
+    /// prefab's own speed alone. The cart is parented to the track, so it comes
+    /// down with the rails when the next wave clears them. Null if there is no
+    /// such line or the prefab is not a cart.
+    /// </summary>
+    public MineCart SpawnCart(GameObject cartPrefab, int lineIndex, float speed = 0f)
+    {
+        RailLine line;
+        if (cartPrefab == null || !TryGetLine(lineIndex, out line)) return null;
+
+        var instance = Instantiate(cartPrefab, line.EntryPoint, Quaternion.identity, ResolveParent());
+        var cart = instance.GetComponent<MineCart>();
+        if (cart == null)
+        {
+            Debug.LogWarning($"[RailNetwork] {cartPrefab.name} has no MineCart component; it cannot ride the track.");
+            Destroy(instance);
+            return null;
+        }
+
+        if (speed > 0f) cart.Ride(line, speed);
+        else cart.Ride(line);
+
+        _carts.Add(cart);
+        return cart;
+    }
+
     public void ClearAll()
     {
+        for (int i = 0; i < _carts.Count; i++)
+        {
+            if (_carts[i] != null) Destroy(_carts[i].gameObject);
+        }
+        _carts.Clear();
+
         for (int i = 0; i < _live.Count; i++)
         {
             if (_live[i] != null) Destroy(_live[i].gameObject);
         }
         _live.Clear();
+        _lines.Clear();
         LayDuration = 0f;
     }
 

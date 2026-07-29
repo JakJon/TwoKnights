@@ -15,6 +15,7 @@ public class TestModePanel : MonoBehaviour
 {
     private const int MinWave = 1;
     private const int MaxWave = 99;
+    private const string DefaultMapId = "camp_fields"; // the forest — where a fresh run starts
     private const float EntryGrace = 0.25f;  // swallow the press that opened the panel
     private const float RepeatDelay = 0.35f; // held direction: delay before first repeat
     private const float RepeatInterval = 0.12f;
@@ -31,10 +32,11 @@ public class TestModePanel : MonoBehaviour
     private VisualElement _panel;
     private ScrollView _list;
     private Label _waveValue;
+    private Label _mapValue;
     private Label _budgetLine;
     private Button _closeButton;
 
-    private enum RowKind { Wave, Randomize, Section, Upgrade, Start }
+    private enum RowKind { Wave, Map, Randomize, Section, Upgrade, Start }
 
     private class Row
     {
@@ -54,8 +56,10 @@ public class TestModePanel : MonoBehaviour
     private readonly List<Row> _rows = new();
     private readonly HashSet<BaseUpgrade> _leftPicked = new();
     private readonly HashSet<BaseUpgrade> _rightPicked = new();
+    private readonly List<MapDefinition> _maps = new();
     private int _selectedIndex;
     private int _startWave = 1;
+    private int _mapIndex;
     private float _inputReadyTime;
     private int _heldVertical;
     private int _heldHorizontal;
@@ -97,6 +101,7 @@ public class TestModePanel : MonoBehaviour
         _panel = _root.Q<VisualElement>("test-panel");
         _list = _root.Q<ScrollView>("test-upgrade-list");
         _waveValue = _root.Q<Label>("test-wave-value");
+        _mapValue = _root.Q<Label>("test-map-value");
         _budgetLine = _root.Q<Label>("test-budget-line");
         _closeButton = _root.Q<Button>("test-close-button");
         if (_panel == null || _list == null)
@@ -121,7 +126,24 @@ public class TestModePanel : MonoBehaviour
             Debug.LogWarning("TestModePanel: could not load UpgradeManager from Resources.");
         }
 
+        LoadMaps();
         BuildRows();
+    }
+
+    // Every catalog map is offered, locked ones included — reaching content the
+    // save hasn't unlocked yet is the whole point of Test Mode.
+    private void LoadMaps()
+    {
+        _maps.Clear();
+        var catalog = MapCatalog.Instance;
+        if (catalog != null)
+        {
+            foreach (var map in catalog.Maps)
+            {
+                if (map != null) _maps.Add(map);
+            }
+        }
+        _mapIndex = Mathf.Max(0, _maps.FindIndex(m => m.MapId == DefaultMapId));
     }
 
     private void BuildRows()
@@ -133,6 +155,12 @@ public class TestModePanel : MonoBehaviour
         if (waveRow != null)
         {
             _rows.Add(new Row { Kind = RowKind.Wave, Element = waveRow });
+        }
+
+        var mapRow = _root.Q<VisualElement>("test-map-row");
+        if (mapRow != null)
+        {
+            _rows.Add(new Row { Kind = RowKind.Map, Element = mapRow });
         }
 
         // Sits at the top of the upgrade list: one press fills both knights'
@@ -257,7 +285,7 @@ public class TestModePanel : MonoBehaviour
             case UpgradeOrder.Serpent: return "SERPENT — POISON";
             case UpgradeOrder.Shadow: return "SHADOW — NINJA";
             case UpgradeOrder.Ember: return "EMBER — FIRE";
-            case UpgradeOrder.Bulwark: return "BULWARK — TANK";
+            case UpgradeOrder.Guardian: return "GUARDIAN — TANK";
             case UpgradeOrder.Dawn: return "DAWN — HEALING";
             default: return "NEUTRAL";
         }
@@ -400,8 +428,13 @@ public class TestModePanel : MonoBehaviour
             else _rows[i].Element.RemoveFromClassList(ROW_SELECTED_CLASS);
         }
 
+        // Only rows that live inside the ScrollView can be scrolled to; the wave,
+        // map and start rows sit in the panel's fixed chrome
         var selected = _rows[_selectedIndex];
-        if (scrollIntoView && selected.Kind != RowKind.Wave && selected.Kind != RowKind.Start && _list != null)
+        bool inList = selected.Kind == RowKind.Randomize
+                      || selected.Kind == RowKind.Section
+                      || selected.Kind == RowKind.Upgrade;
+        if (scrollIntoView && inList && _list != null)
         {
             _list.ScrollTo(selected.Element);
         }
@@ -415,6 +448,15 @@ public class TestModePanel : MonoBehaviour
             case RowKind.Wave:
                 _startWave = Mathf.Clamp(_startWave + direction, MinWave, MaxWave);
                 RefreshAll();
+                break;
+            case RowKind.Map:
+                // Wraps, and only on the initial press — the roster is short
+                // enough that hold-to-repeat would just spin it
+                if (firstPress && _maps.Count > 0)
+                {
+                    _mapIndex = (_mapIndex + direction + _maps.Count) % _maps.Count;
+                    RefreshAll();
+                }
                 break;
             case RowKind.Section:
                 // Tree-view convention: right expands, left collapses
@@ -551,6 +593,17 @@ public class TestModePanel : MonoBehaviour
         }
     }
 
+    private MapDefinition SelectedMap => _mapIndex >= 0 && _mapIndex < _maps.Count ? _maps[_mapIndex] : null;
+
+    // Locked maps are startable from here, so say which ones they are rather
+    // than hiding it
+    private string MapLabel()
+    {
+        var map = SelectedMap;
+        if (map == null) return "no maps in catalog";
+        return MapProgressStore.IsUnlocked(map) ? map.DisplayName : map.DisplayName + "   (locked)";
+    }
+
     private int TotalBudget => _startWave - 1;
     // Picks alternate starting with the left knight, so left gets the odd one
     private int LeftCap => (TotalBudget + 1) / 2;
@@ -562,6 +615,11 @@ public class TestModePanel : MonoBehaviour
         if (_waveValue != null)
         {
             _waveValue.text = $"◄ {_startWave} ►";
+        }
+
+        if (_mapValue != null)
+        {
+            _mapValue.text = $"◄ {MapLabel()} ►";
         }
 
         foreach (var row in _rows)
@@ -603,6 +661,7 @@ public class TestModePanel : MonoBehaviour
         if (OverBudget) return;
 
         TestRunConfig.Set(_startWave, OrderForApplication(_leftPicked), OrderForApplication(_rightPicked));
+        TestRunConfig.Map = SelectedMap;
 
         if (GameSceneManager.Instance != null)
         {

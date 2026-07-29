@@ -24,6 +24,7 @@ The pieces (all paths relative to `Assets/Scripts/`):
 | `UI/CampMenuController.cs` | reveal combo: LT+RT+LB+RB or F9 on the camp menu, `static _testModeUnlocked` |
 | `UI/TestWavePicker.cs` + `Spawner.PickNextWaveThenStart()` | per-wave picker: during a test run, every wave start pauses and lists the scheduled boss + all playable pool waves (with real odds) to choose from |
 | `TestRunConfig.AutoPickWave` | static string that bypasses the picker UI (see below) |
+| `TestRunConfig.Map` | the map the run plays on; `MapSelection.Resolve()` honours it while the config is `Pending` (see below) |
 
 While a test run is active (`TestRunConfig.ActiveRun`), `furthestWave` is NOT saved,
 but gold, quest progress, stats, and map/boss progress STILL accrue — a test-run
@@ -53,6 +54,7 @@ string[] rightNames = new string[] { "Venom Tip 1", "Venom Tip 2", "Virulence 1"
 foreach (string n in leftNames) { foreach (var u in um.AllUpgrades) { if (u.name == n) { left.Add(u); break; } } }
 foreach (string n in rightNames) { foreach (var u in um.AllUpgrades) { if (u.name == n) { right.Add(u); break; } } }
 TestRunConfig.Set(12, left, right);
+TestRunConfig.Map = MapCatalog.Instance.Find("mine"); // omit = the save's map
 TestRunConfig.AutoPickWave = "*"; // REQUIRED for unattended runs — see below
 UnityEngine.SceneManagement.SceneManager.LoadScene("Main");
 return "queued: wave 12, L=" + left.Count + " R=" + right.Count;
@@ -100,6 +102,23 @@ will silently skip the picker they asked for.
 
 The picker is also the fastest human repro loop: to see one specific wave under
 a loadout, set the loadout in the camp panel and pick the wave by hand each time.
+
+## Choosing the map
+
+The camp panel has a Map row right under Starting Wave (◄►, wraps, defaults to
+The Camp Fields — the forest); it writes `TestRunConfig.Map`. From MCP, set that
+static yourself: `TestRunConfig.Map = MapCatalog.Instance.Find("mine")`.
+
+- `MapSelection.Resolve()` returns it **only while the config is `Pending`**, so a
+  test detour never rewrites the save's `lastPlayedMapId` or the level select's
+  remembered pick — and a normal run started afterwards is unaffected.
+- Locked maps are offered and startable; that's deliberate.
+- Like `AutoPickWave` it survives `Clear()`, which is what lets the death screen's
+  "Try Wave Again" re-fight on the same ground. Null it out when you hand the
+  editor back.
+- Null/unset = the normal chain (level-select pick → save → first unlocked map).
+- The gate/true boss wave numbers are per map (Camp Fields 10/20, Mine 15/25 as of
+  2026-07-26), so pick the map before choosing a starting wave.
 
 ## Choosing loadouts that mean something
 

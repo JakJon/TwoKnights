@@ -53,12 +53,28 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
 }
 
-.boss-bar {
+/* The row owns the boss bar's width now that the HP number shares it — a percentage
+   width on the bar itself would resolve against an auto-sized row and collapse. */
+.boss-hud .bar-row {
     width: 34%;
     min-width: 380px;
     max-width: 640px;
+    justify-content: center;
+    margin-top: 0;
+}
+
+.boss-bar {
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: auto;
     height: 14px;
     border-radius: 7px;
+}
+
+/* gold to match the boss title, so the whole boss block reads as one unit */
+.boss-hud .bar-side-label {
+    margin-left: 8px;
+    color: rgb(212, 162, 74);
 }
 
 /* deeper crimson than the knights' health red — reads as the enemy's blood */
@@ -166,3 +182,92 @@
     text-shadow: 0 0 8px rgba(200, 164, 255, 0.7);
     letter-spacing: 2px;
 }
+
+/* ============================================================
+   Venture curtain — the between-wave blackout. A sibling of
+   .player-hud rather than a child, because .player-hud carries
+   padding and absolute insets resolve against the padding box.
+   Driven entirely by VentureCurtain.cs; the durations below are
+   mirrored as constants there and the two must move together.
+   ============================================================ */
+
+.venture-curtain {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Solid backing. Carries the whole fade on ordinary wave gaps, and on
+   ceremonial ones seals the hairlines between tiles once they've all landed. */
+.venture-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(0, 0, 0);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
+}
+
+.venture-fill--on { opacity: 1; }
+
+/* the seal/unseal handoff, which happens while the screen is already black */
+.venture-fill--instant { transition-duration: 0.06s; }
+
+/* ---------- dither dissolve (ceremonial closes only) ---------- */
+
+.venture-tiles {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    flex-direction: column;
+}
+
+.venture-tile-row {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+/* flex-grow rather than a percentage width: the row divides exactly, so the
+   grid never leaves a rounding gap at the right edge */
+.venture-tile {
+    flex-grow: 1;
+    background-color: rgb(0, 0, 0);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.22s;
+    transition-timing-function: ease-out;
+}
+
+.venture-tile--on { opacity: 1; }
+
+/* ---------- the venture line ---------- */
+
+.venture-line {
+    max-width: 62%;
+    font-size: 26px;
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-text-align: middle-center;
+    white-space: normal;
+    color: rgb(212, 162, 74);
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.95);
+    display: none;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.8s;
+    transition-timing-function: ease-in-out;
+}
+
+.venture-line--visible { opacity: 1; }

@@ -33,7 +33,7 @@ UI), and one **capstone** gated on owning N upgrades of that Order.
 **Duo upgrades (the Two Knights signature, later phase):** offered only when the *left*
 knight is committed to Order A and the *right* to Order B; upgrades both at once.
 *Serpent's Shadow* (Poison+Ninja: shadows always poison), *Witchfire* (Poison+Fire:
-burns accelerate poison ticks), *Bulwark of Thorns* (Tank+Poison: blocks fire back venom
+burns accelerate poison ticks), *Guardian of Thorns* (Tank+Poison: blocks fire back venom
 darts). The run's story becomes *the pair*.
 
 ## 2. Class roster
@@ -55,8 +55,9 @@ darts). The run's story becomes *the pair*.
   erases the firing cooldown for 2s; reuses RapidFire tech). Starting picks:
   Shadow Arrows I + Phantom Blade I; Shuriken/Killing Blow unlock off Shadow
   Arrows I. New `NinjaBoost` knight stat sheet mirrors `PoisonTipBoost`.
-- **Bulwark (Tank)** — the shield is the weapon: Thorned Aegis (reflect blocks),
-  Stalwart (blocks charge special), Widened Guard (bigger arc), capstone *Unbreakable*
+- **Guardian (Tank)** — the shield is the weapon: Tower Shield (a longer bar),
+  Curved Aegis (bows it around the knight for a wider arc) *(both shipped)*, Thorned
+  Aegis (reflect blocks), Stalwart (blocks charge special), capstone *Unbreakable*
   (the damage streak-reset is suppressed once per wave).
 - **Ember (Fire)** — burst + area denial: Ignited Tips (short/hot DoT vs poison's
   long/slow), Fireburst (kill explosions), Scorched Ground, capstone *Immolation*
@@ -116,5 +117,5 @@ per Order, lit when unlocked.
 | **A** | Orders framework + full Serpent class + card styling + particles |
 | **B** | `MapDefinition`, gate-boss/true-boss flow, Rat King, victory screen, stall fixed, map unlocks |
 | **C** | Map 2 "The Mine": camp level select + rail system + Choo Choo *(done)*; carts, mine mobs, ~15 waves, gate boss *(open)* |
-| **D** | Bulwark/Ember/Dawn + duo upgrades |
+| **D** | Guardian/Ember/Dawn + duo upgrades |
 | **E** | Camp skill tree, class/map quest lines, gold sinks |

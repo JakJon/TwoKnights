@@ -1,61 +1,63 @@
-using System.Collections.Generic;
 using UnityEngine;
 
-// Swaps the arena backdrop as the run pushes deeper into the map (forest ->
-// deep forest once the rat king falls on wave 10), and across maps (the mine
-// runs on the cave backdrop). Stages are keyed by the 1-based wave number they
-// start on and optionally by map id; the highest matching stage at or below the
-// current wave wins. Polls the WaveManager instead of hooking wave events so
-// Test Mode jumps and run restarts are picked up automatically.
+// Applies the arena backdrop for the stage the run is currently in (forest ->
+// deep forest once the rat king falls on wave 10, the cave on the mine). The
+// stages themselves live on the MapDefinition asset, so authoring a new one
+// never means touching this scene.
+//
+// Polls the WaveManager instead of hooking wave events so Test Mode jumps and
+// run restarts are picked up automatically. Between waves the Spawner calls
+// Hold() so the swap waits behind the black curtain instead of popping on the
+// cleared arena — CurrentWaveNumber advances the instant WaveCompleted() runs.
 [RequireComponent(typeof(SpriteRenderer))]
 public class BackgroundController : MonoBehaviour
 {
-    [System.Serializable]
-    public class Stage
-    {
-        public string label;
-        [Tooltip("Map this stage belongs to. Empty = any map.")]
-        public string mapId;
-        [Min(1)] public int fromWaveNumber = 1;
-        public Sprite sprite;
-    }
-
-    [SerializeField] private List<Stage> stages = new List<Stage>();
+    public static BackgroundController Instance { get; private set; }
 
     private SpriteRenderer _renderer;
+    private bool _held;
 
     void Awake()
     {
+        Instance = this;
         _renderer = GetComponent<SpriteRenderer>();
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     void Update()
     {
+        if (_held) return;
+        ApplyCurrentStage();
+    }
+
+    // Freeze the backdrop on whatever it is showing now. Safe to call twice.
+    public void Hold()
+    {
+        _held = true;
+    }
+
+    // Resume polling and swap immediately, so the caller can be sure the new
+    // backdrop is up before it lifts the curtain
+    public void ReleaseAndApply()
+    {
+        _held = false;
+        ApplyCurrentStage();
+    }
+
+    private void ApplyCurrentStage()
+    {
         var waveManager = WaveManager.ActiveInstance;
-        if (waveManager == null) return;
+        var map = waveManager != null ? waveManager.CurrentMap : null;
+        if (map == null) return;
 
-        var map = waveManager.CurrentMap;
-        string mapId = map != null ? map.MapId : null;
+        var stage = map.StageForWave(waveManager.CurrentWaveNumber);
+        if (stage == null || stage.backdrop == null) return;
 
-        Stage best = null;
-        for (int i = 0; i < stages.Count; i++)
-        {
-            Stage stage = stages[i];
-            if (stage.sprite == null || stage.fromWaveNumber > waveManager.CurrentWaveNumber)
-                continue;
-            if (!string.IsNullOrEmpty(stage.mapId) && stage.mapId != mapId)
-                continue;
-            // A stage naming this map beats a wildcard one, whatever the wave
-            bool betterMatch = best == null
-                || (!string.IsNullOrEmpty(stage.mapId) && string.IsNullOrEmpty(best.mapId))
-                || (string.IsNullOrEmpty(stage.mapId) == string.IsNullOrEmpty(best.mapId)
-                    && stage.fromWaveNumber > best.fromWaveNumber);
-            if (betterMatch) best = stage;
-        }
-
-        if (best != null && _renderer.sprite != best.sprite)
-        {
-            _renderer.sprite = best.sprite;
-        }
+        if (_renderer.sprite != stage.backdrop)
+            _renderer.sprite = stage.backdrop;
     }
 }

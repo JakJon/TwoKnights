@@ -23,4 +23,5 @@ MonoBehaviour:
     overhangCells: 2
     start: 0
     count: 0
+    flow: 0
     layFromFarEnd: 0

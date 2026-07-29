@@ -20,5 +20,10 @@ MonoBehaviour:
   lockedAfterXWaves: -1
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 6bc123b3bab5aff4e8133ac18069a930, type: 2}
+  cartPrefab: {fileID: 8988923828669354422, guid: b58f6957238ce424ba564c5f69af2a75, type: 3}
+  firstCartDelay: 0.75
+  cartInterval: 4
+  cartCount: 4
+  cartSpeed: 6
   projectileInterval: 5
   projectileWindow: 15

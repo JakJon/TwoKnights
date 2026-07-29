@@ -5,7 +5,7 @@ public enum UpgradeOrder
     Neutral = 0,
     Serpent = 1,  // poison
     Shadow = 2,   // ninja / shadow arrows
-    Bulwark = 3,  // tank / shield
+    Guardian = 3, // tank / shield
     Ember = 4,    // fire
     Dawn = 5      // healing
 }

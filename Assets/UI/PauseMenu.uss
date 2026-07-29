@@ -104,7 +104,7 @@
 .loadout-chip.order--serpent { border-left-color: rgb(126, 179, 91); }
 .loadout-chip.order--shadow { border-left-color: rgb(129, 128, 214); }
 .loadout-chip.order--ember { border-left-color: rgb(226, 120, 63); }
-.loadout-chip.order--bulwark { border-left-color: rgb(158, 168, 178); }
+.loadout-chip.order--guardian { border-left-color: rgb(158, 168, 178); }
 .loadout-chip.order--dawn { border-left-color: rgb(240, 200, 170); }
 
 /* placeholder when a knight has taken nothing yet */

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f36d5a0fa84f3d8c3b5fe5920d800d, type: 3}
+  m_Name: Curved Aegis 1
+  m_EditorClassIdentifier: 
+  upgradeName: Curved Aegis I
+  description: The shield bows around you.
+  weight: 16
+  order: 3
+  requiresOrderCount: 0
+  unlockedBy: []
+  lockedBy: []
+  stats:
+  - valueText: 22°
+    labelText: SHIELD ARC
+    isPositive: 1
+  curveRadius: 2.6

@@ -33,6 +33,10 @@ public class Spawner : MonoBehaviour
     private Transform _rightPlayer;
     private bool _isWaveInProgress;
     private bool _isUpgradeMenuActive; // Track if upgrade menu is showing
+    private bool _isTransitionActive;  // Curtain is closing or opening
+    // Prose for the stage the run is about to enter, shown over black after the
+    // upgrade pick. Non-empty also means "this gap gets the long ceremony".
+    private string _pendingVentureLine;
 
     #region common references
     // Public methods for spawning that can be used by wave classes
@@ -129,7 +133,9 @@ public class Spawner : MonoBehaviour
 
     public void StartNextWave()
     {
-        if (_isWaveInProgress || _isUpgradeMenuActive)
+        // The curtain owns the call to this while it's up — a stray one would
+        // start a wave the player can't see
+        if (_isWaveInProgress || _isUpgradeMenuActive || _isTransitionActive)
             return;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -281,6 +287,7 @@ public class Spawner : MonoBehaviour
 
         if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
         {
+            VentureCurtain.ForceClear();
             yield break;
         }
 
@@ -288,6 +295,7 @@ public class Spawner : MonoBehaviour
         var outcome = waveManager.ConsumePendingOutcome();
         if (outcome != RunOutcome.None && GameSceneManager.Instance != null)
         {
+            VentureCurtain.ForceClear();
             GameSceneManager.Instance.OnVictory(waveManager.CurrentMap, outcome == RunOutcome.TrueVictory,
                 waveManager.CompletedWavesCount);
             yield break;
@@ -306,6 +314,25 @@ public class Spawner : MonoBehaviour
             Time.timeScale = 1f;
         }
 
+        // Take the screen to black before the menu. Crossing into a stage that
+        // carries a venture line (forest -> deep forest) earns the long close;
+        // every other gap gets the short fade, so the two read as one language.
+        var map = waveManager.CurrentMap;
+        int entering = waveManager.CurrentWaveNumber; // already advanced by WaveCompleted()
+        var stage = map != null ? map.StageForWave(entering) : null;
+        bool crossing = map != null && stage != map.StageForWave(entering - 1);
+        _pendingVentureLine = (crossing && stage != null) ? stage.ventureLine : null;
+
+        _isTransitionActive = true;
+        // The backdrop swap waits behind the black: CurrentWaveNumber advanced
+        // the instant WaveCompleted() ran, so unheld it would pop on the cleared
+        // arena seconds before the menu even opens
+        BackgroundController.Instance?.Hold();
+        Time.timeScale = 0f;
+        yield return StartCoroutine(VentureCurtain.Close(!string.IsNullOrEmpty(_pendingVentureLine)));
+        BackgroundController.Instance?.ReleaseAndApply();
+        _isTransitionActive = false;
+
         // Show upgrade menu and pause game instead of immediately starting next wave
         ShowUpgradeMenu();
     }
@@ -315,6 +342,8 @@ public class Spawner : MonoBehaviour
         if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
         {
             _isUpgradeMenuActive = false;
+            _pendingVentureLine = null;
+            VentureCurtain.ForceClear();
             return;
         }
 
@@ -343,23 +372,44 @@ public class Spawner : MonoBehaviour
             Debug.Log($"Upgrade {upgradeIndex} was confirmed for {selectedKnight}");
         }
         
-        // Hide upgrade menu
+        // Hide upgrade menu, uncovering the black it was sitting on
         if (upgradeMenu != null)
         {
             upgradeMenu.SetMenuVisible(false);
         }
-        
-        // Resume game
-        Time.timeScale = 1f;
+
         _isUpgradeMenuActive = false;
-        
-        // Start next wave
+        _isTransitionActive = true;
+        StartCoroutine(RaiseCurtainThenStartWave(!string.IsNullOrEmpty(_pendingVentureLine)));
+    }
+
+    // Owns the resume: the venture line plays over the black the menu just
+    // left behind, then the curtain lifts on the new backdrop. Nothing else
+    // calls StartNextWave while _isTransitionActive is set, so this must.
+    private IEnumerator RaiseCurtainThenStartWave(bool ceremonial)
+    {
+        if (!string.IsNullOrEmpty(_pendingVentureLine))
+        {
+            yield return StartCoroutine(VentureCurtain.ShowLine(_pendingVentureLine));
+            _pendingVentureLine = null;
+        }
+
+        // Time returns before the light does, so the knights idle back to life
+        // as the arena comes up rather than snapping to it
+        Time.timeScale = 1f;
+        yield return StartCoroutine(VentureCurtain.Open(ceremonial));
+
+        _isTransitionActive = false;
         StartNextWave();
     }
 
     public void HandlePlayerDeathTransition()
     {
         _isUpgradeMenuActive = false;
+        _isTransitionActive = false;
+        _pendingVentureLine = null;
+        // Dying mid-curtain must never leave the player staring at black
+        VentureCurtain.ForceClear();
         Time.timeScale = 1f;
     }
 

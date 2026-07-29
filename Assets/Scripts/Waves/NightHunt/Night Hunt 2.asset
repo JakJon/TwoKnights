@@ -18,7 +18,7 @@ MonoBehaviour:
   waveDescription: 'The pack strikes together: wolf low, bat high. Kill the stalker
     before the dive.'
   unlockedAfterXWaves: 11
-  lockedAfterXWaves: 17
+  lockedAfterXWaves: 15
   useEnemyTracking: 1
   strikeRounds: 3
   secondsBetweenWolfAndBat: 2.5

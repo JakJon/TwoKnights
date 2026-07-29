@@ -62,6 +62,10 @@ public class AudioManager : MonoBehaviour
     public SoundEffect wolfBite;
     public SoundEffect slimeSpawn;
     public SoundEffect slimeSmack;
+    // Crimson Twins: deeper and wetter than slimeHit/slimeDeath, which stay on the
+    // ordinary slimes — the boss is several times their size and needs its own weight
+    public SoundEffect giantSlimeHurt;
+    public SoundEffect giantSlimeDeath;
     public SoundEffect bossBanner;
     public SoundEffect bossTelegraph;
     public SoundEffect bossFan;

@@ -13,6 +13,7 @@ public static class BossHealthBar
     private static VisualElement _container;
     private static VisualElement _fill;
     private static Label _title;
+    private static Label _amount;
     private static float _lastFraction = -1f;
 
     // Sets the bar up at full but keeps it at opacity 0 — call Reveal to fade
@@ -25,6 +26,9 @@ public static class BossHealthBar
         _container.style.display = DisplayStyle.Flex;
         _lastFraction = -1f;
         SetFraction(1f);
+        // Blanked rather than guessed: the boss pushes real numbers on its first
+        // frame, and a stale count from the previous boss must not flash first
+        if (_amount != null) _amount.text = string.Empty;
     }
 
     // Starts the USS opacity transition (0.9s, .boss-hud--visible)
@@ -32,6 +36,23 @@ public static class BossHealthBar
     {
         if (!TryResolve()) return;
         _container.AddToClassList(VisibleClass);
+    }
+
+    // Preferred entry point: drives the bar AND the number from one call so the two
+    // can never disagree. Bosses with more than one body (the Crimson Twins) pass the
+    // combined pool.
+    public static void SetHealth(float current, float max)
+    {
+        if (!TryResolve()) return;
+
+        current = Mathf.Max(0f, current);
+        max = Mathf.Max(1f, max);
+        SetFraction(current / max);
+
+        if (_amount != null)
+        {
+            _amount.text = Mathf.CeilToInt(current) + " / " + Mathf.CeilToInt(max);
+        }
     }
 
     public static void SetFraction(float fraction)
@@ -70,6 +91,9 @@ public static class BossHealthBar
         _container = root.Q<VisualElement>("boss-hud");
         _fill = root.Q<VisualElement>("boss-health-fill");
         _title = root.Q<Label>("boss-title");
+        // Deliberately not part of the gate below: a HUD missing only the number
+        // should still show a working bar rather than no boss HUD at all
+        _amount = root.Q<Label>("boss-health-amount");
         return _container != null && _fill != null && _title != null;
     }
 }
