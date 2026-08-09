@@ -6,14 +6,22 @@ public static class QuestProgress
 {
     public static event Action<string> OnQuestCompleted;
     public static event Action<string> OnQuestProgressChanged;
+    /// <summary>A quest just became visible. Drives the camp's notification dot.</summary>
+    public static event Action<string> OnQuestUnlocked;
 
     private static bool _subscribed;
+    // Quests already known to be unlocked, so becoming unlocked fires exactly once
+    private static readonly HashSet<string> _knownUnlocked = new HashSet<string>();
+    private static bool _evaluating;
 
     public static void EnsureInitialized()
     {
         if (_subscribed) return;
         _subscribed = true;
         PlayerStats.OnStatChanged += HandleStatChanged;
+
+        SeedUnlocked();
+
 #if UNITY_EDITOR
         UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
         {
@@ -23,6 +31,8 @@ public static class QuestProgress
 #endif
     }
 
+    // ---------- state ----------
+
     public static bool IsCompleted(string questId)
     {
         return FindEntry(questId) != null;
@@ -30,14 +40,77 @@ public static class QuestProgress
 
     public static string GetCompletionDate(string questId)
     {
-        return FindEntry(questId)?.completedDate;
+        var entry = FindEntry(questId);
+        return entry != null ? entry.completedDate : null;
     }
 
+    public static bool IsUnlocked(Quest quest)
+    {
+        return quest != null && quest.IsUnlocked;
+    }
+
+    /// <summary>Quests the player can see: unlocked, completed or not, in database order.</summary>
+    public static IEnumerable<Quest> Visible
+    {
+        get
+        {
+            foreach (var quest in QuestDatabase.All)
+            {
+                if (quest.IsUnlocked) yield return quest;
+            }
+        }
+    }
+
+    public static IEnumerable<Quest> VisibleForMap(string mapId)
+    {
+        foreach (var quest in Visible)
+        {
+            if (quest.MapId == mapId) yield return quest;
+        }
+    }
+
+    /// <summary>Total progress across a quest's objectives, for a single summary number.</summary>
     public static int GetProgress(Quest quest)
     {
-        if (quest == null || !quest.HasObjective) return 0;
-        return Mathf.Min(PlayerStats.Get(quest.ObjectiveStatKey), quest.ObjectiveTarget);
+        if (quest == null || !quest.HasObjectives) return 0;
+        int total = 0;
+        for (int i = 0; i < quest.Objectives.Length; i++) total += quest.Objectives[i].Current;
+        return total;
     }
+
+    // ---------- the notification dot ----------
+
+    /// <summary>An unlocked quest the player has never opened in the log.</summary>
+    public static bool HasUnseen
+    {
+        get
+        {
+            var seen = SaveManager.Data.seenQuests;
+            foreach (var quest in Visible)
+            {
+                if (seen == null || !seen.Contains(quest.Id)) return true;
+            }
+            return false;
+        }
+    }
+
+    public static bool IsSeen(string questId)
+    {
+        var seen = SaveManager.Data.seenQuests;
+        return seen != null && seen.Contains(questId);
+    }
+
+    /// <summary>Called when the player actually focuses a quest in the log.</summary>
+    public static void MarkSeen(string questId)
+    {
+        if (string.IsNullOrEmpty(questId)) return;
+        var seen = SaveManager.Data.seenQuests ?? (SaveManager.Data.seenQuests = new List<string>());
+        if (seen.Contains(questId)) return;
+        seen.Add(questId);
+        SaveManager.Save();
+    }
+
+    // ---------- completion ----------
 
     public static bool CompleteQuest(Quest quest)
     {
@@ -51,18 +124,24 @@ public static class QuestProgress
             completedDate = DateTime.Now.ToString("yyyy-MM-dd"),
         });
 
-        if (KnightRankManager.Instance != null)
+        var reward = quest.Reward;
+        if (reward != null)
         {
-            KnightRankManager.Instance.AddHonor(quest.HonorReward);
-        }
-        else
-        {
-            SaveManager.Data.honorPoints += quest.HonorReward;
-            SaveManager.Data.knightRank = KnightRankManager.CalculateRank(SaveManager.Data.honorPoints);
+            if (reward.Crystals > 0) CrystalBank.Add(reward.Crystals);
+            if (reward.GrantsEquipment) Loadout.Own(reward.EquipmentId);
+            if (reward.ExtraEquipmentSlot)
+            {
+                SaveManager.Data.equipmentSlots = Mathf.Max(SaveManager.Data.equipmentSlots, 2);
+            }
         }
 
         SaveManager.Save();
         OnQuestCompleted?.Invoke(quest.Id);
+
+        // Completion is published as a stat so quest chains gate on it through
+        // the same path as everything else — no separate prerequisite mechanism,
+        // and the write re-enters Evaluate to open whatever comes next.
+        PlayerStats.Set(QuestDatabase.CompletionStatKey(quest.Id), 1);
         return true;
     }
 
@@ -71,18 +150,78 @@ public static class QuestProgress
         return CompleteQuest(QuestDatabase.Get(questId));
     }
 
+    // ---------- reactive evaluation ----------
+
     private static void HandleStatChanged(string key, int value)
     {
         foreach (var quest in QuestDatabase.All)
         {
-            if (!quest.HasObjective) continue;
-            if (quest.ObjectiveStatKey != key) continue;
-            OnQuestProgressChanged?.Invoke(quest.Id);
-            if (value >= quest.ObjectiveTarget && !IsCompleted(quest.Id))
+            if (quest.WatchesStat(key)) OnQuestProgressChanged?.Invoke(quest.Id);
+        }
+        Evaluate();
+    }
+
+    /// <summary>
+    /// Opens whatever the latest stats unlock, then completes whatever they
+    /// satisfy — looping because completing one quest publishes a stat that can
+    /// open the next link in a chain. The guard bounds a data error (a quest
+    /// gated on its own completion) to a stall rather than a hang.
+    /// </summary>
+    private static void Evaluate()
+    {
+        if (_evaluating) return;
+        _evaluating = true;
+        try
+        {
+            bool changed = true;
+            int passes = 0;
+            while (changed && passes++ < 16)
             {
-                CompleteQuest(quest);
+                changed = false;
+                foreach (var quest in QuestDatabase.All)
+                {
+                    if (!quest.IsUnlocked) continue;
+
+                    if (_knownUnlocked.Add(quest.Id))
+                    {
+                        OnQuestUnlocked?.Invoke(quest.Id);
+                        changed = true;
+                    }
+
+                    if (!IsCompleted(quest.Id) && quest.IsSatisfied)
+                    {
+                        CompleteQuest(quest);
+                        changed = true;
+                    }
+                }
             }
         }
+        finally
+        {
+            _evaluating = false;
+        }
+    }
+
+    // Seed silently: whatever is already open is not "new", and the notification
+    // dot is driven by seenQuests, not by this event
+    private static void SeedUnlocked()
+    {
+        _knownUnlocked.Clear();
+        foreach (var quest in QuestDatabase.All)
+        {
+            if (quest.IsUnlocked) _knownUnlocked.Add(quest.Id);
+        }
+    }
+
+    // This cache is static, so it outlives the scene reload that a file switch
+    // performs. Without re-seeding, quests one file had already opened would be
+    // remembered as open on the file switched to, and that file's own unlocks
+    // would never announce themselves.
+    private static void HandleActiveSlotChanged()
+    {
+        SeedUnlocked();
+        // The newly loaded save may already satisfy quests, exactly as at startup
+        Evaluate();
     }
 
     private static QuestCompletion FindEntry(string questId)
@@ -101,5 +240,10 @@ public static class QuestProgress
     {
         _subscribed = false;
         EnsureInitialized();
+        SaveManager.OnActiveSlotChanged -= HandleActiveSlotChanged;
+        SaveManager.OnActiveSlotChanged += HandleActiveSlotChanged;
+        // A save loaded from disk may already satisfy quests added since it was
+        // written, so settle the whole database once at startup
+        Evaluate();
     }
 }

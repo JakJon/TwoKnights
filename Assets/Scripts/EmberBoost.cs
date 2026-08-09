@@ -46,9 +46,25 @@ public class EmberBoost : MonoBehaviour
     public const float CraterRadius = 1.0f;
     public const float CraterDuration = 6f;
 
+    // Equipment (Emberbrand, Cinder Crown) adds on top of what the Order earned.
+    // Separate fields rather than inflating fireTrailLevel, which also controls
+    // trail radius and whether trails drop at all.
+    private float zoneDpsBonus;
+    private float trailDurationBonus;
+
+    public void AddZoneDpsBonus(float amount)
+    {
+        zoneDpsBonus = Mathf.Max(zoneDpsBonus, amount);
+    }
+
+    public void AddTrailDurationBonus(float seconds)
+    {
+        trailDurationBonus = Mathf.Max(trailDurationBonus, seconds);
+    }
+
     public float ZoneDps
     {
-        get { return BaseZoneDps + DpsPerRank * (fireTrailLevel + searingPanicLevel); }
+        get { return BaseZoneDps + DpsPerRank * (fireTrailLevel + searingPanicLevel) + zoneDpsBonus; }
     }
 
     // ---- Ignited Tips ----
@@ -137,7 +153,7 @@ public class EmberBoost : MonoBehaviour
     public const float TrailDropInterval = 0.35f;
 
     public float TrailZoneRadius { get { return fireTrailLevel >= 2 ? 0.75f : 0.5f; } }
-    public float TrailZoneDuration { get { return fireTrailLevel >= 2 ? 7f : 4f; } }
+    public float TrailZoneDuration { get { return (fireTrailLevel >= 2 ? 7f : 4f) + trailDurationBonus; } }
 
     // ---- Searing Panic ----
 
@@ -173,5 +189,14 @@ public class EmberBoost : MonoBehaviour
     public void PlaceZone(Vector2 position, float radius, float duration)
     {
         FireField.AddZone(position, radius, duration, gameObject.tag, ZoneDps, scorchedEarth);
+    }
+
+    /// <summary>
+    /// Same as PlaceZone, but tagged as a Fire Trail drop so the Ember quest can
+    /// ask for several burning at once without counting craters.
+    /// </summary>
+    public void PlaceTrailZone(Vector2 position, float radius, float duration)
+    {
+        FireField.AddZone(position, radius, duration, gameObject.tag, ZoneDps, scorchedEarth, true);
     }
 }

@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
+  m_Name: Mine Ring
+  m_EditorClassIdentifier: 
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
+  cellSize: 1
+  fallStagger: 0.04
+  runs:
+  - label: top run (east)
+    piece: 0
+    axis: 0
+    offset: 2
+    spanViewport: 0
+    overhangCells: 0
+    start: -4
+    count: 9
+    flow: 0
+    layFromFarEnd: 0
+  - label: right shaft (south)
+    piece: 1
+    axis: 1
+    offset: 5
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 5
+    flow: 1
+    layFromFarEnd: 0
+  - label: bottom run (west)
+    piece: 0
+    axis: 0
+    offset: -4
+    spanViewport: 0
+    overhangCells: 0
+    start: -4
+    count: 9
+    flow: 1
+    layFromFarEnd: 1
+  - label: left shaft (north)
+    piece: 1
+    axis: 1
+    offset: -5
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 5
+    flow: 0
+    layFromFarEnd: 1
+  tiles:
+  - label: top-left elbow (south to east)
+    piece: 4
+    position: {x: -5, y: 2}
+  - label: top-right elbow (west to south)
+    piece: 5
+    position: {x: 5, y: 2}
+  - label: bottom-right elbow (north to west)
+    piece: 3
+    position: {x: 5, y: -4}
+  - label: bottom-left elbow (east to north)
+    piece: 2
+    position: {x: -5, y: -4}
+  teleports:
+  - label: top into the right shaft
+    fromRun: 0
+    toRun: 1
+    exitOvershoot: 1
+    entryLead: 1
+  - label: right shaft into the bottom
+    fromRun: 1
+    toRun: 2
+    exitOvershoot: 1
+    entryLead: 1
+  - label: bottom into the left shaft
+    fromRun: 2
+    toRun: 3
+    exitOvershoot: 1
+    entryLead: 1
+  - label: left shaft into the top
+    fromRun: 3
+    toRun: 0
+    exitOvershoot: 1
+    entryLead: 1
+  drops: []

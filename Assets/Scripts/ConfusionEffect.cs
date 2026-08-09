@@ -23,6 +23,11 @@ public class ConfusionEffect : MonoBehaviour
         {
             effect = knight.AddComponent<ConfusionEffect>();
         }
+        // Waxed Cord shortens it. Scaled here rather than at each caller so any
+        // future source of confusion is covered without being told about it.
+        var equipment = knight.GetComponent<EquipmentBoost>();
+        if (equipment != null) duration *= equipment.ConfusionDurationMultiplier;
+
         AudioManager.Instance.PlaySFX(AudioManager.Instance.confusion);
         effect.Begin(duration, iconSprite);
     }

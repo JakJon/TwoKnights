@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38e49cec2448ac39ea1126c64a4da54c, type: 3}
+  m_Name: Rapid Fire
+  m_EditorClassIdentifier: 
+  id: rapid_fire
+  displayName: Rapid Fire
+  description: Your bow forgets it was ever meant to rest.
+  effect: 6 seconds of auto-fire with no cooldown.
+  icon: {fileID: -2211874699113431974, guid: 3478544e5f98ee74eb09377899367e49, type: 3}
+  crystalCost: 0
+  ownedFromTheStart: 1
+  freezeGainSeconds: 0

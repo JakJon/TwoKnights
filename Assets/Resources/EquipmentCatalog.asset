@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54a13e9688e485e8e90bf5ae1225a4f8, type: 3}
+  m_Name: EquipmentCatalog
+  m_EditorClassIdentifier: 
+  equipment:
+  - {fileID: 11400000, guid: 744ffe85f1e8c627f11e165566b9701a, type: 2}
+  - {fileID: 11400000, guid: 5aff5069da45d940960ccd330fb3328a, type: 2}
+  - {fileID: 11400000, guid: af7dc1a92a7b6eaa5c67677665887f23, type: 2}
+  - {fileID: 11400000, guid: 8500944a9d190f5320b06753d19e5b32, type: 2}
+  - {fileID: 11400000, guid: b61c4cecce35245515ef583985112cb4, type: 2}
+  - {fileID: 11400000, guid: c15828537201b638b23eb59c9ae87d92, type: 2}
+  - {fileID: 11400000, guid: 0b0f2a2238810b4f386ebb01de566dd9, type: 2}
+  - {fileID: 11400000, guid: 295b532538ea060d8346173d8b039ac7, type: 2}
+  - {fileID: 11400000, guid: ae1e1d0fc5a3efec1a5f5a2df73a49be, type: 2}
+  - {fileID: 11400000, guid: 2ddff9588cb9409b7b29f19467160866, type: 2}
+  - {fileID: 11400000, guid: eb3c71f962e6bbb09dfcaadf08257c4e, type: 2}
+  - {fileID: 11400000, guid: 890d9e5d59b80cfd5dfdc0d41cb667a9, type: 2}
+  - {fileID: 11400000, guid: e222fbc69e9cde57650cd1ac09afd8ad, type: 2}
+  - {fileID: 11400000, guid: 06d8afa2adb17177e168f73751095364, type: 2}
+  - {fileID: 11400000, guid: f8ffef731789d9d1003569ac51903f61, type: 2}
+  - {fileID: 11400000, guid: 47abd0fbf0c5381874f96db5cf41f889, type: 2}
+  specials:
+  - {fileID: 11400000, guid: c541ada727aea81af93bf6099e812189, type: 2}
+  - {fileID: 11400000, guid: 37e0630970ad001734f70ac6489848b5, type: 2}
+  - {fileID: 11400000, guid: 3b895dfca61e9fd0b557be1d1220b9b0, type: 2}
+  - {fileID: 11400000, guid: f7f87468150c7038469e392a689cac45, type: 2}
+  crystalIcon: {fileID: -4542957706443726385, guid: ec96d62d4785de449b8f68077febed3d, type: 3}
+  equipmentSlotIcon: {fileID: 1783469149218365875, guid: ce95f3f65d3414e4dba4a1969caddd8f, type: 3}

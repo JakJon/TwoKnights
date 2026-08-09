@@ -11,7 +11,21 @@ public class ProjectileMovement : MonoBehaviour
     // Call this when spawning the projectile
     public void Initialize(Transform target, Vector2 spawnPosition)
     {
+        Initialize(target, spawnPosition, 0f);
+    }
+
+    /// <summary>
+    /// Spawn at <paramref name="speed"/> world units per second; 0 or less keeps
+    /// the prefab's own. A per-wave override rather than a prefab change because
+    /// the rock is shared by every wave that works a shaft — the time a rock
+    /// spends in the air is a property of the WAVE that fired it, and Delivery in
+    /// particular is asking the player to do arithmetic about carts while it is
+    /// falling, so its rocks need to clear off sooner than the mine's do.
+    /// </summary>
+    public void Initialize(Transform target, Vector2 spawnPosition, float speed)
+    {
         _target = target;
+        if (speed > 0f) _speed = speed;
         transform.position = spawnPosition; // Set spawn position
         FaceTarget();
         AudioManager.Instance.PlaySFX(AudioManager.Instance.projectileSpawn);

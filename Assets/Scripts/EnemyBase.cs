@@ -23,6 +23,17 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     [SerializeField] protected AnimationClip staggerAnimation; // Stagger anim
     [SerializeField] protected AnimationClip defaultAnimation; // Default anim
 
+    // Name-based alternative to the two clips above, for anything animated from a
+    // .aseprite. The importer REGENERATES its clips on every reimport, so a clip
+    // reference is a handle onto something that keeps being rebuilt; the Animator
+    // state name — which is just the Aseprite tag — survives it. Either form works
+    // and the clip wins when both are set, so nothing already authored changes.
+    [Tooltip("Animator state played while staggered, e.g. the Aseprite tag \"Damage\". Ignored when Stagger Animation is set.")]
+    [SerializeField] protected string staggerStateName = "";
+
+    [Tooltip("Animator state returned to when the stagger ends, e.g. the Aseprite tag \"Rolling\". Ignored when Default Animation is set.")]
+    [SerializeField] protected string defaultStateName = "";
+
     [Header("Damage Text")]
     [SerializeField] protected GameObject damageTextPrefab; // Floating text prefab
     [SerializeField] protected Vector3 damageTextOffset = new Vector3(0, 0.01f, 0); // Text offset
@@ -138,6 +149,39 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected AnimationClip originalAnimationClip;
     public bool IsStaggered => isStaggered;
 
+    // Whether the wave is allowed to end while this thing is still alive. Almost
+    // every enemy gates the wave; the exception is scenery with health — an empty
+    // mine cart is an obstacle to shoot around, not a kill the player owes.
+    protected virtual bool TracksWaveCompletion => true;
+
+    // Whether damage that lands in an AREA rather than on a target can touch this
+    // thing at all: fire (ignition and ground zones), poison, and blasts.
+    //
+    // Iron does not burn, rot, or care about a shockwave. A cart is scenery with
+    // health, and scenery that could be cleared by parking a fire zone under the
+    // track would turn the whole mine into a problem you solve once, off-screen,
+    // instead of an obstacle you shoot around every lap. Direct hits still land —
+    // an arrow is how you are meant to answer a cart.
+    //
+    // Only the CART is protected. Anything riding one — a gnome, a delivery cart's
+    // cargo — is meat and burns normally, so it overrides this back to false.
+    //
+    // Public because splash that lands through TakeDamage — a fireball's blast —
+    // has to ask before it swings. A fireball's DIRECT hit still counts: that is an
+    // aimed shot, and aimed shots are how a cart is meant to be answered.
+    public virtual bool ImmuneToAreaDamage => false;
+
+    // Kinship group, for equipment that reads "vermin take more damage" rather
+    // than naming classes. See EnemyFamily.cs for why this is a virtual and not
+    // a serialized prefab field.
+    public virtual EnemyFamily Family => EnemyFamily.None;
+
+    // "Enemies you have poisoned / set alight" counts each enemy once in its
+    // life, not once per application — both statuses refresh on an already
+    // affected target, and poison clouds re-apply every tick.
+    private bool _countedPoisonApplied;
+    private bool _countedIgniteApplied;
+
     protected virtual void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -145,7 +189,10 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         animator = GetComponent<Animator>(); // Cache the animator
         peakHealth = health;
 
-        BaseWave.RegisterEnemy(gameObject); // Register for wave tracking
+        if (TracksWaveCompletion)
+        {
+            BaseWave.RegisterEnemy(gameObject); // Register for wave tracking
+        }
     }
 
     public virtual void TakeDamage(int damage, GameObject projectile)
@@ -204,20 +251,39 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected virtual IEnumerator StaggerRoutine()
     {
         isStaggered = true;
-        
-        if (staggerAnimation != null && animator != null)
-        {
-            animator.Play(staggerAnimation.name);
-        }
-        
+
+        PlayAnimatorState(staggerAnimation, staggerStateName);
+
         yield return new WaitForSeconds(staggerDuration);
-        
-        if (defaultAnimation != null && animator != null)
-        {
-            animator.Play(defaultAnimation.name);
-        }
-        
+
+        // Always attempted, even if the stagger state never played: leaving an
+        // enemy parked on a hurt frame is worse than never flinching at all.
+        PlayAnimatorState(defaultAnimation, defaultStateName);
+
         isStaggered = false;
+    }
+
+    // Resolves a state from either authoring form — clip reference first, then the
+    // name — and refuses quietly-wrong outcomes. Animator.Play on a state that
+    // does not exist does nothing AND says nothing, which is exactly how a hurt
+    // animation goes missing without anyone noticing it went.
+    private void PlayAnimatorState(AnimationClip clip, string stateName)
+    {
+        if (animator == null) return;
+
+        string state = clip != null ? clip.name : stateName;
+        if (string.IsNullOrEmpty(state)) return;
+
+        if (!animator.HasState(0, Animator.StringToHash(state)))
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.LogWarning($"[{name}] Animator has no state '{state}'. If this enemy is " +
+                             "driven by an .aseprite, the state name is the tag name — check it.");
+#endif
+            return;
+        }
+
+        animator.Play(state);
     }
 
     public virtual void ApplyPoison(int damage, float duration, float tickRate, GameObject sourceProjectile = null)
@@ -235,7 +301,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // bursts) still credits the right knight and can chain further spreads
     public void ApplyPoisonFromTag(int damage, float duration, float tickRate, string playerTag)
     {
-        if (isDead) return;
+        // Same refusal as Ignite: no bubbles, no green glow, nothing to read as a
+        // status the cart does not actually have
+        if (isDead || ImmuneToAreaDamage) return;
+
+        if (!_countedPoisonApplied)
+        {
+            _countedPoisonApplied = true;
+            PlayerStats.Increment("applied.poison");
+        }
 
         // Add or update poison source
         if (!string.IsNullOrEmpty(playerTag))
@@ -349,6 +423,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                         {
                             Debug.Log($"Giving death special to poison contributor with player tag: {poisonSource.playerTag}");
                             GiveSpecialToPlayer(specialOnDeath, poisonSource.playerTag);
+
+                            // Hollow Fang: a death by venom is worth extra charge
+                            var venomKnight = GameObject.FindWithTag(poisonSource.playerTag);
+                            var venomEquipment = venomKnight != null ? venomKnight.GetComponent<EquipmentBoost>() : null;
+                            if (venomEquipment != null && venomEquipment.PoisonDeathSpecial > 0)
+                            {
+                                GiveSpecialToPlayer(venomEquipment.PoisonDeathSpecial, poisonSource.playerTag);
+                            }
+
                             RaiseEnemyKilledBy(poisonSource.playerTag);
                         }
                         else
@@ -507,15 +590,29 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // ================= Ember Order =================
 
     // THE IGNITION PILLAR: the ONLY callers of this are PlayerProjectile (an arrow
-    // that carries ignite) and FireballProjectile. Fire zones must never reach it —
-    // if fire could start fire, the arena self-immolates and the player stops
-    // mattering. See Docs/Design/ember-order.md.
+    // that carries ignite), FireballProjectile, and ShieldSight once Fire Sight is
+    // bought. Fire zones must never reach it — if fire could start fire, the arena
+    // self-immolates and the player stops mattering. See Docs/Design/ember-order.md.
+    //
+    // The sight is a legitimate third door and not a hole in the pillar: what the
+    // pillar forbids is FIRE starting fire, because that is the loop that runs away
+    // on its own. A beam is aimed, has to be held on a target, and cannot be lit by
+    // anything it lights — so every ignition it grants is still one the player spent
+    // a shield facing on, which is the property the pillar actually protects.
     //
     // Each call adds an independent burn stack, so hitting a burning enemy with
     // another ignited arrow/fireball piles heat on rather than merely refreshing.
     public void Ignite(string playerTag)
     {
-        if (isDead || string.IsNullOrEmpty(playerTag)) return;
+        // Refused outright rather than merely dealing no damage, so an iron cart
+        // never wears a flame it cannot be hurt by
+        if (isDead || ImmuneToAreaDamage || string.IsNullOrEmpty(playerTag)) return;
+
+        if (!_countedIgniteApplied)
+        {
+            _countedIgniteApplied = true;
+            PlayerStats.Increment("applied.ignite");
+        }
 
         // Resolve the igniting knight's stat sheet; this stack's dps and (if it's
         // the dominant one) its trail/panic all read from it.
@@ -632,9 +729,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     // Multiplies whatever movement the subclass just did, along its own heading.
     // Works regardless of how that enemy moves (MoveTowards, Lerp, waypoints).
+    // Whether a burning body can be made to run faster. False for anything whose
+    // position is owned by something else — a cart on rails cannot bolt, and
+    // nudging it here only puts it a frame's-worth off the track before its own
+    // Update snaps it back.
+    protected virtual bool AcceptsSearingPanic => true;
+
     private void ApplySearingPanic(EmberBoost boost)
     {
-        if (boost == null || IsStaggered) return;
+        if (boost == null || IsStaggered || !AcceptsSearingPanic) return;
 
         float multiplier = boost.PanicSpeedMultiplier;
         if (multiplier <= 1f) return;
@@ -656,7 +759,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Only paint where the enemy actually travelled
         if ((transform.position - _lastTrailPosition).sqrMagnitude < MinTrailMoveSqr) return;
 
-        boost.PlaceZone(transform.position,
+        boost.PlaceTrailZone(transform.position,
             boost.TrailZoneRadius,
             boost.TrailZoneDuration);
         _lastTrailPosition = transform.position;
@@ -670,6 +773,10 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // direction is what keeps FireField structurally unable to reach Ignite().
     private void TickFire()
     {
+        // Not merely zero damage — the field is never sampled, so a cart parked in
+        // a fire zone costs nothing to have on the track
+        if (ImmuneToAreaDamage) return;
+
         _sinceFireTick += Time.deltaTime;
         if (_sinceFireTick < FireTickInterval) return;
 
@@ -726,7 +833,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // Mirrors the poison tick's inline damage path instead.
     protected void ApplyFireDamage(int damage, string ownerTag)
     {
-        if (isDead || damage <= 0) return;
+        if (isDead || ImmuneToAreaDamage || damage <= 0) return;
 
         peakHealth = Mathf.Max(peakHealth, health);
         health -= damage;
@@ -753,6 +860,48 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         OnDeath();
     }
 
+    // A blast — a powder keg going up. Like poison and fire it sidesteps
+    // TakeDamage, because the stagger that comes with a normal hit would freeze
+    // whatever the blast caught for a moment at exactly the point the player is
+    // trying to read the chaos. It gets its own colour for the same reason those
+    // do: on screen, white numbers mean "something detonated near this", which is
+    // information the player cannot otherwise get from a crowd of red.
+    //
+    // ownerTag credits the knight who set it off, so blowing a keg over a pack
+    // pays them the special for everything it kills.
+    //
+    // Carts shrug this off with the rest of the area damage. Kegs are carts too,
+    // so keg-to-keg coupling does NOT come through here — see
+    // EnemyKegCart.ChainDetonate, which is sympathetic detonation rather than
+    // damage and is the one thing allowed past the immunity.
+    public void ApplyBlastDamage(int damage, string ownerTag)
+    {
+        if (isDead || ImmuneToAreaDamage || damage <= 0) return;
+
+        peakHealth = Mathf.Max(peakHealth, health);
+        health -= damage;
+        ShowDamageText(damage, Color.white);
+
+        if (health > 0) return;
+
+        isDead = true;
+        TriggerPoisonDeathEffects();
+        PlayerStats.Increment("kills.blasted");
+
+        if (!string.IsNullOrEmpty(ownerTag))
+        {
+            GiveSpecialToPlayer(specialOnDeath, ownerTag);
+            RaiseEnemyKilledBy(ownerTag);
+        }
+
+        if (deathSound != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(deathSound);
+        }
+
+        OnDeath();
+    }
+
     protected virtual void OnDeath()
     {
         if (goldOnDeath > 0)
@@ -761,6 +910,19 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
 
         PlayerStats.Increment($"kills.{StatKey}");
+
+        if (Family != EnemyFamily.None)
+        {
+            PlayerStats.Increment($"kills.family.{Family.ToString().ToLowerInvariant()}");
+        }
+
+        // Per-map kill counts, for quests scoped to one map ("clear the camp
+        // fields"). Null on a scene with no wave manager, e.g. a test bed.
+        var map = WaveManager.ActiveInstance != null ? WaveManager.ActiveInstance.CurrentMap : null;
+        if (map != null && !string.IsNullOrEmpty(map.MapId))
+        {
+            PlayerStats.Increment($"kills.map.{map.MapId}");
+        }
 
         // Unregister this enemy from wave tracking before destroying
         BaseWave.UnregisterEnemy(gameObject);

@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <!-- The quest log, shared by the camp menu and the pause screen. QuestPanel
+         finds these by name inside whichever document instances the template, so
+         both screens stay in step: adding a field here reaches them both. The
+         host element must carry .overlay-host — the panel inside is absolutely
+         positioned, and a TemplateContainer of its own natural size would give
+         it nothing to fill. -->
+    <ui:VisualElement name="quest-panel" class="overlay-panel" style="display: none;">
+        <ui:VisualElement name="quest-panel-header" class="overlay-header">
+            <ui:Label text="Quests" class="overlay-title" />
+            <ui:Button name="quest-close-button" class="overlay-close-button" text="X" />
+        </ui:VisualElement>
+        <ui:VisualElement name="quest-panel-body" class="quest-panel-body">
+            <ui:ScrollView name="quest-list" class="quest-list" />
+            <ui:VisualElement name="quest-details" class="quest-details">
+                <ui:Label name="quest-detail-name" text="Select a quest" class="quest-detail-name" />
+                <ui:Label name="quest-detail-description" text="" class="quest-detail-description" />
+                <ui:Label name="quest-detail-progress" text="" class="quest-detail-progress" />
+                <ui:Label name="quest-detail-reward" text="REWARD" class="quest-detail-reward" />
+                <!-- One hoverable square per thing the quest gives. Built in code. -->
+                <ui:VisualElement name="quest-reward-icons" class="quest-reward-icons" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label text="&#9650;&#9660; browse   &#9664;&#9654; inspect reward   A fold group   B back" class="map-hint-line" />
+        <!-- Floating name box for a hovered reward square; positioned in code -->
+        <ui:Label name="quest-reward-tip" class="reward-tip" text="" style="display: none;" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -25,6 +25,17 @@ public class CollectibleOrb : MonoBehaviour
         transform.position = startPos;
         moveDir = (endPos - startPos).normalized;
         totalDistance = Vector2.Distance(startPos, endPos);
+
+        // Sunwell III (Dawn): an orb is shared ground, so one knight buying the
+        // slow widens the window for both. Asked once here rather than per frame.
+        // The glow is how the player READS that it happened — a slowed orb has
+        // to look different, or the upgrade is invisible until you do the maths.
+        if (DawnBoost.AnyKnightSlowsOrbs())
+        {
+            moveSpeed *= DawnBoost.SlowedOrbSpeedMultiplier;
+            DawnFx.AttachOrbGlow(gameObject);
+        }
+
         AudioManager.Instance.PlaySFX(AudioManager.Instance.orbFlyBy);
     }
 
@@ -51,12 +62,20 @@ public class CollectibleOrb : MonoBehaviour
 
             if (player != null)
             {
+                // Sunwell (Dawn) pays off the knight who actually SHOT the orb,
+                // which is the whole point of the chain — it rewards the aim,
+                // not the standing around
+                DawnBoost dawn = player.GetComponent<DawnBoost>();
+
                 if (orbType == OrbType.Health)
                 {
                     PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
                     if (playerHealth != null)
                     {
-                        playerHealth.Heal(healthRestoreAmount);
+                        int amount = dawn != null ? dawn.ScaleOrbHeal(healthRestoreAmount) : healthRestoreAmount;
+                        // Tagged as an orb so the Dawn chime waits out orbCollect
+                        // below instead of firing on the same frame
+                        playerHealth.Heal(amount, true, HealSource.Orb);
                     }
                 }
                 else // Mana
@@ -65,6 +84,12 @@ public class CollectibleOrb : MonoBehaviour
                     if (playerSpecial != null)
                     {
                         playerSpecial.AddSpecialFromOrb(manaRestoreAmount);
+                    }
+
+                    // Sunwell II: even the mana orbs carry a little light
+                    if (dawn != null && dawn.ManaOrbMend > 0)
+                    {
+                        player.GetComponent<PlayerHealth>()?.Heal(dawn.ManaOrbMend, true, HealSource.Orb);
                     }
                 }
             }

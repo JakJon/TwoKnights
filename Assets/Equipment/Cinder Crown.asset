@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01ae97c2f984c50f2508057b43996e79, type: 3}
+  m_Name: Cinder Crown
+  m_EditorClassIdentifier: 
+  id: cinder_crown
+  displayName: Cinder Crown
+  description: Ash for a circlet. The ground remembers you passing.
+  effect: Fire trails burn 3 seconds longer.
+  icon: {fileID: -6461287188764917925, guid: d165ead73d5c69743b6758e4a241e52f, type: 3}
+  crystalCost: 0
+  stats:
+  - valueText: +3s
+    labelText: FIRE LINGERS
+    isPositive: 1
+  maxHealthBonus: 0
+  fireCooldownMultiplier: 1
+  grantsHeadStart: 0
+  favouredOrder: 0
+  favouredOrderMultiplier: 1
+  poisonTickBonus: 0
+  startingPoisonChance: 0
+  poisonDeathSpecial: 0
+  igniteDpsBonus: 0
+  startingIgniteChance: 0
+  fireTrailDurationBonus: 3
+  shadowArrowDamageBonus: 0
+  phantomEchoBonus: 0
+  startingShadowArrows: 0
+  shadowArrowPrefab: {fileID: 0}
+  confusionDurationMultiplier: 1

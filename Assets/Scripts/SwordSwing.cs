@@ -71,23 +71,35 @@ public class SwordSwing : MonoBehaviour
             yield break;
         }
         float shieldAngle = shield.CurrentAngle;
+        // Feat tracking: a phase is the real swing or one echo. The Shadow quest
+        // wants a swing where the real strike AND both echoes each connected.
+        _phaseLanded = false;
+        _phasesLanded = 0;
+
         yield return StartCoroutine(AnimateSwingArc(shieldAngle, totalEffectDuration - swingDuration, swingDuration));
+        if (_phaseLanded) _phasesLanded++;
 
         // Phantom Blade (Shadow Order): dark after-images repeat the swing. They
         // trail the real swing after a short beat, then whip through at 2x speed.
         NinjaBoost ninja = owningKnight != null ? owningKnight.GetComponent<NinjaBoost>() : null;
-        int echoCount = ninja != null ? ninja.PhantomLevel : 0;
+        int echoCount = ninja != null ? ninja.TotalPhantomEchoes : 0;
         for (int i = 0; i < echoCount; i++)
         {
             yield return new WaitForSeconds(0.1f);
             damagedEnemies = new HashSet<GameObject>();
+            _phaseLanded = false;
             currentSwingDamage = Mathf.Max(1, swingDamage / 2);
             SetSwingTint(PhantomTint);
             AudioManager.Instance.PlaySFX(AudioManager.Instance.phantomStrike);
             yield return StartCoroutine(AnimateSwingArc(shieldAngle, 0.025f, swingDuration * 0.5f));
             SetSwingTint(Color.white);
+            if (_phaseLanded) _phasesLanded++;
         }
         currentSwingDamage = swingDamage;
+
+        // Three connected phases can only happen with two echoes behind the real
+        // swing, which is what "a fully upgraded Phantom Blade" means
+        if (echoCount >= 2 && _phasesLanded >= 3) Feats.Record(Feats.PhantomFullThree);
 
         yield return new WaitForSeconds(cooldownTime);
         canSwing = true;
@@ -175,9 +187,14 @@ public class SwordSwing : MonoBehaviour
         EmberBoost boost = owningKnight.GetComponent<EmberBoost>();
         if (boost == null || boost.FireballPrefab == null || !boost.ShouldHurlFirebrand()) return;
 
-        float[] angles = boost.FirebrandCount >= 3
-            ? new float[] { -20f, 0f, 20f }
-            : new float[] { -15f, 15f };
+        // One fireball goes straight down the facing; two straddle it; three do
+        // both. Driven off the count rather than off the rank so the spread and
+        // the tier can never disagree — Firebrand I hurls a single fireball, and
+        // a single fireball fired at -15 degrees would just look like a miss.
+        float[] angles;
+        if (boost.FirebrandCount >= 3) angles = new float[] { -20f, 0f, 20f };
+        else if (boost.FirebrandCount == 2) angles = new float[] { -15f, 15f };
+        else angles = new float[] { 0f };
 
         Vector2 facing = shield.Direction;
         Vector2 origin = (Vector2)owningKnight.transform.position + facing * 1.1f;
@@ -203,6 +220,10 @@ public class SwordSwing : MonoBehaviour
         damageDetector.Initialize(this, swingDamage);
     }
 
+    // Set by whichever swing phase is currently arcing; read at the end of each
+    private bool _phaseLanded;
+    private int _phasesLanded;
+
     public void OnEnemyHit(GameObject enemy)
     {
         if (damagedEnemies.Contains(enemy)) return;
@@ -214,9 +235,21 @@ public class SwordSwing : MonoBehaviour
             // using its own tag produced "UntaggedProjectile" and sword kills
             // fed the wrong knight's special
             tempProjectile.tag = (owningKnight != null ? owningKnight.tag : gameObject.tag) + "Projectile";
-            enemyBase.TakeDamage(currentSwingDamage, tempProjectile);
+
+            // Equipment banes apply to the sword too — an item that says vermin
+            // take more damage would read as broken if only arrows honoured it
+            int swingDamage = currentSwingDamage;
+            EquipmentBoost equipment = owningKnight != null ? owningKnight.GetComponent<EquipmentBoost>() : null;
+            if (equipment != null)
+            {
+                float baneMultiplier = equipment.DamageMultiplierFor(enemyBase.Family);
+                if (baneMultiplier > 1f) swingDamage = Mathf.CeilToInt(swingDamage * baneMultiplier);
+            }
+
+            enemyBase.TakeDamage(swingDamage, tempProjectile);
             Destroy(tempProjectile);
             damagedEnemies.Add(enemy);
+            _phaseLanded = true;
         }
     }
 

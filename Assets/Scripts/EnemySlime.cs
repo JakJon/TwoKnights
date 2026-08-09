@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class EnemySlime : EnemyBase
 {
+    public override EnemyFamily Family => EnemyFamily.Ooze;
 
     [Header("Slime Settings")]
     [Tooltip("Initial size of the slime (1=small, 2=medium, 3=large)")]

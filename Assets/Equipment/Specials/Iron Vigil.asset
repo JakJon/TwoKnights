@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa252957ae7aaf4e9a6d31fe7072686e, type: 3}
+  m_Name: Iron Vigil
+  m_EditorClassIdentifier: 
+  id: iron_vigil
+  displayName: Iron Vigil
+  description: Stand still. Let it come. Nothing that arrives will land.
+  effect: 5 seconds where no damage can reach you.
+  icon: {fileID: -724146760323720847, guid: 89e8d4d40723b3541a0cd8b92df33ac1, type: 3}
+  crystalCost: 4
+  ownedFromTheStart: 0
+  freezeGainSeconds: 5
+  duration: 5
+  glow: {r: 0.72, g: 0.78, b: 0.85, a: 1}

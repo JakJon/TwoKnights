@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
+  m_Name: Mine Twin Shafts
+  m_EditorClassIdentifier:
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
+  cellSize: 1
+  fallStagger: 0.04
+  runs:
+  - label: red shaft, left descent
+    piece: 1
+    axis: 1
+    offset: -9
+    spanViewport: 1
+    overhangCells: 2
+    start: 0
+    count: 0
+    flow: 1
+    layFromFarEnd: 1
+  - label: red shaft, right descent
+    piece: 1
+    axis: 1
+    offset: 9
+    spanViewport: 1
+    overhangCells: 2
+    start: 0
+    count: 0
+    flow: 1
+    layFromFarEnd: 1
+  - label: green shaft, left descent
+    piece: 1
+    axis: 1
+    offset: -8
+    spanViewport: 1
+    overhangCells: 2
+    start: 0
+    count: 0
+    flow: 1
+    layFromFarEnd: 1
+  - label: green shaft, right descent
+    piece: 1
+    axis: 1
+    offset: 8
+    spanViewport: 1
+    overhangCells: 2
+    start: 0
+    count: 0
+    flow: 1
+    layFromFarEnd: 1
+  tiles: []
+  teleports:
+  - label: red, foot of the left descent to the head of the right
+    fromRun: 0
+    toRun: 1
+    exitOvershoot: 1
+    entryLead: 1
+  - label: red, foot of the right descent back to the head of the left
+    fromRun: 1
+    toRun: 0
+    exitOvershoot: 1
+    entryLead: 1
+  - label: green, foot of the left descent to the head of the right
+    fromRun: 2
+    toRun: 3
+    exitOvershoot: 1
+    entryLead: 1
+  - label: green, foot of the right descent back to the head of the left
+    fromRun: 3
+    toRun: 2
+    exitOvershoot: 1
+    entryLead: 1
+  drops: []

@@ -68,10 +68,9 @@ public class StatsPanel : MonoBehaviour
             AddRow(def.DisplayName, value.ToString());
         }
 
-        AddRow("Honor Points",
-            (KnightRankManager.Instance != null ? KnightRankManager.Instance.HonorPoints : SaveManager.Data.honorPoints).ToString());
-        AddRow("Knight Rank",
-            (KnightRankManager.Instance != null ? KnightRankManager.Instance.KnightRank : SaveManager.Data.knightRank).ToString());
+        // Count + icon, like every other crystal amount — never a bare number that
+        // leans on the row label to say what it counts
+        AddRow("Crystals", CrystalText.Build(CrystalBank.Balance, 14f));
         AddRow("Gold",
             (GoldManager.Instance != null ? GoldManager.Instance.Gold : SaveManager.Data.gold).ToString());
         AddRow("Furthest Wave", SaveManager.Data.furthestWave.ToString());
@@ -79,14 +78,23 @@ public class StatsPanel : MonoBehaviour
 
     private void AddRow(string label, string value)
     {
+        var valueEl = new Label(value);
+        AddRow(label, valueEl);
+    }
+
+    /// <summary>
+    /// Same row, but with a built element as the value — for anything that is not
+    /// plain text, such as a crystal amount.
+    /// </summary>
+    private void AddRow(string label, VisualElement value)
+    {
         var row = new VisualElement();
         row.AddToClassList("stats-row");
         var labelEl = new Label(label);
         labelEl.AddToClassList("stats-label");
-        var valueEl = new Label(value);
-        valueEl.AddToClassList("stats-value");
+        value.AddToClassList("stats-value");
         row.Add(labelEl);
-        row.Add(valueEl);
+        row.Add(value);
         _list.Add(row);
     }
 
@@ -112,6 +120,22 @@ public class StatsPanel : MonoBehaviour
     public bool IsVisible => _panel != null && _panel.style.display == DisplayStyle.Flex;
 
     public void Confirm() => HandleCloseClicked();
+
+    // The stats list is longer than the screen and has no selectable rows, so
+    // without these a controller could open it and never reach the bottom.
+    private const float ScrollStep = 48f;
+
+    public void ScrollUp() => Scroll(-ScrollStep);
+    public void ScrollDown() => Scroll(ScrollStep);
+
+    private void Scroll(float delta)
+    {
+        if (_list == null) return;
+        var offset = _list.scrollOffset;
+        float max = Mathf.Max(0f, _list.contentContainer.layout.height - _list.contentViewport.layout.height);
+        offset.y = Mathf.Clamp(offset.y + delta, 0f, max);
+        _list.scrollOffset = offset;
+    }
 
     private void HandleCloseClicked()
     {

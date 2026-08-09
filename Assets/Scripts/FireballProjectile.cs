@@ -69,6 +69,10 @@ public class FireballProjectile : MonoBehaviour
             EnemyBase enemy = col.GetComponent<EnemyBase>();
             if (enemy == null || enemy == directHit || enemy.IsDead) continue;
 
+            // Splash, so iron shrugs it off — a cart is only answered by an aimed
+            // shot, and the direct hit above is exempt from this check
+            if (enemy.ImmuneToAreaDamage) continue;
+
             enemy.TakeDamage(blastDamage, gameObject);
             enemy.Ignite(ownerTag);
         }

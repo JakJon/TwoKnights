@@ -9,6 +9,8 @@ using System.Collections;
 // and side-edge stops summon adds instead. Phases escalate tempo by HP.
 public class EnemyRatKing : EnemyBase
 {
+    public override EnemyFamily Family => EnemyFamily.Vermin;
+
     [System.Serializable]
     public class Config
     {
@@ -55,14 +57,23 @@ public class EnemyRatKing : EnemyBase
     private const float HealthBarRevealDelay = 3.5f;
 
     // Brood-throw geometry. The king only summons from the side-edge stops at
-    // (+-8.5, 0) — level with the knights — so a rat flung past a knight would
-    // cross it. Landing on the king's side of the target knight (within
-    // BroodLandingSpread of the king->knight line) and beyond the shield's reach
-    // (orbit 0.6 + rat/shield sizes) makes the whole straight flight path
-    // provably clear of that knight and its shield.
-    private const float BroodLandingMinDistance = 2.2f;
-    private const float BroodLandingMaxDistance = 3.2f;
-    private const float BroodLandingSpread = 45f; // degrees off the king->knight line
+    // (+-8.5, 0) — level with the knights — so a rat thrown along that line reads
+    // as being hurled straight AT the knight and lands in its face. The landing
+    // spot is therefore pushed well off the horizontal: partway back toward the
+    // king (so the straight flight path never crosses the knight) and a full
+    // BroodLandingRise above or below it, alternating. That vertical leg is what
+    // keeps a thrown rat from ever sharing the king's own lane at the sides.
+    //
+    // The resulting gap from the knight (~3.5u) clears the shield's reach
+    // (orbit 0.6 + rat/shield sizes) with room to spare, and because the spot
+    // sits between the king and the knight in x, the closest the flight segment
+    // ever comes to the knight is its own endpoint.
+    private const float BroodLandingSetback = 2.4f; // toward the king, from the knight
+    private const float BroodLandingRise = 2.6f;    // above or below the knight
+
+    // Alternates the throw above/below rather than rolling for it — same rule as
+    // the bat cadence: a wave plays out identically every time it is fought.
+    private int _broodThrowCount;
 
     private Spawner _spawner;
     private Config _config;
@@ -289,7 +300,7 @@ public class EnemyRatKing : EnemyBase
                     // Brood bursts out of the king himself (entryPoint) — without it
                     // rats would instead walk in from the nearest screen edge.
                     _spawner.SpawnRat(SafeBroodLanding(knight), _spawner.brownRat, 0f, knight,
-                        bypassTierGate: true, entryPoint: transform.position);
+                        bypassStrengthGate: true, entryPoint: transform.position);
                 }
             }
         }
@@ -304,21 +315,22 @@ public class EnemyRatKing : EnemyBase
         return toLeft <= toRight ? _leftKnight : _rightKnight;
     }
 
-    // A landing spot for a rat flung from the king toward a knight. The spot sits
-    // on the king's side of the knight (its offset direction is within
-    // BroodLandingSpread of the king->knight line) at a safe distance, so the
-    // straight segment from the king to the spot only ever approaches the knight
-    // as close as the spot itself — never crossing it or its shield. With the king
-    // ~6.5u away and the spread under 90 degrees, the closest point of that
-    // segment is guaranteed to be the endpoint.
+    // A landing spot for a rat flung from the king toward a knight: set back
+    // toward the king and lifted clear of the knight's row, alternating high and
+    // low. Both legs matter — the setback keeps the straight segment from the
+    // king short of the knight (so its closest approach is the endpoint), and the
+    // rise keeps the rat out of the king's own horizontal lane, which at the side
+    // stops is also the knight's.
     private Vector2 SafeBroodLanding(Transform knight)
     {
         Vector2 knightPos = knight.position;
-        Vector2 towardKing = (Vector2)transform.position - knightPos;
-        float baseAngle = Mathf.Atan2(towardKing.y, towardKing.x) * Mathf.Rad2Deg;
-        float angle = (baseAngle + Random.Range(-BroodLandingSpread, BroodLandingSpread)) * Mathf.Deg2Rad;
-        float distance = Random.Range(BroodLandingMinDistance, BroodLandingMaxDistance);
-        return knightPos + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
+        float towardKing = Mathf.Sign(transform.position.x - knightPos.x);
+        if (towardKing == 0f) towardKing = 1f;
+
+        float rise = (_broodThrowCount % 2 == 0) ? BroodLandingRise : -BroodLandingRise;
+        _broodThrowCount++;
+
+        return knightPos + new Vector2(towardKing * BroodLandingSetback, rise);
     }
 
     // Phase transitions roar (red flash) and send recovery orbs across the arena

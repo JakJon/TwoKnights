@@ -23,7 +23,33 @@ public static class MapProgressStore
         if (map == null) return false;
         if (map.UnlockedByDefault) return true;
         var record = Get(map.MapId);
-        return record != null && record.unlocked;
+        if (record != null && record.unlocked) return true;
+
+        // Back-fill. Unlock() only ever runs on the FIRST gate kill, so a save
+        // that cleared a gate before that gate was wired to unlock anything —
+        // or while the next map was still unlockedByDefault — never received
+        // the write, and locking the map now would strand it outside forever.
+        // The gate-cleared record is the durable fact, so derive from it.
+        var unlocker = UnlockerOf(map.MapId);
+        if (unlocker != null && IsGateCleared(unlocker.MapId))
+        {
+            Unlock(map.MapId);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>The map whose gate boss opens <paramref name="mapId"/>, or null when nothing does.</summary>
+    public static MapDefinition UnlockerOf(string mapId)
+    {
+        if (string.IsNullOrEmpty(mapId)) return null;
+        var catalog = MapCatalog.Instance;
+        if (catalog == null) return null;
+        foreach (var candidate in catalog.Maps)
+        {
+            if (candidate != null && candidate.UnlocksMapId == mapId) return candidate;
+        }
+        return null;
     }
 
     public static bool IsGateCleared(string mapId)

@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1b7c3a9f04d2e14b8f6a25d3c9017ab, type: 3}
   m_Name: FireResourceManager
   m_EditorClassIdentifier: 
-  emberMoteSprite: {fileID: 21300000, guid: dfbb39175e5546a49be4957b9a6afce9, type: 3}
+  emberMoteSprite: {fileID: -7960859899520668429, guid: 33214284b4279ca4ebba092c8df820fc, type: 3}

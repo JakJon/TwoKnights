@@ -51,7 +51,8 @@ action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
 
 ## Creating a new wave type
 
-1. New folder `Assets/Scripts/Waves/<WaveName>/`, script `<WaveName>.cs`:
+1. New folder under the map's bucket — `Assets/Scripts/Waves/Forest/<WaveName>/` for the
+   Camp Fields, `Assets/Scripts/Waves/Cave/<WaveName>/` for the Mine — script `<WaveName>.cs`:
 
 ```csharp
 [CreateAssetMenu(fileName = "MyWave", menuName = "Waves/My Wave")]
@@ -73,7 +74,62 @@ public class MyWave : BaseWave
 - Class names already taken (avoid collisions): `RatMischief` (inside the misnamed
   `TemplateWave.cs`), `RatMischef` [sic], `WolfCircles`, `BatSwarmWave`, `SlimesAndBats`,
   `ChaoticCorners`, `Slimy`, `AboutFace`, `SheepsClothing`, `BelfryAndCellar`,
-  `NightHunt`. `WolfPack.cs` and `Editor/WaveManagerEditor.cs` are empty stubs.
+  `NightHunt`, `ChooChoo`, `Delivery`, `PowderTrain`. `WolfPack.cs` and
+  `Editor/WaveManagerEditor.cs` are empty stubs.
+
+## Ambushes — player-paced groups inside a wave (added 2026-08-04)
+
+An **ambush** is a group of enemies inside a wave that comes out at roughly the same
+time. It is the wave's pacing unit: release a group, wait until the players have
+killed it, release the next. The wave's length is then set by how fast the knights
+shoot rather than by a stopwatch, which is what a fixed schedule can never do.
+
+"Ambush clear" and "wave over" are DIFFERENT QUESTIONS — do not reach for the wrong one:
+
+| | `AreAllEnemiesDead()` | `IsAmbushClear()` |
+|---|---|---|
+| Scope | everything the wave ever spawned | just the current group |
+| Projectiles | counted | ignored |
+| Gate | `MarkSpawningComplete()` | `MarkAmbushReleased()` |
+| Means | the wave ends now | send the next group |
+
+```csharp
+for (int i = 0; i < ambushes.Count; i++)
+{
+    BeginAmbush();                       // enemies registering from here belong to this group
+    /* ...spawner.Spawn*(...) the group... */
+    MarkAmbushReleased();                // REQUIRED — an unreleased group can never read as clear
+    yield return WaitForAmbushClear();   // holds until every member is dead
+}
+MarkSpawningComplete();
+```
+
+Rules that cost real time if you miss them:
+
+- **`MarkAmbushReleased()` is as load-bearing as `MarkSpawningComplete()`.** Forget it
+  and the wave hangs forever. Call it on every exit path out of the release loop
+  (`break`, not `yield break`).
+- **Delayed spawns need a declared count.** `Spawner.SpawnRat/Bat/Slime/Wolf(delay)`
+  instantiate AFTER the wait, so they register late — a group whose first member dies
+  before its second exists reads as clear and the wave runs over the top of it. Either
+  pace the group with the wave's own `yield return new WaitForSeconds`, or declare it:
+  `BeginAmbush(expectedMembers: 4)`.
+- **Enemies that don't gate wave completion don't join groups either.** Anything with
+  `TracksWaveCompletion => false` (empty mine carts, kegs, gnome wrecks) never registers,
+  so a track still full of rolling iron reads as clear. A group of nothing but scenery
+  clears the instant it is released — intentional, so it can't stall.
+- **There is NO timeout** (owner's call, 2026-08-04): the next ambush is a reward for
+  clearing the last one, and a wave that sends it anyway after N seconds is just a
+  schedule in disguise. The corollary is a design obligation — **keep standing pressure
+  running while the group is alive** (ChooChoo keeps the shafts firing), or a group left
+  alive is a free rest instead of a fight.
+- Whatever spawns while a group is open joins it, summons included — so a boss's brood
+  gates its own ambush without any extra bookkeeping.
+- Debug: `AmbushIndex`, `AmbushEnemiesRemaining`, and an editor-only
+  `[Ambush] <asset> cleared ambush N at t=…` log per clear.
+
+Worked example: `ChooChoo.cs` (shifts of gnome carts on the Mine Circuit, one shift per
+ambush, shafts firing throughout).
 
 ## BaseWave gating — how CanPlay actually works (IMPORTANT)
 
@@ -105,7 +161,7 @@ Positions: `LeftPlayer`/`RightPlayer` (Transforms), `aboveLeftPlayer(-2,7)`,
 `leftOfLeftPlayer(-12,0)`, `rightOfRightPlayer(12,0)`, corners `(±12, ±6)`.
 
 ```csharp
-SpawnRat(Vector2 targetPos, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate = false)
+SpawnRat(Vector2 targetPos, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate = false)
 SpawnSlime(int size, Vector2 spawnPos, float delay, Transform targetPlayer)   // size 1-3, 3 = king, splits
 SpawnBat(Vector2 spawnPos, float delay)                                        // no target
 SpawnWolf(List<Vector2> waypoints, Transform targetKnight, WolfType type, float delay = 0)
@@ -119,21 +175,33 @@ SpawnOrb(Vector2 startPos, Vector2 endPos, bool isHealthOrb, float delay = 0)  /
 (`CircleLeftThenRight`, `ClockwiseCircle`, `RectangleLoopCW`, `HorizontalSweep`, plus
 `Offset`/`Scale` helpers). Enums serialize as ints in .asset YAML.
 
-NOTE (2026-07-18) — **elite tier gate**: while `CurrentWaveNumber <= GateBossWaveNumber`
-(rat king, wave 10), the Spawner silently downgrades at spawn time: brown/black rats →
-`greyRat`, `WolfType.Black` → `Grey` (brown wolves are the weakest tier and stay). So a
-wave asset may *request* elite enemies in any window — pre-king plays get the grey
-stand-in, post-king plays get the real thing (this is why straddling windows like
-Night Hunt 1 / Belfry 2 need no per-asset splits). `bypassTierGate: true` on SpawnRat
-exempts boss summons (EnemyRatKing's brood). Post-gate-boss, every 4th `SpawnBat`
-call of a wave (`Spawner.darkBatInterval`, counter resets each wave, decided at
-CALL time in wave-script order) substitutes Enemy_Bat_Dark.prefab — a sonar-firing
-bat that Confuses a knight (reversed shield controls, 5s) unless the sonar is
-blocked/slashed/shot. DETERMINISTIC by design — see rule 6. The arena backdrop
-swaps in step:
-`BackgroundController` on the BackGround_Forest scene object switches to the deep-forest
-sprite at wave 11 (stage list is serialized on the component — add entries there for
-future areas).
+NOTE (2026-07-18, reworked 2026-08-04) — **staggered enemies, per map**: a map may hold
+its stronger enemies back and let them in partway through the run. That is a property of
+the MAP, not of the game — `MapDefinition.strongerEnemiesFromWave` (-1 = derive it as
+gate boss + 1). Do NOT call these "elites" (owner, 2026-08-04): they are ordinary
+enemies that a given map staggers in, and are perfectly normal residents elsewhere.
+
+- **Camp Fields**: `-1` → from wave 11, behind the rat king.
+- **The Mine**: `1` → dark bats, black wolves and brown/black rats from wave one. The
+  Mine will stagger in its own additions later, on its own schedule.
+
+Below the threshold the Spawner silently downgrades at spawn time: brown/black rats →
+`greyRat`, `WolfType.Black` → `Grey` (brown wolves are the weakest and stay). So a wave
+asset may *request* them in any window — early plays get the grey stand-in, later plays
+get the real thing (this is why straddling windows like Night Hunt 1 / Belfry 2 need no
+per-asset splits). `bypassStrengthGate: true` on SpawnRat exempts boss summons
+(EnemyRatKing's brood).
+
+At or past the threshold, every 4th `SpawnBat` call of a wave
+(`Spawner.darkBatInterval`, counter resets each wave, decided at CALL time in wave-script
+order) substitutes Enemy_Bat_Dark.prefab — a sonar-firing bat that Confuses a knight
+(reversed shield controls, 5s) unless the sonar is blocked/slashed/shot. DETERMINISTIC by
+design — see rule 6. **In the Mine this is live from wave 1**, so budget for it in
+tier-0 mine waves.
+
+Camp Fields' arena backdrop swaps in step: `BackgroundController` on the
+BackGround_Forest scene object switches to the deep-forest sprite at wave 11 (stage list
+is serialized on the component — add entries there for future areas).
 
 ## Existing waves & difficulty windows (keep new waves coherent)
 
@@ -149,6 +217,22 @@ future areas).
 | Sheep's Clothing 0–3 (SheepsClothing) | slime wall as arrow cover + stalking wolf | 1–7 / 5–11 / 9–15 / 13+ |
 | Belfry and Cellar 0–3 (BelfryAndCellar) | bat beat high/low + rat 15s-fuse pairs | 0–5 / 3–9 / 7–13 / 11+ |
 | Night Hunt 0–3 (NightHunt) | telegraphed wolf+bat pincer strikes | 3–9 / 7–13 / 11–17 / 15+ |
+
+**The Mine** (`Assets/Scripts/Maps/The Mine.asset`) is a map-scoped pool — the forest
+waves above never play there, and these three never play in the forest:
+
+| Wave (class) | Pattern | Layout |
+|---|---|---|
+| Choo Choo | gnome carts in ambush shifts on a loop | Mine Circuit (40-unit lap) |
+| Delivery | cargo carts racing to a drop flag | Mine Horseshoe (open route) |
+| Powder Train | keg ring with gaps + enemies outside it | Mine Ring (32-unit lap) |
+
+Rail waves have their own arithmetic: on a LOOPING layout the release interval is a
+permanent spacing (every cart runs at one speed), so derive it as `lap ÷ carts ÷ speed`
+rather than by feel — `RailNetwork.TryMeasureLoop` will measure the lap for you.
+Carts enter a lead-in behind the mouth (`MineCart.leadIn`, 6u) while returning traffic
+re-enters 1u behind it, so releasing into a busy ring is safe by construction — a new
+cart is always ≥5u clear of the traffic ahead.
 
 NOTE (2026-07-09): the 12 assets above currently carry weight **100000000** (the
 guarantee-pick trick) for playtesting. Revert each to the house ~1000 once playtested.

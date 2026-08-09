@@ -123,8 +123,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f5e40c701fa303439a3a365315d45f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 6
-  leadIn: 2
+  speed: 2.4
+  leadIn: 6
   runOut: 2
   railOffset: 0
   body: {fileID: 2166715999825032941}

@@ -10,6 +10,7 @@ public enum WolfType
 
 public class EnemyWolf : EnemyBase
 {
+    public override EnemyFamily Family => EnemyFamily.Beast;
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 3f; // Overridden by type in Spawn

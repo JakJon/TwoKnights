@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f403a325aef540dc8fd2421043dd2728, type: 3}
+  m_Name: Benediction 1
+  m_EditorClassIdentifier: 
+  upgradeName: Benediction I
+  description: Spending your special mends the other knight, whatever your special is.
+  weight: 65
+  order: 5
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: 0829af1f24d84b6dad3e47c7cc56a0c9, type: 2}
+  lockedBy: []
+  stats:
+  - valueText: +15 HP
+    labelText: TO PARTNER
+    isPositive: 1
+  mendAmount: 15
+  invulnerableSeconds: 0

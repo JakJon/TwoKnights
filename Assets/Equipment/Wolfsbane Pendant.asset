@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78ade1847a69a65ca77811995b173e38, type: 3}
+  m_Name: Wolfsbane Pendant
+  m_EditorClassIdentifier: 
+  id: wolfsbane_pendant
+  displayName: Wolfsbane Pendant
+  description: The pack has learned to give whoever carries this a wider berth.
+  effect: +50% damage to wolves.
+  icon: {fileID: -653970171938518230, guid: f195d5e556838f145bd3d64b9a9df000, type: 3}
+  crystalCost: 0
+  stats:
+  - valueText: +50%
+    labelText: VS BEASTS
+    isPositive: 1
+  family: 2
+  damageMultiplier: 1.5

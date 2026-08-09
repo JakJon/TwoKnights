@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 587c1f43af3351a6831d3e8ae3901522, type: 3}
+  m_Name: Powder Ward
+  m_EditorClassIdentifier: 
+  id: powder_ward
+  displayName: Powder Ward
+  description: Thick hide, packed tight, and a prayer said over the buckle.
+  effect: Take 75% less damage from powder kegs and bombs.
+  icon: {fileID: 7839567850718879591, guid: 2d0fcc16571fc8241aff7b1dd5d92120, type: 3}
+  crystalCost: 3
+  stats:
+  - valueText: -75%
+    labelText: BLAST TAKEN
+    isPositive: 1
+  damageTaken: 0.25

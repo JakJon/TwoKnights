@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
   m_Name: Mine Straight Track
   m_EditorClassIdentifier: 
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
   cellSize: 1
   fallStagger: 0.15
   runs:
@@ -25,3 +26,11 @@ MonoBehaviour:
     count: 0
     flow: 0
     layFromFarEnd: 0
+  tiles: []
+  teleports:
+  - label: right edge back to the mouth
+    fromRun: 0
+    toRun: 0
+    exitOvershoot: 2
+    entryLead: 2
+  drops: []

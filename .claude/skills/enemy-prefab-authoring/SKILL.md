@@ -51,7 +51,7 @@ Copy the shape of `Enemy_Slime_Purple.prefab` / `Enemy_Boss_GiantSlime_Left.pref
 | `Animator` | `runtimeAnimatorController` = the .aseprite's generated controller |
 | `Rigidbody2D` | `gravityScale = 0`. Needed for trigger events to fire at all |
 | `Collider2D` | **`isTrigger = true`** — all combat here is trigger-based |
-| `GlowManager` | hit flash + telegraphs; `glowManager?.StartGlow(...)` |
+| `GlowManager` | hit flash + telegraphs; `glowManager?.StartGlow(...)`. **Useless unless the SpriteRenderer's material is `WaveGlowMaterial`** — see below |
 | `Enemy<Name>` | your script |
 
 Serialized `EnemyBase` fields worth setting on the prefab: `health`,
@@ -78,6 +78,36 @@ Serialized `EnemyBase` fields worth setting on the prefab: `health`,
   that is ~5.4 units up, near the top of the frame. The giant slime uses
   `y = -2.5`. (Damage text does not inherit the parent's scale —
   `SetParent(transform)` preserves world scale — so numbers stay readable.)
+
+### Hurt feedback: tint, pause, animation
+
+Getting hit is THREE independent things, and each fails silently on its own.
+When a new enemy "doesn't react to damage", check them in this order:
+
+1. **Red pulse — the material, not the component.** `GlowManager` writes
+   `_GlowColor` / `_GlowStrength` into a `MaterialPropertyBlock`. Those
+   properties only exist on `Assets/Shaders/WaveGlowMaterial.mat`
+   (guid `34fbda43bf7ac5e43930aafb3a8a6d4a`). On Unity's default sprite material
+   (guid `a97c105638bdf8b4a8650670310a4cd3`) the writes land on nothing and
+   **there is no error** — the component is present, the coroutine runs, and the
+   enemy simply never flashes. Every rail cart shipped this way. Grep a suspect
+   prefab for the default guid; if it is there, the tint cannot work.
+
+   ```
+   m_Materials:
+   - {fileID: 2100000, guid: 34fbda43bf7ac5e43930aafb3a8a6d4a, type: 2}
+   ```
+
+2. **Pause — `staggerDuration` plus a subclass that honours `isStaggered`.**
+   `EnemyBase.StaggerRoutine` only sets the flag and swaps the animator state; it
+   does not stop movement. Enemies that move in their own `Update` must check
+   `IsStaggered` themselves. Anything whose position is owned by a *different*
+   component (a cart driven by `MineCart`) will keep moving no matter what
+   `EnemyBase` thinks — the pause has to be implemented where the movement is.
+
+3. **Animation — see §3.** Needs a `Damage` tag to exist in the art at all.
+   `Enemy_MineCart_Empty` / `_Keg` / the delivery carts have `Rolling` only, so
+   they flash red but never flinch; that is correct, not a bug.
 
 ## 3. Sprite → Animator pipeline
 
@@ -110,6 +140,42 @@ foreach (var o in AssetDatabase.LoadAllAssetsAtPath("Assets/Graphics/slime_red.a
 
 Because the clips keep their tag names, `StaggerRoutine`'s `animator.Play(clip.name)`
 works on any variant without rewiring.
+
+### Wiring stagger clips WITHOUT Unity open
+
+`staggerAnimation` / `defaultAnimation` are `AnimationClip` references, and the
+clip fileIDs are generated sub-assets — you cannot invent them by hand. Two
+facts make this tractable offline:
+
+- **Clip fileIDs are derived from the TAG NAME, not the file.** Every enemy whose
+  art tags a clip `Damage` gets `staggerAnimation: {fileID: 3651350446308603674}`
+  — rat, bat and the Rat King all share it across three different `.aseprite`
+  guids. `Walking` is `-1610863427237328480`. So a new enemy reusing an existing
+  tag name can be wired by copying the fileID off any prefab that already uses
+  that tag, with **its own art's guid**. A new tag name has no such source; do
+  not try to recover it from `Library/Artifacts` by scanning for byte patterns
+  near the tag string — the offsets are not stable and the value you get back
+  will not reproduce across the recolour variants.
+
+- **Or skip the clip entirely and use the state name.** `EnemyBase` also has
+  `staggerStateName` / `defaultStateName` (plain strings, e.g. `Damage` /
+  `Rolling`). `StaggerRoutine` prefers the clip when one is set and falls back to
+  the name, so existing prefabs are unaffected. This is the better option for
+  aseprite-driven enemies regardless of tooling: the importer rebuilds its clips
+  on every reimport, whereas the Animator state name is just the tag and is
+  stable. `PlayAnimatorState` checks `animator.HasState` and warns in editor/dev
+  builds rather than failing silently the way a bare `animator.Play` would.
+
+  ```yaml
+  staggerAnimation: {fileID: 0}
+  defaultAnimation: {fileID: 0}
+  staggerStateName: Damage
+  defaultStateName: Rolling
+  ```
+
+  To confirm the tag names offline, read the ASCII strings out of the `.aseprite`
+  binary — tags appear as plain text (`Rolling`, `Damage`) near the head of the
+  file. The `.meta` does **not** list clip names, so it cannot tell you this.
 
 ## 4. Colliders, pivots and scale
 

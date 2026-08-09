@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f403a325aef540dc8fd2421043dd2728, type: 3}
+  m_Name: Benediction 2
+  m_EditorClassIdentifier: 
+  upgradeName: Benediction II
+  description: The blessing doubles, and both knights are untouchable as it breaks.
+  weight: 35
+  order: 5
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: 03748a998119461685daa661efb8bea6, type: 2}
+  lockedBy: []
+  stats:
+  - valueText: +30 HP
+    labelText: TO PARTNER
+    isPositive: 1
+  - valueText: 1s
+    labelText: UNTOUCHABLE BOTH
+    isPositive: 1
+  mendAmount: 30
+  invulnerableSeconds: 1

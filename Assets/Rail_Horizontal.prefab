@@ -129,5 +129,5 @@ MonoBehaviour:
   dustPrefab: {fileID: 4657661260103907140, guid: b22d4a60ffa7e1d4bb53f71252b66922, type: 3}
   dustOffset: {x: 0, y: 0}
   landSound:
-    clip: {fileID: 0}
-    volume: 1
+    clip: {fileID: 8300000, guid: 84396c177fb96bd4ea0979d868d116c0, type: 3}
+    volume: 0.35

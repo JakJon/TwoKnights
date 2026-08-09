@@ -1,125 +1,124 @@
 /* ============================================================
-   Quest complete panel — Gilded Vigil. Same anatomy as the
-   death screen: dark scrim, one raised panel, gold owns the
-   primary action.
+   Wave Survived — Gilded Vigil.
+
+   Still not the death screen's anatomy: no full scrim, no button.
+   The arena the player just cleared stays visible around the edges.
+   What sits over it is one raised panel, because the type alone —
+   shadowed as heavily as it was — still had to compete with fire
+   fields, corpses and lit ground for every letter.
+
+   The panel hugs its content, so a clean wave is a small plate with
+   two words on it and a wave that finished a quest grows to hold
+   the list.
    ============================================================ */
 
-.qc-overlay {
+.ws-overlay {
     flex-grow: 1;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: rgba(10, 8, 5, 0.78);
+    /* Barely there: enough to seat the panel, not enough to hide the field */
+    background-color: rgba(10, 8, 5, 0.28);
 }
 
-.qc-panel {
+.ws-panel {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 40%;
-    min-width: 460px;
-    max-width: 640px;
-    padding: 44px 40px 36px 40px;
+    max-width: 74%;
+    padding: 26px 46px 28px 46px;
     border-radius: 8px;
-    background-color: rgb(33, 26, 16);
+    background-color: rgba(26, 21, 13, 0.94);
     border-width: 1px;
     border-color: rgb(58, 50, 34);
 }
 
-.qc-caption {
-    font-size: 13px;
-    -unity-font-style: bold;
-    letter-spacing: 4px;
-    color: rgb(141, 130, 102);
-    margin-bottom: 10px;
-}
-
-.qc-name {
+.ws-title {
+    font-size: 46px;
     -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
     -unity-font-style: normal;
-    font-size: 30px;
-    color: rgb(236, 228, 211);
+    letter-spacing: 6px;
+    color: rgb(240, 205, 120);
     -unity-text-align: middle-center;
     white-space: normal;
     max-width: 100%;
 }
 
-.qc-ornament {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    margin-top: 12px;
-    margin-bottom: 20px;
-}
-
-.qc-ornament-rule {
-    width: 56px;
-    height: 1px;
-    background-color: rgb(45, 38, 23);
-}
-
-.qc-ornament-diamond {
-    width: 7px;
-    height: 7px;
-    rotate: 45deg;
-    border-radius: 1px;
-    background-color: rgb(212, 162, 74);
-    margin: 0 10px;
-}
-
-/* ---------- reward ---------- */
-
-.qc-reward {
+.ws-quests {
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px;
+    max-width: 100%;
+    margin-top: 18px;
 }
 
-.qc-reward-caption {
-    font-size: 13px;
+/* A quiet rule between what the wave finished and what it opened, so two
+   lists never read as one run-on column of quest names. */
+.ws-section-divider {
+    width: 180px;
+    height: 1px;
+    background-color: rgb(58, 50, 34);
+    margin-top: 20px;
+}
+
+/* "NEW QUESTS" — a caption, not a headline. It labels the block below it
+   and gets out of the way of the names, which are the part worth reading. */
+.ws-section-caption {
+    font-size: 12px;
     -unity-font-style: bold;
     letter-spacing: 3px;
     color: rgb(141, 130, 102);
-    margin-bottom: 4px;
+    -unity-text-align: middle-center;
+    margin-top: 14px;
 }
 
-.qc-reward-amount {
-    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
-    -unity-font-style: normal;
-    font-size: 40px;
-    color: rgb(212, 162, 74);
-}
-
-/* ---------- continue ---------- */
-
-.qc-button {
-    min-width: 220px;
-    padding: 12px 20px;
-    border-radius: 6px;
-    border-width: 2px;
-    font-size: 15px;
+.ws-quest-name {
+    font-size: 20px;
     -unity-font-style: bold;
     letter-spacing: 2px;
-    background-color: rgb(212, 162, 74);
-    border-color: rgb(212, 162, 74);
-    color: rgb(36, 27, 13);
-    transition-property: background-color, border-color, color, scale;
-    transition-duration: 0.15s;
+    color: rgb(224, 214, 192);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    max-width: 100%;
+    margin-top: 14px;
 }
 
-.qc-button:hover,
-.qc-button:focus {
-    background-color: rgb(240, 205, 120);
-    border-color: rgb(255, 232, 170);
-    color: rgb(36, 27, 13);
-    scale: 1.04;
+/* The condition that was met, sitting between the quest and its reward. Quieter
+   than both — it explains the line above rather than competing with it. */
+.ws-quest-objective {
+    font-size: 15px;
+    color: rgb(179, 168, 143);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    max-width: 100%;
+    margin-top: 4px;
 }
 
-.qc-button:active {
-    background-color: rgb(240, 205, 120);
-    border-color: rgb(255, 232, 170);
-    color: rgb(36, 27, 13);
-    scale: 1.02;
+/* The same line for a quest that just opened: what it is going to ask for.
+   Dimmer than a met objective, because nothing has been earned yet. */
+.ws-quest-task {
+    font-size: 15px;
+    color: rgb(150, 140, 118);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    max-width: 100%;
+    margin-top: 4px;
+}
+
+/* The reward hangs under its quest, gold so it reads as the thing gained */
+.ws-quest-reward {
+    font-size: 16px;
+    color: rgb(212, 162, 74);
+    -unity-text-align: middle-center;
+    margin-top: 3px;
+}
+
+.ws-hint {
+    font-size: 13px;
+    -unity-font-style: italic;
+    letter-spacing: 2px;
+    color: rgb(150, 140, 118);
+    -unity-text-align: middle-center;
+    margin-top: 26px;
 }

@@ -1,9 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 // How the run ended when a boss wave completes (None = keep playing)
 public enum RunOutcome
@@ -16,9 +13,19 @@ public enum RunOutcome
 [CreateAssetMenu(fileName = "WaveManager", menuName = "Waves/Wave Manager")]
 public class WaveManager : ScriptableObject
 {
+    // LEGACY, NO LONGER READ. Every wave in here is also on Camp Fields, which is
+    // where the forest setlist actually lives — this list predates maps and was a
+    // flat pool of every wave in the game, forest and mine mixed together.
+    //
+    // It is kept, unread, as a backup copy of that old setlist and NOTHING else.
+    // Do not wire it back into selection: a pool that spans every map is exactly
+    // how a mine wave ends up eligible in the forest. The pool comes from the
+    // active map's own list, and only from there — see BeginRunPoolOnly.
+    [Tooltip("LEGACY BACKUP — not used. The pool comes from the active map's own wave list. Kept only as a copy of the pre-map flat setlist.")]
     [SerializeField] private List<BaseWave> availableWaves;
+
     [Tooltip("Fallback map when the run started without a level-select pick (direct editor play)")]
-    [SerializeField] private MapDefinition currentMap; // null = legacy flat pool
+    [SerializeField] private MapDefinition currentMap;
     // The level-select pick for THIS run. Kept off the serialized field so
     // choosing a map in camp never dirties the shared WaveManager asset.
     private MapDefinition _activeMap;
@@ -38,39 +45,32 @@ public class WaveManager : ScriptableObject
     private void OnEnable()
     {
         ActiveInstance = this;
-        RecalculateWeights();
         // Pool only — resolving the level-select pick touches Resources and the
         // save file, neither of which is safe during an editor domain reload.
         // The real run start (Spawner.Start -> BeginRun) does that.
-        ResetRunState();
+        //
+        // Silent on purpose: a domain reload can run this before the map's own
+        // references have been resolved, so a pool that looks broken here is
+        // usually just early. Only a real run start is worth shouting about.
+        ResetRunState(report: false);
     }
 
     // Reset all per-run state. Called from OnEnable AND by the Spawner on scene
     // start, so runs restart cleanly even without a domain reload (builds).
     public void BeginRun()
     {
-        // Honour the level select; falls back to the serialized map (and then
-        // the flat pool) when the run didn't come through the camp menu
+        // Honour the level select; falls back to the serialized map when the run
+        // didn't come through the camp menu
         _activeMap = MapSelection.Resolve();
-        ResetRunState();
+        ResetRunState(report: true);
     }
 
-    private void ResetRunState()
+    private void ResetRunState(bool report)
     {
         _completedWavesCount = 0;
         _gateBossDefeatedThisRun = false;
         PendingOutcome = RunOutcome.None;
-        BeginRunPoolOnly();
-    }
-
-    private void RecalculateWeights()
-    {
-        // Each wave asset is considered independently
-        if (availableWaves == null || availableWaves.Count == 0)
-            return;
-
-        // Remove any null entries that might have been created
-        availableWaves.RemoveAll(w => w == null);
+        BeginRunPoolOnly(report);
     }
 
     public BaseWave SelectNextWave()
@@ -126,15 +126,65 @@ public class WaveManager : ScriptableObject
         return null;
     }
 
-    // Refill only the wave pool, keeping wave count and boss state
-    private void BeginRunPoolOnly()
+    // Refill only the wave pool, keeping wave count and boss state.
+    //
+    // The active map's own setlist is the ONLY source. There used to be a fallback
+    // to the flat availableWaves list here, and it was worse than having no pool:
+    // a map whose list failed to load did not fail loudly, it quietly played the
+    // whole game's waves instead — forest waves in the mine included.
+    //
+    // A null entry is now REPORTED rather than silently dropped. A wave reference
+    // reads as null when the map asset was imported before the wave asset it
+    // points at existed: the .asset on disk is correct, the wave compiles, and it
+    // simply never turns up in the pool with nothing said. That is exactly how
+    // Near and Far went missing (2026-08-04), and a stripped entry should never
+    // be invisible again.
+    private void BeginRunPoolOnly(bool report = true)
     {
+        _remainingWaves = new List<BaseWave>();
+
         var map = CurrentMap;
-        var pool = (map != null && map.Waves.Count > 0)
-            ? map.Waves
-            : (IReadOnlyList<BaseWave>)availableWaves;
-        _remainingWaves = pool != null ? new List<BaseWave>(pool) : new List<BaseWave>();
-        _remainingWaves.RemoveAll(w => w == null);
+        if (map == null)
+        {
+            if (report)
+            {
+                Debug.LogError("[WaveManager] No map for this run, so there is no pool and nothing can be " +
+                               "picked. Set Current Map on the WaveManager asset, or start through level select.");
+            }
+            return;
+        }
+
+        var setlist = map.Waves;
+        int missing = 0;
+
+        for (int i = 0; i < setlist.Count; i++)
+        {
+            if (setlist[i] == null)
+            {
+                missing++;
+                continue;
+            }
+            _remainingWaves.Add(setlist[i]);
+        }
+
+        if (!report) return;
+
+        if (missing > 0)
+        {
+            Debug.LogError($"[WaveManager] {map.name} lists {setlist.Count} waves but {missing} of them could " +
+                           $"not be loaded, so they are absent from the pool. Right-click the map asset and " +
+                           $"Reimport: a reference reads as null when the map was imported before the wave " +
+                           $"asset it points at existed.");
+        }
+        else
+        {
+            Debug.Log($"[WaveManager] {map.name} pool: {_remainingWaves.Count} waves.");
+        }
+
+        if (_remainingWaves.Count == 0)
+        {
+            Debug.LogError($"[WaveManager] {map.name} has no usable waves — no wave can be selected.");
+        }
     }
 
     private BaseWave PickFromPool()
@@ -188,9 +238,24 @@ public class WaveManager : ScriptableObject
         var map = CurrentMap;
         if (map == null) return;
 
+        // High-water mark, not a count — a later worse run must not erase it.
+        // Skipped for test runs because ApplyTestStart FABRICATES the wave
+        // counter, so a run started at wave 20 would hand out depth quests
+        // that were never actually played.
+        if (!IsTestRun())
+        {
+            PlayerStats.Raise($"maps.{map.MapId}.furthest_wave", _completedWavesCount);
+        }
+
         if (finished == map.GateBoss && map.GateBoss != null)
         {
             _gateBossDefeatedThisRun = true;
+            // Taken down carrying nothing and never firing a special. Test runs
+            // are excluded for the same reason furthest_wave is.
+            if (map.MapId == "camp_fields" && RunPurity.Bare && !IsTestRun())
+            {
+                Feats.Record(Feats.RatKingBare);
+            }
             bool firstClear = !MapProgressStore.IsGateCleared(map.MapId);
             MapProgressStore.MarkGateCleared(map);
             if (firstClear)
@@ -201,9 +266,22 @@ public class WaveManager : ScriptableObject
         }
         else if (finished == map.TrueBoss && map.TrueBoss != null)
         {
+            if (map.MapId == "camp_fields" && RunPurity.Bare && !IsTestRun())
+            {
+                Feats.Record(Feats.TwinsBare);
+            }
             MapProgressStore.MarkTrueCleared(map);
             PendingOutcome = RunOutcome.TrueVictory;
         }
+    }
+
+    private static bool IsTestRun()
+    {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        return TestRunConfig.ActiveRun;
+#else
+        return false;
+#endif
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -275,21 +353,9 @@ public class WaveManager : ScriptableObject
         _completedWavesCount = 0;
     }
 
-#if UNITY_EDITOR
-    [ContextMenu("Auto-Find All Waves")]
-    public void AutoFindAllWaves()
-    {
-        availableWaves = new List<BaseWave>();
-        string[] guids = AssetDatabase.FindAssets("t:BaseWave");
-        foreach (string guid in guids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            BaseWave wave = AssetDatabase.LoadAssetAtPath<BaseWave>(path);
-            if (wave != null)
-                availableWaves.Add(wave);
-        }
-        EditorUtility.SetDirty(this);
-        Debug.Log($"[WaveManager] Found {availableWaves.Count} BaseWave assets.");
-    }
-#endif
+    // NOTE: the old "Auto-Find All Waves" context menu lived here. It filled the
+    // flat list from a project-wide `t:BaseWave` search, which is precisely what
+    // mixed every map's waves into one pool. Its replacement is per-map and lives
+    // on MapDefinition ("Find Waves In Folders"), so a map can only ever pull in
+    // waves from the folders it names.
 }

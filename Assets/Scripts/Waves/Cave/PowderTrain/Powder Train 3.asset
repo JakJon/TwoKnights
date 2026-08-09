@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8da314436f17e2645bf3c58951e0847f, type: 3}
+  m_Name: Powder Train 3
+  m_EditorClassIdentifier:
+  waveName: Powder Train 3
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: One gap in sixteen. Miss it and the fence is up for another lap.
+  unlockedAfterXWaves: 8
+  lockedAfterXWaves: 15
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: 9cc32b97993d4e538f6f1c49b5759748, type: 2}
+  cartPattern:
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  repeats: 2
+  entryRun: 0
+  firstCartDelay: 0.5
+  slotInterval: 0
+  enemyInterval: 2.4
+  enemyCount: 17
+  enemyStartDelay: 5
+  ratType: {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+  orbs:
+    healthOrb: 0
+    count: 2
+    firstAt: 11
+    interval: 12
+    from: {x: -12, y: -1.5}
+    to: {x: 12, y: -1.5}

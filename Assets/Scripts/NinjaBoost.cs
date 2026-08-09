@@ -56,5 +56,13 @@ public class NinjaBoost : MonoBehaviour
     public GameObject ShurikenPrefab => shurikenPrefab;
     public float ExecuteThreshold => executeThreshold;
     public int PhantomLevel => phantomLevel;
+
+    // Echo Ribbon adds an echo on top of Phantom Blade's. Kept apart from
+    // phantomLevel because SetPhantomLevel takes the MAX of the tiers it is
+    // given, so an equipment bonus written into it would simply be swallowed.
+    private int phantomEchoBonus;
+    public void AddPhantomEcho(int extra) { phantomEchoBonus += Mathf.Max(0, extra); }
+    /// <summary>Echoes the sword should actually throw.</summary>
+    public int TotalPhantomEchoes => phantomLevel + phantomEchoBonus;
     public bool ThousandCuts => thousandCuts;
 }

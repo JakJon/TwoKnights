@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <!-- What each knight carries, shared by the camp menu and the pause screen.
+         Columns and slot rows are built in code by EquipmentPanel; see
+         QuestOverlay.uxml for why the host needs .overlay-host. -->
+    <ui:VisualElement name="equipment-panel" class="overlay-panel" style="display: none;">
+        <ui:VisualElement class="overlay-header">
+            <ui:Label text="Equipment" class="overlay-title" />
+            <ui:Button name="equipment-close-button" class="overlay-close-button" text="X" />
+        </ui:VisualElement>
+        <ui:VisualElement name="equipment-body" class="equipment-body" />
+        <ui:ScrollView name="equipment-picker" class="equipment-picker" style="display: none;" />
+        <ui:Label name="equipment-detail" text="" class="equipment-detail" />
+        <ui:Label name="equipment-hint" text="&#9664;&#9654; knight   &#9650;&#9660; slot   A change   B back" class="map-hint-line" />
+    </ui:VisualElement>
+</ui:UXML>

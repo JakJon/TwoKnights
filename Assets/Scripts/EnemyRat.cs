@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class EnemyRat : EnemyBase
 {
+    public override EnemyFamily Family => EnemyFamily.Vermin;
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float moveDistance;

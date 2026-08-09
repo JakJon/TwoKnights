@@ -13,15 +13,19 @@ MonoBehaviour:
   m_Name: Bowsight 2
   m_EditorClassIdentifier: 
   upgradeName: Bowsight II
-  description: The sight reaches further downrange.
-  weight: 28
+  description: The beam runs clean off the screen, and bites twice as hard.
+  weight: 14
   order: 0
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 89042badb83f44ceb696d480de302e32, type: 2}
   lockedBy: []
   stats:
-  - valueText: +50%
-    labelText: SIGHT RANGE
+  - valueText: 12
+    labelText: BEAM REACH
     isPositive: 1
-  sightRange: 3.75
+  - valueText: 4
+    labelText: BEAM DPS
+    isPositive: 1
+  sightRange: 12
+  damagePerSecond: 4

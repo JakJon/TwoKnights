@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9f24e166061b1349ad0860924b5ca64, type: 3}
+  m_Name: Delivery 1
+  m_EditorClassIdentifier: 
+  waveName: Delivery!
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Something is being hauled up the long way round. Stop it before
+    the flag.
+  unlockedAfterXWaves: 0
+  lockedAfterXWaves: 7
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: fd81d7bdced74fa58c249e2ea1c2af78, type: 2}
+  cartOrder:
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  entryRun: 0
+  firstCartDelay: 0.5
+  cartInterval: 4
+  volleys:
+  - label: opener, left
+    shape: 0
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    restAfter: 3.5
+  - label: answer, right
+    shape: 0
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    restAfter: 3.5
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.2
+    count: 3
+    fanDegrees: 60
+    restAfter: 4
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.4
+    count: 3
+    fanDegrees: 60
+    restAfter: 4
+  projectileWindow: 26
+  orbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 9
+    interval: 12
+    from: {x: -12, y: -4.5}
+    to: {x: 12, y: -4.5}

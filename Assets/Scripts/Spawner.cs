@@ -10,7 +10,11 @@ public class Spawner : MonoBehaviour
     [SerializeField] private WaveName waveNameDisplay;
     [SerializeField] private UpgradeMenu upgradeMenu; // New reference to upgrade menu
     [SerializeField] private UpgradeManager upgradeManager; // Reference to upgrade manager
-    [SerializeField] private QuestCompletePanel questCompletePanel; // Shown between wave end and upgrade menu
+    // Shown between wave end and the upgrade menu. FormerlySerializedAs keeps the
+    // scene's existing reference: Unity serializes by FIELD NAME, so renaming this
+    // from questCompletePanel would otherwise silently null it out.
+    [UnityEngine.Serialization.FormerlySerializedAs("questCompletePanel")]
+    [SerializeField] private WaveSurvivedPanel waveSurvivedPanel;
     [SerializeField] public GameObject projectilePrefab;
     [SerializeField] public GameObject brownRat;
     [SerializeField] public GameObject greyRat;
@@ -79,16 +83,26 @@ public class Spawner : MonoBehaviour
     {
         _leftPlayer = GameObject.FindWithTag("PlayerLeft").transform;
         _rightPlayer = GameObject.FindWithTag("PlayerRight").transform;
-        
+
+        // Equipment chosen in camp lands before anything spawns. Nothing to reset
+        // the way UpgradeManager needs — Loadout reads the save fresh each run and
+        // EquipmentBoost is a scene component that dies with the scene.
+        Loadout.ApplyToKnight(_leftPlayer.gameObject, Loadout.LeftKnight);
+        Loadout.ApplyToKnight(_rightPlayer.gameObject, Loadout.RightKnight);
+
+        // Static state survives scene reloads, so this must run every run
+        RunPurity.BeginRun(_leftPlayer.gameObject, _rightPlayer.gameObject);
+
+
         // Setup upgrade menu callback
         if (upgradeMenu != null)
         {
             upgradeMenu.OnUpgradeConfirmed += OnUpgradeConfirmed;
         }
 
-        if (questCompletePanel == null)
+        if (waveSurvivedPanel == null)
         {
-            questCompletePanel = FindFirstObjectByType<QuestCompletePanel>(FindObjectsInactive.Include);
+            waveSurvivedPanel = FindFirstObjectByType<WaveSurvivedPanel>(FindObjectsInactive.Include);
         }
 
         // Fresh per-run state (wave count, boss flags, wave pool) even without
@@ -99,7 +113,60 @@ public class Spawner : MonoBehaviour
         ApplyTestRunConfigIfPending();
 #endif
 
-        StartNextWave();
+        // Whetstone: a knight carrying it drafts once before anything spawns.
+        // If nobody has one this falls straight through to wave one.
+        QueueHeadStarts();
+        if (!TryShowNextHeadStart()) StartNextWave();
+    }
+
+    // ---- Head start (Whetstone) ----
+
+    private readonly Queue<KnightTarget> _pendingHeadStarts = new Queue<KnightTarget>();
+    private bool _headStartActive;
+
+    private void QueueHeadStarts()
+    {
+        _pendingHeadStarts.Clear();
+        var left = _leftPlayer != null ? _leftPlayer.GetComponent<EquipmentBoost>() : null;
+        if (left != null && left.GrantsHeadStart) _pendingHeadStarts.Enqueue(KnightTarget.LeftKnight);
+        var right = _rightPlayer != null ? _rightPlayer.GetComponent<EquipmentBoost>() : null;
+        if (right != null && right.GrantsHeadStart) _pendingHeadStarts.Enqueue(KnightTarget.RightKnight);
+    }
+
+    /// <summary>
+    /// Opens the draft for the next knight owed a head start. The pick is forced
+    /// to that knight rather than following the menu's wave-parity alternation —
+    /// the item was bought for one of them specifically.
+    /// </summary>
+    private KnightTarget _preHeadStartTarget;
+    private bool _headStartTargetSaved;
+
+    private bool TryShowNextHeadStart()
+    {
+        if (_pendingHeadStarts.Count == 0 || upgradeMenu == null) return false;
+
+        var target = _pendingHeadStarts.Dequeue();
+
+        // Two different things decide "which knight": UpgradeManager picks the
+        // POOL, the menu picks who it gets APPLIED to. Both have to be forced or
+        // the player drafts from one knight's pool onto the other.
+        if (upgradeManager != null)
+        {
+            if (!_headStartTargetSaved)
+            {
+                _preHeadStartTarget = upgradeManager.NextTarget;
+                _headStartTargetSaved = true;
+            }
+            upgradeManager.SetNextTarget(target);
+        }
+
+        _headStartActive = true;
+        ShowUpgradeMenu();
+        // AFTER ShowUpgradeMenu, never before: SetMenuVisible(true) re-derives
+        // the target from wave parity, which at wave zero is always the right
+        // knight — it would silently overwrite this
+        upgradeMenu.SetKnightTargetForThisUpgrade(target);
+        return true;
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -158,6 +225,7 @@ public class Spawner : MonoBehaviour
             waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
         _isWaveInProgress = true;
         _batCallCount = 0; // dark-bat cadence restarts every wave
+        DawnBoost.OnWaveStarted(); // Second Wind rearms every wave
         // Last wave's track comes down as this one starts, so rails stay up
         // through the wave-complete beat and the upgrade menu
         if (Rails != null) Rails.ClearAll();
@@ -267,6 +335,11 @@ public class Spawner : MonoBehaviour
     {
         // Start wave tracking
         wave.StartWaveTracking();
+
+        // Meeting a wave type counts as having explored it, win or lose.
+        // Credited to the map it belongs to — explorer quests are per map.
+        var exploredMap = waveManager != null ? waveManager.CurrentMap : null;
+        if (exploredMap != null) WaveExploration.RecordSeen(wave, exploredMap.MapId);
         
         // Run the wave spawn logic
         yield return StartCoroutine(wave.SpawnWave(this));
@@ -279,6 +352,11 @@ public class Spawner : MonoBehaviour
         
         _isWaveInProgress = false;
         waveManager.WaveCompleted();
+
+        // Stat writes are batched in memory rather than hitting disk per kill;
+        // the wave boundary is the natural commit point, so a crash mid-run
+        // costs at most this wave's counters
+        PlayerStats.Flush();
 
         // Ember fire dies with the wave, not the run. Scorched Earth zones never
         // expire on their own, so without this the next wave would begin inside
@@ -301,17 +379,19 @@ public class Spawner : MonoBehaviour
             yield break;
         }
 
-        // Let the wave-complete fanfare ring over the cleared arena before any
-        // menus appear
-        yield return new WaitForSeconds(2f);
-
-        // Celebrate quests completed during the wave, one panel each,
-        // before the upgrade menu appears
-        if (questCompletePanel != null && questCompletePanel.HasPending)
+        // "Wave Survived" over the cleared arena. It owns the whole pause now —
+        // a clean wave holds for a beat and moves on by itself, a wave that
+        // finished a quest waits for the player. The old flat two-second wait
+        // ran on top of this and just made every gap feel long.
+        if (waveSurvivedPanel != null)
         {
             Time.timeScale = 0f;
-            yield return StartCoroutine(questCompletePanel.ShowPendingPanels());
+            yield return StartCoroutine(waveSurvivedPanel.ShowWaveSurvived());
             Time.timeScale = 1f;
+        }
+        else
+        {
+            yield return new WaitForSeconds(1f);
         }
 
         // Take the screen to black before the menu. Crossing into a stage that
@@ -379,6 +459,26 @@ public class Spawner : MonoBehaviour
         }
 
         _isUpgradeMenuActive = false;
+
+        // A head start happens before wave one, so there is no curtain down to
+        // raise — going through RaiseCurtainThenStartWave here would try to lift
+        // black that was never drawn
+        if (_headStartActive)
+        {
+            _headStartActive = false;
+            if (!TryShowNextHeadStart())
+            {
+                // A head start is a bonus draft, not a turn — wave one's pick
+                // still belongs to whoever the alternation owed it to
+                if (upgradeManager != null && _headStartTargetSaved)
+                {
+                    upgradeManager.SetNextTarget(_preHeadStartTarget);
+                }
+                StartNextWave();
+            }
+            return;
+        }
+
         _isTransitionActive = true;
         StartCoroutine(RaiseCurtainThenStartWave(!string.IsNullOrEmpty(_pendingVentureLine)));
     }
@@ -422,31 +522,33 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    // Brown/black rats and black wolves are deep-forest enemies: they only
-    // spawn once the run is past the map's gate boss (the rat king on wave 10).
-    // Earlier waves get the grey stand-in instead, so wave assets whose unlock
-    // windows straddle the boss stay playable on both sides of it.
-    private bool EliteTierUnlocked
+    // Which enemies a map holds back, and until when, is the MAP's business and
+    // not the game's. The Camp Fields staggers its stronger enemies — dark bats,
+    // black wolves, brown and black rats — in behind the rat king, so earlier
+    // waves get the grey stand-in instead (which is what lets a wave asset
+    // straddle the boss). In the Mine they are just what lives down there, from
+    // wave one, and it will stagger in its own additions on its own schedule.
+    private bool StrongerEnemiesAllowed
     {
         get
         {
             if (waveManager == null) return true;
             var map = waveManager.CurrentMap;
-            int gateBossWave = map != null ? map.GateBossWaveNumber : 10;
-            return waveManager.CurrentWaveNumber > gateBossWave;
+            int fromWave = map != null ? map.StrongerEnemiesFromWave : 11;
+            return waveManager.CurrentWaveNumber >= fromWave;
         }
     }
 
-    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate = false, Vector2? entryPoint = null)
+    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate = false, Vector2? entryPoint = null)
     {
-        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassTierGate, entryPoint));
+        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassStrengthGate, entryPoint));
     }
 
-    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassTierGate, Vector2? entryPoint)
+    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate, Vector2? entryPoint)
     {
         yield return new WaitForSeconds(delay);
-        // bypassTierGate lets the rat king summon his brown brood mid-fight
-        if (!bypassTierGate && !EliteTierUnlocked && (ratType == brownRat || ratType == blackRat))
+        // bypassStrengthGate lets the rat king summon his brown brood mid-fight
+        if (!bypassStrengthGate && !StrongerEnemiesAllowed && (ratType == brownRat || ratType == blackRat))
         {
             ratType = greyRat;
         }
@@ -493,7 +595,7 @@ public class Spawner : MonoBehaviour
         // make the pattern non-deterministic. Same wave = same bats, always.
         _batCallCount++;
         GameObject prefab = bat;
-        if (EliteTierUnlocked && darkBat != null && darkBatInterval > 0
+        if (StrongerEnemiesAllowed && darkBat != null && darkBatInterval > 0
             && _batCallCount % darkBatInterval == 0)
         {
             prefab = darkBat;
@@ -518,7 +620,7 @@ public class Spawner : MonoBehaviour
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
 
-        if (wolfType == WolfType.Black && !EliteTierUnlocked)
+        if (wolfType == WolfType.Black && !StrongerEnemiesAllowed)
         {
             wolfType = WolfType.Grey;
         }
@@ -565,19 +667,22 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnProjectile(Transform targetPlayer, Vector2 spawnPosition, float delay = 0f)
+    // `speed` of 0 or less leaves the rock prefab's own speed alone, which is what
+    // every caller but Delivery wants — see ProjectileMovement.Initialize for why
+    // flight time belongs to the wave rather than to the prefab.
+    public void SpawnProjectile(Transform targetPlayer, Vector2 spawnPosition, float delay = 0f, float speed = 0f)
     {
-        StartCoroutine(SpawnProjectileAfterDelay(targetPlayer, spawnPosition, delay));
+        StartCoroutine(SpawnProjectileAfterDelay(targetPlayer, spawnPosition, delay, speed));
     }
 
-    private IEnumerator SpawnProjectileAfterDelay(Transform targetPlayer, Vector2 spawnPosition, float delay)
+    private IEnumerator SpawnProjectileAfterDelay(Transform targetPlayer, Vector2 spawnPosition, float delay, float speed)
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
 
         GameObject projectile = Instantiate(projectilePrefab);
         ProjectileMovement pm = projectile.GetComponent<ProjectileMovement>();
-        pm.Initialize(targetPlayer, spawnPosition);
+        pm.Initialize(targetPlayer, spawnPosition, speed);
     }
 
     private Vector2 ArcCenterFor(Transform targetPlayer)
@@ -594,16 +699,16 @@ public class Spawner : MonoBehaviour
     }
 
     public void SpawnProjectileArc(Transform targetPlayer, ArcDirection direction, Vector2 arcStart, float arcDegrees, int projectileCount,
-        float delayBetweenProjectiles, int arcCount = 1, float delayBetweenArcs = 0f)
+        float delayBetweenProjectiles, int arcCount = 1, float delayBetweenArcs = 0f, float speed = 0f)
     {
         Vector2 arcCenter = ArcCenterFor(targetPlayer);
         float radius = Vector2.Distance(arcStart, arcCenter);
         StartCoroutine(SpawnProjectileArcCoroutine(targetPlayer, direction, arcCenter, radius, arcStart, arcDegrees, projectileCount, 
-            delayBetweenProjectiles, arcCount, delayBetweenArcs));
+            delayBetweenProjectiles, arcCount, delayBetweenArcs, speed));
     }
 
     private IEnumerator SpawnProjectileArcCoroutine(Transform targetPlayer, ArcDirection direction, Vector2 arcCenter, float radius, Vector2 arcStart, float arcDegrees, 
-        int projectileCount, float delayBetweenProjectiles, int arcCount, float delayBetweenArcs)
+        int projectileCount, float delayBetweenProjectiles, int arcCount, float delayBetweenArcs, float speed)
     {
         float startAngle = Mathf.Atan2(arcStart.y - arcCenter.y, arcStart.x - arcCenter.x) * Mathf.Rad2Deg;
         float angleStep = arcDegrees / (projectileCount - 1);
@@ -618,23 +723,23 @@ public class Spawner : MonoBehaviour
             {
                 float currentAngle = startAngle + (angleStep * i);
                 Vector2 spawnPos = arcCenter + new Vector2(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad)) * radius;
-                SpawnProjectile(targetPlayer, spawnPos, delayBetweenProjectiles * i);
+                SpawnProjectile(targetPlayer, spawnPos, delayBetweenProjectiles * i, speed);
             }
         }
     }
 
-    public void SpawnProjectileStraight(Vector2 spawnPosition, Transform targetPlayer, float projectileAmount, float projectileDelay, float initialDelay = 0f)
+    public void SpawnProjectileStraight(Vector2 spawnPosition, Transform targetPlayer, float projectileAmount, float projectileDelay, float initialDelay = 0f, float speed = 0f)
     {
-        StartCoroutine(SpawnProjectileStraightCoroutine(spawnPosition, targetPlayer, projectileAmount, projectileDelay, initialDelay));
+        StartCoroutine(SpawnProjectileStraightCoroutine(spawnPosition, targetPlayer, projectileAmount, projectileDelay, initialDelay, speed));
     }
 
-    private IEnumerator SpawnProjectileStraightCoroutine(Vector2 spawnPosition, Transform targetPlayer, float projectileAmount, float projectileDelay, float initialDelay)
+    private IEnumerator SpawnProjectileStraightCoroutine(Vector2 spawnPosition, Transform targetPlayer, float projectileAmount, float projectileDelay, float initialDelay, float speed)
     {
         if (initialDelay > 0f)
             yield return new WaitForSeconds(initialDelay);
         for (int i = 0; i < projectileAmount; i++)
         {
-            SpawnProjectile(targetPlayer, spawnPosition, projectileDelay * i);
+            SpawnProjectile(targetPlayer, spawnPosition, projectileDelay * i, speed);
         }
         yield return null;
     }

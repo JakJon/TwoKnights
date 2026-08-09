@@ -61,15 +61,28 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 29eb114cf2667a94b892227dfa14c407, type: 2}
   - {fileID: 11400000, guid: 20249c8dbb26624459358f071773c695, type: 2}
   - {fileID: 11400000, guid: 05ba42be3bd82f146be94880f48e9291, type: 2}
+  waveFolders:
+  - Assets/Scripts/Waves/Forest/AboutFace
+  - Assets/Scripts/Waves/Forest/BatCauldron
+  - Assets/Scripts/Waves/Forest/BatSlimeBoogie
+  - Assets/Scripts/Waves/Forest/BelfryAndCellar
+  - Assets/Scripts/Waves/Forest/ChaoticCorners
+  - Assets/Scripts/Waves/Forest/NightHunt
+  - Assets/Scripts/Waves/Forest/Pinned
+  - Assets/Scripts/Waves/Forest/RatKing
+  - Assets/Scripts/Waves/Forest/RatMischief
+  - Assets/Scripts/Waves/Forest/SheepsClothing
+  - Assets/Scripts/Waves/Forest/StickySituation
   gateBoss: {fileID: 11400000, guid: 6767c128b721f54cc031ffd692c9971c, type: 2}
   gateBossWaveNumber: 10
   trueBoss: {fileID: 11400000, guid: 922e5ba9684734244a1ddbf6f374e186, type: 2}
   trueBossWaveNumber: 20
+  strongerEnemiesFromWave: -1
   stages:
   - label: Forest
     fromWaveNumber: 1
     backdrop: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
-    ventureLine:
+    ventureLine: 
   - label: Deep Forest
     fromWaveNumber: 11
     backdrop: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}

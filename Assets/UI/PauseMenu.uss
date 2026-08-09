@@ -14,6 +14,19 @@
     background-color: rgba(12, 9, 5, 0.8);
 }
 
+/* Holds the quest and equipment overlays over the top of the pause card. Sized
+   to the screen because the panels inside are absolutely positioned, and
+   ignore-picking so it does not swallow clicks meant for the card behind it
+   while both overlays are hidden. */
+.pause-overlays {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    picking-mode: ignore;
+}
+
 .pause-panel {
     flex-direction: column;
     align-items: stretch;

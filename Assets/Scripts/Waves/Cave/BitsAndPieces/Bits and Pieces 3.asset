@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f63b6399a5b391ce7a68be01483f175, type: 3}
+  m_Name: Bits and Pieces 3
+  m_EditorClassIdentifier: 
+  waveName: Bits and Pieces 3
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: More riders than powder now. The tail of a shift comes down uncovered.
+  unlockedAfterXWaves: 8
+  lockedAfterXWaves: 15
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: 40e9dc310ff2cf24a33b8d77298aa84c, type: 2}
+  gnomeCarts:
+  - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+  kegCart: {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  ambushes:
+  - label: shift 1 (4 riders, 3 kegs)
+    gnomesPerAmbush: 4
+    kegsPerAmbush: 3
+    leadIn: 0.75
+    releasePause: 1
+  - label: shift 2 (5 riders, 4 kegs)
+    gnomesPerAmbush: 5
+    kegsPerAmbush: 4
+    leadIn: 1.5
+    releasePause: 1
+  - label: shift 3 (6 riders, 4 kegs)
+    gnomesPerAmbush: 6
+    kegsPerAmbush: 4
+    leadIn: 1.5
+    releasePause: 1
+  highOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 10
+    interval: 14
+    from: {x: -12, y: 4.3}
+    to: {x: 12, y: 4.3}
+  lowOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 20
+    interval: 14
+    from: {x: 12, y: -5}
+    to: {x: -12, y: -5}

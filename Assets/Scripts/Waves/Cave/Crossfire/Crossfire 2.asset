@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc80d3d90b36b44ed4b5ac1c70a9f769, type: 3}
+  m_Name: Crossfire 2
+  m_EditorClassIdentifier: 
+  waveName: Crossfire 2
+  weight: 1e+12
+  isUnlocked: 0
+  waveDescription: Longer lines, less time to turn, and the rim starts filling up.
+  unlockedAfterXWaves: 4
+  lockedAfterXWaves: 11
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: b919f05bc00e21a5772d94a8a0eec42a, type: 2}
+  entryRun: 2
+  gnomeCarts:
+  - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+  gnomes: 4
+  gnomeInterval: 5
+  firstRiderAt: 1
+  rocksPerBurst: 4
+  rockSpacing: 0.35
+  switchWindow: 1.5
+  flightSeconds: 4
+  orbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 12
+    interval: 12
+    from: {x: -12, y: 2}
+    to: {x: 12, y: 2}

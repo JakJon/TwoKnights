@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9f24e166061b1349ad0860924b5ca64, type: 3}
+  m_Name: Delivery 2
+  m_EditorClassIdentifier:
+  waveName: Delivery! 2
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Five up the horseshoe, and the shafts stop taking turns.
+  unlockedAfterXWaves: 4
+  lockedAfterXWaves: 11
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: fd81d7bdced74fa58c249e2ea1c2af78, type: 2}
+  cartOrder:
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  entryRun: 0
+  firstCartDelay: 0.5
+  cartInterval: 3.5
+  volleys:
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    restAfter: 3.2
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.3
+    count: 3
+    fanDegrees: 60
+    restAfter: 3.5
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    restAfter: 3
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.9
+    count: 3
+    fanDegrees: 55
+    restAfter: 3.5
+  - label: up from under the right
+    shape: 0
+    rightKnight: 1
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    restAfter: 3.2
+  projectileWindow: 30
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 9
+    interval: 12
+    from: {x: -12, y: -4.5}
+    to: {x: 12, y: -4.5}

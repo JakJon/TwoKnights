@@ -1,0 +1,39 @@
+using UnityEngine;
+
+// Dawn discipline: the orb door. Health orbs are already collected by SHOOTING
+// them (CollectibleOrb), so this chain rewards aim rather than paying out for
+// standing still — it makes a shot the player already wanted to take worth more.
+// Rank III slows orbs for both knights, the one Dawn effect that lands on the
+// field instead of on a knight.
+[CreateAssetMenu(fileName = "SunwellUpgrade", menuName = "Upgrades/Sunwell")]
+public class SunwellUpgrade : BaseUpgrade
+{
+    [SerializeField] private float orbHealMultiplier = 1.5f;
+    [SerializeField] private int manaOrbMend = 0;   // rank II+: mana orbs mend too
+    [SerializeField] private bool slowOrbs = false; // rank III: orbs linger for both knights
+
+    public override string ChainName => "Sunwell";
+
+    private void OnEnable()
+    {
+        if (string.IsNullOrEmpty(upgradeName))
+            upgradeName = "Sunwell";
+        if (weight == 0f)
+            weight = 110f;
+    }
+
+    public override void ApplyUpgrade(GameObject targetKnight)
+    {
+        DawnBoost boost = targetKnight.GetComponent<DawnBoost>();
+        if (boost == null)
+        {
+            boost = targetKnight.AddComponent<DawnBoost>();
+        }
+
+        boost.SetOrbHealMultiplier(orbHealMultiplier);
+        if (manaOrbMend > 0) boost.SetManaOrbMend(manaOrbMend);
+        if (slowOrbs) boost.EnableSlowOrbs();
+
+        Debug.Log($"Applied Sunwell to {targetKnight.name}: orbs x{orbHealMultiplier}, mana mend {manaOrbMend}, slow {slowOrbs}");
+    }
+}

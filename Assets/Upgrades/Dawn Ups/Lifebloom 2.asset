@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc97747950fd4763895c7a05f143d24d, type: 3}
+  m_Name: Lifebloom 2
+  m_EditorClassIdentifier: 
+  upgradeName: Lifebloom II
+  description: The bloom comes sooner, and gives more.
+  weight: 60
+  order: 5
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: 7821fe7aa0b74e008b31962bdedfd3d6, type: 2}
+  lockedBy: []
+  stats:
+  - valueText: +4 HP
+    labelText: EVERY 8 KILLS
+    isPositive: 1
+  killsPerMend: 8
+  mendAmount: 4

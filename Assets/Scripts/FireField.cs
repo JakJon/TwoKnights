@@ -27,6 +27,7 @@ public class FireField : MonoBehaviour
         public float expiresAt; // +infinity for Scorched Earth zones
         public string ownerTag;
         public float dps;
+        public bool isTrail; // laid by Fire Trail, as opposed to a crater or placed zone
     }
 
     // Scorched Earth makes zones immortal, so the list needs a hard ceiling or a
@@ -84,16 +85,18 @@ public class FireField : MonoBehaviour
 
     // ---- Placing fire ----
 
+    // isTrail only distinguishes Fire Trail drops from craters and zones, for the
+    // Ember quest that asks for several burning at once. It changes no behaviour.
     public static void AddZone(Vector2 position, float radius, float duration,
-        string ownerTag, float dps, bool eternal)
+        string ownerTag, float dps, bool eternal, bool isTrail = false)
     {
         var field = Instance;
         if (field == null) return;
-        field.Add(position, radius, duration, ownerTag, dps, eternal);
+        field.Add(position, radius, duration, ownerTag, dps, eternal, isTrail);
     }
 
     private void Add(Vector2 position, float radius, float duration,
-        string ownerTag, float dps, bool eternal)
+        string ownerTag, float dps, bool eternal, bool isTrail)
     {
         var zone = new Zone
         {
@@ -101,7 +104,8 @@ public class FireField : MonoBehaviour
             radius = radius,
             expiresAt = eternal ? float.PositiveInfinity : Time.time + duration,
             ownerTag = ownerTag,
-            dps = dps
+            dps = dps,
+            isTrail = isTrail
         };
 
         _zones.Add(zone);
@@ -110,6 +114,24 @@ public class FireField : MonoBehaviour
         if (_zones.Count > MaxZones)
         {
             _zones.RemoveRange(0, _zones.Count - MaxZones);
+        }
+
+        if (isTrail && ActiveTrailCount >= 4) Feats.Record(Feats.FireTrailsFour);
+    }
+
+    /// <summary>Fire Trail zones currently burning, ignoring craters and placed zones.</summary>
+    public static int ActiveTrailCount
+    {
+        get
+        {
+            if (_instance == null) return 0;
+            int n = 0;
+            var zones = _instance._zones;
+            for (int i = 0; i < zones.Count; i++)
+            {
+                if (zones[i].isTrail && Time.time < zones[i].expiresAt) n++;
+            }
+            return n;
         }
     }
 

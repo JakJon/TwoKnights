@@ -16,6 +16,13 @@ public class PlayerProjectile : MonoBehaviour
     // absorbs the field (see PlayerShooter).
     public bool absorbsFieldEffects = true;
 
+    // Feat tagging, set by PlayerShooter at spawn. A shadow arrow counts toward
+    // the Shadow Order's landing tally; a shuriken reports into the volley it was
+    // thrown with. Both count at most once per projectile.
+    public bool isShadowArrow;
+    public ShurikenVolley volley;
+    private bool _countedHit;
+
     // "PlayerLeftProjectile" -> "PlayerLeft"
     private string OwnerTag
     {
@@ -24,6 +31,28 @@ public class PlayerProjectile : MonoBehaviour
             if (CompareTag("PlayerLeftProjectile")) return "PlayerLeft";
             if (CompareTag("PlayerRightProjectile")) return "PlayerRight";
             return null;
+        }
+    }
+
+    // The owning knight's equipment sheet, resolved on first hit and cached.
+    // Lazy rather than pushed in at spawn like ownerNinjaBoost, because every
+    // spawn path (main arrow, shadow arrows, shurikens) would otherwise need
+    // the same extra line — and most arrows never hit anything.
+    private EquipmentBoost _ownerEquipment;
+    private bool _ownerEquipmentResolved;
+
+    private EquipmentBoost OwnerEquipment
+    {
+        get
+        {
+            if (!_ownerEquipmentResolved)
+            {
+                _ownerEquipmentResolved = true;
+                string tag = OwnerTag;
+                GameObject owner = string.IsNullOrEmpty(tag) ? null : GameObject.FindWithTag(tag);
+                _ownerEquipment = owner != null ? owner.GetComponent<EquipmentBoost>() : null;
+            }
+            return _ownerEquipment;
         }
     }
 
@@ -70,6 +99,19 @@ public class PlayerProjectile : MonoBehaviour
         {
             int damageToDeal = damage;
 
+            // Equipment that bites one kinship group harder (The Gnawed Crown,
+            // Wolfsbane Pendant). Before Killing Blow, so an execute still lands
+            // as exactly lethal instead of an inflated number.
+            EquipmentBoost equipment = OwnerEquipment;
+            if (equipment != null)
+            {
+                float baneMultiplier = equipment.DamageMultiplierFor(enemy.Family);
+                if (baneMultiplier > 1f)
+                {
+                    damageToDeal = Mathf.CeilToInt(damageToDeal * baneMultiplier);
+                }
+            }
+
             // Killing Blow (Shadow Order): finish weakened enemies outright.
             // Never fires on bosses — skipping a fraction of a boss bar would
             // trivialize the fight.
@@ -77,12 +119,20 @@ public class PlayerProjectile : MonoBehaviour
                 && !(enemy is EnemyRatKing) && !enemy.IsDead
                 && enemy.GetHealth() <= enemy.GetMaxHealth() * ownerNinjaBoost.ExecuteThreshold)
             {
-                damageToDeal = Mathf.Max(damage, Mathf.CeilToInt(enemy.GetHealth()));
+                damageToDeal = Mathf.Max(damageToDeal, Mathf.CeilToInt(enemy.GetHealth()));
                 ShadowFx.ExecuteFlash(enemy.transform.position);
+                PlayerStats.Increment("kills.executed");
             }
 
             // Apply normal damage
             enemy.TakeDamage(damageToDeal, gameObject);
+
+            if (!_countedHit)
+            {
+                _countedHit = true;
+                if (isShadowArrow) Feats.Record(Feats.ShadowArrowHits);
+                if (volley != null) volley.NoteHit();
+            }
             
             // Check if this projectile has poison and apply it
             PoisonProjectile poisonComponent = GetComponent<PoisonProjectile>();

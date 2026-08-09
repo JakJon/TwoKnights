@@ -217,6 +217,10 @@ public class PlayerShooter : MonoBehaviour
             angles.Add(24f);
         }
 
+        // One counter shared by this fan, so "four from the same volley landed"
+        // is answerable without a registry
+        var volley = new ShurikenVolley();
+
         // Perpendicular to the shot direction: fan each shuriken out along it so
         // they start spaced apart instead of stacking on the muzzle and colliding
         Vector2 perpendicular = new Vector2(-shield.Direction.y, shield.Direction.x);
@@ -229,6 +233,10 @@ public class PlayerShooter : MonoBehaviour
             GameObject shuriken = Instantiate(fanPrefab, shurikenSpawn,
                 Quaternion.Euler(0, 0, shield.CurrentAngle + angle));
             shuriken.tag = gameObject.tag + "Projectile";
+            foreach (var comp in shuriken.GetComponentsInChildren<PlayerProjectile>(true))
+            {
+                comp.volley = volley;
+            }
 
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
@@ -316,7 +324,12 @@ public class PlayerShooter : MonoBehaviour
             StartCoroutine(DestroyProjectile(shadowArrow));
 
                 // Damage reduced by multiplier relative to the main projectile's final damage
-                int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowArrowBoost.GetDamageMultiplier());
+                // Nightglass Shard adds to the multiplier rather than the final
+                // number, so it scales with the knight's damage like the arrow does
+                var shadowEquipment = GetComponent<EquipmentBoost>();
+                float shadowMultiplier = shadowArrowBoost.GetDamageMultiplier()
+                                         + (shadowEquipment != null ? shadowEquipment.ShadowArrowDamageBonus : 0f);
+                int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowMultiplier);
                 var shadowNinjaBoost = GetComponent<NinjaBoost>();
                 var shadowProjComponents = shadowArrow.GetComponentsInChildren<PlayerProjectile>(true);
                 // One ignite roll for the arrow, applied to all its components, so a
@@ -324,6 +337,7 @@ public class PlayerShooter : MonoBehaviour
                 bool shadowIgnites = emberBoost != null && emberBoost.ShouldIgnite();
                 foreach (var comp in shadowProjComponents)
                 {
+                    comp.isShadowArrow = true;
                     comp.damage = scaledShadowDamage;
                     comp.ownerNinjaBoost = shadowNinjaBoost;
                     comp.ignitesOnHit = shadowIgnites;

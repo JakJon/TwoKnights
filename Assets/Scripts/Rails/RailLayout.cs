@@ -65,6 +65,74 @@ public struct RailRun
     public bool layFromFarEnd;
 }
 
+// A one-way link between the far end of one run and the mouth of another: a cart
+// that rolls off `fromRun` reappears on `toRun` and keeps going. Both pads sit
+// past the viewport edge by construction — `exitOvershoot` and `entryLead` are
+// measured beyond the run's last and first cells — so the swap is never seen.
+//
+// Authored here rather than derived so a layout can say exactly where its traffic
+// goes: a single run pointed at itself is a loop, and a two-run layout can send
+// the upper track's traffic down onto the lower one.
+[System.Serializable]
+public struct RailTeleport
+{
+    [Tooltip("Editor-only note, e.g. \"right edge back to the mouth\"")]
+    public string label;
+
+    [Tooltip("Index into Runs: the run whose far end this pad guards")]
+    public int fromRun;
+
+    [Tooltip("Index into Runs: the run a cart reappears on")]
+    public int toRun;
+
+    [Tooltip("How far past the source run's last cell the pad sits. Must clear the viewport edge.")]
+    public float exitOvershoot;
+
+    [Tooltip("How far before the destination run's first cell the cart reappears — normally the cart's own lead-in")]
+    public float entryLead;
+}
+
+// A single tile dropped at an explicit spot, outside any run. Corners are the
+// reason this exists: a run is a straight line of one piece kind, so the elbow
+// where two runs meet has nowhere to live in the run list.
+//
+// The corner kinds are named for the two directions they CONNECT, which is the
+// opposite of how the art is named — Assets/Graphics/palletes/rail_top_left is
+// the tile you put at the TOP-LEFT of a circuit, and a top-left elbow joins the
+// track running east away from it to the track running south, so it is a
+// CornerSouthEast. Getting this backwards produces a track that looks almost
+// right and connects to nothing, so the mapping is spelled out in
+// MineCartAssetBuilder where the prefabs are built.
+[System.Serializable]
+public struct RailTile
+{
+    [Tooltip("Editor-only note, e.g. \"top-left elbow\"")]
+    public string label;
+
+    public RailPieceKind piece;
+
+    [Tooltip("World position of the tile")]
+    public Vector2 position;
+}
+
+// A point on the track where a delivery cart puts its passenger down. The
+// network plants a flag over it, which is the whole point of authoring it here
+// rather than burying it in a wave script: the player has to be able to SEE
+// where a loaded cart is heading long before it arrives, or the route is just a
+// cart that eventually turns into a rat.
+[System.Serializable]
+public struct RailDrop
+{
+    [Tooltip("Editor-only note, e.g. \"far end of the descent\"")]
+    public string label;
+
+    [Tooltip("Index into Runs")]
+    public int run;
+
+    [Tooltip("Distance from that run's mouth, in world units")]
+    public float distanceAlong;
+}
+
 // Where a single piece ends up, in the order it should fall
 public struct RailPlacement
 {
@@ -81,6 +149,10 @@ public struct RailPlacement
 public struct RailLine
 {
     public string Label;
+
+    /// <summary>Position in the layout's run list. Teleporters are addressed by it.</summary>
+    public int Index;
+
     public RailAxis Axis;
 
     /// <summary>Cross-axis world coordinate: the y of a Horizontal line, the x of a Vertical one.</summary>
@@ -123,6 +195,9 @@ public struct RailLine
 [CreateAssetMenu(fileName = "RailLayout", menuName = "Maps/Rail Layout")]
 public class RailLayout : ScriptableObject
 {
+    [Tooltip("Which prefab draws each direction. Lives on the layout so a tileset can be wired without opening a scene — see RailPieceSet.")]
+    [SerializeField] private RailPieceSet pieceSet;
+
     [Tooltip("World size of one rail piece. The 32px sprite at 32 PPU is 1 unit.")]
     [SerializeField] private float cellSize = 1f;
 
@@ -131,9 +206,22 @@ public class RailLayout : ScriptableObject
 
     [SerializeField] private List<RailRun> runs = new List<RailRun>();
 
+    [Tooltip("Loose tiles placed by hand — the elbows where two runs meet. Laid after the runs, so they finish the cascade.")]
+    [SerializeField] private List<RailTile> tiles = new List<RailTile>();
+
+    [Tooltip("Links between runs: a cart that reaches the end of one carries on at the mouth of another. Set both distances to 0 and the two ends coincide, which is how a cart turns a corner; push them past the viewport instead and the same mechanism wraps a straight track around off-frame.")]
+    [SerializeField] private List<RailTeleport> teleports = new List<RailTeleport>();
+
+    [Tooltip("Marked spots where a delivery cart unloads. Each gets a flag planted over it.")]
+    [SerializeField] private List<RailDrop> drops = new List<RailDrop>();
+
+    public RailPieceSet PieceSet => pieceSet;
     public float CellSize => Mathf.Max(0.01f, cellSize);
     public float FallStagger => Mathf.Max(0f, fallStagger);
     public IReadOnlyList<RailRun> Runs => runs;
+    public IReadOnlyList<RailTile> Tiles => tiles;
+    public IReadOnlyList<RailTeleport> Teleports => teleports;
+    public IReadOnlyList<RailDrop> Drops => drops;
 
     // Expands the runs into ordered placements. `viewHalfExtents` is the
     // camera's visible half-width/half-height in world units and `viewCenter`
@@ -166,6 +254,13 @@ public class RailLayout : ScriptableObject
                 });
             }
         }
+
+        // Elbows last so they land after the straights they join, and the circuit
+        // visibly closes itself at the end of the cascade
+        foreach (var tile in tiles)
+        {
+            into.Add(new RailPlacement { Piece = tile.piece, Position = tile.position });
+        }
     }
 
     // Expands the runs into travel-ordered lines — one per run, in the same
@@ -179,8 +274,10 @@ public class RailLayout : ScriptableObject
 
         float cell = CellSize;
 
-        foreach (var run in runs)
+        for (int index = 0; index < runs.Count; index++)
         {
+            RailRun run = runs[index];
+
             float first;
             int cellCount;
             ResolveRun(run, viewCenter, viewHalfExtents, out first, out cellCount);
@@ -191,6 +288,7 @@ public class RailLayout : ScriptableObject
             into.Add(new RailLine
             {
                 Label = run.label,
+                Index = index,
                 Axis = run.axis,
                 Offset = run.offset,
                 Entry = forward ? first : first + span,

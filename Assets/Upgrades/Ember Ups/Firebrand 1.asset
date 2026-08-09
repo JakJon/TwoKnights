@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Firebrand 1
   m_EditorClassIdentifier: 
   upgradeName: Firebrand I
-  description: Sword swings sometimes hurl fire from the blade.
+  description: Sword swings sometimes hurl a fireball from the blade.
   weight: 55
   order: 4
   requiresOrderCount: 0
@@ -24,9 +24,9 @@ MonoBehaviour:
   - valueText: 20%
     labelText: PER SWING
     isPositive: 1
-  - valueText: 2
-    labelText: FIREBALLS
+  - valueText: 1
+    labelText: FIREBALL
     isPositive: 1
   hurlChance: 20
-  fireballCount: 2
+  fireballCount: 1
   fireballPrefab: {fileID: 4271991971420557666, guid: 086b3c5d7a42ae942a4566a3f1caa667, type: 3}

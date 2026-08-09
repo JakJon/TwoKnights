@@ -6,8 +6,13 @@ public class PlayerSpecial : MonoBehaviour
     [SerializeField] private int maxSpecial = 1000;
     [SerializeField] private SpecialBar specialBar;
     [SerializeField] private InputActionReference specialAction;
-    private RapidFire rapidFire;
-    private HealSpecial healSpecial;
+    [Tooltip("This knight's stock special. Left with none, it is inferred from whichever special component the prefab carries.")]
+    [SerializeField] private SpecialDefinition defaultSpecial;
+
+    // What this knight will actually fire, resolved once at Start: the special
+    // chosen in the camp if they own one, otherwise the prefab's stock.
+    private SpecialDefinition _special;
+
     private int _currentSpecial;
     private int _currentSpecialStreak;
     private int _currentSpecialMultiplier = 1;
@@ -45,9 +50,24 @@ public class PlayerSpecial : MonoBehaviour
         specialBar.Initialize(maxSpecial);
         specialBar.SetValue(_currentSpecial);
 
-        rapidFire = GetComponent<RapidFire>();
-        healSpecial = GetComponent<HealSpecial>();
+        _special = Loadout.ResolveSpecial(Loadout.KnightIdFromTag(tag), ResolveStockSpecial());
         _specialBarFilledSfxPlayed = false;
+    }
+
+    /// <summary>
+    /// The prefab's own special. Falls back to sniffing which component the
+    /// knight carries so the two original knights keep working with no prefab
+    /// wiring at all — the serialized field is the tidy path, not a requirement.
+    /// </summary>
+    private SpecialDefinition ResolveStockSpecial()
+    {
+        if (defaultSpecial != null) return defaultSpecial;
+
+        var catalog = EquipmentCatalog.Instance;
+        if (catalog == null) return null;
+        if (GetComponent<RapidFire>() != null) return catalog.FindSpecial("rapid_fire");
+        if (GetComponent<HealSpecial>() != null) return catalog.FindSpecial("field_mending");
+        return null;
     }
 
     void Update()
@@ -60,23 +80,24 @@ public class PlayerSpecial : MonoBehaviour
         if (!specialBarFilled || specialAction == null)
             return;
 
-        if (specialAction.action.triggered)
-        {
-            if (gameObject.CompareTag("PlayerLeft"))
-            {
-                _currentSpecial = 0;
-                updateSpecial(0);
-                if (rapidFire != null)
-                    rapidFire.ActivateRapidFire("PlayerLeft");
-            }
-            else if (gameObject.CompareTag("PlayerRight"))
-            {
-                _currentSpecial = 0;
-                updateSpecial(0);
-                if (healSpecial != null)
-                    healSpecial.ActivateHeal("PlayerRight");
-            }
-        }
+        if (!specialAction.action.triggered) return;
+        // Carrying no special is a legitimate loadout — the bar fills and there
+        // is simply nothing to spend it on. Silent, not a warning.
+        if (_special == null) return;
+
+        // Spend and redraw the bar BEFORE anything freezes gain — updateSpecial
+        // returns early while frozen, so freezing first would leave the bar
+        // drawn full over an empty meter
+        _currentSpecial = 0;
+        updateSpecial(0);
+
+        if (_special.FreezeGainSeconds > 0f) FreezeSpecialGain(_special.FreezeGainSeconds);
+        _special.Activate(gameObject, tag);
+
+        // Benediction (Dawn): spending a special lifts the OTHER knight too,
+        // whatever the special was. Hooked here rather than inside each special
+        // so nothing added later can quietly escape the blessing.
+        GetComponent<DawnBoost>()?.PayBenediction(tag);
     }
 
     public void ResetSpecialStreak()

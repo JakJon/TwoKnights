@@ -14,6 +14,8 @@ using System.Collections;
 // shoots the knight on ITS side, so simultaneous volleys never converge on one shield.
 public class EnemyGiantSlime : EnemyBase
 {
+    public override EnemyFamily Family => EnemyFamily.Ooze;
+
     public enum Side { Left, Right }
 
     // The two volley patterns, alternated by GiantSlimeDuel

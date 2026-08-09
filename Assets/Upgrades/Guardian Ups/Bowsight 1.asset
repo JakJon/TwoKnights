@@ -13,11 +13,18 @@ MonoBehaviour:
   m_Name: Bowsight 1
   m_EditorClassIdentifier: 
   upgradeName: Bowsight I
-  description: A dashed line reads the arrow’s path.
-  weight: 34
+  description: A red beam reads your line of fire, and burns what it rests on.
+  weight: 16
   order: 0
   requiresOrderCount: 0
   unlockedBy: []
   lockedBy: []
-  stats: []
-  sightRange: 2.5
+  stats:
+  - valueText: 6
+    labelText: BEAM REACH
+    isPositive: 1
+  - valueText: 2
+    labelText: BEAM DPS
+    isPositive: 1
+  sightRange: 6
+  damagePerSecond: 2

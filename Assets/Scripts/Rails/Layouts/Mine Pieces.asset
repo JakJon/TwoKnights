@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95886da83a5ee174e8edfd858c5b64ae, type: 3}
+  m_Name: Mine Pieces
+  m_EditorClassIdentifier: 
+  pieces:
+  - kind: 0
+    prefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
+  - kind: 1
+    prefab: {fileID: 3690663560195199428, guid: 2be668d59ac25b748b1a0e0fed990ea6, type: 3}
+  - kind: 2
+    prefab: {fileID: 7156706671560927082, guid: c3cc53f2ac86559439b326fbb78c9f74, type: 3}
+  - kind: 3
+    prefab: {fileID: 8403667905752150530, guid: 3de57ce4264e23148a0fc12de23792f3, type: 3}
+  - kind: 4
+    prefab: {fileID: 253450576354077526, guid: aebefa47760765f41869a9e49d4949b7, type: 3}
+  - kind: 5
+    prefab: {fileID: 3161990899995750519, guid: 6ba731325ed60c342b29f517bb4d7850, type: 3}
+  dropFlagPrefab: {fileID: 5603194786694517436, guid: 8474164d5d5b7a04b8308264374746db, type: 3}

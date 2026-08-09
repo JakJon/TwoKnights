@@ -27,6 +27,8 @@ public class AudioManager : MonoBehaviour
     public SoundEffect leftMulti4;
     public SoundEffect multiFull;
     public SoundEffect healSpecial;
+    // One soft chime shared by every Dawn Order effect — see PlayerHealth.PlayBlessingChime
+    public SoundEffect dawnBlessing;
     public SoundEffect leftSpecial;
     public SoundEffect rightSpecial;
     public SoundEffect ratChase;
@@ -48,6 +50,13 @@ public class AudioManager : MonoBehaviour
     public SoundEffect phantomStrike;
     public SoundEffect executeFlash;
     public SoundEffect poisonBurst;
+
+    // A knight rotting, one tick a second for twenty-five seconds. Deliberately
+    // NOT the unified playerHurt: that sound is sized for a hit worth fifteen, and
+    // twenty-five of them in a row would read as the knight being beaten to death
+    // by something invisible. This one is a small wet bubble, and it is the only
+    // damage source in the game allowed its own voice — see KnightPoison.
+    public SoundEffect knightPoisonTick;
     public SoundEffect confusion;
     public SoundEffect batScreech;
     public SoundEffect batFlutter;
@@ -91,6 +100,7 @@ public class AudioManager : MonoBehaviour
     // private AudioSource _musicSource;
 
     private AudioSource _sfxSource;
+    private AudioSource _loopSource;
 
     void Awake()
     {
@@ -100,6 +110,13 @@ public class AudioManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
 
             _sfxSource = gameObject.AddComponent<AudioSource>();
+
+            // A second source for held sounds. PlayOneShot cannot loop, and faking
+            // one by re-firing a clip on the shared source both drifts and fights
+            // every other effect for that source.
+            _loopSource = gameObject.AddComponent<AudioSource>();
+            _loopSource.loop = true;
+            _loopSource.playOnAwake = false;
 
             // Uncomment for music setup
             // _musicSource = gameObject.AddComponent<AudioSource>();
@@ -119,6 +136,31 @@ public class AudioManager : MonoBehaviour
         {
             _sfxSource.PlayOneShot(soundEffect.clip, soundEffect.volume);
         }
+    }
+
+    // Held sounds — something is happening RIGHT NOW and the player should hear
+    // it for as long as it lasts. The clip comes from the caller rather than a
+    // field here on purpose: a prefab that owns the state can then own its sound
+    // too, and wiring it never has to touch a scene.
+    //
+    // Starting the loop it is already playing is a no-op, so several sources of
+    // the same state (three delivery carts on the track) share one voice instead
+    // of stacking into a drone.
+    public void PlayLoop(SoundEffect soundEffect)
+    {
+        if (_loopSource == null || soundEffect == null || soundEffect.clip == null) return;
+        if (_loopSource.isPlaying && _loopSource.clip == soundEffect.clip) return;
+
+        _loopSource.clip = soundEffect.clip;
+        _loopSource.volume = soundEffect.volume;
+        _loopSource.Play();
+    }
+
+    public void StopLoop()
+    {
+        if (_loopSource == null) return;
+        _loopSource.Stop();
+        _loopSource.clip = null;
     }
 
     public void StopSFX()

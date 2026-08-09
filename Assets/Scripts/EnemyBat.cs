@@ -3,6 +3,8 @@ using System.Collections;
 
 public class EnemyBat : EnemyBase
 {
+    public override EnemyFamily Family => EnemyFamily.Vermin;
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private int damage;

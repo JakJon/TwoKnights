@@ -21,7 +21,7 @@ The pieces (all paths relative to `Assets/Scripts/`):
 | `Spawner.cs` → `ApplyTestRunConfigIfPending()` | consumes config in `Start()` of the Main scene, after `BeginRun()`, before the first wave |
 | `Waves/WaveManager.cs` → `ApplyTestStart(int)` | sets `_completedWavesCount = startWave-1`; startWave **>** gateBossWaveNumber also marks the gate boss beaten this run (== spawns the boss) |
 | `UI/TestModePanel.cs` | the human-facing camp UI (collapsible chain list, budget display) |
-| `UI/CampMenuController.cs` | reveal combo: LT+RT+LB+RB or F9 on the camp menu, `static _testModeUnlocked` |
+| `UI/CampMenuController.cs` | reveal combo: LT+RT+LB+RB or F9 on the camp menu, `static _hiddenButtonsUnlocked` |
 | `UI/TestWavePicker.cs` + `Spawner.PickNextWaveThenStart()` | per-wave picker: during a test run, every wave start pauses and lists the scheduled boss + all playable pool waves (with real odds) to choose from |
 | `TestRunConfig.AutoPickWave` | static string that bypasses the picker UI (see below) |
 | `TestRunConfig.Map` | the map the run plays on; `MapSelection.Resolve()` honours it while the config is `Pending` (see below) |
@@ -150,9 +150,10 @@ static yourself: `TestRunConfig.Map = MapCatalog.Instance.Find("mine")`.
 
 Only when the panel/combo is what changed. The combo needs real input, but the
 unlock is just a static: via `execute_code` reflection, set
-`CampMenuController._testModeUnlocked = true` (private static, `BindingFlags.NonPublic |
+`CampMenuController._hiddenButtonsUnlocked = true` (private static, `BindingFlags.NonPublic |
 BindingFlags.Static`), reload the Camp scene in play mode, and the button registers
-itself; `TestModePanel` can then be shown with `GetComponent` + `Show()`. UI
+itself; `TestModePanel` can then be shown with `GetComponent` + `Show()`. The same
+static also reveals Reset All Data, which is hidden behind the identical combo. UI
 verification rules from wave-authoring apply (forced repaint before `resolvedStyle`,
 CodeDom needs `UQueryExtensions.Q(root, "name", (string)null)` statics).
 

@@ -46,24 +46,38 @@ public class ShieldShape : MonoBehaviour
     public float LengthMultiplier => _lengthMultiplier;
     public float CurveRadius => _curveRadius;
 
-    // Total angle of the orbit circle the shield spans, in degrees — the number the
-    // Curved Aegis cards quote. A straight bar covers nothing extra, so it reads 0.
+    // Straight-line reach from tip to tip, in shield-local units. This is the figure the
+    // upgrade buys and the one a player reads as "length" — it stays put when the shield
+    // bows, so curving is pure gain rather than a trade.
+    private float SpanUnits => BarLengthPixels / PixelsPerUnit * _lengthMultiplier;
+
+    // Total angle of the orbit circle the shield wraps, in degrees. A straight bar wraps
+    // nothing, so it reads 0.
     public float ArcDegrees => _curveRadius <= 0f
         ? 0f
-        : BarLengthPixels * _lengthMultiplier / PixelsPerUnit / _curveRadius * Mathf.Rad2Deg;
+        : ArcLengthForSpan(SpanUnits, _curveRadius) / _curveRadius * Mathf.Rad2Deg;
 
-    // Both setters are absolute, not incremental: an upgrade tier states the shape it
-    // wants, so re-applying or applying out of order can't compound.
-    public void SetLengthMultiplier(float multiplier)
+    // Absolute, not incremental: a tier states the shape it wants outright, so
+    // re-applying one can't compound.
+    public void SetShape(float lengthMultiplier, float curveRadius)
     {
-        _lengthMultiplier = Mathf.Max(0.1f, multiplier);
+        _lengthMultiplier = Mathf.Max(0.1f, lengthMultiplier);
+        _curveRadius = Mathf.Max(0f, curveRadius);
         Rebuild();
     }
 
-    public void SetCurveRadius(float radiusUnits)
+    // Bending a bar of fixed length drags its tips inward and costs span, so instead the
+    // arc is grown until the chord across it matches the span the tier paid for:
+    // chord = 2R*sin(L / 2R)  =>  L = 2R*asin(chord / 2R).
+    private static float ArcLengthForSpan(float span, float radius)
     {
-        _curveRadius = Mathf.Max(0f, radiusUnits);
-        Rebuild();
+        if (radius <= 0f) return span;
+
+        float sine = span / (2f * radius);
+        // A bow can't span more than its own diameter; past that it's a half-circle
+        if (sine >= 1f) return radius * Mathf.PI;
+
+        return 2f * radius * Mathf.Asin(sine);
     }
 
     private void EnsureInitialised()
@@ -93,11 +107,14 @@ public class ShieldShape : MonoBehaviour
     {
         EnsureInitialised();
 
-        float halfLengthPixels = BarLengthPixels * _lengthMultiplier * 0.5f;
+        // Everything downstream works in arc length; the span-preserving correction is
+        // applied once, here, so the sprite and the collider can't disagree about it.
+        float arcUnits = ArcLengthForSpan(SpanUnits, _curveRadius);
+        float halfLengthPixels = arcUnits * PixelsPerUnit * 0.5f;
         float radiusPixels = _curveRadius * PixelsPerUnit;
 
         RebuildSprite(halfLengthPixels, radiusPixels);
-        RebuildCollider(halfLengthPixels / PixelsPerUnit, _curveRadius);
+        RebuildCollider(_curveRadius);
     }
 
     // ---- Visual ----
@@ -237,9 +254,12 @@ public class ShieldShape : MonoBehaviour
 
     // ---- Collider ----
 
-    private void RebuildCollider(float halfLengthUnits, float radiusUnits)
+    private void RebuildCollider(float radiusUnits)
     {
-        float halfLength = halfLengthUnits * _colliderLengthRatio;
+        // Solve the collider's arc from the collider's own span target rather than
+        // scaling the visual arc: stretching an arc length does not stretch the chord it
+        // spans by the same factor, which would quietly leave the hitbox short.
+        float halfLength = ArcLengthForSpan(SpanUnits * _colliderLengthRatio, radiusUnits) * 0.5f;
         float halfThickness = _colliderHalfThickness;
 
         if (_polygon == null)

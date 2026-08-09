@@ -149,6 +149,8 @@ public class PoisonCloud : MonoBehaviour
         }
     }
 
+    private bool _recordedFour;
+
     private void PoisonEnemiesInside()
     {
         if (emissionStopped) return;
@@ -158,6 +160,14 @@ public class PoisonCloud : MonoBehaviour
             if (enemy == null || enemy.IsDead || alreadyPoisoned.Contains(enemy)) continue;
             alreadyPoisoned.Add(enemy);
             enemy.ApplyPoisonFromTag(CloudPoisonDamage, CloudPoisonDuration, 1f, ownerTag);
+
+            // Four caught by ONE cloud — the Serpent quest asks for a good placement,
+            // not a lifetime total, so it counts per cloud and only once
+            if (alreadyPoisoned.Count >= 4 && !_recordedFour)
+            {
+                _recordedFour = true;
+                Feats.Record(Feats.PoisonCloudFour);
+            }
         }
     }
 

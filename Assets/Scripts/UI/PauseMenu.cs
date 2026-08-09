@@ -17,15 +17,29 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] private string campSceneName = "Camp";
 
     private VisualElement _root;
+    private VisualElement _pausePanel;
     private VisualElement _mainActions;
     private VisualElement _confirmActions;
     private VisualElement _loadoutLeftList;
     private VisualElement _loadoutRightList;
     private Label _waveLabel;
     private Button _resumeButton;
+    private Button _questsButton;
+    private Button _equipmentButton;
     private Button _quitButton;
     private Button _confirmYesButton;
     private Button _confirmNoButton;
+
+    // The camp's quest log and equipment sheet, instanced into this document
+    // from the same UXML templates. Added in code so the scene needs no
+    // rewiring — the panels find their elements through this GameObject's
+    // UIDocument, and both poll their own input off unscaled time, which is
+    // what lets them work with the game frozen.
+    private QuestPanel _questPanel;
+    private EquipmentPanel _equipmentPanel;
+
+    // The button to hand focus back to when a sub-panel closes
+    private Button _returnFocus;
 
     private bool _isPaused;
     private bool _confirmingQuit;
@@ -41,17 +55,27 @@ public class PauseMenu : MonoBehaviour
         {
             uiDocument = GetComponent<UIDocument>();
         }
+
+        _questPanel = GetComponent<QuestPanel>();
+        if (_questPanel == null) _questPanel = gameObject.AddComponent<QuestPanel>();
+        _equipmentPanel = GetComponent<EquipmentPanel>();
+        if (_equipmentPanel == null) _equipmentPanel = gameObject.AddComponent<EquipmentPanel>();
+        _equipmentPanel.ReadOnly = true;
     }
 
     private void OnEnable()
     {
         SetupUI();
         RegisterInput(togglePauseAction, OnTogglePause, true);
+        if (_questPanel != null) _questPanel.OnCloseRequested += HandleSubPanelClosed;
+        if (_equipmentPanel != null) _equipmentPanel.OnCloseRequested += HandleSubPanelClosed;
     }
 
     private void OnDisable()
     {
         RegisterInput(togglePauseAction, OnTogglePause, false);
+        if (_questPanel != null) _questPanel.OnCloseRequested -= HandleSubPanelClosed;
+        if (_equipmentPanel != null) _equipmentPanel.OnCloseRequested -= HandleSubPanelClosed;
         ResumeGameInternal(resetInput: false);
     }
 
@@ -75,12 +99,15 @@ public class PauseMenu : MonoBehaviour
             _root.styleSheets.Add(styleSheet);
         }
 
+        _pausePanel = _root.Q<VisualElement>("pause-panel");
         _mainActions = _root.Q<VisualElement>("main-actions");
         _confirmActions = _root.Q<VisualElement>("confirm-actions");
         _loadoutLeftList = _root.Q<VisualElement>("loadout-left-list");
         _loadoutRightList = _root.Q<VisualElement>("loadout-right-list");
         _waveLabel = _root.Q<Label>("pause-wave");
         _resumeButton = _root.Q<Button>("resume-button");
+        _questsButton = _root.Q<Button>("pause-quests-button");
+        _equipmentButton = _root.Q<Button>("pause-equipment-button");
         _quitButton = _root.Q<Button>("quit-button");
         _confirmYesButton = _root.Q<Button>("confirm-yes");
         _confirmNoButton = _root.Q<Button>("confirm-no");
@@ -88,6 +115,16 @@ public class PauseMenu : MonoBehaviour
         if (_resumeButton != null)
         {
             _resumeButton.clicked += OnResumeClicked;
+        }
+
+        if (_questsButton != null)
+        {
+            _questsButton.clicked += OnQuestsClicked;
+        }
+
+        if (_equipmentButton != null)
+        {
+            _equipmentButton.clicked += OnEquipmentClicked;
         }
 
         if (_quitButton != null)
@@ -130,7 +167,14 @@ public class PauseMenu : MonoBehaviour
 
     private void OnTogglePause(InputAction.CallbackContext context)
     {
-        if (!IsInMainScene() || DeathScreen.IsVisible || QuestCompletePanel.IsVisible)
+        if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible)
+        {
+            return;
+        }
+
+        // A sub-panel owns the screen: B backs out of it, and unpausing straight
+        // into the game from underneath the quest log would strand it open
+        if (SubPanelOpen)
         {
             return;
         }
@@ -152,7 +196,7 @@ public class PauseMenu : MonoBehaviour
             return;
         }
 
-        if (!IsInMainScene() || DeathScreen.IsVisible || QuestCompletePanel.IsVisible)
+        if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible)
         {
             return;
         }
@@ -170,6 +214,7 @@ public class PauseMenu : MonoBehaviour
         UpdateWaveLabel();
         UpdateLoadout();
         HideConfirmPrompt();
+        CloseSubPanels();
         ShowMenu();
         FocusResumeButton();
     }
@@ -208,7 +253,54 @@ public class PauseMenu : MonoBehaviour
         }
 
         HideConfirmPrompt();
+        CloseSubPanels();
         HideMenu();
+    }
+
+    // ---------- sub-panels ----------
+
+    private bool SubPanelOpen =>
+        (_questPanel != null && _questPanel.IsVisible) ||
+        (_equipmentPanel != null && _equipmentPanel.IsVisible);
+
+    private void OnQuestsClicked()
+    {
+        if (!_isPaused || _questPanel == null) return;
+        _returnFocus = _questsButton;
+        SetPausePanelVisible(false);
+        _questPanel.Show();
+    }
+
+    private void OnEquipmentClicked()
+    {
+        if (!_isPaused || _equipmentPanel == null) return;
+        _returnFocus = _equipmentButton;
+        SetPausePanelVisible(false);
+        _equipmentPanel.Show();
+    }
+
+    private void HandleSubPanelClosed()
+    {
+        SetPausePanelVisible(true);
+        if (_returnFocus != null) _returnFocus.Focus();
+        else FocusResumeButton();
+    }
+
+    private void CloseSubPanels()
+    {
+        if (_questPanel != null) _questPanel.Hide();
+        if (_equipmentPanel != null) _equipmentPanel.Hide();
+        _returnFocus = null;
+        SetPausePanelVisible(true);
+    }
+
+    // Hiding the card outright, rather than just drawing over it: a displayed
+    // button is still focusable, and the focus ring would keep walking through
+    // RESUME and QUIT behind the open panel.
+    private void SetPausePanelVisible(bool visible)
+    {
+        if (_pausePanel == null) return;
+        _pausePanel.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     private void PauseForQuitConfirm()
@@ -385,6 +477,7 @@ public class PauseMenu : MonoBehaviour
     private void OnConfirmYesClicked()
     {
         HideConfirmPrompt();
+        CloseSubPanels();
         HideMenu();
         Time.timeScale = 1f;
         SetPausedState(false);
@@ -406,6 +499,14 @@ public class PauseMenu : MonoBehaviour
         if (_resumeButton != null)
         {
             _resumeButton.clicked -= OnResumeClicked;
+        }
+        if (_questsButton != null)
+        {
+            _questsButton.clicked -= OnQuestsClicked;
+        }
+        if (_equipmentButton != null)
+        {
+            _equipmentButton.clicked -= OnEquipmentClicked;
         }
         if (_quitButton != null)
         {

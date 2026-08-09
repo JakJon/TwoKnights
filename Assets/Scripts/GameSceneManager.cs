@@ -77,6 +77,10 @@ public class GameSceneManager : MonoBehaviour
             }
         }
 
+        // Commit anything counted since the last wave boundary — the run is over
+        // and the camp is about to read these back
+        PlayerStats.Flush();
+
         HideUpgradeMenuIfNeeded();
 
         StartCoroutine(HandlePlayerDeath(knightName, causeOfDeath, waveReached, waveName));
@@ -95,11 +99,21 @@ public class GameSceneManager : MonoBehaviour
 
         isTransitioningToCamp = true;
 
+        // Freeze the backdrop on the stage the run was actually played in. The
+        // boss kill already advanced CurrentWaveNumber past the gate, so without
+        // this the NEXT stage's backdrop (forest -> deep forest) would fade up
+        // behind the victory banner — spoiling, on the very run that earned it,
+        // the reveal that belongs to the first run brave enough to go deeper.
+        BackgroundController.Instance?.Hold();
+
         if (!IsTestRun())
         {
             SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, wavesCompleted);
             SaveManager.Save();
         }
+
+        // The boss kill that ended the run is counted but not yet on disk
+        PlayerStats.Flush();
 
         GoldManager.Instance?.AddGold(trueVictory ? trueVictoryGold : gateVictoryGold);
 

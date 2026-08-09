@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 631c5ca0bb0d7dc4e82c290d8156faa4, type: 3}
+  m_Name: Choo Choo 2
+  m_EditorClassIdentifier:
+  waveName: Choo Choo 2
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Both throwers on the loop from the first shift, and no keg to
+    open it with.
+  unlockedAfterXWaves: 4
+  lockedAfterXWaves: 11
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: e1c92390a0694a84b96021c10a38891f, type: 2}
+  entryRun: 0
+  ambushes:
+  - label: first shift
+    carts:
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    leadIn: 0.75
+    releaseInterval: 1.5
+    projectileInterval: 5
+  - label: second shift
+    carts:
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    leadIn: 1.2
+    releaseInterval: 1.5
+    projectileInterval: 4.5
+  - label: last shift
+    carts:
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    leadIn: 1.2
+    releaseInterval: 1.4
+    projectileInterval: 4
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 10
+    interval: 12
+    from: {x: -12, y: -1.5}
+    to: {x: 12, y: -1.5}

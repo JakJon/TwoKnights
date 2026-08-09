@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01ae97c2f984c50f2508057b43996e79, type: 3}
+  m_Name: Echo Ribbon
+  m_EditorClassIdentifier: 
+  id: echo_ribbon
+  displayName: Echo Ribbon
+  description: Swing once, and let the dark swing after you.
+  effect: +1 sword echo.
+  icon: {fileID: -7741166004248513158, guid: 0a7bf5445cd54864eb99118861c8492f, type: 3}
+  crystalCost: 0
+  stats:
+  - valueText: +1
+    labelText: SWORD ECHO
+    isPositive: 1
+  maxHealthBonus: 0
+  fireCooldownMultiplier: 1
+  grantsHeadStart: 0
+  favouredOrder: 0
+  favouredOrderMultiplier: 1
+  poisonTickBonus: 0
+  startingPoisonChance: 0
+  poisonDeathSpecial: 0
+  igniteDpsBonus: 0
+  startingIgniteChance: 0
+  fireTrailDurationBonus: 0
+  shadowArrowDamageBonus: 0
+  phantomEchoBonus: 1
+  startingShadowArrows: 0
+  shadowArrowPrefab: {fileID: 0}
+  confusionDurationMultiplier: 1

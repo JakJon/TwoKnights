@@ -34,6 +34,18 @@ public class UpgradeManager : ScriptableObject
     private readonly List<BaseUpgrade> _leftApplied = new List<BaseUpgrade>();
     private readonly List<BaseUpgrade> _rightApplied = new List<BaseUpgrade>();
     
+    /// <summary>
+    /// Whose turn the draft pool is currently built for. The upgrade MENU tracks
+    /// the apply target separately (from wave parity), so anything that forces
+    /// one must force the other or the player drafts from the wrong knight's pool.
+    /// </summary>
+    public KnightTarget NextTarget => _nextTarget;
+
+    public void SetNextTarget(KnightTarget target)
+    {
+        _nextTarget = target;
+    }
+
     // Get a random selection of available upgrades for the next knight in turn
     public List<BaseUpgrade> GetRandomUpgrades()
     {
@@ -41,14 +53,23 @@ public class UpgradeManager : ScriptableObject
         var availableUpgrades = GetAvailableUpgradesFor(target).ToList();
         Debug.Log($"Available upgrades for {target}: {string.Join(", ", availableUpgrades.Select(u => u))}");
 
-        return SelectWeightedDistinct(availableUpgrades, upgradesPerSelection, OwnedSetFor(target));
+        return SelectWeightedDistinct(availableUpgrades, upgradesPerSelection, OwnedSetFor(target), BoostFor(target));
     }
 
     // Get a random selection of available upgrades for a specific knight (does not change turn)
     public List<BaseUpgrade> GetRandomUpgradesFor(KnightTarget targetKnight)
     {
         var available = GetAvailableUpgradesFor(targetKnight).ToList();
-        return SelectWeightedDistinct(available, upgradesPerSelection, OwnedSetFor(targetKnight));
+        return SelectWeightedDistinct(available, upgradesPerSelection, OwnedSetFor(targetKnight), BoostFor(targetKnight));
+    }
+
+    // Equipment can bend which Order a knight is offered. Resolved per draft
+    // rather than cached, because the knight only exists inside a run and this
+    // ScriptableObject outlives it.
+    private static EquipmentBoost BoostFor(KnightTarget targetKnight)
+    {
+        var knight = GameObject.FindWithTag(targetKnight == KnightTarget.LeftKnight ? "PlayerLeft" : "PlayerRight");
+        return knight != null ? knight.GetComponent<EquipmentBoost>() : null;
     }
 
     private HashSet<BaseUpgrade> OwnedSetFor(KnightTarget targetKnight)
@@ -62,17 +83,22 @@ public class UpgradeManager : ScriptableObject
     }
 
     // Base weight bent by the knight's Order affinity; Neutral stays flat
-    private float EffectiveWeight(BaseUpgrade upgrade, HashSet<BaseUpgrade> owned)
+    private float EffectiveWeight(BaseUpgrade upgrade, HashSet<BaseUpgrade> owned, EquipmentBoost boost)
     {
         if (upgrade.Order == UpgradeOrder.Neutral)
             return upgrade.Weight;
-        return upgrade.Weight * (1f + AffinityPerPick * CountOwnedInOrder(owned, upgrade.Order));
+
+        float weight = upgrade.Weight * (1f + AffinityPerPick * CountOwnedInOrder(owned, upgrade.Order));
+        // Equipment that promises an Order shows up more often stacks on top of
+        // the knight's earned affinity rather than replacing it
+        if (boost != null) weight *= boost.OrderDraftMultiplier(upgrade.Order);
+        return weight;
     }
 
-    private BaseUpgrade GetWeightedRandomUpgrade(List<BaseUpgrade> upgrades, HashSet<BaseUpgrade> owned)
+    private BaseUpgrade GetWeightedRandomUpgrade(List<BaseUpgrade> upgrades, HashSet<BaseUpgrade> owned, EquipmentBoost boost)
     {
         // Calculate total effective weight for all available upgrades
-        float totalWeight = upgrades.Sum(u => EffectiveWeight(u, owned));
+        float totalWeight = upgrades.Sum(u => EffectiveWeight(u, owned, boost));
 
         // Random selection based on weights (similar to WaveManager)
         float randomValue = Random.Range(0f, totalWeight);
@@ -80,7 +106,7 @@ public class UpgradeManager : ScriptableObject
 
         foreach (var upgrade in upgrades)
         {
-            currentWeight += EffectiveWeight(upgrade, owned);
+            currentWeight += EffectiveWeight(upgrade, owned, boost);
             if (randomValue <= currentWeight)
             {
                 return upgrade;
@@ -91,7 +117,7 @@ public class UpgradeManager : ScriptableObject
         return upgrades.LastOrDefault();
     }
 
-    private List<BaseUpgrade> SelectWeightedDistinct(List<BaseUpgrade> pool, int count, HashSet<BaseUpgrade> owned)
+    private List<BaseUpgrade> SelectWeightedDistinct(List<BaseUpgrade> pool, int count, HashSet<BaseUpgrade> owned, EquipmentBoost boost)
     {
         // Always enforce per-category uniqueness; if not enough unique categories exist, return fewer than count.
         var selected = new List<BaseUpgrade>();
@@ -121,7 +147,7 @@ public class UpgradeManager : ScriptableObject
                 filtered = underCap;
             }
 
-            var pick = GetWeightedRandomUpgrade(filtered, owned);
+            var pick = GetWeightedRandomUpgrade(filtered, owned, boost);
             selected.Add(pick);
             usedTypes.Add(pick.GetType());
             orderCounts.TryGetValue(pick.Order, out int soFar);
@@ -188,9 +214,32 @@ public class UpgradeManager : ScriptableObject
                 _rightOwned.Add(upgrade);
             }
 
+            // Quests gate on what the player has actually practised — both the
+            // exact pick ("take Shuriken Fan II") and the Order tally ("take six
+            // Shadow upgrades"). Cumulative across runs, never reset.
+            PlayerStats.Increment($"upgrades.taken.{StatSlug(upgrade.name)}");
+            PlayerStats.Increment($"upgrades.order.{upgrade.Order.ToString().ToLowerInvariant()}");
+
             // Flip turn to the other knight for next selection
             _nextTarget = targetKnight == KnightTarget.LeftKnight ? KnightTarget.RightKnight : KnightTarget.LeftKnight;
         }
+    }
+
+    // Asset name to stat key fragment: "Shuriken Fan 1" -> "shuriken_fan_1",
+    // "Serpents Breath 2" -> "serpents_breath_2". Keyed off the ASSET name
+    // rather than upgradeName because the asset name is the stable id (display
+    // names get retitled, and they carry roman numerals and apostrophes).
+    private static string StatSlug(string assetName)
+    {
+        if (string.IsNullOrEmpty(assetName)) return "unknown";
+        var sb = new System.Text.StringBuilder(assetName.Length);
+        foreach (char c in assetName)
+        {
+            if (char.IsLetterOrDigit(c)) sb.Append(char.ToLowerInvariant(c));
+            else if (c == ' ' || c == '-' || c == '_') sb.Append('_');
+            // apostrophes and anything else are dropped
+        }
+        return sb.ToString();
     }
 
     // One display row per owned chain for a knight: the highest tier's name and Order.

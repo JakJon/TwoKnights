@@ -15,6 +15,8 @@ public class CampMenuController : MonoBehaviour
     [Header("Button Names")]
     [SerializeField] private string returnButtonName = "return-button";
     [SerializeField] private string questsButtonName = "quests-button";
+    [SerializeField] private string equipmentButtonName = "equipment-button";
+    [SerializeField] private string shopButtonName = "shop-button";
     [SerializeField] private string statsButtonName = "stats-button";
     [SerializeField] private string resetButtonName = "reset-button";
     [SerializeField] private string exitButtonName = "exit-button";
@@ -26,6 +28,9 @@ public class CampMenuController : MonoBehaviour
     [SerializeField] private QuestPanel questPanel;
     [SerializeField] private StatsPanel statsPanel;
     [SerializeField] private MapSelectPanel mapSelectPanel;
+    [SerializeField] private EquipmentPanel equipmentPanel;
+    [SerializeField] private ShopPanel shopPanel;
+    [SerializeField] private FileSelectPanel fileSelectPanel;
     [SerializeField] private string menuContainerName = "menu-container";
 
     [Header("Input Actions")]
@@ -43,10 +48,20 @@ public class CampMenuController : MonoBehaviour
     private VisualElement _root;
     private VisualElement _menuContainer;
     private Label _goldLine;
-    private Label _honorLine;
-    private Label _rankLine;
+    // A count+icon row, not a Label — see CrystalText
+    private VisualElement _crystalLine;
     private Label _waveLine;
     private Label _questsLine;
+    // Every notification dot in the camp: dot + halo, pulsed together
+    private readonly List<(VisualElement dot, VisualElement glow)> _badges = new();
+    private VisualElement _questsBadge;
+    private VisualElement _questsBadgeGlow;
+    private VisualElement _shopBadge;
+    private VisualElement _shopBadgeGlow;
+    private VisualElement _equipmentBadge;
+    private VisualElement _equipmentBadgeGlow;
+    private Button _shopButton;
+    private IVisualElementScheduledItem _badgePulse;
     private readonly List<Button> _menuButtons = new();
     private readonly List<Action> _buttonHandlers = new();
     private readonly List<Action> _clickedWrappers = new();
@@ -61,10 +76,11 @@ public class CampMenuController : MonoBehaviour
     private const string RESET_CONFIRM_LABEL = "Confirm Wipe?";
     // Present in the UXML for all builds; only dev builds ever reveal it
     private const string TEST_BUTTON_NAME = "test-button";
+    // Combo entered once = the hidden buttons stay revealed for the whole session
+    private static bool _hiddenButtonsUnlocked;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private TestModePanel testModePanel;
-    private static bool _testModeUnlocked; // combo entered once = unlocked for the whole session
 #endif
 
     private void Awake()
@@ -74,6 +90,13 @@ public class CampMenuController : MonoBehaviour
         if (statsPanel == null) statsPanel = GetComponent<StatsPanel>();
         if (mapSelectPanel == null) mapSelectPanel = GetComponent<MapSelectPanel>();
         if (mapSelectPanel == null) mapSelectPanel = gameObject.AddComponent<MapSelectPanel>();
+        // Added in code, like MapSelectPanel, so the camp scene needs no rewiring
+        if (equipmentPanel == null) equipmentPanel = GetComponent<EquipmentPanel>();
+        if (equipmentPanel == null) equipmentPanel = gameObject.AddComponent<EquipmentPanel>();
+        if (shopPanel == null) shopPanel = GetComponent<ShopPanel>();
+        if (shopPanel == null) shopPanel = gameObject.AddComponent<ShopPanel>();
+        if (fileSelectPanel == null) fileSelectPanel = GetComponent<FileSelectPanel>();
+        if (fileSelectPanel == null) fileSelectPanel = gameObject.AddComponent<FileSelectPanel>();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         // Added in code so the scene needs no extra wiring
         testModePanel = GetComponent<TestModePanel>();
@@ -104,14 +127,27 @@ public class CampMenuController : MonoBehaviour
             mapSelectPanel.OnCloseRequested += HandleSubPanelClosed;
             mapSelectPanel.OnMapChosen += HandleMapChosen;
         }
+        if (equipmentPanel != null) equipmentPanel.OnCloseRequested += HandleSubPanelClosed;
+        if (shopPanel != null) shopPanel.OnCloseRequested += HandleSubPanelClosed;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (testModePanel != null) testModePanel.OnCloseRequested += HandleSubPanelClosed;
 #endif
         GoldManager.OnGoldChanged += HandleGoldChanged;
-        KnightRankManager.OnHonorChanged += HandleHonorChanged;
-        KnightRankManager.OnRankChanged += HandleRankChanged;
+        CrystalBank.OnCrystalsChanged += HandleCrystalsChanged;
         QuestProgress.OnQuestCompleted += HandleQuestCompleted;
+        QuestProgress.OnQuestUnlocked += HandleQuestCompleted;
+        if (fileSelectPanel != null) fileSelectPanel.OnCloseRequested += HandleSubPanelClosed;
         RefreshStatusLines();
+        ShowFileSelectIfNeeded();
+    }
+
+    // The first camp of a session opens on the file select instead of the menu.
+    // Returning here from a run does not — the file is already chosen by then.
+    private void ShowFileSelectIfNeeded()
+    {
+        if (fileSelectPanel == null || !FileSelectPanel.ShouldShowAtBoot) return;
+        SetMenuContainerVisible(false);
+        fileSelectPanel.Show();
     }
 
     private void OnDisable()
@@ -128,21 +164,22 @@ public class CampMenuController : MonoBehaviour
             mapSelectPanel.OnCloseRequested -= HandleSubPanelClosed;
             mapSelectPanel.OnMapChosen -= HandleMapChosen;
         }
+        if (equipmentPanel != null) equipmentPanel.OnCloseRequested -= HandleSubPanelClosed;
+        if (shopPanel != null) shopPanel.OnCloseRequested -= HandleSubPanelClosed;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (testModePanel != null) testModePanel.OnCloseRequested -= HandleSubPanelClosed;
 #endif
         GoldManager.OnGoldChanged -= HandleGoldChanged;
-        KnightRankManager.OnHonorChanged -= HandleHonorChanged;
-        KnightRankManager.OnRankChanged -= HandleRankChanged;
+        CrystalBank.OnCrystalsChanged -= HandleCrystalsChanged;
         QuestProgress.OnQuestCompleted -= HandleQuestCompleted;
+        QuestProgress.OnQuestUnlocked -= HandleQuestCompleted;
+        if (fileSelectPanel != null) fileSelectPanel.OnCloseRequested -= HandleSubPanelClosed;
     }
 
     private void Update()
     {
         HandleFallbackInput();
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        CheckTestModeCombo();
-#endif
+        CheckHiddenButtonCombo();
     }
 
     private void RegisterCallbacks()
@@ -177,27 +214,65 @@ public class CampMenuController : MonoBehaviour
 
         _menuContainer = _root.Q<VisualElement>(menuContainerName);
         _goldLine = _root.Q<Label>("gold-line");
-        _honorLine = _root.Q<Label>("honor-line");
-        _rankLine = _root.Q<Label>("rank-line");
+        _crystalLine = _root.Q<VisualElement>("crystal-line");
         _waveLine = _root.Q<Label>("wave-line");
         _questsLine = _root.Q<Label>("quests-line");
+        _questsBadge = _root.Q<VisualElement>("quests-badge");
+        _questsBadgeGlow = _root.Q<VisualElement>("quests-badge-glow");
+        _shopBadge = _root.Q<VisualElement>("shop-badge");
+        _shopBadgeGlow = _root.Q<VisualElement>("shop-badge-glow");
+        _equipmentBadge = _root.Q<VisualElement>("equipment-badge");
+        _equipmentBadgeGlow = _root.Q<VisualElement>("equipment-badge-glow");
+        _badges.Clear();
+        _badges.Add((_questsBadge, _questsBadgeGlow));
+        _badges.Add((_shopBadge, _shopBadgeGlow));
+        _badges.Add((_equipmentBadge, _equipmentBadgeGlow));
+        StartBadgePulse();
         _menuButtons.Clear();
         _buttonHandlers.Clear();
         _clickedWrappers.Clear();
+        _resetButton = null;
+        _resetArmed = false;
 
         foreach (var button in _root.Query<Button>(className: "menu-button").ToList())
         {
-            // Test Mode button: hidden and unnavigable until the dev combo
-            // unlocks it; release builds never register it at all
+            // Test Mode button: hidden and unnavigable until the combo unlocks
+            // it; release builds never register it at all
             if (button.name == TEST_BUTTON_NAME)
             {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                if (_testModeUnlocked)
+                if (_hiddenButtonsUnlocked)
                 {
                     button.style.display = DisplayStyle.Flex;
                     RegisterMenuButton(button, HandleTestModeClicked);
                 }
 #endif
+                continue;
+            }
+
+            // Reset All Data gets the same treatment: a single confirm away
+            // from wiping the save is too much to leave sitting in the menu, so
+            // it only exists once the combo has been entered.
+            if (button.name == resetButtonName)
+            {
+                if (_hiddenButtonsUnlocked)
+                {
+                    button.style.display = DisplayStyle.Flex;
+                    _resetButton = button;
+                    RegisterMenuButton(button, HandleResetClicked);
+                }
+                continue;
+            }
+
+            // Stats rides the same combo: a debug-flavoured readout that
+            // shouldn't clutter the main camp list.
+            if (button.name == statsButtonName)
+            {
+                if (_hiddenButtonsUnlocked)
+                {
+                    button.style.display = DisplayStyle.Flex;
+                    RegisterMenuButton(button, HandleStatsClicked);
+                }
                 continue;
             }
 
@@ -211,12 +286,12 @@ public class CampMenuController : MonoBehaviour
                 case var name when name == questsButtonName:
                     handler = HandleQuestsClicked;
                     break;
-                case var name when name == statsButtonName:
-                    handler = HandleStatsClicked;
+                case var name when name == equipmentButtonName:
+                    handler = HandleEquipmentClicked;
                     break;
-                case var name when name == resetButtonName:
-                    handler = HandleResetClicked;
-                    _resetButton = button;
+                case var name when name == shopButtonName:
+                    handler = HandleShopClicked;
+                    _shopButton = button;
                     break;
                 case var name when name == exitButtonName:
                     handler = HandleExitClicked;
@@ -308,14 +383,9 @@ public class CampMenuController : MonoBehaviour
     {
         if (!CanProcessInput()) return;
         if (PanelPollsOwnInput()) return;
-        if (questPanel != null && questPanel.IsVisible)
-        {
-            questPanel.NavigateUp();
-            _lastInputTime = Time.unscaledTime;
-            return;
-        }
         if (statsPanel != null && statsPanel.IsVisible)
         {
+            statsPanel.ScrollUp();
             _lastInputTime = Time.unscaledTime;
             return;
         }
@@ -326,14 +396,9 @@ public class CampMenuController : MonoBehaviour
     {
         if (!CanProcessInput()) return;
         if (PanelPollsOwnInput()) return;
-        if (questPanel != null && questPanel.IsVisible)
-        {
-            questPanel.NavigateDown();
-            _lastInputTime = Time.unscaledTime;
-            return;
-        }
         if (statsPanel != null && statsPanel.IsVisible)
         {
+            statsPanel.ScrollDown();
             _lastInputTime = Time.unscaledTime;
             return;
         }
@@ -344,12 +409,6 @@ public class CampMenuController : MonoBehaviour
     {
         if (!CanProcessInput()) return;
         if (PanelPollsOwnInput()) return;
-        if (questPanel != null && questPanel.IsVisible)
-        {
-            questPanel.Confirm();
-            _lastInputTime = Time.unscaledTime;
-            return;
-        }
         if (statsPanel != null && statsPanel.IsVisible)
         {
             statsPanel.Confirm();
@@ -373,7 +432,15 @@ public class CampMenuController : MonoBehaviour
     // must go quiet while either is open or both would react to the same press
     private bool PanelPollsOwnInput()
     {
+        // The file select is up before anything else and owns up/down/confirm
+        if (fileSelectPanel != null && fileSelectPanel.IsVisible) return true;
         if (mapSelectPanel != null && mapSelectPanel.IsVisible) return true;
+        // Every panel that needs left/right owns its own input: equipment to
+        // switch knights, the quest log to step through reward squares, the shop
+        // to change tabs. Only Stats still rides the camp's action set.
+        if (equipmentPanel != null && equipmentPanel.IsVisible) return true;
+        if (questPanel != null && questPanel.IsVisible) return true;
+        if (shopPanel != null && shopPanel.IsVisible) return true;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         return testModePanel != null && testModePanel.IsVisible;
 #else
@@ -387,29 +454,27 @@ public class CampMenuController : MonoBehaviour
         if (PanelPollsOwnInput()) return;
 
         bool usedInput = false;
-        bool questPanelOpen = questPanel != null && questPanel.IsVisible;
         bool statsPanelOpen = statsPanel != null && statsPanel.IsVisible;
 
         if (navigateUpAction == null && navigateDownAction == null)
         {
             if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             {
-                if (questPanelOpen) questPanel.NavigateUp();
-                else if (!statsPanelOpen) Navigate(-1);
+                if (statsPanelOpen) statsPanel.ScrollUp();
+                else Navigate(-1);
                 usedInput = true;
             }
             else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             {
-                if (questPanelOpen) questPanel.NavigateDown();
-                else if (!statsPanelOpen) Navigate(1);
+                if (statsPanelOpen) statsPanel.ScrollDown();
+                else Navigate(1);
                 usedInput = true;
             }
         }
 
         if (!usedInput && confirmAction == null && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Submit")))
         {
-            if (questPanelOpen) questPanel.Confirm();
-            else if (statsPanelOpen) statsPanel.Confirm();
+            if (statsPanelOpen) statsPanel.Confirm();
             else ActivateCurrentButton();
             usedInput = true;
         }
@@ -426,11 +491,38 @@ public class CampMenuController : MonoBehaviour
         }
     }
 
+    // A button the player cannot see must not be steppable, or the highlight
+    // vanishes on a hidden row and Confirm opens something that isn't there. The
+    // Shop is hidden before the first crystal, so this is a live case, not theory.
+    private bool IsNavigable(int index)
+    {
+        if (index < 0 || index >= _menuButtons.Count) return false;
+        var button = _menuButtons[index];
+        if (button == null) return false;
+        // Inline display is what this controller and the UXML actually set, and it
+        // is true the instant it is assigned — resolvedStyle only catches up at the
+        // next style resolution, which is too late when visibility changed this frame.
+        var inline = button.style.display;
+        if (inline.keyword == StyleKeyword.Null || inline.keyword == StyleKeyword.Undefined)
+        {
+            return button.resolvedStyle.display != DisplayStyle.None;
+        }
+        return inline.value != DisplayStyle.None;
+    }
+
     private void Navigate(int direction)
     {
         if (_menuButtons.Count == 0) return;
 
-        _currentIndex = (_currentIndex + direction + _menuButtons.Count) % _menuButtons.Count;
+        int next = _currentIndex;
+        for (int step = 0; step < _menuButtons.Count; step++)
+        {
+            next = (next + direction + _menuButtons.Count) % _menuButtons.Count;
+            if (IsNavigable(next)) break;
+        }
+        if (!IsNavigable(next)) return;   // nothing visible to move to
+
+        _currentIndex = next;
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiMove);
         SetSelectedIndex(_currentIndex);
         _lastInputTime = Time.unscaledTime;
@@ -481,8 +573,7 @@ public class CampMenuController : MonoBehaviour
     private void RefreshStatusLines()
     {
         HandleGoldChanged(GoldManager.Instance != null ? GoldManager.Instance.Gold : SaveManager.Data.gold);
-        HandleHonorChanged(KnightRankManager.Instance != null ? KnightRankManager.Instance.HonorPoints : SaveManager.Data.honorPoints);
-        HandleRankChanged(KnightRankManager.Instance != null ? KnightRankManager.Instance.KnightRank : SaveManager.Data.knightRank);
+        HandleCrystalsChanged(CrystalBank.Balance);
 
         if (_waveLine != null)
         {
@@ -491,10 +582,78 @@ public class CampMenuController : MonoBehaviour
 
         if (_questsLine != null)
         {
-            var quests = QuestDatabase.All;
-            int completed = quests.Count(q => QuestProgress.IsCompleted(q.Id));
-            _questsLine.text = $"Quests: {completed} / {quests.Count}";
+            // Counts only what the player can SEE. The full total would leak how
+            // much undiscovered content is behind the Order gates.
+            var visible = QuestProgress.Visible.ToList();
+            int completed = visible.Count(q => QuestProgress.IsCompleted(q.Id));
+            _questsLine.text = $"Quests: {completed} / {visible.Count}";
         }
+
+        RefreshShopVisibility();
+        RefreshBadges();
+    }
+
+    // The shop is hidden outright until the first crystal is earned — a price list
+    // is noise to someone with no way to pay. Re-checked on every status refresh
+    // because a quest turned in from the log can pay out while the camp is open.
+    private void RefreshShopVisibility()
+    {
+        if (_shopButton == null) return;
+
+        // Only ever hidden -> shown: the unlock is latched, so the highlight can
+        // never be sitting on the shop at the moment it disappears.
+        _shopButton.style.display = CampNotices.ShopUnlocked
+            ? DisplayStyle.Flex
+            : DisplayStyle.None;
+    }
+
+    // Each dot stays lit until the screen behind it has actually been opened, so a
+    // batch of new things can't be dismissed by glancing at one of them.
+    private void RefreshBadges()
+    {
+        SetBadge(_questsBadge, _questsBadgeGlow, QuestProgress.HasUnseen);
+        SetBadge(_shopBadge, _shopBadgeGlow, CampNotices.ShopHasNotice);
+        SetBadge(_equipmentBadge, _equipmentBadgeGlow, CampNotices.EquipmentHasNotice);
+    }
+
+    private static void SetBadge(VisualElement dot, VisualElement glow, bool lit)
+    {
+        var display = lit ? DisplayStyle.Flex : DisplayStyle.None;
+        if (dot != null) dot.style.display = display;
+        if (glow != null) glow.style.display = display;
+    }
+
+    // UI Toolkit has no keyframe animations and transitions do not loop, so the
+    // pulse is driven on a scheduler. Unscaled time, because the camp sets
+    // timeScale to 0 whenever a run ends in a menu.
+    private void StartBadgePulse()
+    {
+        if (_root == null) return;
+        _badgePulse?.Pause();
+        _badgePulse = _root.schedule.Execute(() =>
+        {
+            // Two beats out of phase: the dot brightens while the halo swells,
+            // which reads as light coming off it rather than a blinking pixel.
+            // One clock for every dot, so they breathe together instead of
+            // drifting into a mess of independent blinks.
+            float t = Time.unscaledTime * 2.2f;
+            float wave = (Mathf.Sin(t) + 1f) * 0.5f;
+
+            for (int i = 0; i < _badges.Count; i++)
+            {
+                var (dot, glow) = _badges[i];
+                if (dot == null || dot.style.display == DisplayStyle.None) continue;
+
+                dot.style.opacity = 0.72f + 0.28f * wave;
+                dot.style.scale = new StyleScale(new Scale(Vector3.one * (0.9f + 0.18f * wave)));
+
+                if (glow != null)
+                {
+                    glow.style.opacity = 0.5f - 0.34f * wave;
+                    glow.style.scale = new StyleScale(new Scale(Vector3.one * (0.75f + 0.55f * wave)));
+                }
+            }
+        }).Every(33);
     }
 
     private void HandleGoldChanged(int gold)
@@ -502,14 +661,13 @@ public class CampMenuController : MonoBehaviour
         if (_goldLine != null) _goldLine.text = $"Gold: {gold}";
     }
 
-    private void HandleHonorChanged(int honor)
+    private void HandleCrystalsChanged(int crystals)
     {
-        if (_honorLine != null) _honorLine.text = $"Honor: {honor}";
-    }
-
-    private void HandleRankChanged(int rank)
-    {
-        if (_rankLine != null) _rankLine.text = $"Knight Rank {rank}";
+        CrystalText.Fill(_crystalLine, crystals);
+        // The first crystal is what reveals the shop, so react here too rather than
+        // waiting for the next full status refresh
+        RefreshShopVisibility();
+        RefreshBadges();
     }
 
     private void HandleQuestCompleted(string questId)
@@ -561,6 +719,26 @@ public class CampMenuController : MonoBehaviour
         questPanel.Show();
     }
 
+    private void HandleEquipmentClicked()
+    {
+        if (equipmentPanel == null) return;
+        // Opening the screen is what counts as having seen the new gear — the dot
+        // is cleared here, not when the item was granted
+        CampNotices.MarkEquipmentSeen();
+        RefreshBadges();
+        SetMenuContainerVisible(false);
+        equipmentPanel.Show();
+    }
+
+    private void HandleShopClicked()
+    {
+        if (shopPanel == null) return;
+        CampNotices.MarkShopSeen();
+        RefreshBadges();
+        SetMenuContainerVisible(false);
+        shopPanel.Show();
+    }
+
     private void HandleStatsClicked()
     {
         if (statsPanel == null)
@@ -576,17 +754,21 @@ public class CampMenuController : MonoBehaviour
     {
         SetMenuContainerVisible(true);
         SetSelectedIndex(_currentIndex);
+        // Reading the quest log is what marks quests seen, so the dot can only
+        // be re-evaluated once the player leaves it
+        RefreshStatusLines();
     }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    // Dev cheat: holding LT+RT+LB+RB together on the camp menu (or pressing F9
-    // on keyboard, for gamepad-free editor sessions) reveals the Test Mode
-    // button for the rest of the session.
-    private void CheckTestModeCombo()
+    // Holding LT+RT+LB+RB together on the camp menu (or pressing F9 on keyboard,
+    // for gamepad-free editor sessions) reveals the hidden buttons for the rest
+    // of the session: Stats and Reset All Data in every build, plus Test Mode
+    // in the editor and dev builds.
+    private void CheckHiddenButtonCombo()
     {
-        if (_testModeUnlocked) return;
+        if (_hiddenButtonsUnlocked) return;
         if ((questPanel != null && questPanel.IsVisible) ||
-            (statsPanel != null && statsPanel.IsVisible)) return;
+            (statsPanel != null && statsPanel.IsVisible) ||
+            (fileSelectPanel != null && fileSelectPanel.IsVisible)) return;
 
         var gamepad = Gamepad.current;
         bool combo = gamepad != null
@@ -598,16 +780,42 @@ public class CampMenuController : MonoBehaviour
 
         if (!combo && !devKey) return;
 
-        _testModeUnlocked = true;
-        var button = _root?.Q<Button>(TEST_BUTTON_NAME);
-        if (button != null && !_menuButtons.Contains(button))
-        {
-            button.style.display = DisplayStyle.Flex;
-            RegisterMenuButton(button, HandleTestModeClicked);
-        }
-        Debug.Log("[CampMenu] Test Mode unlocked.");
+        _hiddenButtonsUnlocked = true;
+        RevealHiddenButtons();
+        Debug.Log("[CampMenu] Hidden buttons unlocked.");
     }
 
+    // Revealed mid-session the buttons append to the end of the navigation
+    // order rather than sitting where the UXML puts them — acceptable for
+    // buttons that all belong at the bottom of the list anyway.
+    private void RevealHiddenButtons()
+    {
+        var stats = _root?.Q<Button>(statsButtonName);
+        if (stats != null && !_menuButtons.Contains(stats))
+        {
+            stats.style.display = DisplayStyle.Flex;
+            RegisterMenuButton(stats, HandleStatsClicked);
+        }
+
+        var reset = _root?.Q<Button>(resetButtonName);
+        if (reset != null && !_menuButtons.Contains(reset))
+        {
+            reset.style.display = DisplayStyle.Flex;
+            _resetButton = reset;
+            RegisterMenuButton(reset, HandleResetClicked);
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        var test = _root?.Q<Button>(TEST_BUTTON_NAME);
+        if (test != null && !_menuButtons.Contains(test))
+        {
+            test.style.display = DisplayStyle.Flex;
+            RegisterMenuButton(test, HandleTestModeClicked);
+        }
+#endif
+    }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private void HandleTestModeClicked()
     {
         if (testModePanel == null) return;
@@ -657,15 +865,15 @@ public class CampMenuController : MonoBehaviour
         }
     }
 
+    // Exit leaves the file, not the game: it drops back to the file select so
+    // another save can be picked. Closing the app is the platform's job (alt-F4
+    // / the window chrome), not a menu button that is one stray press from
+    // ending the session.
     private void HandleExitClicked()
     {
-        // Placeholder behavior: quit application. In editor, just log.
-        Debug.Log("Exit selected from Camp menu.");
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+        if (fileSelectPanel == null) return;
+        SetMenuContainerVisible(false);
+        fileSelectPanel.Show(allowCancel: true);
     }
 
     private void HandleCancel()
@@ -676,12 +884,6 @@ public class CampMenuController : MonoBehaviour
             return;
         }
 
-        if (questPanel != null && questPanel.IsVisible)
-        {
-            questPanel.Hide();
-            HandleSubPanelClosed();
-            return;
-        }
         if (statsPanel != null && statsPanel.IsVisible)
         {
             statsPanel.Hide();

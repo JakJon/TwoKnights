@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9a3847f3ae2be9d7efe90b68d7754f, type: 3}
+  m_Name: Cart Loads 4
+  m_EditorClassIdentifier: 
+  waveName: Cart Loads 4
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Fourteen crates, and one descent each to answer them in.
+  unlockedAfterXWaves: 12
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: 220095e03f60dd8c755e97e0d2400bdd, type: 2}
+  crateCarts:
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  outerShaftCrates: 7
+  innerShaftCrates: 7
+  leadIn: 1
+  releasePause: 1.2
+  highOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 12
+    interval: 14
+    from: {x: -12, y: 4.3}
+    to: {x: 12, y: 4.3}
+  lowOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 24
+    interval: 14
+    from: {x: 12, y: -5}
+    to: {x: -12, y: -5}

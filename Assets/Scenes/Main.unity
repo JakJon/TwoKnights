@@ -885,52 +885,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!1 &902023511
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 902023513}
-  - component: {fileID: 902023512}
-  m_Layer: 0
-  m_Name: KnightRankManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &902023512
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 902023511}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 207837acc2461d84b9c47f764efa83b7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  honorPoints: 0
-  knightRank: 1
---- !u!4 &902023513
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 902023511}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &913371066
 GameObject:
   m_ObjectHideFlags: 0
@@ -1030,6 +984,31 @@ MonoBehaviour:
   - kind: 0
     prefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
   fallbackPiecePrefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
+  cartVariants:
+  - label: poison bomb gnome
+    standard: {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    variant: {fileID: 3239380898384450950, guid: 923eb29968c24be49990860b43fd7a7f, type: 3}
+    everyNth: 2
+    fromWaveNumber: 11
+    countGroup: 
+  - label: purple twin-throw gnome
+    standard: {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    variant: {fileID: 4223699238814412227, guid: fc7759758614e104caebb0bf699a713a, type: 3}
+    everyNth: 2
+    fromWaveNumber: 11
+    countGroup: 
+  - label: golden cage (rat)
+    standard: {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+    variant: {fileID: 7596428705394182974, guid: de116ec61fe92b54594249630771ea70, type: 3}
+    everyNth: 3
+    fromWaveNumber: 11
+    countGroup: cage
+  - label: golden cage (bat)
+    standard: {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+    variant: {fileID: 553946257222443212, guid: 018cdf7964006924eae322bb277aa7c8, type: 3}
+    everyNth: 3
+    fromWaveNumber: 11
+    countGroup: cage
   trackParent: {fileID: 0}
   viewCamera: {fileID: 519420031}
 --- !u!4 &1142004719
@@ -1594,7 +1573,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerHurt:
     clip: {fileID: 8300000, guid: 7fc75cfed01919641b13f9ed49cb8e63, type: 3}
-    volume: 0.624
+    volume: 1
   projectileSpawn:
     clip: {fileID: 8300000, guid: 49cf648fd997c1c43b1cb5a577c72a5a, type: 3}
     volume: 0.351
@@ -1636,7 +1615,10 @@ MonoBehaviour:
     volume: 0.372
   healSpecial:
     clip: {fileID: 8300000, guid: c8b34dd0f92e2bf4d88549a07795d9ef, type: 3}
-    volume: 0.359
+    volume: 0.9
+  dawnBlessing:
+    clip: {fileID: 8300000, guid: aeb46ba3f4f740b49b2e17d55ae2511d, type: 3}
+    volume: 0.8
   leftSpecial:
     clip: {fileID: 8300000, guid: 6c6531d3cd0a0714b84b51f6a6949698, type: 3}
     volume: 0.403
@@ -1700,6 +1682,9 @@ MonoBehaviour:
   poisonBurst:
     clip: {fileID: 8300000, guid: 7dccdaa921667b748a14dcc4d5b4d677, type: 3}
     volume: 0.403
+  knightPoisonTick:
+    clip: {fileID: 8300000, guid: 0c9db14a8cedf7941aa0a33cdf251065, type: 3}
+    volume: 1
   confusion:
     clip: {fileID: 8300000, guid: 1b6612899d114b64eaa0ef985af9cae4, type: 3}
     volume: 0.279
@@ -2377,7 +2362,6 @@ SceneRoots:
   - {fileID: 1862646575}
   - {fileID: 2049407069}
   - {fileID: 257200975}
-  - {fileID: 902023513}
   - {fileID: 1746733230}
   - {fileID: 2124077069}
   - {fileID: 913371069}

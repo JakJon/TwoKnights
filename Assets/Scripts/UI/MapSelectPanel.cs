@@ -160,6 +160,11 @@ public class MapSelectPanel : MonoBehaviour
         {
             image.style.backgroundImage = new StyleBackground(map.PreviewImage);
         }
+        // The scrim is a CHILD of the well rather than a sibling so it tracks the
+        // artwork's bounds for free. That is also why the locked art is drained
+        // with a background tint instead of opacity — opacity would cascade onto
+        // the padlock and leave it as faint as the thing it is covering.
+        if (!unlocked) image.Add(BuildLockBadge());
         pane.Add(image);
 
         var name = new Label(unlocked ? map.DisplayName : "? ? ?");
@@ -171,6 +176,12 @@ public class MapSelectPanel : MonoBehaviour
             var tagline = new Label(map.Tagline);
             tagline.AddToClassList("map-pane-tagline");
             pane.Add(tagline);
+        }
+        else if (!unlocked)
+        {
+            var hint = new Label(LockedHintFor(map));
+            hint.AddToClassList("map-pane-tagline");
+            pane.Add(hint);
         }
 
         var status = new Label(StatusText(map, unlocked));
@@ -188,6 +199,38 @@ public class MapSelectPanel : MonoBehaviour
 
         _paneRow.Add(pane);
         return pane;
+    }
+
+    // What the player has to do to open this map. Authored per map when it can be
+    // named concretely ("Defeat the Rat King"); otherwise derived, so a newly
+    // added map is never locked behind an unexplained blank.
+    private static string LockedHintFor(MapDefinition map)
+    {
+        if (!string.IsNullOrEmpty(map.LockedHint)) return map.LockedHint;
+        var unlocker = MapProgressStore.UnlockerOf(map.MapId);
+        return unlocker != null ? $"Clear the gate of {unlocker.DisplayName}" : "Not yet open";
+    }
+
+    // A padlock built from two boxes: the camp UI has no icon atlas, and a glyph
+    // would depend on the serif font happening to ship one.
+    private static VisualElement BuildLockBadge()
+    {
+        var scrim = new VisualElement();
+        scrim.AddToClassList("map-pane-scrim");
+
+        var padlock = new VisualElement();
+        padlock.AddToClassList("map-lock");
+
+        var shackle = new VisualElement();
+        shackle.AddToClassList("map-lock-shackle");
+        padlock.Add(shackle);
+
+        var body = new VisualElement();
+        body.AddToClassList("map-lock-body");
+        padlock.Add(body);
+
+        scrim.Add(padlock);
+        return scrim;
     }
 
     private static string StatusText(MapDefinition map, bool unlocked)
@@ -223,8 +266,13 @@ public class MapSelectPanel : MonoBehaviour
         var map = _maps[_index];
 
         // Locked maps stay visible so the campaign's shape is legible, but
-        // they are not a destination
-        if (!MapProgressStore.IsUnlocked(map)) return;
+        // they are not a destination. Answer the press rather than eating it —
+        // silence reads as a dropped input, not as a refusal.
+        if (!MapProgressStore.IsUnlocked(map))
+        {
+            AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiCancel);
+            return;
+        }
 
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
         MapSelection.Select(map);

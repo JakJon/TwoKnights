@@ -1,15 +1,22 @@
 using UnityEngine;
 
-// Ember discipline: a sword swing has a low chance to hurl a spread of fireballs
-// along the shield facing. Rank II deliberately does NOT improve the odds — it
-// adds a third fireball. The same rare moment hits harder rather than happening
-// more often, which keeps Firebrand a payoff you can't fish for and keeps the
-// sword a close-range panic button rather than a primary fire delivery system.
+// Ember discipline: a sword swing has a low chance to hurl fire along the shield
+// facing. THREE ranks, and none of them improves the odds — each one adds a
+// fireball to the same rare moment (I one, II two, III three). The payoff gets
+// bigger rather than more frequent, which keeps Firebrand something you can't
+// fish for and keeps the sword a close-range panic button rather than a primary
+// fire delivery system.
+//
+// Rank I opening at ONE fireball is the whole point of the tier split. It used to
+// open at two, which meant the first pick of a Rare-weight chain already put a
+// pair of fireballs on a swing, and a chain whose entry-level tier is that strong
+// has nowhere left to grow — the later ranks were decoration on something already
+// worth taking. One is a real upgrade that is not yet a build.
 [CreateAssetMenu(fileName = "FirebrandUpgrade", menuName = "Upgrades/Firebrand")]
 public class FirebrandUpgrade : BaseUpgrade
 {
-    [SerializeField] private float hurlChance = 20f; // Percent per swing — same at both ranks
-    [SerializeField] private int fireballCount = 2;
+    [SerializeField] private float hurlChance = 20f; // Percent per swing — same at every rank
+    [SerializeField] private int fireballCount = 1;
     [Tooltip("Fireball prefab, so Firebrand works even if the Fireball chain wired nothing yet")]
     [SerializeField] private GameObject fireballPrefab;
 

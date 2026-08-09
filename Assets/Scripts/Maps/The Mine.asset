@@ -14,18 +14,55 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapId: mine
   displayName: The Mine
-  unlockedByDefault: 1
+  unlockedByDefault: 0
   previewImage: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
   tagline: Rails, carts, and the dark below
+  lockedHint: Defeat the Rat King
   waves:
   - {fileID: 11400000, guid: 81abf34fe97395d48b43cbb55f58edad, type: 2}
+  - {fileID: 11400000, guid: d97eae8b9bd3cf3478c729c76a291c33, type: 2}
+  - {fileID: 11400000, guid: 60322e55ffe719f4bbb3901e59908808, type: 2}
+  - {fileID: 11400000, guid: 2ac71fb8eea7e531419d485b451bbaca, type: 2}
+  - {fileID: 11400000, guid: 1608d9b02da66ca715168b342031f328, type: 2}
+  - {fileID: 11400000, guid: 9974f812f2d72d2861486231b30ccfb9, type: 2}
+  - {fileID: 11400000, guid: bcd7c9c11227325af6c0d5c02adf7447, type: 2}
+  - {fileID: 11400000, guid: e1797d25abeda3dce4622d740ebd594a, type: 2}
+  - {fileID: 11400000, guid: c65f4cbd2618eb5f1625a56baefe466e, type: 2}
+  - {fileID: 11400000, guid: ad2c6f2aeabe8c3f945d9c989cd3b347, type: 2}
+  - {fileID: 11400000, guid: 129ad91a3d41a47f7b6a12c1052e69dd, type: 2}
+  - {fileID: 11400000, guid: c64b45d7a6aae653818fce54ea012ce2, type: 2}
+  - {fileID: 11400000, guid: b8992df62f360652601118934b3d2dc6, type: 2}
+  - {fileID: 11400000, guid: 35003210fbf83a2a9953137a1f810d3d, type: 2}
+  - {fileID: 11400000, guid: bef62bb155f46644bab5a6836550736d, type: 2}
+  - {fileID: 11400000, guid: e261f366a166419de6b796c2c8eeec79, type: 2}
+  - {fileID: 11400000, guid: 38903246e08c030925b0ceb7874723d0, type: 2}
+  - {fileID: 11400000, guid: f5009badd81e0b3450b83eed6c59afb9, type: 2}
+  - {fileID: 11400000, guid: 5e5e7d5c75145f22679c093251dfb51a, type: 2}
+  - {fileID: 11400000, guid: d63469b8b6b3db67def37c2014a4cd23, type: 2}
+  - {fileID: 11400000, guid: 346d76e24f24f555a97d7b0f6e507fa6, type: 2}
+  - {fileID: 11400000, guid: 7c175b0c515dacaf8398d106268e2ac9, type: 2}
+  - {fileID: 11400000, guid: 947e65f9e8372b22a5facb5bc94863c0, type: 2}
+  - {fileID: 11400000, guid: 009bc0ad64646c2735d740d5a5e9ee0d, type: 2}
+  - {fileID: 11400000, guid: 40d6fca9a8be8ece740ea94c4227c27b, type: 2}
+  - {fileID: 11400000, guid: b95b840577812b70305ceef1ee9a8441, type: 2}
+  - {fileID: 11400000, guid: bbceac76debae0d993e5ff34f7bbb206, type: 2}
+  - {fileID: 11400000, guid: a34a3283bdd59fe741f00ac0a8a9e466, type: 2}
+  waveFolders:
+  - Assets/Scripts/Waves/Cave/ChooChoo
+  - Assets/Scripts/Waves/Cave/Delivery
+  - Assets/Scripts/Waves/Cave/PowderTrain
+  - Assets/Scripts/Waves/Cave/NearAndFar
+  - Assets/Scripts/Waves/Cave/BitsAndPieces
+  - Assets/Scripts/Waves/Cave/CartLoads
+  - Assets/Scripts/Waves/Cave/Crossfire
   gateBoss: {fileID: 0}
   gateBossWaveNumber: 15
   trueBoss: {fileID: 0}
   trueBossWaveNumber: 25
+  strongerEnemiesFromWave: 1
   stages:
   - label: Mine
     fromWaveNumber: 1
     backdrop: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
-    ventureLine:
-  unlocksMapId:
+    ventureLine: 
+  unlocksMapId: 

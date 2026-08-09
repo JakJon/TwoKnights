@@ -234,6 +234,10 @@
     letter-spacing: 1.5px;
 }
 
+/* Common is the floor, so saying so on the card is noise — the badge only
+   appears once the roll actually beat the floor. */
+.menu-item.common .rarity-badge { display: none; }
+
 /* rarity keeps its own semantic colors; size never changes */
 .menu-item.common .upgrade-rarity { color: rgb(176, 141, 87); }
 .menu-item.rare .upgrade-rarity { color: rgb(168, 198, 221); }

@@ -8,6 +8,10 @@ using System.Collections;
 // closing in afterward.
 public class EnemyDarkBat : EnemyBase
 {
+    // Sibling of EnemyBat, not a subclass — this override is the only thing
+    // that makes a dark bat count as a bat for equipment and quests
+    public override EnemyFamily Family => EnemyFamily.Vermin;
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private int damage;

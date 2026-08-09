@@ -55,16 +55,23 @@ darts). The run's story becomes *the pair*.
   erases the firing cooldown for 2s; reuses RapidFire tech). Starting picks:
   Shadow Arrows I + Phantom Blade I; Shuriken/Killing Blow unlock off Shadow
   Arrows I. New `NinjaBoost` knight stat sheet mirrors `PoisonTipBoost`.
-- **Guardian (Tank)** — the shield is the weapon: Tower Shield (a longer bar),
-  Curved Aegis (bows it around the knight for a wider arc) *(both shipped)*, Thorned
-  Aegis (reflect blocks), Stalwart (blocks charge special), capstone *Unbreakable*
-  (the damage streak-reset is suppressed once per wave).
+- **Guardian (Tank)** — the shield is the weapon: Greatshield I–III (each tier both
+  lengthens the span and bows the bar around the knight; the bow never costs span)
+  *(shipped)*, Thorned Aegis (reflect blocks), Stalwart (blocks charge special),
+  capstone *Unbreakable* (the damage streak-reset is suppressed once per wave).
 - **Ember (Fire)** — burst + area denial: Ignited Tips (short/hot DoT vs poison's
   long/slow), Fireburst (kill explosions), Scorched Ground, capstone *Immolation*
   (special = firestorm).
-- **Dawn (Healing)** — sustain + partnership, the co-op Order: better orbs, lifesteal,
-  *Shared Light* (heals spill to the other knight), capstone *Guardian's Vigil* (save
-  the other knight at 1 HP once per map).
+- **Dawn (Healing)** — sustain + partnership, the co-op Order *(shipped 2026-08-06,
+  12 upgrades — see `dawn-order.md`)*: Sunwell I–III (orbs you SHOOT heal more, and
+  rank III slows them for both knights), Shared Light I–II (a share of every heal you
+  receive echoes to the other knight; rank II routes overflow across whole instead of
+  wasting it), Lifebloom I–II (every Nth counted kill mends), Second Wind I–II (first
+  time per wave you're driven low, a brief untouchable window), Benediction I–II
+  (spending your special mends the partner, whatever the special is), capstone
+  **Last Light** (once per map the OTHER knight cannot fall — renamed from "Guardian's
+  Vigil" to avoid colliding with the Guardian Order). Pillar: no heal without a named
+  source (never passive regen), and nothing is ever wasted.
 
 ## 3. The full run — maps, gate bosses, true bosses
 
@@ -117,5 +124,5 @@ per Order, lit when unlocked.
 | **A** | Orders framework + full Serpent class + card styling + particles |
 | **B** | `MapDefinition`, gate-boss/true-boss flow, Rat King, victory screen, stall fixed, map unlocks |
 | **C** | Map 2 "The Mine": camp level select + rail system + Choo Choo *(done)*; carts, mine mobs, ~15 waves, gate boss *(open)* |
-| **D** | Guardian/Ember/Dawn + duo upgrades |
+| **D** | Ember *(done)*, Dawn *(done)*; Guardian partial — 6 upgrades, capstone + Thorned Aegis + Stalwart still open; duo upgrades *(open)* |
 | **E** | Camp skill tree, class/map quest lines, gold sinks |

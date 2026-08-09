@@ -409,52 +409,6 @@ MonoBehaviour:
   m_CropFrameX: 1
   m_CropFrameY: 1
   m_StretchFill: 0
---- !u!1 &885464743
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 885464745}
-  - component: {fileID: 885464744}
-  m_Layer: 0
-  m_Name: KnightRankManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &885464744
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 885464743}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 207837acc2461d84b9c47f764efa83b7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  honorPoints: 0
-  knightRank: 1
---- !u!4 &885464745
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 885464743}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &906879866
 GameObject:
   m_ObjectHideFlags: 0
@@ -834,14 +788,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1387083984}
-  - component: {fileID: 1387083985}
   m_Layer: 0
   m_Name: KnightRankUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1387083984
 RectTransform:
   m_ObjectHideFlags: 0
@@ -863,22 +816,6 @@ RectTransform:
   m_AnchoredPosition: {x: 20, y: -80}
   m_SizeDelta: {x: 260, y: 80}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &1387083985
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1387083983}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 483a597b9545dc44e9a4ac0174ca48ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rankText: {fileID: 2017739016}
-  honorText: {fileID: 1512017364}
-  rankFormat: Knight Rank {0}
-  honorFormat: 'Honor: {0}'
 --- !u!1 &1436245483
 GameObject:
   m_ObjectHideFlags: 0
@@ -952,7 +889,10 @@ MonoBehaviour:
     volume: 0.372
   healSpecial:
     clip: {fileID: 8300000, guid: c8b34dd0f92e2bf4d88549a07795d9ef, type: 3}
-    volume: 0.359
+    volume: 0.9
+  dawnBlessing:
+    clip: {fileID: 8300000, guid: aeb46ba3f4f740b49b2e17d55ae2511d, type: 3}
+    volume: 0.8
   leftSpecial:
     clip: {fileID: 8300000, guid: 6c6531d3cd0a0714b84b51f6a6949698, type: 3}
     volume: 0.403
@@ -1016,6 +956,9 @@ MonoBehaviour:
   poisonBurst:
     clip: {fileID: 8300000, guid: 7dccdaa921667b748a14dcc4d5b4d677, type: 3}
     volume: 0.403
+  knightPoisonTick:
+    clip: {fileID: 0}
+    volume: 1
   confusion:
     clip: {fileID: 8300000, guid: 1b6612899d114b64eaa0ef985af9cae4, type: 3}
     volume: 0.279
@@ -1969,5 +1912,4 @@ SceneRoots:
   - {fileID: 1201909479}
   - {fileID: 906879868}
   - {fileID: 200550515}
-  - {fileID: 885464745}
   - {fileID: 1436245485}

@@ -22,6 +22,24 @@ public abstract class BaseWave : ScriptableObject
     private HashSet<GameObject> _trackedProjectiles = new HashSet<GameObject>();
     private bool _waveSpawningComplete = false;
 
+    // --- Ambushes ---------------------------------------------------------
+    // An ambush is a GROUP of enemies inside a wave that comes out together. It
+    // is a timing tool and nothing else: a wave opens one, releases into it, and
+    // waits on it to decide when the next group arrives.
+    //
+    // "Ambush clear" and "wave over" are DIFFERENT QUESTIONS and must not be
+    // confused. A wave is over when it has finished spawning and everything it
+    // ever put on the field — enemies and projectiles alike — is gone. An ambush
+    // clears while the wave is very much still running, counts only the enemies
+    // of that one group, and ignores projectiles entirely: rocks still falling
+    // out of the shafts are the wave's business, not the group's.
+    private readonly HashSet<GameObject> _ambushEnemies = new HashSet<GameObject>();
+    private bool _ambushOpen;
+    private bool _ambushReleased;
+    private int _ambushSeen;
+    private int _ambushExpected;
+    private int _ambushIndex = -1;
+
     public string WaveName => waveName;
     public float Weight => weight;
     public bool IsUnlocked => isUnlocked;
@@ -78,14 +96,24 @@ public abstract class BaseWave : ScriptableObject
         {
             _currentWave._trackedEnemies.Add(enemy);
             // Debug.Log($"Enemy registered with wave. Total enemies: {_currentWave._trackedEnemies.Count}");
+
+            // Membership is decided at REGISTRATION time, which is the enemy's
+            // Awake. Anything that arrives while a group is open belongs to it —
+            // including a boss's summons, which is what makes an ambush an honest
+            // "is this fight over yet" rather than a spawn count.
+            if (_currentWave._ambushOpen && _currentWave._ambushEnemies.Add(enemy))
+            {
+                _currentWave._ambushSeen++;
+            }
         }
     }
-    
+
     public static void UnregisterEnemy(GameObject enemy)
     {
         if (_currentWave != null && _currentWave.useEnemyTracking)
         {
             _currentWave._trackedEnemies.Remove(enemy);
+            _currentWave._ambushEnemies.Remove(enemy);
             // Debug.Log($"Enemy unregistered from wave. Remaining enemies: {_currentWave._trackedEnemies.Count}");
         }
     }
@@ -116,6 +144,105 @@ public abstract class BaseWave : ScriptableObject
         // Debug.Log("Wave spawning marked as complete");
     }
     
+    /// <summary>
+    /// Open a new ambush. Every enemy that registers from here until the next
+    /// BeginAmbush belongs to this group.
+    /// </summary>
+    /// <param name="expectedMembers">
+    /// How many enemies this group will put on the field, when — and only when —
+    /// some of them are spawned with a Spawner DELAY. Delayed spawns instantiate
+    /// after the wait, so they register late; without a declared count a group
+    /// whose first member dies before its second exists reads as clear and the
+    /// wave runs straight over the top of it. Immediate spawns need nothing here.
+    /// </param>
+    protected void BeginAmbush(int expectedMembers = 0)
+    {
+        _ambushEnemies.Clear();
+        _ambushOpen = true;
+        _ambushReleased = false;
+        _ambushSeen = 0;
+        _ambushExpected = Mathf.Max(0, expectedMembers);
+        _ambushIndex++;
+    }
+
+    /// <summary>
+    /// The group is all out — nothing more is coming. The ambush counterpart of
+    /// MarkSpawningComplete, and just as load-bearing: without it the group can
+    /// never read as clear, so a wave that forgets it waits forever.
+    /// </summary>
+    protected void MarkAmbushReleased()
+    {
+        _ambushReleased = true;
+    }
+
+    /// <summary>
+    /// Is the current group down? True once it has finished being released and
+    /// every enemy in it is dead — the cue to send the next one. Enemies that do
+    /// not gate wave completion (an empty mine cart, a gnome's wreck) are never
+    /// in a group either, so a ring still full of rolling iron reads as clear.
+    ///
+    /// A group that never registered anyone — all scenery, no kills — is clear
+    /// the moment it is released. There is nothing to wait for, and hanging on it
+    /// would be a stall with no way out of it.
+    /// </summary>
+    public bool IsAmbushClear()
+    {
+        if (!useEnemyTracking || !_ambushOpen) return true;
+
+        _ambushEnemies.RemoveWhere(enemy => enemy == null);
+
+        return _ambushReleased
+            && _ambushSeen >= _ambushExpected
+            && _ambushEnemies.Count == 0;
+    }
+
+    /// <summary>Live members of the current group.</summary>
+    public int AmbushEnemiesRemaining
+    {
+        get
+        {
+            _ambushEnemies.RemoveWhere(enemy => enemy == null);
+            return _ambushEnemies.Count;
+        }
+    }
+
+    /// <summary>Which group the wave is on, counting from 0. -1 before the first.</summary>
+    public int AmbushIndex => _ambushIndex;
+
+    /// <summary>
+    /// Hold until the current group is down. Deliberately has NO timeout: the
+    /// next ambush is a reward for clearing this one, and a wave that sends it
+    /// anyway after N seconds is just a schedule wearing an ambush's clothes.
+    /// Waves that lean on this owe the player standing pressure while they work
+    /// — otherwise a group left alive is a free rest instead of a fight.
+    /// </summary>
+    protected IEnumerator WaitForAmbushClear()
+    {
+        if (!useEnemyTracking || !_ambushOpen)
+        {
+            if (!_ambushOpen)
+            {
+                Debug.LogWarning($"[{name}] WaitForAmbushClear with no ambush open — " +
+                                 "BeginAmbush is missing, and the wait does nothing.");
+            }
+            yield break;
+        }
+
+        // Per frame rather than on a poll: the handover between groups is the
+        // beat the player feels, and half a second of dead air after the last
+        // kill reads as the wave hesitating.
+        while (!IsAmbushClear()) yield return null;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        Debug.Log($"[Ambush] {name} cleared ambush {_ambushIndex} at t={Time.time:F2}");
+#endif
+
+        // Closed, not merely clear: anything that turns up now (a delayed spawn
+        // that outlived its group, a split) belongs to no ambush rather than
+        // retroactively re-opening one that has already paid out.
+        _ambushOpen = false;
+    }
+
     // Check if all enemies and projectiles are cleared
     public bool AreAllEnemiesDead()
     {
@@ -135,9 +262,10 @@ public abstract class BaseWave : ScriptableObject
         _trackedEnemies.Clear();
         _trackedProjectiles.Clear();
         _waveSpawningComplete = false;
+        ResetAmbush();
         // Debug.Log($"Started tracking for wave: {waveName}");
     }
-    
+
     // Call this at the end of wave execution
     public void EndWaveTracking()
     {
@@ -148,7 +276,21 @@ public abstract class BaseWave : ScriptableObject
         _trackedEnemies.Clear();
         _trackedProjectiles.Clear();
         _waveSpawningComplete = false;
+        ResetAmbush();
         // Debug.Log($"Ended tracking for wave: {waveName}");
+    }
+
+    // Wave assets are ScriptableObjects, so their state outlives the run that
+    // set it. A group left open by a wave that was cut short would otherwise be
+    // inherited by the next play of the same asset.
+    private void ResetAmbush()
+    {
+        _ambushEnemies.Clear();
+        _ambushOpen = false;
+        _ambushReleased = false;
+        _ambushSeen = 0;
+        _ambushExpected = 0;
+        _ambushIndex = -1;
     }
     
     // Coroutine that waits for all enemies and projectiles to be cleared
