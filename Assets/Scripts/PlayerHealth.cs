@@ -123,11 +123,11 @@ public class PlayerHealth : MonoBehaviour
             playerSpecial.ResetSpecialStreak();
         }
 
-        // Second Wind (Dawn) answers the blow that drove this knight low — after
-        // the hit lands, never instead of it, so the moment stays legible
+        // Second Wind (Dawn) answers the blow that settled the toll — after the
+        // hit lands, never instead of it, so the moment stays legible
         if (damage > 0 && currentHealth > 0)
         {
-            TrySecondWind();
+            TrySecondWind(damage);
         }
 
         if (currentHealth <= 0)
@@ -289,18 +289,19 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// Second Wind (Dawn): the first time a wave drives this knight to the
-    /// brink, the light holds them up for a beat. Charge is rearmed at every
-    /// wave start by DawnBoost.OnWaveStarted.
+    /// Second Wind (Dawn): every so many points of damage this knight has
+    /// absorbed, the light holds them up for a beat. The counter is the
+    /// DawnBoost's and runs for the whole map, so the toll is paid in harm
+    /// taken rather than in how close to death it left them.
     /// </summary>
-    private void TrySecondWind()
+    private void TrySecondWind(int damage)
     {
         DawnBoost dawn = GetComponent<DawnBoost>();
-        if (dawn == null || !dawn.TrySpendSecondWind(currentHealth, maxHealth)) return;
+        if (dawn == null || !dawn.TrySpendSecondWind(damage)) return;
 
         SetInvulnerable(dawn.SecondWindSeconds);
         glowManager?.StartGlow(DawnBoost.DawnGlow, dawn.SecondWindSeconds);
-        if (dawn.SecondWindMend > 0) Heal(dawn.SecondWindMend);
+        if (dawn.SecondWindHeal > 0) Heal(dawn.SecondWindHeal);
     }
 
     /// <summary>
@@ -349,10 +350,15 @@ public class PlayerHealth : MonoBehaviour
     // health upgrade. Funnelled through the two methods above rather than left to
     // each caller, so a heal added later cannot quietly forget to do it. See
     // KnightPoison for why the cure is total rather than partial.
+    //
+    // It clears it on BOTH knights, not just the healed one: the mending is a
+    // clean slate for the pair. Reaching across via OtherKnight rather than a
+    // scene-wide sweep, same as every other paired effect here, and no recursion
+    // risk — Cure only stops a coroutine, it never heals back.
     private void CurePoison()
     {
-        KnightPoison poison = GetComponent<KnightPoison>();
-        if (poison != null) poison.Cure();
+        GetComponent<KnightPoison>()?.Cure();
+        DawnBoost.OtherKnight(tag)?.GetComponent<KnightPoison>()?.Cure();
     }
 
     public int GetCurrentHealth()

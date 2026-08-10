@@ -15,10 +15,10 @@ MonoBehaviour:
   id: iron_vigil
   displayName: Iron Vigil
   description: Stand still. Let it come. Nothing that arrives will land.
-  effect: 5 seconds where no damage can reach you.
+  effect: 12 seconds where no damage can reach you.
   icon: {fileID: -724146760323720847, guid: 89e8d4d40723b3541a0cd8b92df33ac1, type: 3}
   crystalCost: 4
   ownedFromTheStart: 0
-  freezeGainSeconds: 5
-  duration: 5
+  freezeGainSeconds: 12
+  duration: 12
   glow: {r: 0.72, g: 0.78, b: 0.85, a: 1}

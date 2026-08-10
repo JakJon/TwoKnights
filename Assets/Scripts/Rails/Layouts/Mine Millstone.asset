@@ -1,0 +1,165 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
+  m_Name: Mine Millstone
+  m_EditorClassIdentifier:
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
+  cellSize: 1
+  fallStagger: 0.03
+  runs:
+  - label: OUTER top run (east)
+    piece: 0
+    axis: 0
+    offset: 4
+    spanViewport: 0
+    overhangCells: 0
+    start: -8
+    count: 17
+    flow: 0
+    layFromFarEnd: 0
+  - label: OUTER right shaft (south)
+    piece: 1
+    axis: 1
+    offset: 9
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 7
+    flow: 1
+    layFromFarEnd: 0
+  - label: OUTER bottom run (west)
+    piece: 0
+    axis: 0
+    offset: -4
+    spanViewport: 0
+    overhangCells: 0
+    start: -8
+    count: 17
+    flow: 1
+    layFromFarEnd: 1
+  - label: OUTER left shaft (north)
+    piece: 1
+    axis: 1
+    offset: -9
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 7
+    flow: 0
+    layFromFarEnd: 1
+  - label: INNER top run (west)
+    piece: 0
+    axis: 0
+    offset: 3
+    spanViewport: 0
+    overhangCells: 0
+    start: -7
+    count: 15
+    flow: 1
+    layFromFarEnd: 0
+  - label: INNER left shaft (south)
+    piece: 1
+    axis: 1
+    offset: -8
+    spanViewport: 0
+    overhangCells: 0
+    start: -2
+    count: 5
+    flow: 1
+    layFromFarEnd: 0
+  - label: INNER bottom run (east)
+    piece: 0
+    axis: 0
+    offset: -3
+    spanViewport: 0
+    overhangCells: 0
+    start: -7
+    count: 15
+    flow: 0
+    layFromFarEnd: 1
+  - label: INNER right shaft (north)
+    piece: 1
+    axis: 1
+    offset: 8
+    spanViewport: 0
+    overhangCells: 0
+    start: -2
+    count: 5
+    flow: 0
+    layFromFarEnd: 1
+  tiles:
+  - label: OUTER top-left elbow (south to east)
+    piece: 4
+    position: {x: -9, y: 4}
+  - label: OUTER top-right elbow (west to south)
+    piece: 5
+    position: {x: 9, y: 4}
+  - label: OUTER bottom-right elbow (north to west)
+    piece: 3
+    position: {x: 9, y: -4}
+  - label: OUTER bottom-left elbow (east to north)
+    piece: 2
+    position: {x: -9, y: -4}
+  - label: INNER top-left elbow (south to east)
+    piece: 4
+    position: {x: -8, y: 3}
+  - label: INNER top-right elbow (west to south)
+    piece: 5
+    position: {x: 8, y: 3}
+  - label: INNER bottom-right elbow (north to west)
+    piece: 3
+    position: {x: 8, y: -3}
+  - label: INNER bottom-left elbow (east to north)
+    piece: 2
+    position: {x: -8, y: -3}
+  teleports:
+  - label: OUTER top into the right shaft
+    fromRun: 0
+    toRun: 1
+    exitOvershoot: 1
+    entryLead: 1
+  - label: OUTER right shaft into the bottom
+    fromRun: 1
+    toRun: 2
+    exitOvershoot: 1
+    entryLead: 1
+  - label: OUTER bottom into the left shaft
+    fromRun: 2
+    toRun: 3
+    exitOvershoot: 1
+    entryLead: 1
+  - label: OUTER left shaft into the top
+    fromRun: 3
+    toRun: 0
+    exitOvershoot: 1
+    entryLead: 1
+  - label: INNER top into the left shaft
+    fromRun: 4
+    toRun: 5
+    exitOvershoot: 1
+    entryLead: 1
+  - label: INNER left shaft into the bottom
+    fromRun: 5
+    toRun: 6
+    exitOvershoot: 1
+    entryLead: 1
+  - label: INNER bottom into the right shaft
+    fromRun: 6
+    toRun: 7
+    exitOvershoot: 1
+    entryLead: 1
+  - label: INNER right shaft into the top
+    fromRun: 7
+    toRun: 4
+    exitOvershoot: 1
+    entryLead: 1
+  drops: []

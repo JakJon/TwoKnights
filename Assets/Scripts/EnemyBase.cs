@@ -600,6 +600,42 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // anything it lights — so every ignition it grants is still one the player spent
     // a shield facing on, which is the property the pillar actually protects.
     //
+    /// <summary>
+    /// Takes every status this enemy is carrying back off — the poison debt and
+    /// all its sources, every burn stack — and the tells with them.
+    ///
+    /// One funnel, for the same reason TakeDamage is one: an effect that cleared
+    /// poison but not fire, or the numbers but not the bubbles, would read as a
+    /// bug rather than as a cleanse. Nothing in the game does this to an enemy
+    /// except the Overseer's roar, and that is exactly why it belongs here and
+    /// not in his file — the next thing that shrugs a status off asks for this
+    /// instead of writing its own half of it.
+    ///
+    /// The flame is NOT stopped here: LateUpdate already puts it out on the first
+    /// frame it finds nothing burning, so doing it twice is how the two disagree.
+    /// </summary>
+    public virtual void PurgeStatusEffects()
+    {
+        if (poisonCoroutine != null)
+        {
+            StopCoroutine(poisonCoroutine);
+            poisonCoroutine = null;
+        }
+        isPoisoned = false;
+        poisonTimer = 0f;
+        poisonDamage = 0;
+        lastPoisonTick = 0f;
+        poisonSources.Clear();
+
+        if (poisonBubbles != null)
+        {
+            poisonBubbles.StopBubblesAndDetach();
+            poisonBubbles = null;
+        }
+
+        _burnStacks.Clear();
+    }
+
     // Each call adds an independent burn stack, so hitting a burning enemy with
     // another ignited arrow/fireball piles heat on rather than merely refreshing.
     public void Ignite(string playerTag)
@@ -839,7 +875,11 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         health -= damage;
         ShowDamageText(damage, new Color(1f, 0.55f, 0.2f)); // ember orange
 
-        if (health > 0) return;
+        if (health > 0)
+        {
+            PlayBurnTick();
+            return;
+        }
 
         isDead = true;
         // A poisoned enemy finished off by fire still owes Serpent its death effects
@@ -858,6 +898,29 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
 
         OnDeath();
+    }
+
+    // Shortest gap allowed between two burn puffs anywhere on screen.
+    private const float BurnTickSoundInterval = 0.2f;
+    private static float _lastBurnTickSound = -1f;
+
+    // Burn damage lands once a second per burning enemy, and nothing synchronises
+    // those clocks — a pack caught by one Fire Trail would otherwise fire a dozen
+    // puffs inside the same second and turn the whole thing into static. The sound
+    // is a texture for "something is burning", not a per-enemy readout, so one
+    // voice at a time across the whole field is exactly right.
+    private static void PlayBurnTick()
+    {
+        if (AudioManager.Instance == null) return;
+
+        // >= guards the case where the clock ran backwards on us: with domain
+        // reload off, this static outlives the play session that stamped it, and a
+        // plain subtraction would then read as "0.2s hasn't passed" forever.
+        float now = Time.time;
+        if (now >= _lastBurnTickSound && now - _lastBurnTickSound < BurnTickSoundInterval) return;
+
+        _lastBurnTickSound = now;
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.burnTick);
     }
 
     // A blast — a powder keg going up. Like poison and fire it sidesteps

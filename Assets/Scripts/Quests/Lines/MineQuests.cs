@@ -10,8 +10,10 @@ public static class MineQuests
 {
     public const string OffTheRails = "off_the_rails";
     public const string PowderAndPatience = "powder_and_patience";
+    public const string WhatRunsTheCarts = "what_runs_the_carts";
     public const string Explorer1 = "mine_explorer_1";
     public const string Explorer2 = "mine_explorer_2";
+    public const string TheGoldCart = "the_gold_cart";
 
     // No mine quest measures depth right now, but the phrasing is one measure
     // with one wording everywhere — a future one takes these rather than
@@ -22,10 +24,29 @@ public static class MineQuests
     private static string ExploreStat => WaveExploration.DistinctStatKey(Mine);
     private const string ExploreLabel = "mine wave types met";
 
-    private static UnlockCondition ForestGateCleared => Stat("maps.camp_fields.gate_cleared");
+    // The mine's own quests open the moment the mine does. Gating them on the
+    // forest's gate_cleared said the same thing on a new save and nothing at all
+    // on an old one — that stat is written once, on the kill, so a save that had
+    // already opened the mine never received it and the line stayed invisible.
+    private static UnlockCondition MineOpen => Stat(MapProgressStore.UnlockedStatKey(Mine));
 
     public static IEnumerable<Quest> All()
     {
+        yield return new Quest(
+            id: WhatRunsTheCarts,
+            name: "What Runs the Carts",
+            description:
+                "Every cart you break is back on the rails the next time you go down, and nobody at camp " +
+                "will say who is putting them there. The survey maps stop where the upper galleries stop, " +
+                "which the scouts insist is because there is nothing under them worth drawing. Follow the " +
+                "track instead of the maps. Whatever is turning the wheel down there is at the end of it.",
+            mapId: Mine,
+            // The objective never says "wave ten" — the quest is to go and look
+            objectives: One("maps.mine.gate_cleared", 1,
+                            "Follow the rails to the bottom", hideProgress: true),
+            reward: Reward(crystals: 1),
+            unlocks: Gate(MineOpen));
+
         yield return new Quest(
             id: OffTheRails,
             name: "Off the Rails",
@@ -36,7 +57,7 @@ public static class MineQuests
             mapId: Mine,
             objectives: One("kills.family.cart", 100),
             reward: Reward(crystals: 1),
-            unlocks: Gate(ForestGateCleared));
+            unlocks: Gate(MineOpen));
 
         yield return new Quest(
             id: PowderAndPatience,
@@ -48,7 +69,27 @@ public static class MineQuests
             mapId: Mine,
             objectives: One("kills.blasted", 50),
             reward: Reward(crystals: 2),
-            unlocks: Gate(ForestGateCleared));
+            unlocks: Gate(MineOpen));
+
+        // The one quest the mine ends on. It opens the moment the Millstone is
+        // down, because beating the wheel is what tells you there was somebody
+        // turning it — the quest is the answer to the question the gate asked.
+        yield return new Quest(
+            id: TheGoldCart,
+            name: "The Gold Cart",
+            description:
+                "Something has been putting the carts back on the rails all along, and the survey maps " +
+                "have no word for it. The millstone was only the wheel. Whatever was turning it rides the " +
+                "same loop its shifts ride, in a cart nobody who works this seam could afford, and it does " +
+                "not get off.",
+            mapId: Mine,
+            objectives: One("maps.mine.true_cleared", 1,
+                            "Put down whatever rides the gold cart", hideProgress: true),
+            // A second special slot, not a second equipment slot: the Overseer
+            // rode the loop firing whatever it liked, and putting it down is
+            // what lets a knight hold two specials and spend one bar on both.
+            reward: Reward(extraSpecialSlot: true),
+            unlocks: Gate(Stat("maps.mine.gate_cleared")));
 
         // ---- the Explorer line ----
 

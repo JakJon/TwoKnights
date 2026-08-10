@@ -91,7 +91,8 @@ public class SwordSwing : MonoBehaviour
             currentSwingDamage = Mathf.Max(1, swingDamage / 2);
             SetSwingTint(PhantomTint);
             AudioManager.Instance.PlaySFX(AudioManager.Instance.phantomStrike);
-            yield return StartCoroutine(AnimateSwingArc(shieldAngle, 0.025f, swingDuration * 0.5f));
+            yield return StartCoroutine(AnimateSwingArc(shieldAngle, 0.025f, swingDuration * 0.5f,
+                                                       PhantomReach + i * PhantomReachStep));
             SetSwingTint(Color.white);
             if (_phaseLanded) _phasesLanded++;
         }
@@ -105,21 +106,31 @@ public class SwordSwing : MonoBehaviour
         canSwing = true;
     }
 
+    // Phantom Blade echoes arc twice as far out as the real swing, so the dark
+    // repeat sweeps ground the knight's own reach never covers instead of
+    // redrawing itself on top of the strike that just happened. Each echo after
+    // the first steps a unit further again, so the set fans outward — the third
+    // swing of a full Phantom Blade lands at 3, not on top of the second.
+    private const float PhantomReach = 2f;
+    private const float PhantomReachStep = 1f;
+
     // One full swing animation pass (sprites on -> arc -> hold -> sprites off);
-    // shared by the real swing and its Phantom Blade echoes
-    private IEnumerator AnimateSwingArc(float shieldAngle, float endHold, float arcDuration)
+    // shared by the real swing and its Phantom Blade echoes. `reach` scales how
+    // far from the knight the arc is drawn — 1 is the sword's own reach.
+    private IEnumerator AnimateSwingArc(float shieldAngle, float endHold, float arcDuration,
+                                        float reach = 1f)
     {
         float startAngle = shieldAngle - 45f;
         float endAngle = shieldAngle + 45f;
         swordSpriteTransform.gameObject.SetActive(true);
         // Position slash sprite but keep it disabled for now
         float shieldAngleRad = shieldAngle * Mathf.Deg2Rad;
-        Vector3 slashPosition = (new Vector3(Mathf.Cos(shieldAngleRad), Mathf.Sin(shieldAngleRad), 0) * 0.6f) + rotationOffset;
+        Vector3 slashPosition = (new Vector3(Mathf.Cos(shieldAngleRad), Mathf.Sin(shieldAngleRad), 0) * 0.6f * reach) + rotationOffset;
         slashSpriteTransform.localPosition = slashPosition;
         slashSpriteTransform.localRotation = Quaternion.Euler(0, 0, shieldAngle - 90f);
         // Position and rotate sword sprite at starting angle
         float startAngleRad = startAngle * Mathf.Deg2Rad;
-        Vector3 swordStartPos = (new Vector3(Mathf.Cos(startAngleRad), Mathf.Sin(startAngleRad), 0) * 0.8f) + rotationOffset;
+        Vector3 swordStartPos = (new Vector3(Mathf.Cos(startAngleRad), Mathf.Sin(startAngleRad), 0) * 0.8f * reach) + rotationOffset;
         swordSpriteTransform.localPosition = swordStartPos;
         swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, startAngle - 90f);
 
@@ -133,13 +144,13 @@ public class SwordSwing : MonoBehaviour
             float progress = elapsed / arcDuration;
             float currentAngle = Mathf.Lerp(startAngle, endAngle, progress);
             float currentAngleRad = currentAngle * Mathf.Deg2Rad;
-            Vector3 swordCurrentPos = (new Vector3(Mathf.Cos(currentAngleRad), Mathf.Sin(currentAngleRad), 0) * 1f) + rotationOffset;
+            Vector3 swordCurrentPos = (new Vector3(Mathf.Cos(currentAngleRad), Mathf.Sin(currentAngleRad), 0) * reach) + rotationOffset;
             swordSpriteTransform.localPosition = swordCurrentPos;
             swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, currentAngle - 90f);
             yield return null;
         }
         float endAngleRad = endAngle * Mathf.Deg2Rad;
-        Vector3 swordEndPos = (new Vector3(Mathf.Cos(endAngleRad), Mathf.Sin(endAngleRad), 0) * .8f) + rotationOffset;
+        Vector3 swordEndPos = (new Vector3(Mathf.Cos(endAngleRad), Mathf.Sin(endAngleRad), 0) * .8f * reach) + rotationOffset;
         swordSpriteTransform.localPosition = swordEndPos;
         swordSpriteTransform.localRotation = Quaternion.Euler(0, 0, endAngle - 90f);
         yield return new WaitForSeconds(endHold);

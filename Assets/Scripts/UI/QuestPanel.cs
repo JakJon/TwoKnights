@@ -27,8 +27,9 @@ public class QuestPanel : MonoBehaviour
     private Button _closeButton;
 
     // One entry per rendered row. A row is either a header (Quest == null) — a
-    // map group, or that map's Completed shelf — or a quest; navigation walks
-    // this list, so folding anything simply rebuilds it shorter.
+    // map group, or the single Completed shelf at the foot of the log — or a
+    // quest; navigation walks this list, so folding anything simply rebuilds it
+    // shorter.
     private struct Row
     {
         public Button Button;
@@ -39,10 +40,10 @@ public class QuestPanel : MonoBehaviour
 
     private readonly List<Row> _rows = new List<Row>();
     private readonly HashSet<string> _collapsed = new HashSet<string>();
-    // Completed shelves are tracked by what is OPEN rather than what is closed,
-    // so a shelf the player has never touched is shut — which is the point of
-    // the shelf. The map groups above them keep the opposite default.
-    private readonly HashSet<string> _expandedCompleted = new HashSet<string>();
+    // The shelf is tracked by whether it is OPEN rather than closed, so one the
+    // player has never touched is shut — which is the point of it. The map
+    // groups above keep the opposite default.
+    private bool _completedShelfOpen;
     private int _selectedIndex = -1;
 
     // The sweeping gold band on every quest the player has never focused. Held
@@ -72,6 +73,9 @@ public class QuestPanel : MonoBehaviour
     private const string COMPLETED_CLASS = "quest-list-item--completed";
     private const string NEW_CLASS = "quest-list-item--new";
     private const string SHEEN_NAME = "quest-new-sheen";
+    // Stands in for a map id on the one shelf row, which belongs to no map.
+    // Cannot collide with a real group: "" is the camp and the rest are map ids.
+    private const string COMPLETED_SHELF = "__completed";
     private const string GROUP_CLASS = "quest-group-header";
     private const string SHELF_CLASS = "quest-group-header--completed";
     private const string COMPLETED_CHECK = "<color=#F0CD78>✔</color> ";
@@ -104,14 +108,10 @@ public class QuestPanel : MonoBehaviour
     {
         string keep = SelectedQuestId();
 
-        // Completing the quest the player is reading moves it into that map's
-        // Completed shelf. Open the shelf so the row stays under the cursor
-        // rather than folding itself away mid-read.
-        if (keep == questId && QuestProgress.IsCompleted(questId))
-        {
-            var completedQuest = QuestDatabase.Get(questId);
-            if (completedQuest != null) _expandedCompleted.Add(completedQuest.MapId);
-        }
+        // Completing the quest the player is reading moves it into the Completed
+        // shelf. Open the shelf so the row stays under the cursor rather than
+        // folding itself away mid-read.
+        if (keep == questId && QuestProgress.IsCompleted(questId)) _completedShelfOpen = true;
 
         Rebuild();
         RestoreSelection(keep);
@@ -165,36 +165,42 @@ public class QuestPanel : MonoBehaviour
         _rows.Clear();
         _sheens.Clear();
 
+        // Everything already finished, from every map, folds under ONE row at the
+        // very foot of the log, shut until asked for: a completed quest is a
+        // trophy, not a task, and past the early game there are more of them than
+        // there are live quests to read the list for. A shelf per map put those
+        // trophies between the player and the next map's live quests.
+        var finished = new List<Quest>();
+
         foreach (var groupId in QuestDatabase.Groups)
         {
             var active = new List<Quest>();
-            var done = new List<Quest>();
+            int done = 0;
             foreach (var quest in QuestProgress.VisibleForMap(groupId))
             {
-                if (QuestProgress.IsCompleted(quest.Id)) done.Add(quest);
+                if (QuestProgress.IsCompleted(quest.Id)) { finished.Add(quest); done++; }
                 else active.Add(quest);
             }
 
-            int total = active.Count + done.Count;
-            if (total == 0) continue; // an untouched map shows nothing at all
+            // An untouched map shows nothing at all, and a map with nothing live
+            // left says everything it has to say down in the shelf
+            if (active.Count == 0) continue;
 
             bool collapsed = _collapsed.Contains(groupId);
-            AddHeader(groupId, GroupName(groupId), $"{done.Count}/{total}", collapsed, false, false);
+            AddHeader(groupId, GroupName(groupId), $"{done}/{done + active.Count}", collapsed, false, false);
             if (collapsed) continue;
 
             for (int i = 0; i < active.Count; i++) AddQuestRow(active[i]);
+        }
 
-            // Everything already finished folds under one row at the foot of the
-            // map, shut until asked for: a completed quest is a trophy, not a
-            // task, and past the early game there are more of them than there
-            // are live quests to read the list for.
-            if (done.Count == 0) continue;
-
-            bool shelfOpen = _expandedCompleted.Contains(groupId);
-            AddHeader(groupId, "Completed", done.Count.ToString(), !shelfOpen, true, AnyUnseen(done));
-            if (!shelfOpen) continue;
-
-            for (int i = 0; i < done.Count; i++) AddQuestRow(done[i]);
+        if (finished.Count > 0)
+        {
+            AddHeader(COMPLETED_SHELF, "Completed", finished.Count.ToString(),
+                      !_completedShelfOpen, true, AnyUnseen(finished));
+            if (_completedShelfOpen)
+            {
+                for (int i = 0; i < finished.Count; i++) AddQuestRow(finished[i]);
+            }
         }
 
         if (_rows.Count == 0)
@@ -207,7 +213,7 @@ public class QuestPanel : MonoBehaviour
     }
 
     /// <summary>
-    /// A foldable header: either a map group, or that map's Completed shelf.
+    /// A foldable header: either a map group, or the log's one Completed shelf.
     ///
     /// The shelf takes the sweep when it holds a quest the player has never
     /// opened. A quest that unlocks and completes in the same run lands
@@ -221,7 +227,7 @@ public class QuestPanel : MonoBehaviour
         string slug = string.IsNullOrEmpty(groupId) ? "camp" : groupId;
         var button = new Button(() => ToggleFold(groupId, completedShelf))
         {
-            name = (completedShelf ? "quest-completed-" : "quest-group-") + slug,
+            name = completedShelf ? "quest-completed-shelf" : "quest-group-" + slug,
             text = $"{arrow} {label}   {count}",
         };
         button.AddToClassList(GROUP_CLASS);
@@ -268,7 +274,7 @@ public class QuestPanel : MonoBehaviour
     {
         if (completedShelf)
         {
-            if (!_expandedCompleted.Remove(groupId)) _expandedCompleted.Add(groupId);
+            _completedShelfOpen = !_completedShelfOpen;
         }
         else if (!_collapsed.Remove(groupId))
         {
@@ -465,7 +471,13 @@ public class QuestPanel : MonoBehaviour
         if (reward.ExtraEquipmentSlot)
         {
             AddRewardSquare(catalog != null ? catalog.EquipmentSlotIcon : null, null,
-                            "A second equipment slot");
+                            "Another equipment slot");
+        }
+
+        if (reward.ExtraSpecialSlot)
+        {
+            AddRewardSquare(catalog != null ? catalog.SpecialSlotIcon : null, null,
+                            "Another special slot");
         }
     }
 
@@ -584,11 +596,11 @@ public class QuestPanel : MonoBehaviour
         if (_detailName != null) _detailName.text = shelf ? "Completed" : GroupName(row.GroupId);
         if (_detailDescription != null)
         {
-            _detailDescription.text = shelf ? $"Quests already finished in {GroupName(row.GroupId)}." : "";
+            _detailDescription.text = shelf ? "Every quest you have finished." : "";
         }
         if (_detailProgress != null)
         {
-            bool folded = shelf ? !_expandedCompleted.Contains(row.GroupId) : _collapsed.Contains(row.GroupId);
+            bool folded = shelf ? !_completedShelfOpen : _collapsed.Contains(row.GroupId);
             _detailProgress.text = folded ? "Collapsed." : "";
             _detailProgress.style.display = DisplayStyle.Flex;
         }

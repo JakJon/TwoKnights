@@ -50,6 +50,10 @@ public class AudioManager : MonoBehaviour
     public SoundEffect phantomStrike;
     public SoundEffect executeFlash;
     public SoundEffect poisonBurst;
+    // One soft puff per burn tick, deliberately near the noise floor: fire damage
+    // lands once a second on every burning body at once, so this has to sit under
+    // the fight rather than in it. Globally rate-limited — see EnemyBase.PlayBurnTick.
+    public SoundEffect burnTick;
 
     // A knight rotting, one tick a second for twenty-five seconds. Deliberately
     // NOT the unified playerHurt: that sound is sized for a hit worth fifteen, and
@@ -82,6 +86,10 @@ public class AudioManager : MonoBehaviour
     public SoundEffect bossRoar;
     public SoundEffect bossHurt;
     public SoundEffect bossDeath;
+    // Two blasts off a mine whistle, and the only announcement the Millstone
+    // makes: it sounds when the wheel changes gear, so the players hear the ring
+    // speed up on the same beat they see it
+    public SoundEffect cartWhistle;
     public SoundEffect waveStart;
     public SoundEffect waveComplete;
     public SoundEffect victoryFanfare;

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Second Wind 2
   m_EditorClassIdentifier: 
   upgradeName: Second Wind II
-  description: The reprieve comes earlier, lasts longer, and mends as it lands.
+  description: The tally is shorter, and settling it heals you as well.
   weight: 45
   order: 5
   requiresOrderCount: 0
@@ -21,15 +21,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 17d79d9640304af0b28e61785cff7501, type: 2}
   lockedBy: []
   stats:
-  - valueText: 2s
+  - valueText: 5s
     labelText: UNTOUCHABLE
     isPositive: 1
-  - valueText: 45%
-    labelText: HEALTH THRESHOLD
+  - valueText: 40
+    labelText: DAMAGE TAKEN
     isPositive: 1
   - valueText: +5 HP
-    labelText: ON PROC
+    labelText: EACH TIME
     isPositive: 1
-  healthThreshold: 0.45
-  invulnerableSeconds: 2
-  mendAmount: 5
+  damageToll: 40
+  invulnerableSeconds: 5
+  healAmount: 5

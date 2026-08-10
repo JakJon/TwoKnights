@@ -47,6 +47,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b95b840577812b70305ceef1ee9a8441, type: 2}
   - {fileID: 11400000, guid: bbceac76debae0d993e5ff34f7bbb206, type: 2}
   - {fileID: 11400000, guid: a34a3283bdd59fe741f00ac0a8a9e466, type: 2}
+  - {fileID: 11400000, guid: fd330e4440ca80c85e44ee8c7f216238, type: 2}
   waveFolders:
   - Assets/Scripts/Waves/Cave/ChooChoo
   - Assets/Scripts/Waves/Cave/Delivery
@@ -55,14 +56,23 @@ MonoBehaviour:
   - Assets/Scripts/Waves/Cave/BitsAndPieces
   - Assets/Scripts/Waves/Cave/CartLoads
   - Assets/Scripts/Waves/Cave/Crossfire
-  gateBoss: {fileID: 0}
-  gateBossWaveNumber: 15
-  trueBoss: {fileID: 0}
-  trueBossWaveNumber: 25
+  - Assets/Scripts/Waves/Cave/Millstone
+  gateBoss: {fileID: 11400000, guid: fd330e4440ca80c85e44ee8c7f216238, type: 2}
+  gateBossWaveNumber: 10
+  gateBossRepeats: 0
+  gateBossEndsRun: 0
+  trueBoss: {fileID: 11400000, guid: 5d7bd7d9013d7cd4faa97df4421b4f59, type: 2}
+  trueBossWaveNumber: 20
   strongerEnemiesFromWave: 1
   stages:
   - label: Mine
     fromWaveNumber: 1
     backdrop: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
+    foreground: {fileID: 0}
     ventureLine: 
+  - label: Deep Mine
+    fromWaveNumber: 11
+    backdrop: {fileID: 2335080058012798373, guid: 56b8e1b55ed0c3a46b702f4d4fdfedcf, type: 3}
+    foreground: {fileID: -5368810055853492662, guid: 56b8e1b55ed0c3a46b702f4d4fdfedcf, type: 3}
+    ventureLine: The knights wander further into the cave.
   unlocksMapId: 

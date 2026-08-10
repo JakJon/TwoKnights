@@ -82,9 +82,11 @@ MonoBehaviour:
   - label: Forest
     fromWaveNumber: 1
     backdrop: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
+    foreground: {fileID: 0}
     ventureLine: 
   - label: Deep Forest
     fromWaveNumber: 11
     backdrop: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+    foreground: {fileID: 0}
     ventureLine: The knights venture deeper into the forest.
   unlocksMapId: mine

@@ -1028,6 +1028,9 @@ MonoBehaviour:
   bossDeath:
     clip: {fileID: 8300000, guid: 534c93805f76a9044819f706b196a834, type: 3}
     volume: 0.804
+  cartWhistle:
+    clip: {fileID: 8300000, guid: 7efed0ab47ffecde4b50b44021c583a3, type: 3}
+    volume: 0.65
   waveStart:
     clip: {fileID: 8300000, guid: 70006ee9bd87125458d3afd254040dd2, type: 3}
     volume: 0.452

@@ -250,6 +250,42 @@ public class MineCart : MonoBehaviour
         ResolveSpacing();
     }
 
+    /// <summary>
+    /// The nearest cart ahead of <paramref name="of"/> on the same run, within
+    /// <paramref name="reach"/> units. "Ahead" is in travel order, so it means
+    /// the same thing on a westbound run as on an eastbound one.
+    ///
+    /// It lives here because the cart list and the spacing rules do: "what is in
+    /// front of me" is the question ResolveSpacing already answers every frame,
+    /// and a second copy of that list somewhere else would eventually be a second
+    /// answer.
+    /// </summary>
+    public static MineCart FirstAhead(MineCart of, float reach)
+    {
+        if (of == null || !of._riding) return null;
+
+        MineCart nearest = null;
+        float nearestGap = float.MaxValue;
+
+        for (int i = 0; i < Live.Count; i++)
+        {
+            MineCart other = Live[i];
+            if (other == null || other == of || !other._riding) continue;
+            if (other._line.Index != of._line.Index) continue;
+
+            float gap = other.Along - of.Along;
+            if (gap <= 0f || gap > reach) continue;
+
+            if (gap < nearestGap)
+            {
+                nearestGap = gap;
+                nearest = other;
+            }
+        }
+
+        return nearest;
+    }
+
     private static void ResolveSpacing()
     {
         // Two passes settles a queue of carts arriving in any order; a single one

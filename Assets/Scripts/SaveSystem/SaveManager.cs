@@ -250,6 +250,15 @@ public static class SaveManager
 
             data.version = 8;
         }
+        if (data.version < 9)
+        {
+            // Special slots joined equipment slots as a thing a quest can grant.
+            // The one special every pre-v9 knight had is folded into slot 0 by
+            // Loadout.Normalize, which runs on every read — nothing to do here
+            // but establish the floor.
+            if (data.specialSlots < 1) data.specialSlots = 1;
+            data.version = 9;
+        }
     }
 
     private static void PruneCompletions(SaveData data, params string[] questIds)

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Killing Blow 1
   m_EditorClassIdentifier: 
   upgradeName: Killing Blow I
-  description: Executes low-health enemies. Bosses resist this effect.
+  description: An arrow kills a weakened enemy the moment it lands. Bosses resist this effect.
   weight: 50
   order: 2
   requiresOrderCount: 0

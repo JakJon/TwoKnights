@@ -184,7 +184,7 @@ public abstract class EnemyGnomeCart : EnemyMineCart
     /// authored waits matches the number of riders still up. Both halves of the
     /// gate use it, so the shared pace and the individual one thin out together.
     /// </summary>
-    private float EffectiveCooldown()
+    protected virtual float EffectiveCooldown()
     {
         float full = Mathf.Max(0f, throwCooldown);
 

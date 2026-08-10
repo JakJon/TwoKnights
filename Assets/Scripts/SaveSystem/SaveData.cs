@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int version = 8;
+    public int version = 9;
     // The name shown on this file's bar in the file select. Set once, at the
     // moment the file is created; there is no rename.
     public string profileName = "";
@@ -33,6 +33,9 @@ public class SaveData
     // Equipment slots PER KNIGHT, not in total. The Crimson Twins quest is the
     // one thing that raises this, to 2.
     public int equipmentSlots = 1;
+    // Special slots PER KNIGHT. The Gold Cart quest raises this to 2, and a
+    // knight with two fires BOTH on one full bar — see PlayerSpecial.
+    public int specialSlots = 1;
     // Every equipment item and special the player owns, quest-granted or bought.
     // Owning is separate from equipping: buying never auto-equips.
     public List<string> ownedEquipment = new List<string>();
@@ -44,8 +47,8 @@ public class SaveData
     // keep whatever they chose.
     public List<KnightLoadout> loadouts = new List<KnightLoadout>
     {
-        new KnightLoadout { knightId = "left", specialId = "rapid_fire" },
-        new KnightLoadout { knightId = "right", specialId = "field_mending" },
+        new KnightLoadout { knightId = "left", specials = new List<string> { "rapid_fire" } },
+        new KnightLoadout { knightId = "right", specials = new List<string> { "field_mending" } },
     };
     // Quest ids the player has actually opened in the log. A quest that is
     // unlocked but absent here is what lights the notification dot.
@@ -68,7 +71,11 @@ public class KnightLoadout
 {
     public string knightId;                                  // "left" | "right"
     public List<string> equipped = new List<string>();       // equipment ids, count <= equipmentSlots
-    public string specialId = "";                            // empty = the knight prefab's default
+    public List<string> specials = new List<string>();       // special ids, count <= specialSlots; empty entry = the prefab's default
+    // Pre-v9, a knight had exactly one special and it lived here. Kept only so a
+    // loaded save still carries the value long enough to fold into specials[0]
+    // (Loadout.Normalize); it is written back empty from then on.
+    public string specialId = "";
 }
 
 [Serializable]

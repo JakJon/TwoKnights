@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Shared Light 1
   m_EditorClassIdentifier: 
   upgradeName: Shared Light I
-  description: Part of every mending you receive is passed to the other knight.
+  description: Part of every heal you receive is passed to the other knight.
   weight: 100
   order: 5
   requiresOrderCount: 0

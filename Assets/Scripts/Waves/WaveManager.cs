@@ -6,7 +6,7 @@ using System.Linq;
 public enum RunOutcome
 {
     None,
-    GateVictory, // first-ever gate boss kill on this map: run ends in victory
+    GateVictory, // first-ever gate boss kill on a map whose gate ends the run
     TrueVictory  // the map's true final boss has fallen
 }
 
@@ -97,7 +97,7 @@ public class WaveManager : ScriptableObject
             {
                 // Even the refilled pool has nothing playable at this wave count
                 // (unlock windows) — bring the next boss forward instead
-                picked = _gateBossDefeatedThisRun ? map.TrueBoss : map.GateBoss;
+                picked = GateIsDown() ? map.TrueBoss : map.GateBoss;
                 currentWave = picked;
                 return currentWave;
             }
@@ -111,19 +111,36 @@ public class WaveManager : ScriptableObject
         var map = CurrentMap;
         if (map == null) return null;
 
-        if (!_gateBossDefeatedThisRun && map.GateBoss != null
+        if (!GateIsDown() && map.GateBoss != null
             && CurrentWaveNumber >= map.GateBossWaveNumber)
         {
             return map.GateBoss;
         }
 
-        if (_gateBossDefeatedThisRun && map.TrueBoss != null
+        if (GateIsDown() && map.TrueBoss != null
             && CurrentWaveNumber >= map.TrueBossWaveNumber)
         {
             return map.TrueBoss;
         }
 
         return null;
+    }
+
+    // Is the gate behind this run? Beating it now is the usual way, but a map may
+    // declare its gate a one-time door (MapDefinition.gateBossRepeats): once that
+    // has fallen, on any earlier run, it stops owning its wave number and the run
+    // walks straight past it. Asked as one question rather than two because the
+    // answer has to serve both halves of the schedule — a deep-water true boss
+    // that only opened on "beaten THIS run" would be unreachable on a map whose
+    // gate no longer stands in the way.
+    private bool GateIsDown()
+    {
+        if (_gateBossDefeatedThisRun) return true;
+
+        var map = CurrentMap;
+        if (map == null || map.GateBossRepeats) return false;
+
+        return MapProgressStore.IsGateCleared(map.MapId);
     }
 
     // Refill only the wave pool, keeping wave count and boss state.
@@ -257,8 +274,17 @@ public class WaveManager : ScriptableObject
                 Feats.Record(Feats.RatKingBare);
             }
             bool firstClear = !MapProgressStore.IsGateCleared(map.MapId);
+            // Recorded either way, and this is the half that pays: the clear
+            // unlocks whatever it unlocks and publishes maps.<id>.gate_cleared
+            // for the quest that was waiting on it, whether or not the run stops
+            // here. MarkGateCleared saves on the spot, so a player who goes on to
+            // die deeper in still keeps what beating it earned.
             MapProgressStore.MarkGateCleared(map);
-            if (firstClear)
+
+            // Whether the run stops is the MAP's call. A gate that is a finish
+            // line ends it in victory the first time; one that is a door does not
+            // end it at all, and the run carries straight on past the wave number.
+            if (firstClear && map.GateBossEndsRun)
             {
                 PendingOutcome = RunOutcome.GateVictory;
             }

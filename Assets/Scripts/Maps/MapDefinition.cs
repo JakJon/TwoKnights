@@ -2,23 +2,37 @@ using UnityEngine;
 using System.Collections.Generic;
 
 // A Map is the unit of content: a handcrafted wave setlist plus its bosses.
-// The gate boss appears at gateBossWaveNumber; the FIRST kill ends the run in
-// victory and unlocks unlocksMapId. On later runs the gate boss still appears,
-// but beating it lets the run continue into the extended waves toward the true
-// boss, which always ends the run in victory.
+// The gate boss appears at gateBossWaveNumber and the FIRST kill unlocks
+// unlocksMapId. What that kill does to the RUN is the map's own business, and
+// the two shipped maps answer it differently:
+//
+//   * The Camp Fields — the gate is a finish line. The first kill ends the run
+//     in victory (gateBossEndsRun), and the rat king stands at his wave number
+//     on every later run (gateBossRepeats), where beating him again is how a run
+//     gets into the deep waves toward the true boss.
+//   * The Mine — the gate is a door. Beating the Millstone records the clear and
+//     the run walks straight through it; afterwards it is not forced again at all
+//     and simply plays as an ordinary wave out of the setlist.
+//
+// The true boss always ends the run in victory.
 [CreateAssetMenu(fileName = "MapDefinition", menuName = "Maps/Map Definition")]
 public class MapDefinition : ScriptableObject
 {
     // A stretch of the map with its own backdrop, entered at fromWaveNumber.
     // Crossing into a stage that carries a ventureLine earns the full curtain
-    // ceremony between waves (VentureCurtain); the backdrop itself is applied
-    // by BackgroundController.
+    // ceremony between waves (VentureCurtain); the backdrop — and the optional
+    // foreground that draws over the arena — are applied by BackgroundController.
     [System.Serializable]
     public class MapStage
     {
         public string label;
         [Min(1)] public int fromWaveNumber = 1;
         public Sprite backdrop;
+        [Tooltip("Optional overlay drawn IN FRONT of every sprite in the arena — knights, enemies, projectiles. " +
+                 "The near lip of a cave mouth, a rock overhang: the knights walk BEHIND it. Usually the second " +
+                 "layer of the backdrop's .aseprite, imported with Layer Import Mode = Individual Layers. " +
+                 "Empty = a flat backdrop with nothing in front.")]
+        public Sprite foreground;
         [Tooltip("Shown over black between waves when the run first enters this stage. Empty = no ceremony, just the short fade.")]
         [TextArea] public string ventureLine;
     }
@@ -48,6 +62,19 @@ public class MapDefinition : ScriptableObject
     [SerializeField] private BaseWave gateBoss;
     [SerializeField] private int gateBossWaveNumber = 10;
 
+    [Tooltip("Does the gate keep standing across the wave number on every later run? The Camp Fields rule " +
+             "is yes: the rat king is there at wave ten forever, and beating him again is how a run gets " +
+             "into the deep waves. Turn it off for a gate that is a one-time door — it is forced until the " +
+             "first time it falls and after that it is an ordinary wave, which only works if the gate wave " +
+             "is ALSO in the map's setlist with a real weight and an unlock window.")]
+    [SerializeField] private bool gateBossRepeats = true;
+
+    [Tooltip("Does the first kill END the run in victory? The Camp Fields rule is yes — the gate is the " +
+             "map's nominal finish line, and a first run stops there. Turn it off for a gate that is a " +
+             "door rather than a finish line: it still marks the map's gate cleared, still pays out " +
+             "whatever that unlocks, and the run walks straight through it and carries on.")]
+    [SerializeField] private bool gateBossEndsRun = true;
+
     [Header("True boss — deeper waves after the gate has fallen")]
     [SerializeField] private BaseWave trueBoss;
     [SerializeField] private int trueBossWaveNumber = 20;
@@ -75,6 +102,21 @@ public class MapDefinition : ScriptableObject
     public IReadOnlyList<BaseWave> Waves => waves;
     public BaseWave GateBoss => gateBoss;
     public int GateBossWaveNumber => gateBossWaveNumber;
+
+    /// <summary>
+    /// Is the gate put back for every run, or is it a door that stays open once
+    /// it has been walked through? See the field's tooltip — a one-time gate has
+    /// to be in the setlist as well, or it is never seen again after its first
+    /// clear.
+    /// </summary>
+    public bool GateBossRepeats => gateBossRepeats;
+
+    /// <summary>
+    /// Does beating the gate for the first time end the run in victory? False
+    /// makes it a doorway: the clear is recorded and paid for exactly as before,
+    /// but the run does not stop at it.
+    /// </summary>
+    public bool GateBossEndsRun => gateBossEndsRun;
     public BaseWave TrueBoss => trueBoss;
     public int TrueBossWaveNumber => trueBossWaveNumber;
 

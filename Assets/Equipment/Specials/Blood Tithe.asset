@@ -15,11 +15,11 @@ MonoBehaviour:
   id: blood_tithe
   displayName: Blood Tithe
   description: For a while, the dying settle what they owe.
-  effect: Each of your kills heals you 3, for 8 seconds.
+  effect: Each of your kills heals you 10, for 8 seconds.
   icon: {fileID: -6637979948067896018, guid: 5f1d9c7a73a771046a8b546c60f2c4b7, type: 3}
   crystalCost: 4
   ownedFromTheStart: 0
   freezeGainSeconds: 8
   duration: 8
-  healPerKill: 3
+  healPerKill: 10
   glow: {r: 0.72, g: 0.15, b: 0.22, a: 1}

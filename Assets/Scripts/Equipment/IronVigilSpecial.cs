@@ -10,7 +10,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Iron Vigil", menuName = "Equipment/Special/Iron Vigil")]
 public class IronVigilSpecial : SpecialDefinition
 {
-    [SerializeField] private float duration = 5f;
+    [SerializeField] private float duration = 12f;
     [SerializeField] private Color glow = new Color(0.72f, 0.78f, 0.85f);
 
     public override void Activate(GameObject knight, string playerTag)

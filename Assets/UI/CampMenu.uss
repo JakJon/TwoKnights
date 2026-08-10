@@ -1043,10 +1043,26 @@
     background-color: rgb(45, 37, 22);
     border-color: rgb(212, 162, 74);
 }
+
+/* A special is not a piece of kit, and at two slots each the column was four
+   identical rows. The violet ground separates the two groups by HUE, leaving
+   gold to mean only "this is the row you are on" — the same division the rest
+   of the menu runs on. */
+.equip-slot--special {
+    background-color: rgb(31, 25, 40);
+    border-color: rgb(54, 44, 70);
+}
+.equip-slot--special.equip-slot--selected {
+    background-color: rgb(48, 38, 64);
+    border-color: rgb(212, 162, 74);
+}
 .equip-slot-kind {
     font-size: 10px;
     letter-spacing: 2px;
     color: rgb(130, 118, 90);
+}
+.equip-slot--special .equip-slot-kind {
+    color: rgb(152, 134, 180);
 }
 .equip-slot-value {
     font-size: 14px;

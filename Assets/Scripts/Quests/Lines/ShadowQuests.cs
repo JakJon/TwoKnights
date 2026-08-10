@@ -22,18 +22,23 @@ public static class ShadowQuests
             name: "Initiation: The Silent Oath",
             description:
                 "The Order of the Shadow has no interest in how loudly you can kill. What gets their " +
-                "attention is economy — the wounded thing finished before it can turn around, the shot " +
-                "that did not need a second. Show enough of it and the invitation arrives without " +
-                "ceremony, usually folded into something you were already carrying.",
+                "attention is arrows that connect — the dark ones, the ones nobody hears coming, put " +
+                "into something often enough that it stops looking like luck. Show enough of it and the " +
+                "invitation arrives without ceremony, usually folded into something you were already " +
+                "carrying.",
             mapId: Camp,
+            // Both halves measure the same practice: taking the Order's upgrades
+            // and actually putting its arrows into things. The old second half
+            // counted Killing Blow finishes, which asked for a different branch's
+            // work before the Order had admitted you to any branch at all.
             objectives: new[]
             {
                 Obj("upgrades.order.shadow", 6, "shadow upgrades taken"),
-                Obj("kills.executed", 25, "finished outright"),
+                Obj(Feats.ShadowArrowHits, 250, "shadow arrows landed"),
             },
             reward: Reward(crystals: 2),
             // Noticed for practising the Order, not for owning it: sixty arrows
-            // that connected, the same counter the Blade branch then asks a
+            // that connected, the same counter the Blade branch then asks five
             // thousand of. Drafting Shadow Arrow was the old trigger and it fired
             // on the pick rather than on any use of it.
             unlocks: Gate(Stat(Feats.ShadowArrowHits, 60)));
@@ -48,7 +53,7 @@ public static class ShadowQuests
                 "it is a second you are not aiming somewhere more useful. The Order regards a slow " +
                 "finish as a form of rudeness, mostly toward yourself.",
             mapId: Camp,
-            objectives: One(Feats.ShadowArrowHits, 1000, "shadow arrows landed"),
+            objectives: One(Feats.ShadowArrowHits, 5000, "shadow arrows landed"),
             reward: Reward(equipmentId: "nightglass_shard"),
             unlocks: Gate(After(Initiation)));
 
@@ -81,13 +86,24 @@ public static class ShadowQuests
 
         yield return new Quest(
             id: Fan2,
-            name: "Phantom Blade",
+            name: "What Follows the Blade",
             description:
-                "Swing once and let the dark swing after you. The Order has declined to explain how " +
-                "this works and has politely asked that you stop asking.",
+                "Swing once and let the dark swing after you, and do the same courtesy to anything an " +
+                "arrow finds already most of the way dead. Neither half is really a technique. The " +
+                "branch treats them as one habit, which is declining to do a job twice, and the Order " +
+                "has offered no account of how the echoes work beyond politely asking that you stop " +
+                "asking.",
             mapId: Camp,
-            objectives: One(Feats.PhantomFullThree, 1,
-                            "Land a swing and both its phantom echoes", hideProgress: true),
+            // The feat is met the first swing after Phantom Blade II lands, so on
+            // its own this quest was over the moment it opened. The execute count
+            // is what gives it length — and it is the only home Killing Blow has
+            // left since the initiation stopped counting it.
+            objectives: new[]
+            {
+                Obj(Feats.PhantomFullThree, 1,
+                    "Land a swing and both its phantom echoes", hideProgress: true),
+                Obj("kills.executed", 250, "finished by Killing Blow"),
+            },
             reward: Reward(equipmentId: "echo_ribbon"),
             unlocks: Gate(After(Fan1)));
     }

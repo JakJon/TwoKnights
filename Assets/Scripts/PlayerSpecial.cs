@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,9 +10,11 @@ public class PlayerSpecial : MonoBehaviour
     [Tooltip("This knight's stock special. Left with none, it is inferred from whichever special component the prefab carries.")]
     [SerializeField] private SpecialDefinition defaultSpecial;
 
-    // What this knight will actually fire, resolved once at Start: the special
-    // chosen in the camp if they own one, otherwise the prefab's stock.
-    private SpecialDefinition _special;
+    // What this knight will actually fire, resolved once at Start: the specials
+    // chosen in the camp if they own them, otherwise the prefab's stock. A
+    // knight with two slots fires BOTH on one full bar — the bar is spent once
+    // either way, which is what makes the second slot worth having.
+    private List<SpecialDefinition> _specials = new List<SpecialDefinition>();
 
     private int _currentSpecial;
     private int _currentSpecialStreak;
@@ -50,7 +53,7 @@ public class PlayerSpecial : MonoBehaviour
         specialBar.Initialize(maxSpecial);
         specialBar.SetValue(_currentSpecial);
 
-        _special = Loadout.ResolveSpecial(Loadout.KnightIdFromTag(tag), ResolveStockSpecial());
+        _specials = Loadout.ResolveSpecials(Loadout.KnightIdFromTag(tag), ResolveStockSpecial());
         _specialBarFilledSfxPlayed = false;
     }
 
@@ -83,7 +86,7 @@ public class PlayerSpecial : MonoBehaviour
         if (!specialAction.action.triggered) return;
         // Carrying no special is a legitimate loadout — the bar fills and there
         // is simply nothing to spend it on. Silent, not a warning.
-        if (_special == null) return;
+        if (_specials.Count == 0) return;
 
         // Spend and redraw the bar BEFORE anything freezes gain — updateSpecial
         // returns early while frozen, so freezing first would leave the bar
@@ -91,8 +94,18 @@ public class PlayerSpecial : MonoBehaviour
         _currentSpecial = 0;
         updateSpecial(0);
 
-        if (_special.FreezeGainSeconds > 0f) FreezeSpecialGain(_special.FreezeGainSeconds);
-        _special.Activate(gameObject, tag);
+        // Every freeze is applied before the FIRST activation, so a long special
+        // firing alongside a short one can't have its window cut by the short
+        // one's effect refilling the bar. FreezeSpecialGain already takes the
+        // later deadline, so the longest wins on its own.
+        for (int i = 0; i < _specials.Count; i++)
+        {
+            if (_specials[i].FreezeGainSeconds > 0f) FreezeSpecialGain(_specials[i].FreezeGainSeconds);
+        }
+        for (int i = 0; i < _specials.Count; i++)
+        {
+            _specials[i].Activate(gameObject, tag);
+        }
 
         // Benediction (Dawn): spending a special lifts the OTHER knight too,
         // whatever the special was. Hooked here rather than inside each special

@@ -22,6 +22,10 @@ public class EquipmentPanel : MonoBehaviour
     private const string SLOT_CLASS = "equip-slot";
     private const string SLOT_SELECTED = "equip-slot--selected";
     private const string SLOT_EMPTY = "equip-slot--empty";
+    // Specials are a different kind of thing from equipment, so their rows are a
+    // different surface — at two of each, a column of identical rows stopped
+    // reading as two groups at all
+    private const string SLOT_SPECIAL = "equip-slot--special";
     private const string PICK_CLASS = "equip-pick";
     private const string PICK_SELECTED = "equip-pick--selected";
 
@@ -62,9 +66,11 @@ public class EquipmentPanel : MonoBehaviour
 
     public bool IsVisible => _panel != null && _panel.style.display == DisplayStyle.Flex;
 
-    /// <summary>Rows per knight: the equipment slots, then one for the special.</summary>
-    private int RowCount => Loadout.SlotCount + 1;
-    private bool OnSpecialRow => _slot == Loadout.SlotCount;
+    /// <summary>Rows per knight: the equipment slots, then the special slots.</summary>
+    private int RowCount => Loadout.SlotCount + Loadout.SpecialSlotCount;
+    private bool OnSpecialRow => _slot >= Loadout.SlotCount;
+    /// <summary>Which special slot the cursor is on. Meaningless off a special row.</summary>
+    private int SpecialSlot => _slot - Loadout.SlotCount;
     private string KnightId => _knight == 0 ? Loadout.LeftKnight : Loadout.RightKnight;
 
     private void Awake()
@@ -163,21 +169,26 @@ public class EquipmentPanel : MonoBehaviour
             var def = Loadout.EquippedAt(knightId, slot);
             col.Add(BuildRow(column, slot, "EQUIPMENT",
                              def != null ? def.DisplayName : "(empty)", def == null,
-                             def != null ? def.Icon : null));
+                             def != null ? def.Icon : null, false));
         }
 
-        var special = Loadout.ResolveSpecial(knightId, null);
-        col.Add(BuildRow(column, slots, "SPECIAL",
-                         special != null ? special.DisplayName : "(none)", special == null,
-                         special != null ? special.Icon : null));
+        int specialSlots = Loadout.SpecialSlotCount;
+        for (int slot = 0; slot < specialSlots; slot++)
+        {
+            var special = Loadout.ResolveSpecial(knightId, null, slot);
+            col.Add(BuildRow(column, slots + slot, "SPECIAL",
+                             special != null ? special.DisplayName : "(none)", special == null,
+                             special != null ? special.Icon : null, true));
+        }
 
         _body.Add(col);
     }
 
-    private VisualElement BuildRow(int column, int slot, string kind, string value, bool empty, Sprite icon)
+    private VisualElement BuildRow(int column, int slot, string kind, string value, bool empty, Sprite icon, bool special)
     {
         var row = new VisualElement();
         row.AddToClassList(SLOT_CLASS);
+        if (special) row.AddToClassList(SLOT_SPECIAL);
         if (empty) row.AddToClassList(SLOT_EMPTY);
 
         // Art plus the item name on the left, the slot's kind flush right —
@@ -244,9 +255,9 @@ public class EquipmentPanel : MonoBehaviour
 
         if (OnSpecialRow)
         {
-            var special = Loadout.ResolveSpecial(KnightId, null);
+            var special = Loadout.ResolveSpecial(KnightId, null, SpecialSlot);
             _detail.text = special != null ? Describe(special.Effect, special.Description)
-                                           : "This knight has no special.";
+                                           : "Nothing in this special slot.";
         }
         else
         {
@@ -365,8 +376,8 @@ public class EquipmentPanel : MonoBehaviour
 
     private string SpecialIdOrEmpty()
     {
-        if (Loadout.HasNoSpecial(KnightId)) return Loadout.NoSpecial;
-        var special = Loadout.ResolveSpecial(KnightId, null);
+        if (Loadout.IsSpecialSlotEmpty(KnightId, SpecialSlot)) return Loadout.NoSpecial;
+        var special = Loadout.ResolveSpecial(KnightId, null, SpecialSlot);
         return special != null ? special.Id : "";
     }
 
@@ -406,7 +417,19 @@ public class EquipmentPanel : MonoBehaviour
     private string CandidateNote(int index)
     {
         string id = _candidates[index];
-        if (string.IsNullOrEmpty(id) || OnSpecialRow) return null;
+        if (string.IsNullOrEmpty(id)) return null;
+        if (OnSpecialRow)
+        {
+            // Picking a special the knight already holds swaps the two slots
+            // rather than duplicating it, so say so before they press A
+            if (id == Loadout.NoSpecial) return null;
+            int slots = Loadout.SpecialSlotCount;
+            for (int slot = 0; slot < slots; slot++)
+            {
+                if (slot != SpecialSlot && Loadout.SpecialIdFor(KnightId, slot) == id) return "other slot";
+            }
+            return null;
+        }
         string holder = Loadout.KnightHolding(id);
         if (holder == null || holder == KnightId) return null;
         return holder == Loadout.LeftKnight ? "left knight" : "right knight";
@@ -417,7 +440,13 @@ public class EquipmentPanel : MonoBehaviour
         if (index < 0 || index >= _candidates.Count) return "";
         string id = _candidates[index];
         if (id == Loadout.NoSpecial)
-            return "Fire no special at all. The bar still fills; there is simply nothing to spend it on.";
+        {
+            // With a second slot open, emptying one is no longer the same
+            // statement as carrying nothing — the other slot still fires
+            return Loadout.SpecialSlotCount > 1
+                ? "Leave this slot empty."
+                : "Fire no special at all. The bar still fills; there is simply nothing to spend it on.";
+        }
         if (string.IsNullOrEmpty(id)) return "Carry nothing in this slot.";
         var catalog = EquipmentCatalog.Instance;
         if (catalog == null) return "";
@@ -455,7 +484,7 @@ public class EquipmentPanel : MonoBehaviour
 
         if (OnSpecialRow)
         {
-            Loadout.SetSpecial(KnightId, id);
+            Loadout.SetSpecial(KnightId, SpecialSlot, id);
         }
         else if (string.IsNullOrEmpty(id))
         {

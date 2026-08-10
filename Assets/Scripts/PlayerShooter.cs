@@ -52,10 +52,45 @@ public class PlayerShooter : MonoBehaviour
     {
         shootAction.action.Disable();
         _isHoldingButton = false;
+        SetFireballChargeFx(false);
+    }
+
+    // Ember tell: while the loaded shot is the fireball, the shield smoulders. The
+    // cadence is deterministic, so this is a promise the player can act on — built
+    // lazily because EmberBoost only exists once the Fireball upgrade lands.
+    private ParticleSystem _fireballChargeFx;
+    private bool _fireballChargeActive;
+
+    private void UpdateFireballChargeFx()
+    {
+        EmberBoost emberBoost = GetComponent<EmberBoost>();
+        bool shouldCharge = emberBoost != null && emberBoost.NextShotIsFireball;
+
+        if (shouldCharge && _fireballChargeFx == null && shield != null)
+        {
+            _fireballChargeFx = FireFx.AttachShieldCharge(shield.gameObject);
+        }
+
+        SetFireballChargeFx(shouldCharge);
+    }
+
+    private void SetFireballChargeFx(bool active)
+    {
+        if (_fireballChargeFx == null || active == _fireballChargeActive) return;
+
+        var emission = _fireballChargeFx.emission;
+        emission.enabled = active;
+        if (active)
+        {
+            _fireballChargeFx.Play();
+        }
+        _fireballChargeActive = active;
     }
 
     private void Update()
     {
+        UpdateFireballChargeFx();
+
         if (_canShoot && (_isHoldingButton || rapidFireEnabled))
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.playerProjectile);

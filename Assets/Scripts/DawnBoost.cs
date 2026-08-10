@@ -39,11 +39,16 @@ public class DawnBoost : MonoBehaviour
     private int lifebloomMend = 0;
     private int killCounter = 0;
 
-    // --- Second Wind: the panic door ---
-    private float secondWindThreshold = 0f; // fraction of max HP
+    // --- Second Wind: the toll door ---
+    // Paid for in damage rather than read off a health fraction: every N points
+    // of harm this knight absorbs buys one untouchable window, however low or
+    // high their health happens to be. Deterministic and countable, the same way
+    // Lifebloom's kill counter is, and it can pay out more than once in a wave
+    // if the wave keeps hitting you. The counter runs for the whole map.
+    private int secondWindToll = 0;         // damage per untouchable window
     private float secondWindSeconds = 0f;
-    private int secondWindMend = 0;
-    private bool secondWindSpent = false;   // cleared at every wave start
+    private int secondWindHeal = 0;
+    private int damageTowardSecondWind = 0;
 
     // --- Benediction: the special door ---
     private int benedictionMend = 0;
@@ -164,48 +169,37 @@ public class DawnBoost : MonoBehaviour
 
     // ---- Second Wind ----
 
-    public void SetSecondWind(float threshold, float seconds, int mend)
+    public void SetSecondWind(int damageToll, float seconds, int heal)
     {
-        secondWindThreshold = Mathf.Clamp01(Mathf.Max(secondWindThreshold, threshold));
+        // A smaller toll is the upgrade, so Min is the direction here — same
+        // rule as Lifebloom's interval
+        secondWindToll = secondWindToll == 0
+            ? Mathf.Max(1, damageToll)
+            : Mathf.Min(secondWindToll, Mathf.Max(1, damageToll));
         secondWindSeconds = Mathf.Max(secondWindSeconds, seconds);
-        secondWindMend = Mathf.Max(secondWindMend, mend);
+        secondWindHeal = Mathf.Max(secondWindHeal, heal);
     }
 
     public float SecondWindSeconds => secondWindSeconds;
-    public int SecondWindMend => secondWindMend;
+    public int SecondWindHeal => secondWindHeal;
 
     /// <summary>
-    /// True exactly once per wave, and only when the knight has actually been
-    /// driven to the brink. Spends the charge as it answers, so the caller can
-    /// treat a true return as "the light has already been committed".
+    /// Books the damage this knight just took against the toll, and returns true
+    /// on the blow that settles it. Spends the counter as it answers, so the
+    /// caller can treat a true return as "the light has already been committed".
     /// </summary>
-    public bool TrySpendSecondWind(int currentHealth, int maxHealth)
+    public bool TrySpendSecondWind(int damage)
     {
-        if (secondWindSeconds <= 0f || secondWindSpent || maxHealth <= 0) return false;
-        if (currentHealth > secondWindThreshold * maxHealth) return false;
+        if (secondWindToll <= 0 || secondWindSeconds <= 0f || damage <= 0) return false;
 
-        secondWindSpent = true;
+        damageTowardSecondWind += damage;
+        if (damageTowardSecondWind < secondWindToll) return false;
+
+        // Carry the surplus instead of clearing it: a blow far bigger than the
+        // toll must not throw away the part of itself that overpaid
+        damageTowardSecondWind -= secondWindToll;
         PlayerStats.Increment("dawn.second_wind");
         return true;
-    }
-
-    /// <summary>
-    /// Rearms Second Wind on both knights. Called from Spawner.BeginWave, which
-    /// is the single funnel every wave start passes through (including the dev
-    /// wave picker), so no path can start a wave with a stale charge.
-    /// </summary>
-    public static void OnWaveStarted()
-    {
-        RearmSecondWind("PlayerLeft");
-        RearmSecondWind("PlayerRight");
-    }
-
-    private static void RearmSecondWind(string knightTag)
-    {
-        GameObject knight = GameObject.FindWithTag(knightTag);
-        if (knight == null) return;
-        DawnBoost boost = knight.GetComponent<DawnBoost>();
-        if (boost != null) boost.secondWindSpent = false;
     }
 
     // ---- Benediction ----

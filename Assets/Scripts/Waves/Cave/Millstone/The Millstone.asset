@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d6e5202d720f5b4f3050136ddc3e908, type: 3}
+  m_Name: The Millstone
+  m_EditorClassIdentifier:
+  waveName: The Millstone
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Gate of the Mine. Two rings of iron close around you, turning
+    opposite ways. The powder in the inner ring is the only way out through the
+    wall.
+  unlockedAfterXWaves: 9
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: b60877a48248f7aac200d8bbcb0f8ec7, type: 2}
+  innerRing:
+    label: inner wheel
+    entryRun: 4
+    pattern:
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    fallbackSlots: 44
+  outerRing:
+    label: outer wheel
+    entryRun: 0
+    pattern:
+    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    fallbackSlots: 52
+  firstCartDelay: 0.5
+  betweenRings: 1
+  projectileInterval: 6
+  firstShotAt: 3
+  surges:
+  - label: half the shift down
+    atRidersLeft: -1
+    atFractionOfShift: 0.5
+    speedScale: 1.5
+  - label: three riders left
+    atRidersLeft: 3
+    atFractionOfShift: 0
+    speedScale: 2
+  - label: the last rider
+    atRidersLeft: 1
+    atFractionOfShift: 0
+    speedScale: 3
+  whistleOnSurge: 1
+  orbs:
+    healthOrb: 1
+    count: 2
+    firstAt: 30
+    interval: 45
+    from: {x: -12, y: -1.5}
+    to: {x: 12, y: -1.5}

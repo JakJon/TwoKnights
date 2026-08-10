@@ -8,7 +8,7 @@ using UnityEngine;
 public class BloodTitheSpecial : SpecialDefinition
 {
     [SerializeField] private float duration = 8f;
-    [SerializeField] private int healPerKill = 3;
+    [SerializeField] private int healPerKill = 10;
     [SerializeField] private Color glow = new Color(0.72f, 0.15f, 0.22f);
 
     public override void Activate(GameObject knight, string playerTag)

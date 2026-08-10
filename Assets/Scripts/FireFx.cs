@@ -145,6 +145,64 @@ public static class FireFx
         return flame;
     }
 
+    // The loaded-fireball tell: embers gathering on the shield rim while the next
+    // shot is the big one. Parented to the shield so it orbits with it; PlayerShooter
+    // toggles emission as the cadence comes around, and it dies with the shield.
+    public static ParticleSystem AttachShieldCharge(GameObject shield)
+    {
+        var host = new GameObject("FireballCharge");
+        host.transform.SetParent(shield.transform);
+        host.transform.localPosition = Vector3.zero;
+        host.transform.localRotation = Quaternion.identity;
+
+        // Ring sized to the shield's own sprite, in WORLD units (see scalingMode below)
+        float radius = 0.35f;
+        var sr = shield.GetComponentInChildren<SpriteRenderer>();
+        if (sr != null)
+        {
+            radius = Mathf.Max(sr.bounds.extents.x, sr.bounds.extents.y) * 0.9f;
+        }
+
+        var charge = Build(host, 0.9f);
+
+        var main = charge.main;
+        // Local so the embers ride the shield around its orbit instead of smearing
+        // a trail across the arena; SetParent kept world scale at one, so Hierarchy
+        // scaling is what makes the ring below world-sized.
+        main.simulationSpace = ParticleSystemSimulationSpace.Local;
+        main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.3f, 0.6f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.05f, 0.3f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.26f);
+
+        var emission = charge.emission;
+        emission.rateOverTime = 30f;
+
+        // Hollow-ish circle so the embers hug the rim and leave the shield face readable
+        var shape = charge.shape;
+        shape.shapeType = ParticleSystemShapeType.Circle;
+        shape.radius = radius;
+        shape.radiusThickness = 0.4f;
+
+        // Embers rise in WORLD up, so the effect reads the same whichever way the
+        // shield is pointing — local up would spray sideways at 3 o'clock
+        var velocity = charge.velocityOverLifetime;
+        velocity.enabled = true;
+        velocity.space = ParticleSystemSimulationSpace.World;
+        velocity.x = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
+        velocity.y = new ParticleSystem.MinMaxCurve(0.3f, 0.7f);
+        velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+
+        var renderer = charge.GetComponent<ParticleSystemRenderer>();
+        if (renderer != null)
+        {
+            renderer.sortingOrder = 20; // draw over the shield sprite
+        }
+
+        charge.Play();
+        return charge;
+    }
+
     // Shared builder: white mote on the default sprite shader, world space,
     // hot core cooling to ash, shrinking as it fades
     private static ParticleSystem Build(GameObject host, float startAlpha)

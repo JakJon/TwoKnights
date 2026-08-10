@@ -14,7 +14,9 @@ public static class StatsDatabase
         new StatDefinition("kills.poisoned", "Slain by Venom",  "slain by venom"),
         new StatDefinition("kills.burned",   "Slain by Fire",   "slain by fire"),
         new StatDefinition("kills.blasted",  "Slain by Blast",  "slain by blast"),
-        new StatDefinition("kills.executed", "Executed",        "executed"),
+        // Named for the upgrade that does it rather than for the abstraction:
+        // "executed" is a word the player never sees anywhere else
+        new StatDefinition("kills.executed", "Finished by Killing Blow", "finished by Killing Blow"),
 
         // Status applications count each enemy once, not once per tick
         new StatDefinition("applied.poison", "Enemies Poisoned", "poisoned"),

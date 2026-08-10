@@ -94,6 +94,20 @@ public class RailNetwork : MonoBehaviour
     /// <summary>Seconds until the last piece of the most recent Lay has landed.</summary>
     public float LayDuration { get; private set; }
 
+    /// <summary>
+    /// How much faster than authored the whole track is running. 1 is the mine's
+    /// ordinary pace, and every layout starts there.
+    ///
+    /// It is a property of the TRACK rather than of any cart, and it has to be:
+    /// carts on a packed ring are welded into one train by the spacing sweep, so
+    /// speeding up a subset of them does not make those carts faster — it makes
+    /// them shoulder the iron in front of them, and what the player sees is a
+    /// ring grinding against itself. One scale for everything riding is the only
+    /// version of "the wheel turns faster" that is actually a wheel turning
+    /// faster.
+    /// </summary>
+    public float SpeedScale { get; private set; } = 1f;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -219,6 +233,30 @@ public class RailNetwork : MonoBehaviour
     }
 
     /// <summary>
+    /// Wind the whole track up (or back down) to <paramref name="scale"/> times
+    /// the speed its carts were released at. Applied as a change of gear rather
+    /// than as an absolute speed, so a wave that released some carts faster than
+    /// others keeps that difference.
+    ///
+    /// Carts released AFTER this are put on the track already up to speed — see
+    /// SpawnCart — so a ring that is still filling when the gear changes does not
+    /// end up with a slow tail.
+    /// </summary>
+    public void SetSpeedScale(float scale)
+    {
+        scale = Mathf.Max(0.05f, scale);
+        if (Mathf.Approximately(scale, SpeedScale)) return;
+
+        float gear = scale / SpeedScale;
+        SpeedScale = scale;
+
+        for (int i = 0; i < _carts.Count; i++)
+        {
+            if (_carts[i] != null) _carts[i].Speed *= gear;
+        }
+    }
+
+    /// <summary>
     /// Take ownership of a cart that was not spawned through SpawnCart — the
     /// wreck a gnome cart leaves behind. Without this the replacement outlives
     /// the track it is riding.
@@ -265,8 +303,9 @@ public class RailNetwork : MonoBehaviour
             return null;
         }
 
-        if (speed > 0f) cart.Ride(line, speed);
-        else cart.Ride(line);
+        // Whatever gear the track is in, a cart joining it now joins at that gear
+        if (speed > 0f) cart.Ride(line, speed * SpeedScale);
+        else cart.Ride(line, cart.Speed * SpeedScale);
 
         _carts.Add(cart);
         return cart;
@@ -322,6 +361,10 @@ public class RailNetwork : MonoBehaviour
 
     public void ClearAll()
     {
+        // Back into first gear with the track that was wound up. A wave inherits
+        // the mine's ordinary pace and has to ask for anything else.
+        SpeedScale = 1f;
+
         for (int i = 0; i < _carts.Count; i++)
         {
             if (_carts[i] != null) Destroy(_carts[i].gameObject);

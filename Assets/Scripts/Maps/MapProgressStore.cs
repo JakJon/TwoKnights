@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 // Save-backed per-map progression: unlocked / gate cleared / true boss cleared.
-// Also increments the map stat keys that quests can hook
-// (maps.<id>.gate_cleared, maps.<id>.true_cleared).
+// Also publishes the map stat keys that quests hook
+// (maps.<id>.unlocked, maps.<id>.gate_cleared, maps.<id>.true_cleared).
 public static class MapProgressStore
 {
+    /// <summary>Set the moment a map becomes selectable. Quests for a map gate on this.</summary>
+    public static string UnlockedStatKey(string mapId) => $"maps.{mapId}.unlocked";
+
     public static MapRecord Get(string mapId)
     {
         if (string.IsNullOrEmpty(mapId)) return null;
@@ -67,9 +71,44 @@ public static class MapProgressStore
     public static void Unlock(string mapId)
     {
         var record = Get(mapId);
-        if (record == null || record.unlocked) return;
-        record.unlocked = true;
-        SaveManager.Save();
+        if (record == null) return;
+        if (!record.unlocked)
+        {
+            record.unlocked = true;
+            SaveManager.Save();
+        }
+
+        // Published on every call, not only on the write. A save that unlocked a
+        // map before this stat existed would otherwise never announce it, and
+        // the quests waiting on "the Mine is open" would stay shut forever.
+        PlayerStats.Raise(UnlockedStatKey(mapId), 1);
+    }
+
+    /// <summary>
+    /// Republishes what the save already knows, so quests gated on a map being
+    /// open settle at load rather than at the next gate kill. Both halves need
+    /// it: `unlocked` is a save flag that predates its stat, and gate_cleared is
+    /// only incremented on the FIRST kill, which an older save already spent.
+    /// </summary>
+    public static void PublishProgressStats()
+    {
+        var catalog = MapCatalog.Instance;
+        if (catalog == null) return;
+        foreach (var map in catalog.Maps)
+        {
+            if (map == null) continue;
+            if (IsUnlocked(map)) PlayerStats.Raise(UnlockedStatKey(map.MapId), 1);
+            if (IsGateCleared(map.MapId)) PlayerStats.Raise($"maps.{map.MapId}.gate_cleared", 1);
+            if (IsTrueCleared(map.MapId)) PlayerStats.Raise($"maps.{map.MapId}.true_cleared", 1);
+        }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void PublishOnLoad()
+    {
+        PublishProgressStats();
+        SaveManager.OnActiveSlotChanged -= PublishProgressStats;
+        SaveManager.OnActiveSlotChanged += PublishProgressStats;
     }
 
     // First gate kill: marks the map, unlocks the next one, feeds quest stats.

@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: Phantom Blade 1
   m_EditorClassIdentifier: 
   upgradeName: Phantom Blade I
-  description: Sword swings leave an echo that repeats the swing.
+  description: Sword swings leave an echo that repeats the swing, sweeping further out than your own reach.
   weight: 100
   order: 2
   requiresOrderCount: 0
   unlockedBy: []
   lockedBy: []
+  stats:
+  - valueText: +1
+    labelText: SWING
+    isPositive: 1
   echoCount: 1

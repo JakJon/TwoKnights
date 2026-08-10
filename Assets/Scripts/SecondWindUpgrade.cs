@@ -1,18 +1,22 @@
 using UnityEngine;
 
-// Dawn discipline: the panic door. The first time in a wave this knight is
-// driven below the threshold, they get a brief untouchable window to recover
-// their footing. It answers the blow rather than preventing it — the hit that
-// takes you low still lands, which keeps the moment legible.
+// Dawn discipline: the toll door. Every so many points of damage this knight
+// absorbs, they get an untouchable window to recover their footing. It answers
+// the blow rather than preventing it — the hit that settles the toll still
+// lands, which keeps the moment legible.
+//
+// Damage taken rather than a health fraction: a knight who is chipped down all
+// wave earns it exactly as much as one who eats a single huge hit, and it can
+// come around again in the same wave. Nothing about it is a dice roll.
 //
 // Reuses PlayerHealth's existing invulnerability deadline (the same one Iron
 // Vigil sets), so there is exactly one untouchable system in the game.
 [CreateAssetMenu(fileName = "SecondWindUpgrade", menuName = "Upgrades/Second Wind")]
 public class SecondWindUpgrade : BaseUpgrade
 {
-    [SerializeField] private float healthThreshold = 0.3f; // fraction of max HP
-    [SerializeField] private float invulnerableSeconds = 1.2f;
-    [SerializeField] private int mendAmount = 0; // rank II also mends
+    [SerializeField] private int damageToll = 60; // damage absorbed per window
+    [SerializeField] private float invulnerableSeconds = 5f;
+    [SerializeField] private int healAmount = 0; // rank II also heals
 
     public override string ChainName => "Second Wind";
 
@@ -32,8 +36,8 @@ public class SecondWindUpgrade : BaseUpgrade
             boost = targetKnight.AddComponent<DawnBoost>();
         }
 
-        boost.SetSecondWind(healthThreshold, invulnerableSeconds, mendAmount);
+        boost.SetSecondWind(damageToll, invulnerableSeconds, healAmount);
 
-        Debug.Log($"Applied Second Wind to {targetKnight.name}: below {healthThreshold:P0} HP -> {invulnerableSeconds}s untouchable, mend {mendAmount}");
+        Debug.Log($"Applied Second Wind to {targetKnight.name}: every {damageToll} damage taken -> {invulnerableSeconds}s untouchable, heal {healAmount}");
     }
 }

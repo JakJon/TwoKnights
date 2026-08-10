@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sunwell 2
   m_EditorClassIdentifier: 
   upgradeName: Sunwell II
-  description: Orbs give more still, and even mana orbs carry a little mending.
+  description: Orbs give more still, and even mana orbs heal a little.
   weight: 70
   order: 5
   requiresOrderCount: 0

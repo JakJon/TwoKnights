@@ -225,7 +225,6 @@ public class Spawner : MonoBehaviour
             waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
         _isWaveInProgress = true;
         _batCallCount = 0; // dark-bat cadence restarts every wave
-        DawnBoost.OnWaveStarted(); // Second Wind rearms every wave
         // Last wave's track comes down as this one starts, so rails stay up
         // through the wave-complete beat and the upgrade menu
         if (Rails != null) Rails.ClearAll();

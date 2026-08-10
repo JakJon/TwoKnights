@@ -36,13 +36,15 @@ public static class QuestBuild
         return conditions;
     }
 
-    public static QuestReward Reward(int crystals = 0, string equipmentId = null, bool extraSlot = false)
+    public static QuestReward Reward(int crystals = 0, string equipmentId = null,
+                                     bool extraSlot = false, bool extraSpecialSlot = false)
     {
         return new QuestReward
         {
             Crystals = crystals,
             EquipmentId = equipmentId,
             ExtraEquipmentSlot = extraSlot,
+            ExtraSpecialSlot = extraSpecialSlot,
         };
     }
 }

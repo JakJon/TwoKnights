@@ -62,6 +62,8 @@ Three things fall out of the design that the tier tables below depend on:
 | Mine Circuit (Choo Choo) | 40u loop — 12u straights ×2, 4u shafts ×2, 2u per elbow ×4 | 16.7 s/lap |
 | Mine Ring (Powder Train) | 32u loop, 32 one-cell slots | 13.3 s/lap |
 | Mine Horseshoe (Delivery) | 27u open route, mouth → drop flag | 11.3 s race window |
+| Mine Millstone, outer (The Millstone) | 52u loop, corners (±9, ±4), 52 one-cell slots | 21.7 s/lap |
+| Mine Millstone, inner (The Millstone) | 44u loop, corners (±8, ±3), 44 one-cell slots | 18.3 s/lap |
 
 **Release interval on a loop is a permanent spacing.** Every cart runs at one speed, so
 whatever gap the interval opens is the gap they keep forever. Even spacing = `lap ÷
@@ -367,12 +369,92 @@ twice as long with the fence still up. T4 then thins the powder as well
 outside doubles from T1 (10 arrivals at 3.2s to 20 at 2.1s) and goes black-rat
 throughout.
 
-## 6. Open items
+## 6. The gate — The Millstone (added 2026-08-09)
 
-1. **The Mine has no bosses.** `gateBoss` (wave 15) and `trueBoss` (wave 25) are both
-   null on `The Mine.asset`. A run to 20 currently has no finish line and no gate beat,
-   which is also what the difficulty tiers are pacing toward. Needed before the map is
-   "done"; out of scope here.
+Wave **10**, and the map's first finish line. Two closed rings on one layout (`Mine
+Millstone` — a RailNetwork lays one layout at a time, so both rings are eight runs in a
+single asset), turning **opposite ways**, both packed nose to tail with no gap anywhere:
+
+| | Inner ring | Outer ring |
+|---|---|---|
+| Lap | 44 slots, corners (±8, ±3) | 52 slots, corners (±9, ±4) |
+| Turns | anticlockwise (top run west) | clockwise (top run east) |
+| Pattern | 1 keg + 8 empties | 1 empty + 4 gnomes (pickaxe/bomb alternating) |
+| Content | 5 kegs, 39 empties | 41 riders, 11 empties |
+| Laid | first, and closed before the shift sets off | second |
+
+The rings are one unit apart, which is exactly a cart: a cart's collider is 1u tall and
+sits above its rail, so inner carts fill y 3→4 and outer carts 4→5 with no overlap and
+no daylight. **Every shot the knights own stops in the inner ring** until they make a
+hole, and holes cost arrows spent on iron worth nothing (20 HP an empty).
+
+**The powder is the way through.** A keg is 10 HP — one arrow — takes its own slot out of
+the wall, and puts 15 into everything within 2.8u. At one unit of ring separation that is
+five or six riders going past on the outside: the best trade in the mine, and there are
+exactly five kegs. It is also the worst trade taken carelessly, because the inner ring
+runs at Mine Circuit's height and a keg popped over a knight's head catches the knight
+for the same 15 (`EnemyKegCart`'s radius is measured for precisely this).
+
+Counter-rotation is what stops a hole from being a permanent answer: a firing line the
+knights burn open sweeps one way while the shift it uncovered sweeps the other.
+
+Numbers that matter: **820 HP of riders** (41 × 20, against the rat king's 750), one
+shift-wide throw gate per gnome kind so 41 riders throw no faster than six do, shafts
+working a four-position rotation every 6s from the moment the track lands, and two health
+orbs across the inner track at y -1.5. Fill time is ~44s end to end (18s inner, 21s
+outer), which the shafts and the arming riders cover.
+
+**The wheel spins up as the shift thins.** Three gears, authored on the asset as a ladder
+and never wound back: **1.5×** once half the riders that came out are dead, **2×** at three
+left, **3×** at the last one. "Half" is resolved once against the shift that actually
+rolled — counted at release, not read off the pattern — while three and one are absolute.
+A blast of the mine whistle (`cart_whistle.wav`, `AudioManager.cartWhistle`) marks each
+change, and only that: it is the one warning that the ring the players just learned to
+read has stopped being the ring they learned.
+
+The gear goes to the **whole track**, not to the riders alone, and that is not a shortcut.
+Both rings are packed nose to tail, so a subset running faster would not be faster — it
+would shoulder the iron in front of it, and what the player would see is a ring grinding
+against itself. `RailNetwork.SpeedScale` is therefore a property of the track: it changes
+gear on every cart riding, puts carts released afterwards straight into that gear, and
+resets to 1 with `ClearAll`. Uniform speed is also what keeps the spacing exact — every
+cart scales together, so a packed ring at 3× is still packed.
+
+The ladder only starts watching once the shift is fully out. Reading the rider count
+during the fill would see the first cart of a forty-strong shift as "one gnome left" and
+put the wheel into top gear before the fight began.
+
+Neither ring divides its pattern exactly (52 ÷ 5, 44 ÷ 9), so one block round the back of
+each runs short — a lone rider outside, a keg gap of 8 instead of 9 inside. Deliberate;
+the alternative is contorting the rectangle off-centre to make the arithmetic close.
+
+**The Mine's gate is a door, not a finish line**, and that is two flags rather than one
+because they are two questions. Both are new on `MapDefinition` and both default to the
+Camp Fields' answer, so the forest is untouched:
+
+| Flag | Camp Fields | The Mine | What it decides |
+|---|---|---|---|
+| `gateBossRepeats` | true | **0** | whether the gate owns its wave number again on later runs |
+| `gateBossEndsRun` | true | **0** | whether the first kill ends the run in victory |
+
+So the Millstone is forced at wave 10 on every run until it is beaten once; the run then
+**walks straight through it and carries on**, and from that point it is an ordinary
+setlist wave — weight 1000, `unlockedAfterXWaves: 9` — that can come up any time from wave
+10 on. The clear is recorded and paid for either way: `MarkGateCleared` saves on the spot,
+so `maps.mine.gate_cleared` reaches the quest that was waiting on it even if the run goes
+on and ends in a death forty waves later.
+
+The forest keeps the old rule — the rat king is a finish line that stands at wave 10
+forever, and beating him again is how a later run reaches the deep waves.
+
+Consequence worth knowing: nothing on screen currently marks the moment. The victory
+banner was the acknowledgement, and a door does not raise one. If the first clear wants a
+beat of its own it needs its own cue, not the run ending.
+
+## 7. Open items
+
+1. **The Mine has no true boss.** The gate landed at wave 10 (§6); `trueBoss` (wave 25)
+   is still null on `The Mine.asset`, so a run past the gate still has no finish line.
 2. **These three are the Mine's first families, not its final set** (owner, 2026-08-04).
    Near and Far has since landed, so the pool is 4 families × 4 tiers = 16 assets, and
    waves 17+ draw from the four tier-4s before refilling. That is thin but no longer

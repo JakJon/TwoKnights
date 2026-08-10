@@ -72,8 +72,10 @@ public class QuestReward
     public int Crystals;
     /// <summary>Equipment id granted on completion; empty for none.</summary>
     public string EquipmentId;
-    /// <summary>Raises every knight's equipment slots to two. Only the Crimson Twins quest sets this.</summary>
+    /// <summary>Gives every knight one more equipment slot. Cumulative — two quests that grant it leave you with three.</summary>
     public bool ExtraEquipmentSlot;
+    /// <summary>Gives every knight one more special slot, and a knight with two fires both on one bar. Cumulative, same as the equipment slot.</summary>
+    public bool ExtraSpecialSlot;
 
     public bool GrantsEquipment => !string.IsNullOrEmpty(EquipmentId);
 
@@ -97,7 +99,8 @@ public class QuestReward
             var def = catalog != null ? catalog.Find(EquipmentId) : null;
             parts.Add(def != null ? def.DisplayName : EquipmentId);
         }
-        if (ExtraEquipmentSlot) parts.Add("A second equipment slot");
+        if (ExtraEquipmentSlot) parts.Add("Another equipment slot");
+        if (ExtraSpecialSlot) parts.Add("Another special slot");
         return parts.Count == 0 ? "" : string.Join(", ", parts.ToArray());
     }
 }

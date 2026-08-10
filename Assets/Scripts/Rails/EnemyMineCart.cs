@@ -53,6 +53,29 @@ public class EnemyMineCart : EnemyBase
         goldOnDeath = 0;
     }
 
+    /// <summary>
+    /// Broken by something that was never a shot — today, the Overseer's cart
+    /// arriving at speed. It makes the same noise a shot cart makes, because to
+    /// the player it is the same event: iron coming apart.
+    ///
+    /// Deliberately NOT routed through TakeDamage or OnDeath. Both hand out
+    /// credit — kill stats, the per-family counter that "Off the Rails" reads,
+    /// and a warning per call for a kill with no projectile behind it. Nobody
+    /// earned this one, so nobody is paid for it.
+    /// </summary>
+    public void Shatter()
+    {
+        if (isDead) return;
+        isDead = true;
+
+        if (deathSound != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(deathSound);
+        }
+
+        Destroy(gameObject);
+    }
+
     // A cart eats arrows and ignores everything else. The arrow is destroyed here
     // as well as in PlayerProjectile so that a shot which lands on the frame the
     // cart dies still stops at the iron.

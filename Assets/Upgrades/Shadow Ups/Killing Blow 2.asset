@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Killing Blow 2
   m_EditorClassIdentifier: 
   upgradeName: Killing Blow II
-  description: The execute threshold rises further.
+  description: Killing Blow reaches enemies with more health left.
   weight: 25
   order: 2
   requiresOrderCount: 0

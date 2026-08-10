@@ -19,7 +19,8 @@ camp, kept across runs, applied once at `Spawner.Start`.
 ```
 quest completes ──► CrystalBank.Add        (currency)
                 └─► Loadout.Own(id)        (grants an item)
-                └─► equipmentSlots = 2     (the one slot unlock)
+                └─► equipmentSlots = 2     (Crimson Twins)
+                └─► specialSlots = 2       (The Gold Cart — both specials fire on one bar)
 
 camp shop ──► CrystalBank.TrySpend ──► Loadout.Own(id)
 
@@ -131,6 +132,7 @@ whose existence is itself a reveal.
 Reward(crystals: 2)
 Reward(equipmentId: "fangbone_charm")
 Reward(extraSlot: true)                    // only the Crimson Twins quest does this
+Reward(extraSpecialSlot: true)             // only The Gold Cart does this
 Reward(crystals: 1, equipmentId: "waxed_cord")
 ```
 
@@ -321,9 +323,12 @@ A special that needs to react to events over a window gets a small runtime compo
 see `BloodTitheWindow`, which subscribes to `EnemyBase.OnEnemyKilledBy` in
 `OnEnable`/`OnDisable` and gates on a deadline rather than adding and removing itself.
 
-`PlayerSpecial` resolves `Loadout.ResolveSpecial(knightId, stock)`, where stock falls back
-to sniffing which component the prefab carries — so the two original knights work with no
-prefab wiring at all.
+`PlayerSpecial` resolves `Loadout.ResolveSpecials(knightId, stock)` — a LIST, because The
+Gold Cart raises `specialSlots` to 2 and both go off on one full bar. `stock` falls back to
+sniffing which component the prefab carries, so the two original knights work with no prefab
+wiring at all; it applies to **slot 0 only**, since a slot unlocked later has nothing stock
+about it. Every slot's freeze is applied before the first `Activate`, so a short special
+cannot cut a long one's window.
 
 ---
 

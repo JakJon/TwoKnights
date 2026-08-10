@@ -24,12 +24,16 @@ public class EquipmentCatalog : ScriptableObject
     [SerializeField] private Sprite crystalIcon;
     [Tooltip("Shown for the reward that grants a second equipment slot.")]
     [SerializeField] private Sprite equipmentSlotIcon;
+    [Tooltip("Shown for the reward that grants a second special slot. Falls back to the equipment slot icon while unset.")]
+    [SerializeField] private Sprite specialSlotIcon;
 
     // These ride on the catalog because it is already the one true singleton the
     // UI can reach; a Resources.Load per sprite would couple every screen to a
     // magic string (see the house rule in prefab-authoring).
     public Sprite CrystalIcon => crystalIcon;
     public Sprite EquipmentSlotIcon => equipmentSlotIcon;
+    /// <summary>Falls back to the equipment slot icon, so the reward square is never blank while the art is outstanding.</summary>
+    public Sprite SpecialSlotIcon => specialSlotIcon != null ? specialSlotIcon : equipmentSlotIcon;
 
     private static EquipmentCatalog _instance;
 

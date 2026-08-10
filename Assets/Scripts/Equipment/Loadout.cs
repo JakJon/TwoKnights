@@ -21,6 +21,9 @@ public static class Loadout
     /// <summary>Equipment slots per knight. The Crimson Twins quest raises this to 2.</summary>
     public static int SlotCount => Mathf.Max(1, SaveManager.Data.equipmentSlots);
 
+    /// <summary>Special slots per knight. The Gold Cart quest raises this to 2.</summary>
+    public static int SpecialSlotCount => Mathf.Max(1, SaveManager.Data.specialSlots);
+
     // ---------- ownership ----------
 
     public static bool IsOwned(string equipmentId)
@@ -120,22 +123,66 @@ public static class Loadout
     /// </summary>
     public const string NoSpecial = "none";
 
-    /// <summary>The special this knight has chosen, or empty for the prefab default.</summary>
-    public static string SpecialIdFor(string knightId)
+    /// <summary>The special chosen in one slot, or empty for the prefab default.</summary>
+    public static string SpecialIdFor(string knightId, int slot = 0)
     {
-        return EnsureLoadout(knightId).specialId ?? "";
+        var list = EnsureLoadout(knightId).specials;
+        if (slot < 0 || slot >= list.Count) return "";
+        return list[slot] ?? "";
     }
 
-    /// <summary>The player has explicitly chosen to carry no special.</summary>
+    /// <summary>The player has explicitly emptied this slot.</summary>
+    public static bool IsSpecialSlotEmpty(string knightId, int slot)
+    {
+        string id = SpecialIdFor(knightId, slot);
+        if (id == NoSpecial) return true;
+        // Only slot 0 falls back to the prefab's stock special, so an unset
+        // second slot is already empty without anyone having said so
+        return slot > 0 && string.IsNullOrEmpty(id);
+    }
+
+    /// <summary>
+    /// This knight fires nothing at all: every unlocked slot is empty. What the
+    /// bare-run feat asks about, so it has to mean "no special reaches the run",
+    /// not merely "slot 0 was emptied".
+    /// </summary>
     public static bool HasNoSpecial(string knightId)
     {
-        return SpecialIdFor(knightId) == NoSpecial;
+        int slots = SpecialSlotCount;
+        for (int slot = 0; slot < slots; slot++)
+        {
+            if (!IsSpecialSlotEmpty(knightId, slot)) return false;
+        }
+        return true;
     }
 
-    public static void SetSpecial(string knightId, string specialId)
+    /// <summary>
+    /// Puts a special in one slot. A knight cannot fire the same special twice
+    /// on one bar, so choosing one they already hold in another slot SWAPS the
+    /// two rather than duplicating it — the same "one copy, it moves" rule
+    /// equipment uses across knights, applied within a knight.
+    /// </summary>
+    public static void SetSpecial(string knightId, int slot, string specialId)
     {
-        var loadout = EnsureLoadout(knightId);
-        loadout.specialId = specialId ?? "";
+        if (slot < 0 || slot >= SpecialSlotCount) return;
+
+        var list = EnsureLoadout(knightId).specials;
+        while (list.Count <= slot) list.Add("");
+
+        string incoming = specialId ?? "";
+        if (!string.IsNullOrEmpty(incoming) && incoming != NoSpecial)
+        {
+            // An unset slot displaces as an explicit "none", never as "": moving
+            // a special off slot 0 must not hand that slot back to the prefab's
+            // stock special, which would silently undo the swap for the run
+            string displaced = string.IsNullOrEmpty(list[slot]) ? NoSpecial : list[slot];
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (i != slot && list[i] == incoming) list[i] = displaced;
+            }
+        }
+
+        list[slot] = incoming;
         SaveManager.Save();
         OnLoadoutChanged?.Invoke();
     }
@@ -162,23 +209,47 @@ public static class Loadout
     }
 
     /// <summary>
-    /// Specials are NOT exclusive the way equipment is: both knights firing the
-    /// same one is a legitimate loadout, and there is no physical object being
-    /// shared to argue otherwise.
+    /// What one slot actually holds, or null when it is empty. Specials are NOT
+    /// exclusive the way equipment is: both knights firing the same one is a
+    /// legitimate loadout, and there is no physical object being shared to argue
+    /// otherwise.
+    ///
+    /// <paramref name="fallback"/> is the knight prefab's stock special and
+    /// applies to slot 0 only — a slot the player unlocked later has nothing
+    /// stock about it, so it stays empty until they fill it.
     /// </summary>
-    public static SpecialDefinition ResolveSpecial(string knightId, SpecialDefinition fallback)
+    public static SpecialDefinition ResolveSpecial(string knightId, SpecialDefinition fallback, int slot = 0)
     {
         // Deliberately empty beats the prefab's stock special. A knight with no
         // special simply never has one to fire.
-        if (HasNoSpecial(knightId)) return null;
+        if (IsSpecialSlotEmpty(knightId, slot)) return null;
 
         var catalog = EquipmentCatalog.Instance;
         if (catalog != null)
         {
-            var chosen = catalog.FindSpecial(SpecialIdFor(knightId));
+            var chosen = catalog.FindSpecial(SpecialIdFor(knightId, slot));
             if (chosen != null && IsSpecialOwned(chosen)) return chosen;
         }
-        return fallback;
+        return slot == 0 ? fallback : null;
+    }
+
+    /// <summary>
+    /// Everything this knight fires on one full bar, in slot order. Two slots
+    /// means two specials go off together, which is the whole reward — so this
+    /// is a list rather than a choice between them.
+    /// </summary>
+    public static List<SpecialDefinition> ResolveSpecials(string knightId, SpecialDefinition fallback)
+    {
+        var result = new List<SpecialDefinition>();
+        int slots = SpecialSlotCount;
+        for (int slot = 0; slot < slots; slot++)
+        {
+            var special = ResolveSpecial(knightId, fallback, slot);
+            // Belt and braces against a save that somehow holds one special
+            // twice: firing it twice on one bar does nothing the once didn't
+            if (special != null && !result.Contains(special)) result.Add(special);
+        }
+        return result;
     }
 
     // ---------- applying to a run ----------
@@ -253,7 +324,16 @@ public static class Loadout
     private static KnightLoadout Normalize(KnightLoadout loadout)
     {
         if (loadout.equipped == null) loadout.equipped = new List<string>();
-        if (loadout.specialId == null) loadout.specialId = "";
+        if (loadout.specials == null) loadout.specials = new List<string>();
+
+        // Pre-v9 saves kept the one special in its own field. Folding it in here
+        // rather than in Migrate covers every route into a loadout — including
+        // SaveData's own defaults, and any file that skipped the version bump.
+        if (!string.IsNullOrEmpty(loadout.specialId))
+        {
+            if (loadout.specials.Count == 0) loadout.specials.Add(loadout.specialId);
+            loadout.specialId = "";
+        }
         return loadout;
     }
 }

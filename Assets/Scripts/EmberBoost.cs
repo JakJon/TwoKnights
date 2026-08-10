@@ -108,6 +108,14 @@ public class EmberBoost : MonoBehaviour
         return false;
     }
 
+    // The tell that makes the cadence readable: true when the very next shot will
+    // leave the shield as a fireball. PlayerShooter smoulders the shield while it
+    // holds, so the player can read the rhythm off the screen instead of counting.
+    public bool NextShotIsFireball
+    {
+        get { return fireballEveryNShots > 0 && shotCounter >= fireballEveryNShots - 1; }
+    }
+
     // Firebrand also throws fireballs, so it supplies the prefab too — the chain is
     // gated behind Fireball I, but neither upgrade should depend on the other having
     // wired the reference.

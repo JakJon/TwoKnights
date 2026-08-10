@@ -131,7 +131,17 @@ public static class QuestProgress
             if (reward.GrantsEquipment) Loadout.Own(reward.EquipmentId);
             if (reward.ExtraEquipmentSlot)
             {
-                SaveManager.Data.equipmentSlots = Mathf.Max(SaveManager.Data.equipmentSlots, 2);
+                // ONE MORE, not "raise it to two". Slots used to be a single fact
+                // the game could only ever learn once, so a second quest offering
+                // one paid out nothing to a player who already had it. The panel
+                // builds its rows off Loadout.SlotCount, so it follows on its own.
+                SaveManager.Data.equipmentSlots = Mathf.Max(1, SaveManager.Data.equipmentSlots) + 1;
+            }
+            if (reward.ExtraSpecialSlot)
+            {
+                // Same "one more" rule as the equipment slot above, for the same
+                // reason. The extra slot arrives empty; nothing is auto-filled.
+                SaveManager.Data.specialSlots = Mathf.Max(1, SaveManager.Data.specialSlots) + 1;
             }
         }
 

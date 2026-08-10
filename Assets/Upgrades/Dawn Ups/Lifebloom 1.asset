@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lifebloom 1
   m_EditorClassIdentifier: 
   upgradeName: Lifebloom I
-  description: Every twelfth enemy you fell mends you. Count them.
+  description: Every twelfth enemy you fell heals you. Count them.
   weight: 105
   order: 5
   requiresOrderCount: 0

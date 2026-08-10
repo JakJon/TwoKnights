@@ -5,11 +5,11 @@ using UnityEngine;
 // every bomb out of the air: this one does not need to land a big hit, it needs
 // to land at all.
 //
-// The shape of it is a debt rather than a blow. Twenty-five points is more than
-// any single thing in the mine deals — a bomb is fifteen, a keg fifteen — but it
-// arrives one point at a time over twenty-five seconds, which is most of a wave.
-// So it is never what kills you on its own and always what makes the next thing
-// lethal, and the knight carrying it is playing the rest of the wave on a clock.
+// The shape of it is a debt rather than a blow. Twelve points is less than the
+// fifteen a bomb or a keg lands for, but it arrives one point every two seconds
+// across most of a wave. So it is never what kills you on its own and always what
+// makes the next thing lethal, and the knight carrying it is playing the rest of
+// the wave on a clock.
 //
 // THE WAY OUT IS HEALING, and that is the whole design. A health orb is normally
 // a small, dull decision — twenty points you take when there is a spare arrow.
@@ -18,9 +18,14 @@ using UnityEngine;
 // learn; it re-prices one that was already on the board, which is the cheapest
 // kind of pressure a wave can buy.
 //
-// Any heal cures it outright rather than reducing it — see PlayerHealth.Heal.
-// Part-curing would make the player do arithmetic mid-fight to work out whether
-// an orb was worth an arrow, and the answer needs to be readable at a glance.
+// Any heal cures it outright rather than reducing it, and cures BOTH knights
+// rather than only the one who was mended — see PlayerHealth.CurePoison. Two
+// things follow from that. Part-curing would make the player do arithmetic
+// mid-fight to work out whether an orb was worth an arrow, and the answer needs
+// to be readable at a glance. Curing one knight only would turn a single orb into
+// an argument about which of them takes it while both are rotting, and the orb is
+// already a contested pickup — the pressure this wants to buy is "take it NOW",
+// not "work out whose turn it is".
 [RequireComponent(typeof(PlayerHealth))]
 public class KnightPoison : MonoBehaviour
 {
@@ -29,8 +34,13 @@ public class KnightPoison : MonoBehaviour
     // means. A gnome's bomb and anything that inherits this later both leave a
     // knight in exactly the same state.
     private const int DamagePerTick = 1;
-    private const float TickSeconds = 1f;
-    private const float DefaultDuration = 25f;
+    private const float TickSeconds = 2f;
+
+    // A whole number of ticks, deliberately: the duration and the cadence have to
+    // agree, or the last tick lands after the poison was supposed to be over and
+    // the total stops being something you can state in one sentence. Twelve ticks
+    // of one, twenty-four seconds.
+    private const float DefaultDuration = 24f;
 
     // Matches the red pulse every other damage event uses, in the one colour that
     // reads as poison rather than as a hit. Same duration, so a poison tick and an
@@ -78,9 +88,10 @@ public class KnightPoison : MonoBehaviour
     }
 
     /// <summary>
-    /// Cut it short. Called by every heal path — see the class note: curing
-    /// outright is what makes a health orb worth an arrow while this is running.
-    /// Safe to call on a knight who was never poisoned.
+    /// Cut it short. Called by every heal path, on BOTH knights whichever one was
+    /// healed — see the class note: curing outright, and curing the pair, is what
+    /// makes a health orb worth an arrow while this is running. Safe to call on a
+    /// knight who was never poisoned.
     /// </summary>
     public void Cure()
     {
@@ -91,9 +102,9 @@ public class KnightPoison : MonoBehaviour
 
     private IEnumerator Rot(float seconds)
     {
-        // The first tick is a second in, not immediate. The bomb that applied this
-        // has already dealt its own damage this frame, and a poison tick landing
-        // on the same frame reads as the blast having hit twice.
+        // The first tick is a full interval in, not immediate. The bomb that
+        // applied this has already dealt its own damage this frame, and a poison
+        // tick landing on the same frame reads as the blast having hit twice.
         float remaining = seconds;
 
         while (remaining > 0f)

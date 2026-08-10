@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Benediction 1
   m_EditorClassIdentifier: 
   upgradeName: Benediction I
-  description: Spending your special mends the other knight, whatever your special is.
+  description: Spending your special heals the other knight, whatever your special is.
   weight: 65
   order: 5
   requiresOrderCount: 0
