@@ -13,9 +13,23 @@ public class PlayerHealth : MonoBehaviour
     // your eyes on the far side of the board.
     private GlowManager glowManager;
 
+    // The same floating number every enemy prints, for the same reason the red
+    // pulse above is shared: a hit on a knight was the one damage event in the
+    // game that never said HOW MUCH. With the number now sized by the damage
+    // (see DamageText), a graze and a powder rock are told apart at a glance
+    // from the far side of the board, which is the whole point of putting it on
+    // the knights as well.
+    [SerializeField] private GameObject damageTextPrefab;
+    [SerializeField] private Vector3 damageTextOffset = new Vector3(0f, 0.2f, 0f);
+    [SerializeField] private float damageTextStackSeparation = 0.25f;
+
+    private SpriteRenderer spriteRenderer;
+
     private void Awake()
     {
         glowManager = GetComponent<GlowManager>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void Start()
@@ -28,6 +42,25 @@ public class PlayerHealth : MonoBehaviour
     // Read-only accessors for UI/status
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
+
+    // Mirrors EnemyBase.ShowDamageText: stacked above the sprite, parented so
+    // later hits can find the earlier ones and nudge them up.
+    private void ShowDamageText(int damage, Color textColor)
+    {
+        if (damageTextPrefab == null || damage <= 0) return;
+
+        float spriteHeight = spriteRenderer != null ? spriteRenderer.bounds.size.y : 1f;
+        Vector3 spawnPosition = transform.position + damageTextOffset + new Vector3(0f, spriteHeight, 0f);
+
+        foreach (var existing in GetComponentsInChildren<DamageText>(false))
+        {
+            existing.PushUp(damageTextStackSeparation);
+        }
+
+        GameObject go = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity);
+        go.transform.SetParent(transform);
+        go.GetComponent<DamageText>()?.Initialize(damage, textColor);
+    }
 
     public void TakeDamage(int damage)
     {
@@ -56,6 +89,23 @@ public class PlayerHealth : MonoBehaviour
     public bool IsInvulnerable => Time.time < _invulnerableUntil;
 
     /// <summary>
+    /// A standing, untimed block on all damage. Deliberately separate from the
+    /// timed <see cref="IsInvulnerable"/> window: that one is bought by upgrades
+    /// and announces itself with a halo, where this is scaffolding — the tutorial
+    /// holds it up so a knight learning to block cannot be killed by the lesson.
+    /// </summary>
+    public bool Untouchable { get; set; }
+
+    /// <summary>
+    /// Raised whenever damage is aimed at a knight, BEFORE any invulnerability is
+    /// consulted — so it fires even for a hit that lands on nothing. That is the
+    /// point: the tutorial needs to know the rock got through while the knight it
+    /// hit is untouchable, and "did it get through" is a different question from
+    /// "did it hurt". Carries the knight and the name of what hit it.
+    /// </summary>
+    public static event System.Action<PlayerHealth, string> OnDamageAttempt;
+
+    /// <summary>
     /// Blocks all incoming damage for <paramref name="seconds"/>. Overlapping
     /// calls extend the window rather than cutting it short.
     /// </summary>
@@ -81,9 +131,21 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int damage, string sourceName, Color flashColor, float flashSeconds,
                            SoundEffect sound = null, DamageKind kind = DamageKind.Generic)
     {
-        // Untouchable: no damage, no flash, no cry — and critically no streak
-        // reset, because nothing actually got through
+        if (damage > 0) OnDamageAttempt?.Invoke(this, sourceName);
+
+        // An earned invulnerability window: no damage, no flash, no cry — and
+        // critically no streak reset, because nothing actually got through
         if (damage > 0 && IsInvulnerable) return;
+
+        // Untouchable is scaffolding, not a shield the player earned, so it stops
+        // the damage but NOT the cry. In the tutorial that grunt is the only thing
+        // saying the rock got through and the lesson is about to come round again;
+        // silence would read as a clean block.
+        if (damage > 0 && Untouchable)
+        {
+            PlayHurtVoice(sound);
+            return;
+        }
 
         // Equipment that answers one kind of harm scales it here rather than at
         // each source, so a new keg or bomb can't quietly escape the rule.
@@ -101,19 +163,21 @@ public class PlayerHealth : MonoBehaviour
         // through here, so nothing else should play its own hit feedback
         if (damage > 0)
         {
-            if (AudioManager.Instance != null)
-            {
-                SoundEffect voice = sound != null && sound.clip != null
-                    ? sound
-                    : AudioManager.Instance.playerHurt;
-                AudioManager.Instance.PlaySFX(voice);
-            }
+            PlayHurtVoice(sound);
             // Matches EnemyBase.TakeDamage exactly, so "red pulse" means the same
             // thing whoever it happened to
             glowManager?.StartGlow(flashColor, flashSeconds);
+            // Same again for the number: the knight's hit is written the way an
+            // enemy's is, in the colour the hit already flashed.
+            ShowDamageText(damage, flashColor);
         }
 
         currentHealth = Mathf.Max(0, currentHealth - damage);
+
+        // Reported as it happens, not read at the wave's end: a knight can be
+        // driven to a sliver and healed back inside one second, and that is
+        // exactly the moment the Dawn feat is about.
+        DawnVigil.NoteHealth(currentHealth, maxHealth);
         healthBar.SetValue(currentHealth);
 
         // reset special
@@ -139,7 +203,7 @@ public class PlayerHealth : MonoBehaviour
             // Player has died - trigger scene transition to camp
             if (GameSceneManager.Instance != null)
             {
-                GameSceneManager.Instance.OnPlayerDeath(KnightDisplayName, sourceName);
+                GameSceneManager.Instance.OnPlayerDeath(KnightDisplayNameRich, sourceName);
             }
             else
             {
@@ -154,10 +218,33 @@ public class PlayerHealth : MonoBehaviour
     {
         get
         {
-            if (CompareTag("PlayerLeft")) return "Left Knight";
-            if (CompareTag("PlayerRight")) return "Right Knight";
+            if (CompareTag("PlayerLeft")) return KnightNames.LeftPlain;
+            if (CompareTag("PlayerRight")) return KnightNames.RightPlain;
             return "A Knight";
         }
+    }
+
+    // Same name wearing its knight's colour, for anywhere it lands in a label
+    // rather than a log line.
+    private string KnightDisplayNameRich
+    {
+        get
+        {
+            if (CompareTag("PlayerLeft")) return KnightNames.Left;
+            if (CompareTag("PlayerRight")) return KnightNames.Right;
+            return "A Knight";
+        }
+    }
+
+    // A null sound gets the standard hurt cry, which is what every caller but a
+    // repeating source (KnightPoison) wants.
+    private void PlayHurtVoice(SoundEffect sound)
+    {
+        if (AudioManager.Instance == null) return;
+        SoundEffect voice = sound != null && sound.clip != null
+            ? sound
+            : AudioManager.Instance.playerHurt;
+        AudioManager.Instance.PlaySFX(voice);
     }
 
     public void Heal(int amount)
@@ -187,7 +274,7 @@ public class PlayerHealth : MonoBehaviour
 
         // The holy light and its chime, fired from the one funnel every heal
         // passes through rather than from each Dawn effect — a knight who has
-        // bought into the Order glows whenever they are mended, and no effect
+        // bought into the Order glows whenever they are healed, and no effect
         // added later can forget to ask. Non-Dawn knights heal silently and
         // unlit, exactly as before.
         //
@@ -209,7 +296,7 @@ public class PlayerHealth : MonoBehaviour
     /// <summary>
     /// One shared soft chime for every Dawn effect, deliberately not one sound
     /// per discipline: the player should learn a single "the light answered"
-    /// cue, not five. Guarded so a burst of mends in the same frame (a rescue
+    /// cue, not five. Guarded so a burst of heals in the same frame (a rescue
     /// that also echoes) can't stack into a chord — AudioManager runs one
     /// AudioSource and overlapping copies turn to mud.
     /// </summary>
@@ -280,7 +367,7 @@ public class PlayerHealth : MonoBehaviour
         PlayerHealth otherHealth = other.GetComponent<PlayerHealth>();
         if (otherHealth == null) return;
 
-        // The echo carries the SOURCE across too: an orb that mends both knights
+        // The echo carries the SOURCE across too: an orb that heals both knights
         // has to delay both chimes, or the partner's fires on the pickup frame
         // and puts the noise straight back
         otherHealth.Heal(echo, false, source);
@@ -320,9 +407,9 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = 1;
         healthBar.SetValue(currentHealth);
 
-        // Mend AFTER the floor is set so the heal (and its Shared Light echo)
+        // Heal AFTER the floor is set so the heal (and its Shared Light echo)
         // reads off a living knight
-        Heal(DawnBoost.LastLightMend);
+        Heal(DawnBoost.LastLightHeal);
 
         SetInvulnerable(DawnBoost.LastLightInvulnSeconds);
         partner.GetComponent<PlayerHealth>()?.SetInvulnerable(DawnBoost.LastLightInvulnSeconds);
@@ -351,7 +438,7 @@ public class PlayerHealth : MonoBehaviour
     // each caller, so a heal added later cannot quietly forget to do it. See
     // KnightPoison for why the cure is total rather than partial.
     //
-    // It clears it on BOTH knights, not just the healed one: the mending is a
+    // It clears it on BOTH knights, not just the healed one: the healing is a
     // clean slate for the pair. Reaching across via OtherKnight rather than a
     // scene-wide sweep, same as every other paired effect here, and no recursion
     // risk — Cure only stops a coroutine, it never heals back.

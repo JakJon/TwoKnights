@@ -79,9 +79,22 @@ public class EquipmentCatalog : ScriptableObject
 
     public IReadOnlyList<SpecialDefinition> Specials => specials;
 
+    // Ids that were renamed after saves already had them written down. A save
+    // file is the one place an old name outlives the rename, so the lookup - not
+    // every caller - is where the old name is translated.
+    private static readonly Dictionary<string, string> RenamedSpecialIds =
+        new Dictionary<string, string>
+        {
+            { "field_mending", "field_healing" }, // "mending" retired, 2026-09-07
+        };
+
     public SpecialDefinition FindSpecial(string specialId)
     {
         if (string.IsNullOrEmpty(specialId)) return null;
+
+        string renamed;
+        if (RenamedSpecialIds.TryGetValue(specialId, out renamed)) specialId = renamed;
+
         for (int i = 0; i < specials.Count; i++)
         {
             if (specials[i] != null && specials[i].Id == specialId) return specials[i];

@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 100}
   m_MaxSize: {x: 16192, y: 16192}
   vertical: 0
-  controlID: 13015
+  controlID: 7690
   draggingID: 0
 --- !u!114 &6
 MonoBehaviour:
@@ -140,12 +140,12 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 1507.2
+    width: 1556
     height: 1132.8
   m_MinSize: {x: 100, y: 100}
   m_MaxSize: {x: 8096, y: 16192}
   vertical: 1
-  controlID: 13016
+  controlID: 7635
   draggingID: 0
 --- !u!114 &7
 MonoBehaviour:
@@ -164,8 +164,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 1507.2
-    height: 668.8
+    width: 1556
+    height: 680
   m_MinSize: {x: 201, y: 226}
   m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 10}
@@ -190,9 +190,9 @@ MonoBehaviour:
   m_Position:
     serializedVersion: 2
     x: 0
-    y: 668.8
-    width: 1507.2
-    height: 464.00006
+    y: 680
+    width: 1556
+    height: 452.80005
   m_MinSize: {x: 231, y: 276}
   m_MaxSize: {x: 10001, y: 10026}
   m_ActualView: {fileID: 12}
@@ -216,9 +216,9 @@ MonoBehaviour:
   m_Children: []
   m_Position:
     serializedVersion: 2
-    x: 1507.2
+    x: 1556
     y: 0
-    width: 540.80005
+    width: 492
     height: 1132.8
   m_MinSize: {x: 276, y: 76}
   m_MaxSize: {x: 4001, y: 4026}
@@ -250,8 +250,8 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 24
-    width: 1506.2
-    height: 642.8
+    width: 1555
+    height: 654
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -296,7 +296,7 @@ MonoBehaviour:
     m_HSlider: 0
     m_VSlider: 0
     m_IgnoreScrollWheelUntilClicked: 0
-    m_EnableMouseInput: 1
+    m_EnableMouseInput: 0
     m_EnableSliderZoomHorizontal: 0
     m_EnableSliderZoomVertical: 0
     m_UniformScale: 1
@@ -305,23 +305,23 @@ MonoBehaviour:
       serializedVersion: 2
       x: 0
       y: 21
-      width: 1506.2
-      height: 621.8
-    m_Scale: {x: 0.7196759, y: 0.7196759}
-    m_Translation: {x: 753.1, y: 310.9}
+      width: 2048
+      height: 1087.8
+    m_Scale: {x: 1, y: 1}
+    m_Translation: {x: 1024, y: 543.9}
     m_MarginLeft: 0
     m_MarginRight: 0
     m_MarginTop: 0
     m_MarginBottom: 0
     m_LastShownAreaInsideMargins:
       serializedVersion: 2
-      x: -1046.4432
-      y: -432
-      width: 2092.8865
-      height: 864
+      x: -1024
+      y: -543.9
+      width: 2048
+      height: 1087.8
     m_MinimalGUI: 1
-  m_defaultScale: 0.7196759
-  m_LastWindowPixelSize: {x: 1506.2, y: 642.8}
+  m_defaultScale: 1
+  m_LastWindowPixelSize: {x: 2048, y: 1108.8}
   m_ClearInEditMode: 1
   m_NoCameraWarning: 1
   m_LowResolutionForAspectRatios: 01000000000000000000
@@ -1003,9 +1003,9 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 692.8
-    width: 1506.2
-    height: 438.00006
+    y: 704
+    width: 1555
+    height: 426.80005
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -1028,7 +1028,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scenes
+    - Assets/Scripts/Waves/Cave/Crossfire
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -1038,16 +1038,16 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 96
   m_LastFolders:
-  - Assets/Scenes
+  - Assets/Scripts/Waves/Cave/Crossfire
   m_LastFoldersGridSize: 96
   m_LastProjectPath: C:\Projects\Two Knights
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 62.799927}
-    m_SelectedIDs: 72ba0000
-    m_LastClickedID: 47730
-    m_ExpandedIDs: 00000000a6bb0000a8bb0000aabb0000
+    scrollPos: {x: 0, y: 330.8}
+    m_SelectedIDs: 66080100
+    m_LastClickedID: 67686
+    m_ExpandedIDs: 0000000070bc000072bc000074bc0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1076,7 +1076,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000a6bb0000a8bb0000aabb0000
+    m_ExpandedIDs: 0000000070bc000072bc000074bc0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1191,9 +1191,9 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1508.2
+    x: 1557
     y: 24
-    width: 539.80005
+    width: 491
     height: 1106.8
   m_SerializedDataModeController:
     m_DataMode: 0

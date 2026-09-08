@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
+  m_Name: Mine Crosshaul
+  m_EditorClassIdentifier:
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
+  cellSize: 1
+  fallStagger: 0.05
+  runs:
+  - label: eastbound haul (enters west, unloads beside the RIGHT knight)
+    piece: 0
+    axis: 0
+    offset: 3
+    spanViewport: 1
+    overhangCells: 3
+    start: 0
+    count: 0
+    flow: 0
+    layFromFarEnd: 0
+  - label: westbound haul (enters east, unloads beside the LEFT knight)
+    piece: 0
+    axis: 0
+    offset: -3
+    spanViewport: 1
+    overhangCells: 3
+    start: 0
+    count: 0
+    flow: 1
+    layFromFarEnd: 1
+  tiles: []
+  teleports: []
+  drops:
+  - label: eastbound crate unloads PAST the right knight (x = 8)
+    run: 0
+    distanceAlong: 21
+  - label: westbound crate unloads on the left knight's doorstep (x = -4)
+    run: 1
+    distanceAlong: 17

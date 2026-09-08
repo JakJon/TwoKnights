@@ -59,6 +59,11 @@ public class EnemyRat : EnemyBase
 
     private IEnumerator EnterScreenRoutine()
     {
+        // The walk-on is a Lerp onto an absolute position, so a chill scaling the
+        // frame's delta would only stutter it - the next frame rewrites the
+        // position regardless and the rat still arrives exactly on schedule. Cold
+        // starts charging once it is moving under its own power.
+        positionIsScripted = true;
         Vector3 startPos = transform.position;
         float elapsed = 0f;
 
@@ -71,6 +76,7 @@ public class EnemyRat : EnemyBase
 
         transform.position = _targetPosition;
         _isSpawning = false;
+        positionIsScripted = false;
     }
 
     void Update()

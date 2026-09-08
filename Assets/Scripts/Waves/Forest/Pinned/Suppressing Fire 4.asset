@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1f5162858ac1404ca117b4d454c8b5e, type: 3}
   m_Name: Suppressing Fire 4
   m_EditorClassIdentifier: 
-  waveName: Suppressing Fire 4
+  waveName: Suppressing Fire IV
   weight: 600
   isUnlocked: 0
   waveDescription: The volleys never break. Every third one turns back on you.

@@ -7,5 +7,6 @@ public enum UpgradeOrder
     Shadow = 2,   // ninja / shadow arrows
     Guardian = 3, // tank / shield
     Ember = 4,    // fire
-    Dawn = 5      // healing
+    Dawn = 5,     // healing
+    Frigid = 6    // ice - slow and freeze
 }

@@ -96,6 +96,24 @@ public class BitsAndPieces : BaseWave
     [Tooltip("In order. Each one waits for the last one's riders to be dead before it sets off, so the wave's length is set by the knights' shooting and not by a stopwatch.")]
     [SerializeField] private List<Ambush> ambushes = new List<Ambush>();
 
+    [Header("Rock")]
+    [Tooltip("Volleys down the shafts, cycled in order for the window below. The mine had only three waves that threw a rock at all, which left the guard — half of what a knight is — idle through the rest. This is the second question a wave asks while the first one is still standing.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("Length of the firing window, from the start of the wave. New volleys stop being issued once it elapses; whatever is already in the air still falls.")]
+    [SerializeField] private float projectileWindow = 24f;
+
+    [Tooltip("World units per second for THIS wave's rock, overriding the prefab's 1. A shaft is seven units up, so 1.75 puts a rock on a knight in four seconds instead of seven. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 1.75f;
+
+    [Header("Ogres")]
+    [Tooltip("Brutes walking in from the edges, alternating sides. They ignore everything this wave is about and come straight for whichever knight they entered nearest — see OgreBand. Leave the count at 0 for a tier that should not have any.")]
+    [SerializeField] private OgreBand ogres = new OgreBand();
+
+    // Every ogre this wave put out. Cleared as the band is released — the asset
+    // is a ScriptableObject and outlives the run.
+    private readonly List<GameObject> _ogres = new List<GameObject>();
+
     [Header("Orbs")]
     [Tooltip("The high crossing, over the top of the fight. Runs clear of both rails at y=4.3.")]
     [SerializeField] private OrbRun highOrbs = new OrbRun
@@ -139,6 +157,8 @@ public class BitsAndPieces : BaseWave
         // run joined to the spawn phase would stretch or truncate with them
         Coroutine highRun = spawner.StartCoroutine(highOrbs.Release(spawner));
         Coroutine lowRun = spawner.StartCoroutine(lowOrbs.Release(spawner));
+        Coroutine brutes = spawner.StartCoroutine(ReleaseTheOgres(spawner));
+        Coroutine shafts = spawner.StartCoroutine(WorkTheShafts(spawner));
 
         for (int i = 0; i < ambushes.Count; i++)
         {
@@ -171,6 +191,9 @@ public class BitsAndPieces : BaseWave
 
         // Orbs already on the board finish their crossing on their own; what stops
         // here is any that had not been released yet
+        yield return brutes;
+        yield return shafts;
+
         spawner.StopCoroutine(highRun);
         spawner.StopCoroutine(lowRun);
 
@@ -249,5 +272,22 @@ public class BitsAndPieces : BaseWave
     {
         if (list == null || list.Count == 0) return null;
         return list[cursor++ % list.Count];
+    }
+
+    // Beside the wave, never inside it. Ogres do not belong to any shift (see
+    // EnemyOgre.JoinsAmbushes) — they are a clock running underneath whatever
+    // else the wave is doing, and the wave is not finished until they are down.
+    private IEnumerator ReleaseTheOgres(Spawner spawner)
+    {
+        _ogres.Clear();
+        yield return ogres.Release(spawner, _ogres);
+    }
+
+    // Beside the wave, never inside it: the window is a fixed number of seconds
+    // from the start, so it neither stretches nor truncates with how fast the
+    // players clear whatever else is on the board.
+    private IEnumerator WorkTheShafts(Spawner spawner)
+    {
+        yield return RockVolley.WorkTheShafts(spawner, volleys, projectileWindow, rockSpeed);
     }
 }

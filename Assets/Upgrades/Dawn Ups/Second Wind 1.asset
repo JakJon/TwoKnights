@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Second Wind 1
   m_EditorClassIdentifier: 
   upgradeName: Second Wind I
-  description: Damage you take is tallied. Every sixty points of it leaves you untouchable for five seconds.
+  description: Every time you take 60 damage, you will become invincible for 6 seconds.
   weight: 90
   order: 5
   requiresOrderCount: 0
@@ -21,12 +21,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0ae375c18bb54ccd98d2df4a92b01e29, type: 2}
   lockedBy: []
   stats:
-  - valueText: 5s
+  - valueText: 6s
     labelText: UNTOUCHABLE
     isPositive: 1
   - valueText: 60
     labelText: DAMAGE TAKEN
     isPositive: 1
   damageToll: 60
-  invulnerableSeconds: 5
+  invulnerableSeconds: 6
   healAmount: 0

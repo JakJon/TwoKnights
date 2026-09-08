@@ -21,8 +21,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7821fe7aa0b74e008b31962bdedfd3d6, type: 2}
   lockedBy: []
   stats:
-  - valueText: +4 HP
-    labelText: EVERY 8 KILLS
+  - valueText: +15 HP
+    labelText: EVERY 10 KILLS
     isPositive: 1
-  killsPerMend: 8
-  mendAmount: 4
+  killsPerHeal: 10
+  healAmount: 15

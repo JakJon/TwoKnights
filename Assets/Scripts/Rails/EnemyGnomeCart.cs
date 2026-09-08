@@ -141,6 +141,16 @@ public abstract class EnemyGnomeCart : EnemyMineCart
     {
         if (isDead) return;
 
+        // A sleeping gnome does not throw. Sleep() already stopped the cart; this
+        // is the other half of it - a shift that halts but keeps shelling the
+        // knights reads as the dart having done nothing. TrackPosition still runs
+        // so the position bookkeeping stays honest across the nap.
+        if (IsAsleep)
+        {
+            TrackPosition();
+            return;
+        }
+
         TrackPosition();
 
         if (Time.time < _armedAt) return;

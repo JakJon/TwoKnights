@@ -20,14 +20,36 @@ public class SwordSwing : MonoBehaviour
     private bool canSwing = true;
     private int currentSwingDamage; // Full damage for real swings, halved for Phantom Blade echoes
     private Transform swordSpriteTransform;
+    private Vector3 _bladeBaseScale = Vector3.one;
     private Transform slashSpriteTransform;
     private HashSet<GameObject> damagedEnemies;
     private ShieldOrbit shield;
     private GameObject owningKnight;
 
+    // Long Sword lives on the knight, so it is looked up per swing rather than
+    // cached in Awake: the upgrade can land between one swing and the next.
+    private LongSwordBoost LongSword =>
+        owningKnight != null ? owningKnight.GetComponent<LongSwordBoost>() : null;
+
+    // Stock values unless a Long Sword rank says otherwise.
+    private float BladeReach => LongSword != null ? LongSword.LengthMultiplier : 1f;
+    private float SwingSlow => LongSword != null ? LongSword.SlowMultiplier : 1f;
+    private int EffectiveSwingDamage
+    {
+        get
+        {
+            var boost = LongSword;
+            return boost != null && boost.BaseDamage > 0 ? boost.BaseDamage : swingDamage;
+        }
+    }
+
     void Awake()
     {
         swordSpriteTransform = transform.Find("Sword");
+        // The prefab's own blade scale is not 1 - Long Sword multiplies THIS,
+        // never replaces it, or a knight without the upgrade gets a sword that
+        // silently grew to full size the first time it swung.
+        if (swordSpriteTransform != null) _bladeBaseScale = swordSpriteTransform.localScale;
         slashSpriteTransform = transform.Find("Slash");
         shield = GetComponentInParent<ShieldOrbit>();
         if (shield == null && transform.parent != null)
@@ -51,7 +73,7 @@ public class SwordSwing : MonoBehaviour
 
     void Update()
     {
-        if (canSwing && shield != null && swordInputAction != null && swordInputAction.WasPressedThisFrame())
+        if (InputEnabled && canSwing && shield != null && swordInputAction != null && swordInputAction.WasPressedThisFrame())
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.swordSwing);
             StartCoroutine(PerformSwordSwing());
@@ -62,9 +84,10 @@ public class SwordSwing : MonoBehaviour
     {
         canSwing = false;
         damagedEnemies = new HashSet<GameObject>();
-        currentSwingDamage = swingDamage;
+        currentSwingDamage = EffectiveSwingDamage;
         TryExhaleSerpentsBreath();
         TryHurlFirebrand();
+        TryReleaseRimeblade();
         if (swordSpriteTransform == null || slashSpriteTransform == null)
         {
             canSwing = true;
@@ -76,7 +99,10 @@ public class SwordSwing : MonoBehaviour
         _phaseLanded = false;
         _phasesLanded = 0;
 
-        yield return StartCoroutine(AnimateSwingArc(shieldAngle, totalEffectDuration - swingDuration, swingDuration));
+        // Only the ARC is slowed by a long blade, not the hold at the end of it:
+        // the weight is meant to be felt in the sweep the player is waiting on.
+        yield return StartCoroutine(AnimateSwingArc(shieldAngle, totalEffectDuration - swingDuration,
+                                                    swingDuration * SwingSlow, BladeReach));
         if (_phaseLanded) _phasesLanded++;
 
         // Phantom Blade (Shadow Order): dark after-images repeat the swing. They
@@ -88,15 +114,15 @@ public class SwordSwing : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             damagedEnemies = new HashSet<GameObject>();
             _phaseLanded = false;
-            currentSwingDamage = Mathf.Max(1, swingDamage / 2);
+            currentSwingDamage = Mathf.Max(1, EffectiveSwingDamage / 2);
             SetSwingTint(PhantomTint);
             AudioManager.Instance.PlaySFX(AudioManager.Instance.phantomStrike);
-            yield return StartCoroutine(AnimateSwingArc(shieldAngle, 0.025f, swingDuration * 0.5f,
-                                                       PhantomReach + i * PhantomReachStep));
+            yield return StartCoroutine(AnimateSwingArc(shieldAngle, 0.025f, swingDuration * 0.5f * SwingSlow,
+                                                       (PhantomReach + i * PhantomReachStep) * BladeReach));
             SetSwingTint(Color.white);
             if (_phaseLanded) _phasesLanded++;
         }
-        currentSwingDamage = swingDamage;
+        currentSwingDamage = EffectiveSwingDamage;
 
         // Three connected phases can only happen with two echoes behind the real
         // swing, which is what "a fully upgraded Phantom Blade" means
@@ -129,6 +155,14 @@ public class SwordSwing : MonoBehaviour
         slashSpriteTransform.localPosition = slashPosition;
         slashSpriteTransform.localRotation = Quaternion.Euler(0, 0, shieldAngle - 90f);
         // Position and rotate sword sprite at starting angle
+        // The blade is drawn longer, not just swung wider - the sword sprite is
+        // rotated so its length runs along local Y, and scaling that also grows
+        // the box collider added in AddDamageDetection, so what the player sees
+        // and what actually connects stay the same shape.
+        Vector3 bladeScale = _bladeBaseScale;
+        bladeScale.y = _bladeBaseScale.y * BladeReach;
+        swordSpriteTransform.localScale = bladeScale;
+
         float startAngleRad = startAngle * Mathf.Deg2Rad;
         Vector3 swordStartPos = (new Vector3(Mathf.Cos(startAngleRad), Mathf.Sin(startAngleRad), 0) * 0.8f * reach) + rotationOffset;
         swordSpriteTransform.localPosition = swordStartPos;
@@ -191,6 +225,74 @@ public class SwordSwing : MonoBehaviour
     private const float FirebrandLifetime = 4f;
     private const float FirebrandDirectDamageFactor = 1.5f;
 
+    // Rimeblade (Frigid Order): the swing throws off a burst of cold around the
+    // knight, dealing the sword's own damage to everything it catches.
+    //
+    // Every Order hangs a discipline off the sword and each one does something
+    // different with it - Serpent exhales a cloud, Shadow echoes the swing, Ember
+    // throws ordnance. Frigid's blade is cold iron, and it answers the thing that
+    // has ALREADY closed the distance: a body that was chilled by an arrow on the
+    // way in gets stopped dead at arm's length, which is the strongest single
+    // moment in the Order and costs two picks from different chains to reach.
+    //
+    // Note what this is not: a projectile. It does not travel — it opens once,
+    // one step out along the swing, and is gone. Nudging it a unit down the facing
+    // rather than sitting it on the knight's own feet means the half of the circle
+    // behind the knight (where nothing the sword just hit can be) stops being
+    // wasted, and the burst covers the ground the blade actually swept.
+    private const float RimebladeForwardOffset = 1f;
+
+    private void TryReleaseRimeblade()
+    {
+        if (owningKnight == null) return;
+
+        FrigidBoost boost = owningKnight.GetComponent<FrigidBoost>();
+        if (boost == null || !boost.ShouldReleaseRimeblade()) return;
+
+        float radius = boost.RimebladeRadius;
+        Vector2 facing = shield != null ? shield.Direction : Vector2.zero;
+        Vector2 center = (Vector2)owningKnight.transform.position + facing * RimebladeForwardOffset;
+        int damage = EffectiveSwingDamage;
+
+        FrostFx.Burst(center, radius);
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.frostChill);
+        }
+
+        // A temporary carrier so the damage lands credited to the right knight,
+        // the same trick OnEnemyHit already uses for the blade itself - sword
+        // objects are untagged children, so the tag has to be built here.
+        GameObject carrier = new GameObject("RimebladeBurst");
+        carrier.tag = owningKnight.tag + "Projectile";
+
+        Collider2D[] caught = Physics2D.OverlapCircleAll(center, radius);
+        for (int i = 0; i < caught.Length; i++)
+        {
+            EnemyBase enemy = caught[i] != null ? caught[i].GetComponent<EnemyBase>() : null;
+            if (enemy == null || enemy.IsDead) continue;
+
+            // Damage first, cold second - the same order an arrow uses, and for
+            // the same reason. A blow ends a freeze, so chilling first would let
+            // one swing stop a body and then break its own ice on the next line.
+            // This way a swing shatters what was already frozen and leaves it
+            // chilled again, or stops what was already chilled. Never both.
+            int blow = damage;
+            if (enemy.IsFrozen && boost.ShatterMultiplier > 1f)
+            {
+                blow = Mathf.CeilToInt(blow * boost.ShatterMultiplier);
+                PlayerStats.Increment("frigid.shattered");
+            }
+            enemy.TakeDamage(blow, carrier);
+
+            // isBlow: true. This is a hit the knight swung for, so it is one of
+            // the two things in the game allowed to freeze.
+            if (!enemy.IsDead) boost.TouchWithCold(enemy, true);
+        }
+
+        Destroy(carrier);
+    }
+
     private void TryHurlFirebrand()
     {
         if (owningKnight == null || shield == null) return;
@@ -209,13 +311,13 @@ public class SwordSwing : MonoBehaviour
 
         Vector2 facing = shield.Direction;
         Vector2 origin = (Vector2)owningKnight.transform.position + facing * 1.1f;
-        int directDamage = Mathf.Max(1, Mathf.RoundToInt(swingDamage * FirebrandDirectDamageFactor));
+        int directDamage = Mathf.Max(1, Mathf.RoundToInt(EffectiveSwingDamage * FirebrandDirectDamageFactor));
 
         foreach (float angle in angles)
         {
             Vector2 direction = Quaternion.Euler(0f, 0f, angle) * facing;
             FireballProjectile.Spawn(boost.FireballPrefab, origin, direction, FirebrandSpeed,
-                directDamage, swingDamage, boost.FireballBlastRadius, boost,
+                directDamage, EffectiveSwingDamage, boost.FireballBlastRadius, boost,
                 owningKnight.tag, FirebrandLifetime);
         }
     }
@@ -235,12 +337,33 @@ public class SwordSwing : MonoBehaviour
     private bool _phaseLanded;
     private int _phasesLanded;
 
+    /// <summary>
+    /// Whether the bumper swings this blade. Only the tutorial lowers it. Lives on
+    /// the sword object rather than the knight, so reach it with
+    /// GetComponentsInChildren — ShieldOrbit builds the sword at runtime.
+    /// See PlayerShooter.InputEnabled.
+    /// </summary>
+    public bool InputEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Raised the moment a swing lands: the enemy's instance id, and whether that
+    /// blow was the one that killed it. An id and not the object because the kill
+    /// may already have destroyed it. The tutorial listens so it can tell a sword
+    /// kill from an arrow kill and hold the player to the one it asked for.
+    /// </summary>
+    public static event System.Action<int, bool> OnSwordLanded;
+
     public void OnEnemyHit(GameObject enemy)
     {
         if (damagedEnemies.Contains(enemy)) return;
         EnemyBase enemyBase = enemy.GetComponent<EnemyBase>();
         if (enemyBase != null)
         {
+            // Shatter (Frigid): the blade breaks ice like anything else the knight
+            // lands. Asked before the damage, because landing it is what breaks it.
+            FrigidBoost frigid = owningKnight != null ? owningKnight.GetComponent<FrigidBoost>() : null;
+            bool frigidShatter = frigid != null && enemyBase.IsFrozen && frigid.ShatterMultiplier > 1f;
+
             GameObject tempProjectile = new GameObject("SwordHit");
             // Credit the OWNING knight: the sword object itself is untagged, so
             // using its own tag produced "UntaggedProjectile" and sword kills
@@ -257,7 +380,16 @@ public class SwordSwing : MonoBehaviour
                 if (baneMultiplier > 1f) swingDamage = Mathf.CeilToInt(swingDamage * baneMultiplier);
             }
 
+            if (frigidShatter)
+            {
+                swingDamage = Mathf.CeilToInt(swingDamage * frigid.ShatterMultiplier);
+                FrostFx.Burst(enemyBase.transform.position, FrigidBoost.SplinterRadius);
+                PlayerStats.Increment("frigid.shattered");
+            }
+
+            int enemyId = enemy.GetInstanceID();
             enemyBase.TakeDamage(swingDamage, tempProjectile);
+            OnSwordLanded?.Invoke(enemyId, enemyBase.IsDead);
             Destroy(tempProjectile);
             damagedEnemies.Add(enemy);
             _phaseLanded = true;

@@ -1,0 +1,9 @@
+GIMP Palette
+Name: Pallid Keep - Ground (flagstones)
+Columns: 5
+# The playfield. Deep saturated blue rather than a grey-blue: the keep is midnight-lit, not overcast. Runs a little darker than gilded-vigil-ground and amethyst-hollow-ground by design; ArenaLighting lifts the centre.
+ 10  18  40	ground-1 0a1228
+ 17  28  60	ground-2 111c3c
+ 25  41  83	ground-3 192953
+ 36  58 110	ground-4 243a6e
+ 48  76 138	ground-5 304c8a

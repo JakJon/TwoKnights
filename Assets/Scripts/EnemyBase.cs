@@ -101,10 +101,24 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         public float dps;
         public string ownerTag;
         public EmberBoost ownerBoost; // drives that stack's trail/panic if it's dominant
+        public int sourceId; // identity for fire spread — see EmberBoost.FireSpreadEnabled
     }
 
     private readonly List<BurnStack> _burnStacks = new List<BurnStack>();
     private ParticleSystem _emberFlame; // on-body flame while burning
+
+    // THE SOURCE RULE: every fire that has ever lit this enemy, so none of them can
+    // light it twice. This is the whole reason spreading fire terminates — a trail
+    // sweeps a body once and is then spent on it, however long it stands there.
+    // Re-igniting mints a new source, so fire between two neighbours still climbs.
+    private readonly HashSet<int> _consumedIgniteSources = new HashSet<int>();
+
+    private float _sinceSpreadCheck;
+
+    // Shared scratch: spread is evaluated one enemy at a time on the main thread,
+    // and this would otherwise allocate a list per enemy per beat
+    private static readonly List<FireField.IgniteSource> _spreadScratch =
+        new List<FireField.IgniteSource>();
 
     private const float FireTickInterval = 0.25f; // how often the fields are sampled
     private const float FireFlushInterval = 1f;   // how often accrued damage lands as a number
@@ -114,6 +128,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     private float _sinceFireTick;
     private float _sinceFireFlush;
     private string _lastFireOwnerTag; // owner credited at the next flush
+
+    // Heat handed over by a burning body in contact — a rate, not an ignition.
+    // See ReceiveContactFire / BurnNeighboursByContact.
+    private float _contactFireDps;
+    private string _contactFireOwnerTag;
+    private float _contactFireUntil;
     private float _sinceTrailDrop;
     private Vector3 _lastTrailPosition;
     private Vector3 _previousPosition;
@@ -147,7 +167,334 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // Stagger system
     protected bool isStaggered = false;
     protected AnimationClip originalAnimationClip;
-    public bool IsStaggered => isStaggered;
+
+    // Sleep (Sleeping Dart) rides the stagger flag rather than adding a second
+    // "hold still" rule every enemy would have to learn: everything that already
+    // stands still when staggered stands still when asleep, for free, and
+    // anything that ignores stagger (the carts own their own position) keeps
+    // ignoring it. The two are still separate underneath so a sleeping enemy
+    // can be told apart from a flinching one.
+    public bool IsStaggered => isStaggered || IsHeld;
+
+    /// <summary>
+    /// Held motionless, for ANY reason — a sleeping dart or the Frigid Order's
+    /// ice. One question rather than two, because everything downstream of a hold
+    /// (the freeze component, the pin in LateUpdate, the vehicles that own their
+    /// own position) wants the same answer whichever bought it, and a second copy
+    /// of "or frozen" in each of those places is a second copy that can be missed.
+    /// The two states stay separate underneath so their tells can differ and a
+    /// cleanse can take one off without the other.
+    /// </summary>
+    public bool IsHeld => IsAsleep || IsFrozen;
+
+    // ---- sleep ----
+    private float _sleepUntil = -1f;
+
+    /// <summary>Held still by a sleeping dart. Ends on its own; damage does not wake it.</summary>
+    public bool IsAsleep => !isDead && Time.time < _sleepUntil;
+
+    /// <summary>
+    /// Seconds of sleep still to run, or zero when awake. Anything that has to
+    /// hold a SECOND thing still for the length of the nap - a mine cart, whose
+    /// position its rider does not own - has to ask for what is left rather than
+    /// reuse the seconds it was handed, because overlapping darts extend the
+    /// deadline and the shorter of two holds would end the jam early.
+    /// </summary>
+    public float RemainingSleepSeconds => IsAsleep ? _sleepUntil - Time.time : 0f;
+
+    /// <summary>
+    /// Everything the knights can shoot sleeps: every mob, every boss, and
+    /// anything added later. The hook is kept because refusing a status is a
+    /// thing a fight might one day need to say, but nothing in the game says it
+    /// - a boss that ignored the dart would send the player looking for the bug
+    /// that is not there.
+    /// </summary>
+    public virtual bool ImmuneToSleep => false;
+
+    // Where the body was put down, so the freeze has somewhere to hold it. See
+    // SleepFreeze for how a sleeping enemy is actually made to stand still, and
+    // why it is done TO the enemy rather than asked of it.
+    private Vector3 _sleepAnchor;
+
+    /// <summary>
+    /// Put this enemy under for <paramref name="seconds"/>. Overlapping darts
+    /// extend rather than shorten, matching how every other timed status here
+    /// takes the later deadline.
+    ///
+    /// Deliberately not virtual. Sleep means one thing for everything on the
+    /// board, and a subclass that could redefine it is a subclass that can get
+    /// it wrong or forget it entirely - which is exactly how the dart came to do
+    /// nothing to a boss in the first place.
+    /// </summary>
+    public void Sleep(float seconds)
+    {
+        if (isDead || ImmuneToSleep || seconds <= 0f) return;
+
+        bool wasAwake = !IsAsleep;
+        _sleepUntil = Mathf.Max(_sleepUntil, Time.time + seconds);
+
+        if (wasAwake)
+        {
+            _sleepAnchor = transform.position;
+            SleepFx.ShowZs(gameObject);
+        }
+
+        // The freeze itself: this enemy's own behaviour is switched off for the
+        // length of the nap, so nothing it does in Update - walking, closing on a
+        // knight, counting down to its next throw, arriving somewhere that sets
+        // off an attack - happens at all. Done here, once, for everything on the
+        // board rather than as a flag each enemy has to remember to read.
+        SleepFreeze.Apply(this);
+
+        // Anything on this object that owns its own position rather than letting
+        // the enemy move itself - a mine cart, which keeps rolling however still
+        // its rider is holding - is told to stop for as long as the sleep has
+        // LEFT to run. The remaining time, not the seconds asked for: a second
+        // dart extends the nap to the later deadline, and a hold sized from that
+        // dart alone would end before the sleep it belongs to.
+        ISleepHold[] holds = GetComponents<ISleepHold>();
+        for (int i = 0; i < holds.Length; i++)
+        {
+            holds[i].HoldFor(RemainingSleepSeconds);
+        }
+    }
+
+    /// <summary>Ends sleep immediately and takes the Zs off.</summary>
+    public void WakeUp()
+    {
+        _sleepUntil = -1f;
+        SleepFx.HideZs(gameObject);
+        SleepFreeze.Release(this);
+    }
+
+    // ---- frost (the Frigid Order) ----
+    //
+    // Two states, not a stack counter. The first touch of cold CHILLS — the body
+    // keeps coming, slower. Cold landing on something already chilled FREEZES it,
+    // held where it stands. A player can read the board at a glance and always
+    // answer "what does one more arrow do here?" without arithmetic, which five
+    // stacks of anything on a screen with twenty rats on it does not allow.
+    //
+    // The freeze rides the same machinery as the sleeping dart rather than adding
+    // a second way to hold a body still — see SleepFreeze, and IsHeld above.
+    private float _chillUntil = -1f;
+    private float _chillMultiplier = 1f;
+    private float _frozenUntil = -1f;
+    private float _coldReprieveUntil = -1f;
+    private Vector3 _frozenAnchor;
+    private ParticleSystem _frostMotes;
+    private bool _frostTinted;
+    private Color _frostUntintedColor = Color.white;
+    private bool _countedChillApplied;
+
+    /// <summary>Slowed by cold, still walking.</summary>
+    public bool IsChilled => !isDead && Time.time < _chillUntil;
+
+    /// <summary>Stopped by cold. Not the same state as asleep: the two do not
+    /// cancel each other and they do not look alike.</summary>
+    public bool IsFrozen => !isDead && Time.time < _frozenUntil;
+
+    /// <summary>What this body's movement is being multiplied by, or 1 when it is
+    /// not chilled.</summary>
+    public float ChillSpeedMultiplier => IsChilled ? _chillMultiplier : 1f;
+
+    public float RemainingFreezeSeconds => IsFrozen ? _frozenUntil - Time.time : 0f;
+
+    /// <summary>
+    /// Whether this body can be slowed by having the movement it just made scaled
+    /// back. False for anything whose position is owned by something else — a cart
+    /// on rails does not stroll, and pulling it back here only puts it a frame's
+    /// worth off the track before its own Update snaps it home. Those slow through
+    /// their own speed instead; see MineCart.
+    ///
+    /// The mirror of AcceptsSearingPanic, and false in the same places for the
+    /// same reason.
+    /// </summary>
+    protected virtual bool AcceptsChill => true;
+
+    /// <summary>
+    /// Set while something is writing this body's position ABSOLUTELY instead of
+    /// stepping it — the screen entrances all do this with a Lerp. Scaling the
+    /// delta against a lerp does not delay anything: the lerp rewrites the
+    /// position next frame regardless, so all a chill buys there is a stutter and
+    /// the enemy still arrives exactly on schedule. Better to let the entrance
+    /// finish and start charging it cold once it is walking under its own power.
+    /// </summary>
+    protected bool positionIsScripted;
+
+    // Permafrost is expressed as a very long deadline rather than as a second code
+    // path, so nothing downstream — the pin, the cart holds, the tells, the
+    // wave-end clear — needs to learn about the capstone at all. The wave clear is
+    // what actually ends these; see PurgeFrost and Spawner.BeginWave.
+    private const float PermafrostSeconds = 9999f;
+
+    // How many bodies are in ice right now, across the whole field. Kept by hand
+    // on both sides of the hold; OnDeath and the wave clear both route through
+    // Thaw/PurgeFrost, so there is no path that leaves this counting a body that
+    // is gone.
+    private static int _liveFrozenCount;
+    public static int LiveFrozenCount { get { return _liveFrozenCount; } }
+    public static void ResetLiveFrozenCount() { _liveFrozenCount = 0; }
+
+    /// <summary>
+    /// Cold, from any source. THE one door, so every source spends the same rules.
+    ///
+    /// <paramref name="freezeSeconds"/> is zero unless the caller is a blow the
+    /// knight landed and that knight owns Deep Freeze — pillar 2 of the Order made
+    /// structural rather than left to convention. Fields and auras pass zero and
+    /// physically cannot stop anything.
+    /// </summary>
+    /// <returns>True if this touch was the one that froze it.</returns>
+    public bool ApplyCold(float speedMultiplier, float chillSeconds, float freezeSeconds, bool permafrost)
+    {
+        if (isDead) return false;
+
+        // Already stopped. A blow landing on a statue is a SHATTER, which is the
+        // caller's business and happens through TakeDamage — not more cold.
+        if (IsFrozen) return false;
+
+        // A body that thawed on its own shrugs the cold off for a moment. This is
+        // the governor that stops one knight with two chains locking a single
+        // target down forever, and it is why Permafrost is worth a capstone slot:
+        // ice that never expires never earns the reprieve.
+        if (Time.time < _coldReprieveUntil) return false;
+
+        if (IsChilled && freezeSeconds > 0f)
+        {
+            Freeze(freezeSeconds, permafrost);
+            return true;
+        }
+
+        // A fresh chill starts from nothing; a refresh keeps whichever knight's
+        // cold was DEEPER and whichever deadline was LATER, the way every other
+        // timed status here takes the later of two.
+        if (!IsChilled) _chillMultiplier = 1f;
+        _chillMultiplier = Mathf.Clamp(Mathf.Min(_chillMultiplier, speedMultiplier), 0.05f, 1f);
+        _chillUntil = Mathf.Max(_chillUntil, Time.time + chillSeconds);
+
+        if (!_countedChillApplied)
+        {
+            _countedChillApplied = true;
+            PlayerStats.Increment("frigid.chilled");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Hold this body in ice. Not virtual, for exactly the reason Sleep is not:
+    /// frozen means one thing for everything on the board, and a subclass that
+    /// could redefine it is a subclass that can get it wrong or forget it — which
+    /// is how the sleeping dart came to do nothing to a boss.
+    /// </summary>
+    public void Freeze(float seconds, bool permafrost)
+    {
+        if (isDead || seconds <= 0f) return;
+
+        float hold = permafrost ? PermafrostSeconds : seconds;
+        bool wasFree = !IsFrozen;
+        _frozenUntil = Mathf.Max(_frozenUntil, Time.time + hold);
+
+        // Freezing spends the chill. A body coming out of the ice comes out clean,
+        // which is what makes "the first slows, the second stops" a cycle the
+        // player re-runs rather than a ladder they climb once.
+        _chillUntil = -1f;
+        _chillMultiplier = 1f;
+
+        if (wasFree)
+        {
+            _frozenAnchor = transform.position;
+            FrostFx.ShowIce(gameObject);
+            PlayerStats.Increment("frigid.frozen");
+
+            // "Four at once" is the Order's showpiece image, so it is a feat. A
+            // live count rather than a sweep of the field on every freeze: a
+            // Frigid knight freezes often enough that a FindObjectsByType each
+            // time would be a cost the player can feel.
+            _liveFrozenCount++;
+            if (_liveFrozenCount >= 4) Feats.Record(Feats.FrozenFour);
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.frostFreeze);
+            }
+        }
+
+        // The hold itself: this body's own behaviour is switched off for the
+        // length of it, so nothing it does in Update — walking, closing on a
+        // knight, counting down to its next throw, arriving somewhere that sets
+        // off an attack — happens at all.
+        SleepFreeze.Apply(this);
+
+        // And anything on this object that owns its own position rather than
+        // letting the enemy move itself — a mine cart, which keeps rolling however
+        // still its rider is sitting — is told to stop for what the freeze has
+        // LEFT to run. This is what turns one arrow into a jam.
+        ISleepHold[] holds = GetComponents<ISleepHold>();
+        for (int i = 0; i < holds.Length; i++)
+        {
+            holds[i].HoldFor(RemainingFreezeSeconds);
+        }
+    }
+
+    /// <summary>
+    /// Break the ice early.
+    ///
+    /// <paramref name="earnedReprieve"/> is false when a BLOW ended it — a shatter,
+    /// or any hit big enough to count. That is deliberate: a frost arrow that
+    /// breaks a statue is meant to be able to chill it again in the same instant,
+    /// so the player can keep a body cycling between slowed and stopped for as long
+    /// as they keep paying an arrow a time. A freeze that simply ran out earns the
+    /// reprieve instead.
+    /// </summary>
+    public void Thaw(bool earnedReprieve)
+    {
+        if (_frozenUntil < 0f) return;
+
+        _frozenUntil = -1f;
+        _liveFrozenCount = Mathf.Max(0, _liveFrozenCount - 1);
+        _coldReprieveUntil = earnedReprieve ? Time.time + FrigidBoost.ThawReprieveSeconds : -1f;
+        FrostFx.HideIce(gameObject);
+        SleepFreeze.Release(this);
+    }
+
+    /// <summary>The freeze-break rule, in one place so every damage path can spend
+    /// it — including the two that deliberately bypass TakeDamage.</summary>
+    protected void BreakFreezeIfHardEnough(int damage)
+    {
+        if (damage >= FrigidBoost.FreezeBreakDamage && IsFrozen) Thaw(false);
+    }
+
+    /// <summary>Takes every trace of cold back off. Called by the cleanse and by
+    /// the wave clear, which is what stops a Permafrost statue surviving into the
+    /// wave after the one it was made in.</summary>
+    public void PurgeFrost()
+    {
+        _chillUntil = -1f;
+        _chillMultiplier = 1f;
+        _coldReprieveUntil = -1f;
+        Thaw(false);
+        UpdateFrostTells();
+    }
+
+    // ---- the two doors SleepFreeze keeps open while this enemy is switched off ----
+    //
+    // Both call straight back into the virtual member, so a subclass that
+    // overrides either one is still the thing that runs.
+
+    /// <summary>The base's per-frame pass, run by the freeze. Poison, fire and
+    /// Ember's spread all live in it and none of them stop for a nap.</summary>
+    internal void RunFrozenFrame()
+    {
+        LateUpdate();
+    }
+
+    /// <summary>A trigger that arrived while this enemy was switched off. Unity
+    /// skips disabled behaviours, and a sleeping body still has to answer a
+    /// shield sweeping through it.</summary>
+    internal void ForwardFrozenTrigger(Collider2D other)
+    {
+        OnTriggerEnter2D(other);
+    }
 
     // Whether the wave is allowed to end while this thing is still alive. Almost
     // every enemy gates the wave; the exception is scenery with health — an empty
@@ -171,6 +518,30 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // aimed shot, and aimed shots are how a cart is meant to be answered.
     public virtual bool ImmuneToAreaDamage => false;
 
+    /// <summary>
+    /// This enemy is a BOSS, and effects that skip health rather than deal it do
+    /// not work on it. Killing Blow is the one that matters today: executing a
+    /// fraction of a two-and-a-half-thousand point bar is not a reward for
+    /// weakening something, it is a shortcut past the fight the wave is.
+    ///
+    /// A virtual on the base rather than a list of type checks at the call sites,
+    /// because the last version of this rule was `!(enemy is EnemyRatKing)` in
+    /// PlayerProjectile and every boss written after the Rat King silently fell
+    /// through it. A new boss now opts in where it is declared, next to its own
+    /// health bar, instead of being remembered somewhere else.
+    /// </summary>
+    public virtual bool IsBoss => false;
+
+    // Whether this counts as a member of whatever AMBUSH is open when it spawns.
+    // Almost everything does — that is what makes "is this shift down yet" an
+    // honest question rather than a spawn count, and it is why a boss's summons
+    // hold his group open.
+    //
+    // An ogre does not. It is released on the wave's own clock and walks across
+    // several shifts, so counting it would stall every handover behind one slow
+    // body that was never part of any of them.
+    public virtual bool JoinsAmbushes => true;
+
     // Kinship group, for equipment that reads "vermin take more damage" rather
     // than naming classes. See EnemyFamily.cs for why this is a virtual and not
     // a serialized prefab field.
@@ -191,7 +562,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
         if (TracksWaveCompletion)
         {
-            BaseWave.RegisterEnemy(gameObject); // Register for wave tracking
+            BaseWave.RegisterEnemy(gameObject, JoinsAmbushes); // Register for wave tracking
         }
     }
 
@@ -212,7 +583,18 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         
         // Extension point for post-damage effects
         OnAfterDamageApplied(damage, projectile);
-        
+
+        // Any blow of real size ends a freeze, whether or not the knight who threw
+        // it owns Shatter. A statue you can hit for twenty and watch stand there
+        // reads as a bug, not as a mechanic. Chip damage stays under the bar
+        // deliberately, so a burning body still burns through the whole hold —
+        // and the poison and fire ticks bypass this method entirely in any case.
+        //
+        // No reprieve: the ice was broken rather than outlasted, so a frost arrow
+        // can shatter a body and chill it again in the same hit.
+        BreakFreezeIfHardEnough(damage);
+
+
         if (health > 0)
         {
             StartCoroutine(StaggerRoutine()); // Stagger if alive
@@ -589,16 +971,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     // ================= Ember Order =================
 
-    // THE IGNITION PILLAR: the ONLY callers of this are PlayerProjectile (an arrow
-    // that carries ignite), FireballProjectile, and ShieldSight once Fire Sight is
-    // bought. Fire zones must never reach it — if fire could start fire, the arena
-    // self-immolates and the player stops mattering. See Docs/Design/ember-order.md.
+    // The player's ignition doors: PlayerProjectile (an arrow that carries ignite),
+    // FireballProjectile, and ShieldSight once Fire Sight is bought. Every one of
+    // these is aimed and spent, so they stay the only way NEW fire enters a wave.
     //
-    // The sight is a legitimate third door and not a hole in the pillar: what the
-    // pillar forbids is FIRE starting fire, because that is the loop that runs away
-    // on its own. A beam is aimed, has to be held on a target, and cannot be lit by
-    // anything it lights — so every ignition it grants is still one the player spent
-    // a shield facing on, which is the property the pillar actually protects.
+    // Fire started by fire comes in through IgniteFromFire instead, which nothing
+    // calls while GroundFireIgnites is off — a burning body scorches its neighbours
+    // rather than lighting them. See the fire spread block in EmberBoost. The two
+    // entry points are kept separate on purpose: this one is free, that one has to
+    // pay a source it has not already spent.
     //
     /// <summary>
     /// Takes every status this enemy is carrying back off — the poison debt and
@@ -634,15 +1015,57 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
 
         _burnStacks.Clear();
+
+        // Forgetting which fires have spent themselves on this enemy is part of the
+        // cleanse: a purged body walking back into the same lane should catch again,
+        // the way it would have if it had never burned.
+        _consumedIgniteSources.Clear();
+
+        // A cleanse that left it asleep would be the one status the roar could
+        // not take off, which is exactly the promise PurgeStatusEffects makes.
+        WakeUp();
+
+        // And the same goes for the ice — including a Permafrost hold, which has
+        // no deadline of its own to run out.
+        PurgeFrost();
     }
 
     // Each call adds an independent burn stack, so hitting a burning enemy with
     // another ignited arrow/fireball piles heat on rather than merely refreshing.
     public void Ignite(string playerTag)
     {
+        AddBurn(playerTag, 0);
+    }
+
+    /// <summary>
+    /// Catch from another fire — ground fire underfoot, or a burning body in contact.
+    /// <paramref name="sourceId"/> is the fire that did it: this enemy remembers it
+    /// and can never be lit by that same fire again. The burn it starts is a NEW
+    /// source, which is what lets fire keep travelling instead of dying where it lands.
+    /// </summary>
+    public void IgniteFromFire(string playerTag, int sourceId)
+    {
+        AddBurn(playerTag, sourceId);
+    }
+
+    /// <summary>Has <paramref name="sourceId"/> already lit this enemy once?</summary>
+    public bool HasBeenLitBy(int sourceId)
+    {
+        return _consumedIgniteSources.Contains(sourceId);
+    }
+
+    // consumedSourceId is the fire being paid for this ignition, or 0 for a player
+    // source, which is always free
+    private void AddBurn(string playerTag, int consumedSourceId)
+    {
         // Refused outright rather than merely dealing no damage, so an iron cart
         // never wears a flame it cannot be hurt by
         if (isDead || ImmuneToAreaDamage || string.IsNullOrEmpty(playerTag)) return;
+
+        // The source rule, in one line: Add returns false if this fire already spent
+        // itself on this enemy. Checked after the refusals above so an immune target
+        // never silently burns a source it was going to ignore anyway.
+        if (consumedSourceId != 0 && !_consumedIgniteSources.Add(consumedSourceId)) return;
 
         if (!_countedIgniteApplied)
         {
@@ -662,7 +1085,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             expiresAt = Time.time + EmberBoost.IgniteDuration,
             dps = stackDps,
             ownerTag = playerTag,
-            ownerBoost = ownerBoost
+            ownerBoost = ownerBoost,
+            sourceId = EmberBoost.NextFireSourceId()
         });
 
         if (!wasIgnited)
@@ -691,12 +1115,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     // Sum of live burn dps (on-body). Also reports the dominant stack's owner/boost —
     // the hottest burn — for kill credit and for driving trail/panic.
-    private float BurnDps(out string dominantTag, out EmberBoost dominantBoost)
+    private float BurnDps(out string dominantTag, out EmberBoost dominantBoost,
+        out int dominantSourceId)
     {
         float total = 0f;
         float best = -1f;
         dominantTag = null;
         dominantBoost = null;
+        dominantSourceId = 0;
         for (int i = 0; i < _burnStacks.Count; i++)
         {
             BurnStack s = _burnStacks[i];
@@ -706,6 +1132,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 best = s.dps;
                 dominantTag = s.ownerTag;
                 dominantBoost = s.ownerBoost;
+                dominantSourceId = s.sourceId;
             }
         }
         return total;
@@ -729,9 +1156,27 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // the movement they just performed. That's what lets Searing Panic and Fire
     // Trail work on every enemy — including the Rat King and anything added later —
     // without touching a single subclass.
+    //
+    // While this enemy is asleep its own behaviour is switched off, so Unity is
+    // not the caller: SleepFreeze runs this same pass for it. Everything below has
+    // to keep working through a nap — a held enemy still burns, still rots, and
+    // still catches from the ground it was put down on.
     protected virtual void LateUpdate()
     {
         if (isDead) return;
+
+        // Ice pins a body exactly as sleep does. Kept as its own anchor rather
+        // than sharing sleep's, so a body that is both slept and frozen goes back
+        // to wherever the FIRST hold put it down and the second cannot shift it.
+        if (IsFrozen) transform.position = _frozenAnchor;
+
+        // A sleeping body stays exactly where it was put down. Belt and braces:
+        // with Update switched off nothing should be moving it, so this only
+        // catches a shove from somewhere else — and it costs one assignment.
+        // Ember reads its own movement further down as the delta against the last
+        // frame's position, so a pinned body correctly lays no fire trail and
+        // takes no panic nudge; both fall to zero on their own.
+        if (IsAsleep) transform.position = _sleepAnchor;
 
         if (!_emberTrackingStarted)
         {
@@ -748,15 +1193,47 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             _emberFlame.Stop(true, ParticleSystemStopBehavior.StopEmitting);
         }
 
+        // Catching from the field has to run whether or not this enemy is already
+        // burning, for the day GroundFireIgnites goes back on — an unlit body walking
+        // into a lane of trail would be the main way fire travels. Contact runs on the
+        // state AFTER that.
+        if (EmberBoost.FireSpreadEnabled && !ImmuneToAreaDamage)
+        {
+            _sinceSpreadCheck += Time.deltaTime;
+            if (_sinceSpreadCheck >= EmberBoost.SpreadCheckInterval)
+            {
+                _sinceSpreadCheck = 0f;
+                // Both of these are damage and nothing else now: ground fire while
+                // GroundFireIgnites is off, and contact always — see EmberBoost.
+                if (EmberBoost.GroundFireIgnites) CatchFireFromGround();
+                if (IsIgnited) BurnNeighboursByContact();
+                burning = IsIgnited;
+            }
+        }
+
         if (burning)
         {
             // The dominant (hottest) burn's knight owns trail + panic this frame
             string dominantTag;
             EmberBoost dominantBoost;
-            BurnDps(out dominantTag, out dominantBoost);
+            int dominantSourceId;
+            BurnDps(out dominantTag, out dominantBoost, out dominantSourceId);
             ApplySearingPanic(dominantBoost);
-            DropFireTrail(dominantBoost);
+            DropFireTrail(dominantBoost, dominantSourceId);
         }
+
+        // After the panic nudge, deliberately: a body that is both burning and
+        // chilled has the fire's extra ground taken back off it along with the
+        // rest, which is the honest composition of the two. Unconditional, unlike
+        // the block above — cold is not carried by anything the way a burn is.
+        // A freeze that ran OUT rather than being broken. Noticed here rather than
+        // in SleepFreeze because only this side knows what outlasting one is worth:
+        // the body earns its brief reprieve from the cold, which a shattered one
+        // deliberately does not.
+        if (_frozenUntil > 0f && !IsFrozen) Thaw(true);
+
+        ApplyChillSlow();
+        UpdateFrostTells();
 
         _previousPosition = transform.position;
 
@@ -784,7 +1261,92 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         transform.position += delta * (multiplier - 1f);
     }
 
-    private void DropFireTrail(EmberBoost boost)
+    // Takes back part of whatever movement the subclass just made, along its own
+    // heading — the exact mirror of Searing Panic above, and it covers the same
+    // sweep of enemies for the same reason: rat, bat, wolf, ogre, slime, the Rat
+    // King and the Giant Slime all move themselves by a delta, and none of them
+    // has to be taught anything for this to reach them.
+    //
+    // Not gated on IsStaggered, unlike panic: a body that is not moving has a zero
+    // delta and falls out on the next line anyway, and a held one is pinned above.
+    private void ApplyChillSlow()
+    {
+        if (!IsChilled || !AcceptsChill || positionIsScripted) return;
+
+        float multiplier = ChillSpeedMultiplier;
+        if (multiplier >= 1f) return;
+
+        Vector3 delta = transform.position - _previousPosition;
+        if (delta.sqrMagnitude <= 1e-8f) return;
+
+        transform.position -= delta * (1f - multiplier);
+    }
+
+    // What the player actually reads. Three channels, and each is picked because
+    // nothing else in the game is using it:
+    //
+    //   * spriteRenderer.color, NOT the GlowManager. StartGlow is first-come and
+    //     exclusive, so a frost glow would be swallowed by the red hit flash half
+    //     the time and would block it the rest. No enemy code writes the sprite
+    //     colour, so cold gets a channel of its own that never fights poison or
+    //     fire for it — a body can honestly be green, on fire, and blue at once.
+    //   * animator.speed, which nothing in the codebase assigns. A walk cycle at
+    //     full tempo on a half-speed body reads as ice-skating; this is the whole
+    //     difference between "slowed" and "broken".
+    //   * drifting motes, and a brighter shell once it is actually stopped.
+    private void UpdateFrostTells()
+    {
+        bool cold = IsChilled || IsFrozen;
+
+        if (spriteRenderer != null)
+        {
+            if (cold && !_frostTinted)
+            {
+                _frostTinted = true;
+                _frostUntintedColor = spriteRenderer.color;
+            }
+            if (cold)
+            {
+                Color tint = IsFrozen ? FrozenTint : ChilledTint;
+                spriteRenderer.color = _frostUntintedColor * tint;
+            }
+            else if (_frostTinted)
+            {
+                _frostTinted = false;
+                spriteRenderer.color = _frostUntintedColor;
+            }
+        }
+
+        if (animator != null)
+        {
+            // Zero rather than "very slow" while frozen: a body in ice is a
+            // statue, and a statue that is still twitching is a bug.
+            animator.speed = IsFrozen ? 0f : (IsChilled ? ChillSpeedMultiplier : 1f);
+        }
+
+        if (cold && _frostMotes == null)
+        {
+            _frostMotes = FrostFx.AttachEnemyChill(gameObject);
+        }
+        if (_frostMotes != null)
+        {
+            var emission = _frostMotes.emission;
+            if (emission.enabled != cold)
+            {
+                emission.enabled = cold;
+                if (!cold) _frostMotes.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                else _frostMotes.Play();
+            }
+        }
+    }
+
+    private static readonly Color ChilledTint = new Color(0.62f, 0.82f, 1f);
+    private static readonly Color FrozenTint = new Color(0.72f, 0.92f, 1f);
+
+    // sourceSourceId is the burn doing the dripping, so the trail it lays can light
+    // others under the source rule — and carries this enemy's id so it can walk over
+    // its own drippings without catching from them.
+    private void DropFireTrail(EmberBoost boost, int burnSourceId)
     {
         if (boost == null || !boost.HasFireTrail) return;
 
@@ -795,10 +1357,76 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Only paint where the enemy actually travelled
         if ((transform.position - _lastTrailPosition).sqrMagnitude < MinTrailMoveSqr) return;
 
+        // The burn's own source id only survives while ground fire is allowed to
+        // light things; otherwise the lane is laid as pure damage. Asked through
+        // NextZoneSourceId so there is ONE place that decides it.
         boost.PlaceTrailZone(transform.position,
             boost.TrailZoneRadius,
-            boost.TrailZoneDuration);
+            boost.TrailZoneDuration,
+            EmberBoost.NextZoneSourceId() != 0 ? burnSourceId : 0,
+            gameObject.GetInstanceID());
         _lastTrailPosition = transform.position;
+    }
+
+    // Ground fire lights what stands in it. One burn per distinct fire underfoot —
+    // the field already skips zones this enemy dripped itself, and the source rule
+    // skips any fire that has lit it before, so standing in a lane costs a body one
+    // burn per fire that painted it rather than one per beat.
+    private void CatchFireFromGround()
+    {
+        FireField.CollectIgniteSources(transform.position, gameObject.GetInstanceID(), _spreadScratch);
+        for (int i = 0; i < _spreadScratch.Count; i++)
+        {
+            FireField.IgniteSource source = _spreadScratch[i];
+            if (_consumedIgniteSources.Contains(source.sourceId)) continue;
+            IgniteFromFire(source.ownerTag, source.sourceId);
+        }
+    }
+
+    // A burning body SCORCHES what it touches — it does not light it (owner's call,
+    // 2026-09-07). Contact used to hand over a burn, which meant one ignited arrow
+    // into a packed lane lit the whole lane and every newly-lit body lit its own
+    // neighbours; the fire on the board stopped being anything the player granted.
+    // Now a burning enemy simply cooks the bodies pressed against it, at the same
+    // rate it is burning at, and the ignition doors stay arrow, fireball and nothing
+    // else. Touching a burning enemy is still a real cost — it just cannot be caught.
+    private void BurnNeighboursByContact()
+    {
+        string dominantTag;
+        EmberBoost dominantBoost;
+        int dominantSourceId;
+        float dps = BurnDps(out dominantTag, out dominantBoost, out dominantSourceId);
+        if (dps <= 0f) return;
+
+        Collider2D[] neighbours = Physics2D.OverlapCircleAll(transform.position,
+            EmberBoost.ContactSpreadRadius);
+
+        for (int i = 0; i < neighbours.Length; i++)
+        {
+            EnemyBase other = neighbours[i].GetComponent<EnemyBase>();
+            if (other == null || other == this || other.IsDead || other.ImmuneToAreaDamage) continue;
+            other.ReceiveContactFire(dps, dominantTag);
+        }
+    }
+
+    /// <summary>
+    /// Told by a burning neighbour that it is being cooked. Held as a rate with an
+    /// expiry rather than damage applied on the spot, so it flows through the same
+    /// once-a-second flush as every other fire and a body between two burning
+    /// neighbours still only pays the hotter of them — see <see cref="TickFire"/>.
+    /// </summary>
+    public void ReceiveContactFire(float dps, string ownerTag)
+    {
+        if (isDead || ImmuneToAreaDamage || dps <= 0f) return;
+
+        // Hotter wins for the rest of this beat; the window is a beat and a half so
+        // a spread check that lands just after a fire tick is not lost.
+        if (Time.time >= _contactFireUntil || dps > _contactFireDps)
+        {
+            _contactFireDps = dps;
+            _contactFireOwnerTag = ownerTag;
+        }
+        _contactFireUntil = Time.time + EmberBoost.SpreadCheckInterval * 1.5f;
     }
 
     // Fire damage has two sources — being ignited (on-body) and standing in a fire
@@ -829,7 +1457,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             string dominantTag;
             EmberBoost dominantBoost;
-            dps = BurnDps(out dominantTag, out dominantBoost);
+            int dominantSourceId;
+            dps = BurnDps(out dominantTag, out dominantBoost, out dominantSourceId);
             ownerTag = dominantTag;
         }
 
@@ -840,6 +1469,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             dps = zoneDps;
             ownerTag = zoneOwner;
+        }
+
+        // A burning body pressed against this one — same hottest-wins rule, so
+        // being on fire in a fire zone next to a burning neighbour still bills one
+        // fire rather than three.
+        if (Time.time < _contactFireUntil && _contactFireDps > dps)
+        {
+            dps = _contactFireDps;
+            ownerTag = _contactFireOwnerTag;
         }
 
         if (dps > 0f)
@@ -943,6 +1581,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
         peakHealth = Mathf.Max(peakHealth, health);
         health -= damage;
+        BreakFreezeIfHardEnough(damage);
         ShowDamageText(damage, Color.white);
 
         if (health > 0) return;
@@ -967,6 +1606,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
     protected virtual void OnDeath()
     {
+        // Killed mid-ice: give the frozen tally back before isDead makes IsFrozen
+        // read false and the body stops being able to account for itself. Shatter
+        // kills go through here, so this is not a rare path.
+        Thaw(false);
+
+        // Killed mid-nap: hand the behaviour back before anything downstream runs
+        // on a corpse that is still switched off
+        SleepFreeze.Release(this);
+
         if (goldOnDeath > 0)
         {
             GoldManager.Instance?.AddGold(goldOnDeath);

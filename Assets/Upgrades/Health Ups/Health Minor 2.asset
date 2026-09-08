@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
   m_Name: Health Minor 2
   m_EditorClassIdentifier: 
-  upgradeName: Minor Health Boost
+  upgradeName: Minor Health Boost II
   description: A small boost to your max health.
   weight: 100
   unlockedBy:

@@ -28,5 +28,5 @@ MonoBehaviour:
     labelText: FROM MANA ORBS
     isPositive: 1
   orbHealMultiplier: 2
-  manaOrbMend: 5
+  manaOrbHeal: 5
   slowOrbs: 0

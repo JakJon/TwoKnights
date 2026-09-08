@@ -26,3 +26,33 @@ MonoBehaviour:
   roundOneWolf: 0
   roundTwoWolf: 0
   roundThreeWolf: 0
+  batsPerStrike: 2
+  batSpacing: 0.7
+  ratsPerStrike: 1
+  wolvesPerStrike: 1
+  wolfSpacing: 1.2
+  volleys:
+  - label: one down the left
+    shape: 0
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.0
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 2.31
+    restAfter: 5.5
+  - label: one down the right
+    shape: 0
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.0
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 1.96
+    restAfter: 5.5
+  projectileWindow: 42
+  rockSpeed: 1.5

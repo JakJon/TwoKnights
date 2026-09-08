@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38a3dc441f1152c49aa86408609cb488, type: 3}
   m_Name: Reload 3
   m_EditorClassIdentifier: 
-  upgradeName: Blazing Reloads
+  upgradeName: Quick Reload III
   description: Almost no downtime between arrows.
   weight: 25
   order: 0

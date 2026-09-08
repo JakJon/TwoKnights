@@ -3,10 +3,18 @@ using System.Collections;
 
 public class RapidFire : MonoBehaviour
 {
-    private const float Duration = 6f;
+    // Short and fast rather than long and fast: the window is about one approach
+    // of a pack, so the special is spent ON something instead of being dumped the
+    // moment the bar fills. The cadence below is half what it was for the same
+    // reason — the old 0.16s wall of arrows made the window trivial.
+    private const float Duration = 5f;
+
+    // Seconds between shots while the window is open.
+    private const float FireInterval = 0.32f;
 
     /// <summary>
-    /// Activates rapid fire for the specified player ("PlayerLeft" or "PlayerRight") for 6 seconds.
+    /// Activates rapid fire for the specified player ("PlayerLeft" or "PlayerRight")
+    /// for <see cref="Duration"/> seconds.
     /// </summary>
     /// <param name="playerTag">The tag of the player ("PlayerLeft" or "PlayerRight").</param>
     public void ActivateRapidFire(string playerTag)
@@ -25,7 +33,7 @@ public class RapidFire : MonoBehaviour
             return;
         }
 
-        // Freeze this knight's special gain for the duration: at ~0.16s per shot
+        // Freeze this knight's special gain for the duration: even at this cadence
         // the hits alone would refill the bar before rapid fire ran out.
         player.GetComponent<PlayerSpecial>()?.FreezeSpecialGain(Duration);
 
@@ -38,7 +46,7 @@ public class RapidFire : MonoBehaviour
         // old hardcoded restore (1.5) silently erased Reload upgrades after
         // every special.
         shooter.rapidFireEnabled = true;
-        shooter.OpenNoCooldownWindow(Duration, 0.16f);
+        shooter.OpenNoCooldownWindow(Duration, FireInterval);
         yield return new WaitForSeconds(Duration);
         shooter.rapidFireEnabled = false;
     }

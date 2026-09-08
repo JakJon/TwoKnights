@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Dawn capstone (requires 4 Dawn picks): the vigil. Once per map, when the
-// OTHER knight would die, they don't — they hold at 1 HP, are mended, and both
+// OTHER knight would die, they don't — they hold at 1 HP, are healed, and both
 // knights get a beat of untouchability to reset.
 //
 // It is deliberately the PARTNER it saves, never the owner. Dawn's whole shape

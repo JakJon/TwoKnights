@@ -13,7 +13,7 @@ using UnityEngine;
 // the line, so the cart rolls in from off-screen already at speed and rolls
 // out the far side before it despawns.
 [RequireComponent(typeof(SpriteRenderer))]
-public class MineCart : MonoBehaviour
+public class MineCart : MonoBehaviour, ISleepHold
 {
     /// <summary>
     /// The speed every cart in the mine runs at, in world units per second.
@@ -155,6 +155,11 @@ public class MineCart : MonoBehaviour
     /// its neighbours, and still leaves a wreck if the rider dies mid-flinch.
     /// Overlapping holds take the longest, never the latest, so a second hit
     /// during a flinch cannot cut the first one short.
+    ///
+    /// This is also ISleepHold: EnemyBase calls it on everything riding a slept
+    /// enemy, so a darted cart — empty, keg, or ridden — stops for the length of
+    /// the nap. That is what turns one dart into a JAM, since a held cart anchors
+    /// the spacing sweep and the whole run behind it stacks up against it.
     /// </summary>
     public void HoldFor(float seconds)
     {
@@ -164,12 +169,51 @@ public class MineCart : MonoBehaviour
 
     private float _heldUntil;
 
+    // ---- cold ----
+    //
+    // A chilled cart runs slower; a frozen one is stopped by HoldFor above, which
+    // is already how a darted cart jams the run behind it. The multiplier is read
+    // off the rider rather than stored here, because EnemyBase is where every
+    // status in the game lives and a second copy of the deadline would eventually
+    // be a second answer.
+    //
+    // Applied to the TRAVEL, never to `speed` itself. Two things already mutate
+    // that field permanently - EnemyDarkGnomeCart's last stand multiplies it, and
+    // LeaveWreck hands it to the wreck - so a chill written into it would follow a
+    // wreck around for the rest of the wave.
+    private EnemyBase _rider;
+    private bool _riderResolved;
+
+    private float ChillScale
+    {
+        get
+        {
+            if (!_riderResolved)
+            {
+                _riderResolved = true;
+                _rider = GetComponent<EnemyBase>();
+            }
+            return _rider != null ? _rider.ChillSpeedMultiplier : 1f;
+        }
+    }
+
+    /// <summary>Stopped where it is, by a flinch or by a sleeping dart.</summary>
+    public bool IsHeld => Time.time < _heldUntil;
+
+    // A cart that cannot move must not be MOVED by the spacing sweep either.
+    // Without this a held cart is still "riding", so the sweep splits the
+    // overlap down the middle and the queue behind simply pushes it along the
+    // track - the stop the player was promised turns into a shove. Treating it
+    // as immovable is what makes a stopped cart something the rest of the run
+    // piles up against, which is the whole point of stopping one.
+    private bool Movable => _riding && !IsHeld;
+
     private void Update()
     {
         if (!_riding) return;
         if (Time.time < _heldUntil) return;
 
-        _travelled += speed * Time.deltaTime;
+        _travelled += speed * ChillScale * Time.deltaTime;
         Reposition();
 
         // A pad on this line owns the far end: while one is wired up the cart is
@@ -308,7 +352,7 @@ public class MineCart : MonoBehaviour
 
                     // Only carts on the same run can be measured against each
                     // other: distance along one line says nothing about another.
-                    if (!a._riding && !b._riding) continue;
+                    if (!a.Movable && !b.Movable) continue;
                     if (a._line.Index != b._line.Index) continue;
 
                     float clearance = a._halfLength + b._halfLength
@@ -325,7 +369,7 @@ public class MineCart : MonoBehaviour
                     // an arbitrary side.
                     float sign = delta >= 0f ? 1f : -1f;
 
-                    if (a._riding && b._riding)
+                    if (a.Movable && b.Movable)
                     {
                         if (a.IsOnRail == b.IsOnRail)
                         {
@@ -341,11 +385,11 @@ public class MineCart : MonoBehaviour
                             a.Nudge(-sign * overlap);
                         }
                     }
-                    else if (a._riding)
+                    else if (a.Movable)
                     {
                         a.Nudge(-sign * overlap);
                     }
-                    else
+                    else if (b.Movable)
                     {
                         b.Nudge(sign * overlap);
                     }

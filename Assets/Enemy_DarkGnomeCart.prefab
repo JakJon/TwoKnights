@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 208b6f0f71347ac4184f7cb48089a595, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 3000
+  health: 2500
   specialOnHit: 5
   specialOnDeath: 10
   goldOnDeath: 1
@@ -272,7 +272,6 @@ MonoBehaviour:
   bombsBetweenPoison: 4
   minVerticalClearance: 1.5
   roarSeconds: 2
-  lastStandSpeedScale: 1.5
+  lastStandSpeedScale: 1.275
   lastStandThrowScale: 0.5
-  lastStandBombSpread: 1
   bossTitle: The Overseer

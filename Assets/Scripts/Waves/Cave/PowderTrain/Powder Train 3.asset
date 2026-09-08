@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8da314436f17e2645bf3c58951e0847f, type: 3}
   m_Name: Powder Train 3
   m_EditorClassIdentifier:
-  waveName: Powder Train 3
+  waveName: Powder Train III
   weight: 1000
   isUnlocked: 0
   waveDescription: One gap in sixteen. Miss it and the fence is up for another lap.
@@ -52,3 +52,50 @@ MonoBehaviour:
     interval: 12
     from: {x: -12, y: -1.5}
     to: {x: 12, y: -1.5}
+  volleys:
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.72
+    restAfter: 4
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.85
+    count: 4
+    fanDegrees: 65
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  - label: both at once, from under
+    shape: 2
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.83
+    restAfter: 4
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.85
+    count: 4
+    fanDegrees: 65
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  projectileWindow: 34
+  rockSpeed: 1.75

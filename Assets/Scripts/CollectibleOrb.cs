@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CollectibleOrb : MonoBehaviour
+public class CollectibleOrb : MonoBehaviour, IChillable
 {
     public enum OrbType
     {
@@ -39,9 +39,38 @@ public class CollectibleOrb : MonoBehaviour
         AudioManager.Instance.PlaySFX(AudioManager.Instance.orbFlyBy);
     }
 
+    // ---- cold (the Frigid Order) ----
+    //
+    // Frost that is not an arrow slows an orb by the same amount it would slow a
+    // body. Deliberately not arrows: an arrow that reaches an orb COLLECTS it, so
+    // there would be nothing left to slow - which is what makes this a gift from
+    // the ward and the blade rather than something a Frigid knight has to aim for.
+    //
+    // A slowed orb is a wider window for BOTH knights, exactly as Sunwell III's is.
+    private float _chillMultiplier = 1f;
+    private float _chillUntil = -1f;
+    private bool _chillGlow;
+
+    public void ApplyChill(float speedMultiplier, float seconds)
+    {
+        if (seconds <= 0f) return;
+        _chillMultiplier = Mathf.Clamp(Mathf.Min(_chillMultiplier, speedMultiplier), 0.05f, 1f);
+        _chillUntil = Mathf.Max(_chillUntil, Time.time + seconds);
+
+        // The orb has to LOOK slowed or the effect is invisible until you do the
+        // arithmetic - the same reason Sunwell III attaches a glow where it slows.
+        if (!_chillGlow)
+        {
+            _chillGlow = true;
+            FrostFx.AttachEnemyChill(gameObject);
+        }
+    }
+
+    private float ChillScale => Time.time < _chillUntil ? _chillMultiplier : 1f;
+
     private void Update()
     {
-        float moveStep = moveSpeed * Time.deltaTime;
+        float moveStep = moveSpeed * ChillScale * Time.deltaTime;
         transform.position += (Vector3)(moveDir * moveStep);
         if (Vector2.Distance(transform.position, startPos) >= totalDistance)
         {
@@ -87,9 +116,9 @@ public class CollectibleOrb : MonoBehaviour
                     }
 
                     // Sunwell II: even the mana orbs carry a little light
-                    if (dawn != null && dawn.ManaOrbMend > 0)
+                    if (dawn != null && dawn.ManaOrbHeal > 0)
                     {
-                        player.GetComponent<PlayerHealth>()?.Heal(dawn.ManaOrbMend, true, HealSource.Orb);
+                        player.GetComponent<PlayerHealth>()?.Heal(dawn.ManaOrbHeal, true, HealSource.Orb);
                     }
                 }
             }

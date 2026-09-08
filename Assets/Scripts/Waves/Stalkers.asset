@@ -19,8 +19,22 @@ MonoBehaviour:
   unlockedAfterXWaves: -1
   lockedAfterXWaves: 10
   useEnemyTracking: 1
-  wolfCount: 6
-  additionalCircles: 3
-  WolfOneType: 1
-  WolfTwoType: 2
-  WolfThreeType: 0
+  ambushes:
+  - label: the first pass
+    wolfCount: 8
+    additionalCircles: 2
+    leadIn: 0
+    spawnInterval: 1
+    packOrder:
+    - 1
+    - 2
+    - 0
+  - label: the second pass
+    wolfCount: 10
+    additionalCircles: 2
+    leadIn: 2
+    spawnInterval: 0.9
+    packOrder:
+    - 2
+    - 1
+    - 2

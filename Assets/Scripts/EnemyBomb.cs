@@ -17,7 +17,7 @@ using UnityEngine;
 // in the wave's kill list. Shooting one down costs an arrow and buys time, which
 // is the whole transaction. Follows EnemyFireball's shape (the giant slimes'
 // ammunition) rather than the enemy shape, for the same reasons.
-public class EnemyBomb : MonoBehaviour
+public class EnemyBomb : MonoBehaviour, IChillable
 {
     [Header("Travel")]
     [Tooltip("World units per second towards the knights' level. Slow enough that a knight has about two seconds to shoot it before it enters the danger band.")]
@@ -83,9 +83,24 @@ public class EnemyBomb : MonoBehaviour
         BaseWave.UnregisterProjectile(gameObject);
     }
 
+
+    // Glacial Ward II: enemy ammunition crossing a knight's ring of cold loses
+    // half its speed. See IChillable.
+    private float _chillMultiplier = 1f;
+    private float _chillUntil = -1f;
+
+    public void ApplyChill(float speedMultiplier, float seconds)
+    {
+        if (seconds <= 0f) return;
+        _chillMultiplier = Mathf.Clamp(Mathf.Min(_chillMultiplier, speedMultiplier), 0.05f, 1f);
+        _chillUntil = Mathf.Max(_chillUntil, Time.time + seconds);
+    }
+
+    private float ChillScale { get { return Time.time < _chillUntil ? _chillMultiplier : 1f; } }
+
     private void Update()
     {
-        transform.position += Vector3.up * (_travel * travelSpeed * Time.deltaTime);
+        transform.position += Vector3.up * (_travel * travelSpeed * ChillScale * Time.deltaTime);
 
         float midY;
         if (TryKnightMidY(out midY))

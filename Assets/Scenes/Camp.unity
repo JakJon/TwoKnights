@@ -956,6 +956,21 @@ MonoBehaviour:
   poisonBurst:
     clip: {fileID: 8300000, guid: 7dccdaa921667b748a14dcc4d5b4d677, type: 3}
     volume: 0.403
+  glassBreak:
+    clip: {fileID: 8300000, guid: 948183bde2fb4b1ab0bb9d239cf07f39, type: 3}
+    volume: 0.7
+  burnTick:
+    clip: {fileID: 0}
+    volume: 1
+  frostChill:
+    clip: {fileID: 8300000, guid: c2b89f8e3273c7c4fb18b18f7e0e8d99, type: 3}
+    volume: 0.5
+  frostFreeze:
+    clip: {fileID: 8300000, guid: 99188114fd677244187c4821b8dabafb, type: 3}
+    volume: 0.65
+  frostShatter:
+    clip: {fileID: 8300000, guid: ee758308ae38a2f42bb96a67b6257cf5, type: 3}
+    volume: 0.7
   knightPoisonTick:
     clip: {fileID: 0}
     volume: 1
@@ -986,6 +1001,9 @@ MonoBehaviour:
   wolfGrowl:
     clip: {fileID: 8300000, guid: bec8071d16ed3044f920feb2cf4a2612, type: 3}
     volume: 0.363
+  wolfBark:
+    clip: {fileID: 8300000, guid: 0c1fa6d2cfb164644d2f8ef061d422df, type: 3}
+    volume: 0.6
   wolfHurt:
     clip: {fileID: 8300000, guid: ec50d1cf156808f40b7276728674f87b, type: 3}
     volume: 0.646
@@ -1067,6 +1085,12 @@ MonoBehaviour:
   upgradeConfirm:
     clip: {fileID: 8300000, guid: 2027db11d2c74c540adc04facffbffb8, type: 3}
     volume: 0.452
+  cardClick:
+    clip: {fileID: 8300000, guid: 1c6781d19d2c4f5fad93f653e6e84c1c, type: 3}
+    volume: 1
+  cardSettle:
+    clip: {fileID: 8300000, guid: 0f774500e81941b9b93a8959fca08974, type: 3}
+    volume: 1
 --- !u!4 &1436245485
 Transform:
   m_ObjectHideFlags: 0
@@ -1151,6 +1175,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   returnButtonName: return-button
   questsButtonName: quests-button
+  equipmentButtonName: equipment-button
+  shopButtonName: shop-button
   statsButtonName: stats-button
   resetButtonName: reset-button
   exitButtonName: exit-button
@@ -1158,6 +1184,9 @@ MonoBehaviour:
   questPanel: {fileID: 1450641612}
   statsPanel: {fileID: 1450641613}
   mapSelectPanel: {fileID: 1450641614}
+  equipmentPanel: {fileID: 0}
+  shopPanel: {fileID: 0}
+  fileSelectPanel: {fileID: 0}
   menuContainerName: menu-container
   navigateUpAction: {fileID: 533967465588344835, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   navigateDownAction: {fileID: 153658513545104228, guid: 685897456d350b849a5ce38c0a18d096, type: 3}

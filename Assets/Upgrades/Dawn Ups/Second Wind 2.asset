@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Second Wind 2
   m_EditorClassIdentifier: 
   upgradeName: Second Wind II
-  description: The tally is shorter, and settling it heals you as well.
+  description: Every time you take 40 damage, you will become invincible for 6 seconds and heal 10 health.
   weight: 45
   order: 5
   requiresOrderCount: 0
@@ -21,15 +21,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 17d79d9640304af0b28e61785cff7501, type: 2}
   lockedBy: []
   stats:
-  - valueText: 5s
+  - valueText: 6s
     labelText: UNTOUCHABLE
     isPositive: 1
   - valueText: 40
     labelText: DAMAGE TAKEN
     isPositive: 1
-  - valueText: +5 HP
+  - valueText: +10 HP
     labelText: EACH TIME
     isPositive: 1
   damageToll: 40
-  invulnerableSeconds: 5
-  healAmount: 5
+  invulnerableSeconds: 6
+  healAmount: 10

@@ -160,6 +160,10 @@ public class EnemySlime : EnemyBase
             slimeScript.isDead = false;
             slimeScript.isPoisoned = false;
             slimeScript.isStaggered = false;
+            // Instantiate copies the parent whole, so without this a slime cut in
+            // half while frozen produces two pre-frozen halves wearing the tint
+            // and a shell that answers to nothing.
+            slimeScript.PurgeFrost();
             // Reset poison-related fields and stop any particle effects that may have been copied
             if (slimeScript.poisonBubbles != null)
             {

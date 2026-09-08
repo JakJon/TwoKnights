@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1f5162858ac1404ca117b4d454c8b5e, type: 3}
   m_Name: Suppressing Fire 3
   m_EditorClassIdentifier: 
-  waveName: Suppressing Fire 3
+  waveName: Suppressing Fire III
   weight: 600
   isUnlocked: 0
   waveDescription: Three origins in rotation, each volley tighter than the last.

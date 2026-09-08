@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8da314436f17e2645bf3c58951e0847f, type: 3}
   m_Name: Powder Train 4
   m_EditorClassIdentifier:
-  waveName: Powder Train 4
+  waveName: Powder Train IV
   weight: 1000
   isUnlocked: 0
   waveDescription: Mostly iron now. The fence gives nothing back.
@@ -52,3 +52,61 @@ MonoBehaviour:
     interval: 12
     from: {x: -12, y: -1.5}
     to: {x: 12, y: -1.5}
+  volleys:
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.31
+    restAfter: 3.5
+  - label: wide spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.2
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 3.2
+  - label: both at once, from under
+    shape: 2
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.22
+    restAfter: 3.5
+  - label: wide spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.2
+  projectileWindow: 38
+  rockSpeed: 1.75

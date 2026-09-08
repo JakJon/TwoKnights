@@ -90,7 +90,14 @@ public abstract class BaseWave : ScriptableObject
     public virtual void OnWaveComplete() { }
     
     // Enemy tracking methods
-    public static void RegisterEnemy(GameObject enemy)
+    /// <param name="joinsAmbush">
+    /// False for something that runs BESIDE the shifts rather than in one — an
+    /// ogre is released on the wave's own clock and lives across several groups,
+    /// so counting it as a member would hold every shift open until it was dead
+    /// and hand the wave's pacing to an enemy that was never part of it.
+    /// See EnemyBase.JoinsAmbushes.
+    /// </param>
+    public static void RegisterEnemy(GameObject enemy, bool joinsAmbush = true)
     {
         if (_currentWave != null && _currentWave.useEnemyTracking)
         {
@@ -101,7 +108,7 @@ public abstract class BaseWave : ScriptableObject
             // Awake. Anything that arrives while a group is open belongs to it —
             // including a boss's summons, which is what makes an ambush an honest
             // "is this fight over yet" rather than a spawn count.
-            if (_currentWave._ambushOpen && _currentWave._ambushEnemies.Add(enemy))
+            if (joinsAmbush && _currentWave._ambushOpen && _currentWave._ambushEnemies.Add(enemy))
             {
                 _currentWave._ambushSeen++;
             }

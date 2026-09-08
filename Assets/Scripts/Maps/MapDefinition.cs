@@ -21,7 +21,8 @@ public class MapDefinition : ScriptableObject
     // A stretch of the map with its own backdrop, entered at fromWaveNumber.
     // Crossing into a stage that carries a ventureLine earns the full curtain
     // ceremony between waves (VentureCurtain); the backdrop — and the optional
-    // foreground that draws over the arena — are applied by BackgroundController.
+    // foreground that draws over the arena — are applied by BackgroundController,
+    // which hands the canopy to ArenaLighting in the same breath.
     [System.Serializable]
     public class MapStage
     {
@@ -33,6 +34,11 @@ public class MapDefinition : ScriptableObject
                  "layer of the backdrop's .aseprite, imported with Layer Import Mode = Individual Layers. " +
                  "Empty = a flat backdrop with nothing in front.")]
         public Sprite foreground;
+        [Tooltip("Optional light and shade laid over the arena — the canopy the Camp Fields fights under, " +
+                 "thinning to a glade over the knights, or the slow breathing dark of the Mine. Drawn live " +
+                 "by ArenaLighting rather than painted into the backdrop, so it falls on enemies and " +
+                 "projectiles too and moves. Empty = the stage is lit by its backdrop art alone.")]
+        public CanopyProfile canopy;
         [Tooltip("Shown over black between waves when the run first enters this stage. Empty = no ceremony, just the short fade.")]
         [TextArea] public string ventureLine;
     }
@@ -49,6 +55,10 @@ public class MapDefinition : ScriptableObject
     [Tooltip("Shown in place of the tagline while this map is locked, e.g. 'Defeat the Rat King'. " +
              "Empty = derived from whichever map's gate boss opens this one.")]
     [SerializeField] private string lockedHint = "";
+    [Tooltip("Colour of this map's mark on the file select — the small circle that appears on a file " +
+             "once this map's TRUE boss has fallen. The file bar says nothing else about progress, so " +
+             "the colour is the only thing identifying which map was finished; keep them far apart.")]
+    [SerializeField] private Color completionMarkColor = new Color(0.72f, 0.68f, 0.58f, 1f);
 
     [Header("Setlist (weighted pool, each plays once per run)")]
     [Tooltip("THIS is the map's pool — the only list the run draws from. A wave that is not here never plays on this map.")]
@@ -99,6 +109,9 @@ public class MapDefinition : ScriptableObject
     public Sprite PreviewImage => previewImage;
     public string Tagline => tagline;
     public string LockedHint => lockedHint;
+
+    /// <summary>Colour of this map's completion circle on the file select. See the field's tooltip.</summary>
+    public Color CompletionMarkColor => completionMarkColor;
     public IReadOnlyList<BaseWave> Waves => waves;
     public BaseWave GateBoss => gateBoss;
     public int GateBossWaveNumber => gateBossWaveNumber;

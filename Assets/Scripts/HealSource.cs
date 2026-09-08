@@ -2,7 +2,7 @@
 //
 // The mirror of DamageKind, and it exists for one reason: an orb already has a
 // sound of its own (orbCollect), so the Dawn blessing chime has to be held back
-// a beat rather than fired underneath it. Everything else that mends a knight —
+// a beat rather than fired underneath it. Everything else that heals a knight —
 // Lifebloom, Shared Light, Benediction, Second Wind, Last Light — chimes
 // immediately, because nothing else is competing for that instant.
 //

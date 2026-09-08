@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Pallid Keep - Wall / curtain wall
+Columns: 4
+# Frames the arena edges; darkest values in the scene live here. Near-black, but blue-black — never neutral, or the frame reads as a hole rather than as stone.
+  4   6  16	wall-1 040610
+  7  11  26	wall-2 070b1a
+ 11  17  38	wall-3 0b1126
+ 16  25  55	wall-4 101937

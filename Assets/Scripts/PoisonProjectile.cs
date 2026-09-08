@@ -3,10 +3,15 @@ using UnityEngine;
 public class PoisonProjectile : MonoBehaviour
 {
     [Header("Poison Settings")]
+    // Poison is the SLOW half of the DoT pair: it ticks lighter than fire and runs
+    // far longer. A rat is on the field ~18s (15s of patrol before it even chases)
+    // and a wolf 8-14s on its route, so a 30s debt overshoots what any trash mob
+    // needs on purpose — the surplus is only ever collected by something with the
+    // health to outlast it. Fire is sized to the approach; poison is sized to a boss.
     [Tooltip("Damage dealt per poison tick")]
-    [SerializeField] private int poisonDamage = 3;
+    [SerializeField] private int poisonDamage = 2;
     [Tooltip("Duration of poison effect in seconds")]
-    [SerializeField] private float poisonDuration = 20f;
+    [SerializeField] private float poisonDuration = 30f;
     [Tooltip("Time between poison damage ticks in seconds")]
     [SerializeField] private float poisonTickRate = 1f;
     
@@ -23,6 +28,15 @@ public class PoisonProjectile : MonoBehaviour
     private Color originalColor;
     private GlowManager glowManager;
     private PoisonBubbleEffect poisonBubbles;
+
+    // The trail. `trailSeconds` is 0 for any poisoned arrow whose owner has no
+    // Venom Tip rank — an arrow that picked its venom up flying through a cloud,
+    // for instance — and 0 means the arrow simply does not shed.
+    private float trailSeconds;
+    private Vector3 lastBeadAt;
+    private bool trailStarted;
+    private int beadsShed;
+    private string ownerTag;
     
     public int PoisonDamage => poisonDamage;
     public float PoisonDuration => poisonDuration;
@@ -87,13 +101,51 @@ public class PoisonProjectile : MonoBehaviour
         poisonBubbles.StartBubbles();
     }
     
-    // Bend the serialized defaults by the firing knight's Serpent stats (Virulence).
-    // Called right after AddComponent, before Start.
+    // Bend the serialized defaults by the firing knight's Serpent stats (Virulence),
+    // and take the trail's lifetime off the same sheet (Venom Tip). Called right
+    // after AddComponent, before Start.
     public void ConfigureFromBoost(PoisonTipBoost boost)
     {
         if (boost == null) return;
         poisonDamage += boost.TickDamageBonus;
         poisonTickRate = Mathf.Max(0.2f, poisonTickRate * boost.TickRateMultiplier);
+        trailSeconds = boost.TrailBubbleSeconds;
+        ownerTag = boost.gameObject.tag;
+    }
+
+    // Every three units of flight, a bead of venom is left where the arrow was.
+    //
+    // Measured in DISTANCE rather than on a timer, and that is the whole point:
+    // the spacing is then a property of the line the shot drew, so a slow arrow
+    // and a fast one lay the same lane and the player is reading geometry rather
+    // than reading the fire-rate upgrades they happen to own.
+    //
+    // The first bead is not dropped at the shield. The arrow has to have gone its
+    // three units first, or every shot would garnish the knight's own feet with
+    // venom that nothing is ever going to walk into.
+    private void Update()
+    {
+        if (trailSeconds <= 0f) return;
+
+        if (!trailStarted)
+        {
+            trailStarted = true;
+            lastBeadAt = transform.position;
+            return;
+        }
+
+        float step = PoisonTrailBubble.DropEveryUnits;
+
+        // A while, not an if. A fast arrow under a low frame rate can cover two
+        // steps between frames, and a lane with holes in it where the game
+        // stuttered is a lane the player cannot trust.
+        while ((transform.position - lastBeadAt).sqrMagnitude >= step * step)
+        {
+            Vector3 along = (transform.position - lastBeadAt).normalized * step;
+            lastBeadAt += along;
+            PoisonTrailBubble.Drop(lastBeadAt, trailSeconds, poisonDamage,
+                                   poisonDuration, poisonTickRate, ownerTag, beadsShed++);
+        }
     }
 
     // Method to apply poison to an enemy

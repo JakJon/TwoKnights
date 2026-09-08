@@ -35,6 +35,13 @@ public class EnemyMineCart : EnemyBase
     // wobble before the next Reposition pulls it back onto the rail.
     protected override bool AcceptsSearingPanic => false;
 
+    // And the same for cold, for the same reason: MineCart owns the position, so
+    // pulling the body back here would show up as a frame of wobble before the
+    // next Reposition puts it back on the rail. A chilled cart slows through its
+    // own travel instead - see MineCart.ChillScale - and a frozen one stops dead
+    // through HoldFor, which is already how a darted cart jams the run behind it.
+    protected override bool AcceptsChill => false;
+
     protected override void Awake()
     {
         Cart = GetComponent<MineCart>();

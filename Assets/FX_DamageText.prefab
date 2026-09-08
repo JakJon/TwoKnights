@@ -248,3 +248,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  smallestDamage: 1
+  largestDamage: 50
+  smallestSize: 1.3
+  largestSize: 9
+  sizeCurve: 0.7

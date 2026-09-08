@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10bc3ede9cc336a56e2e755601390c94, type: 3}
   m_Name: Near and Far 4
   m_EditorClassIdentifier:
-  waveName: Near and Far 4
+  waveName: Near and Far IV
   weight: 1000
   isUnlocked: 0
   waveDescription: The last shift comes out spread the whole way round the loop.
@@ -40,10 +40,12 @@ MonoBehaviour:
     leadIn: 0.75
     releaseInterval: 1.2
     batInterval: 4.5
+    projectileInterval: 4.5
   - label: the whole loop (17 carts)
     leadIn: 1.25
     releaseInterval: 0.9
     batInterval: 3.5
+    projectileInterval: 4
   orbs:
     healthOrb: 1
     count: 1
@@ -51,3 +53,60 @@ MonoBehaviour:
     interval: 16
     from: {x: -12, y: 2}
     to: {x: 12, y: 2}
+  volleys:
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.36
+    restAfter: 3.5
+  - label: over and under, left
+    shape: 3
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.17
+    restAfter: 3.5
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.8
+    count: 4
+    fanDegrees: 65
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.16
+    restAfter: 3.5
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.47
+    restAfter: 3.5
+  rockSpeed: 1.75

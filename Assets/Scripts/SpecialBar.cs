@@ -9,9 +9,11 @@ public class SpecialBar : MonoBehaviour
     [SerializeField] private UIDocument hudDocument;
     [SerializeField] private string sidePrefix = "left";
 
+    private VisualElement _row;
     private VisualElement _fill;
     private Label _label;
     private Label _streakLabel;
+    private bool _visible = true;
     private int _max = 1000;
     private int _current;
     private int _multiplier = 1;
@@ -21,6 +23,17 @@ public class SpecialBar : MonoBehaviour
     {
         _max = Mathf.Max(1, maxSpecial);
         Apply();
+    }
+
+    /// <summary>
+    /// Hides the whole bar row for a knight carrying no special. The bar still
+    /// fills underneath — there is simply nothing to spend it on, so showing a
+    /// meter the player can never cash in would only read as a bug.
+    /// </summary>
+    public void SetVisible(bool visible)
+    {
+        _visible = visible;
+        ApplyVisibility();
     }
 
     public void SetValue(int newValue)
@@ -42,6 +55,7 @@ public class SpecialBar : MonoBehaviour
     {
         if (EnsureUI())
         {
+            ApplyVisibility();
             Apply();
             ApplyStreak();
             enabled = false;
@@ -50,14 +64,15 @@ public class SpecialBar : MonoBehaviour
 
     private bool EnsureUI()
     {
-        if (_fill != null && _label != null && _streakLabel != null) return true;
+        if (_row != null && _fill != null && _label != null && _streakLabel != null) return true;
         if (hudDocument == null) return false;
         var root = hudDocument.rootVisualElement;
         if (root == null) return false;
+        _row = root.Q<VisualElement>($"{sidePrefix}-special-row");
         _fill = root.Q<VisualElement>($"{sidePrefix}-special-fill");
         _label = root.Q<Label>($"{sidePrefix}-special-label");
         _streakLabel = root.Q<Label>($"{sidePrefix}-streak");
-        return _fill != null && _label != null && _streakLabel != null;
+        return _row != null && _fill != null && _label != null && _streakLabel != null;
     }
 
     private void Apply()
@@ -69,6 +84,12 @@ public class SpecialBar : MonoBehaviour
         _fill.EnableInClassList("special--full", full);
         _label.text = full ? "READY" : $"{_current} / {_max}";
         _label.EnableInClassList("bar-label--ready", full);
+    }
+
+    private void ApplyVisibility()
+    {
+        if (!EnsureUI()) return;
+        _row.style.display = _visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     private void ApplyStreak()

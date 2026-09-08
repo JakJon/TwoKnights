@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cf63a635d334139b66d3ddfb42d5276, type: 3}
+  m_Name: Vial Throw 1
+  m_EditorClassIdentifier: 
+  upgradeName: Vial Throw I
+  description: Every 5th shot also throws a vial that bursts into venom.
+  weight: 100
+  order: 1
+  requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
+  unlockedBy: []
+  lockedBy: []
+  stats:
+  - valueText: 1
+    labelText: VIALS
+    isPositive: 1
+  - valueText: EVERY 5TH SHOT
+    labelText: CADENCE
+    isPositive: 1
+  tier: 1
+  shotsPerVial: 5
+  vialSprite: {fileID: 3344803173972109520, guid: 17d2b978cadd44c493da9c8573698c2e, type: 3}

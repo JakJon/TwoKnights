@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2333aa7a0484e69f3fc8640929a3783, type: 3}
+  m_Name: Frost Tip 1
+  m_EditorClassIdentifier: 
+  upgradeName: Frost Tip I
+  description: Your arrows carry cold. What they hit slows down.
+  weight: 110
+  order: 6
+  requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
+  unlockedBy: []
+  lockedBy: []
+  stats:
+  - valueText: -30%
+    labelText: ENEMY SPEED
+    isPositive: 1
+  - valueText: 3s
+    labelText: CHILL LASTS
+    isPositive: 1
+  tipLevel: 1

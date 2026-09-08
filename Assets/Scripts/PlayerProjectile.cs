@@ -10,6 +10,12 @@ public class PlayerProjectile : MonoBehaviour
     // ground never ignites (see Docs/Design/ember-order.md).
     public bool ignitesOnHit;
 
+    // Frigid: the firing knight's sheet, set at spawn like ownerNinjaBoost. Non-null
+    // means this shot can carry cold and can shatter a statue; whether it actually
+    // chills is the sheet's own question (the ward and the blade chill without the
+    // arrow chain, arrows need Frost Tip).
+    public FrigidBoost ownerFrigidBoost;
+
     // A main arrow flying through fire BECOMES an ignited arrow, and through a poison
     // cloud a poisoned arrow — picking up that carrier just as if it had rolled it.
     // Shadow arrows and shurikens set this false so only the knight's main shot
@@ -114,9 +120,12 @@ public class PlayerProjectile : MonoBehaviour
 
             // Killing Blow (Shadow Order): finish weakened enemies outright.
             // Never fires on bosses — skipping a fraction of a boss bar would
-            // trivialize the fight.
+            // trivialize the fight. Asked of the enemy rather than type-checked
+            // here: this line used to name EnemyRatKing outright, and every boss
+            // written after him (the Overseer, the Crimson Twins) quietly fell
+            // through it. See EnemyBase.IsBoss.
             if (ownerNinjaBoost != null && ownerNinjaBoost.ExecuteThreshold > 0f
-                && !(enemy is EnemyRatKing) && !enemy.IsDead
+                && !enemy.IsBoss && !enemy.IsDead
                 && enemy.GetHealth() <= enemy.GetMaxHealth() * ownerNinjaBoost.ExecuteThreshold)
             {
                 damageToDeal = Mathf.Max(damageToDeal, Mathf.CeilToInt(enemy.GetHealth()));
@@ -124,8 +133,44 @@ public class PlayerProjectile : MonoBehaviour
                 PlayerStats.Increment("kills.executed");
             }
 
+            // Shatter (Frigid Order): a blow landed on a body held in ice.
+            //
+            // Asked BEFORE the damage lands, because landing it is what breaks the
+            // ice - EnemyBase.TakeDamage ends any freeze a real hit connects with,
+            // whether or not the knight owns Shatter. This is the Order's only
+            // damage, and it is damage the player aimed.
+            bool shattered = false;
+            if (ownerFrigidBoost != null && enemy.IsFrozen)
+            {
+                float shatterMultiplier = ownerFrigidBoost.ShatterMultiplier;
+                if (shatterMultiplier > 1f)
+                {
+                    damageToDeal = Mathf.CeilToInt(damageToDeal * shatterMultiplier);
+                    shattered = true;
+                }
+            }
+
             // Apply normal damage
             enemy.TakeDamage(damageToDeal, gameObject);
+
+            if (shattered)
+            {
+                Vector2 breakPoint = enemy.transform.position;
+                FrostFx.Burst(breakPoint, FrigidBoost.SplinterRadius);
+                PlayerStats.Increment("frigid.shattered");
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.frostShatter);
+                }
+
+                // Shatter II throws splinters. They CHILL and never freeze - the
+                // Order's only way to reach more than one body at a time, and it
+                // stays inside pillar 2 by doing it with cold rather than a blow.
+                if (ownerFrigidBoost.ShatterSplinters)
+                {
+                    SpreadSplinters(breakPoint, enemy);
+                }
+            }
 
             if (!_countedHit)
             {
@@ -141,6 +186,15 @@ public class PlayerProjectile : MonoBehaviour
                 poisonComponent.ApplyPoisonToEnemy(enemy, gameObject);
             }
 
+            // Sleeping Dart: put it under. Before the fireball block below only
+            // so the ordering reads shot-first, blast-last; a dart is never a
+            // fireball, so the two can't both be on one projectile.
+            SleepDartProjectile sleepDart = GetComponent<SleepDartProjectile>();
+            if (sleepDart != null)
+            {
+                sleepDart.ApplySleepToEnemy(enemy);
+            }
+
             // Ember: light the target, then detonate if this was a fireball. The
             // direct-hit enemy is passed through so the blast doesn't pay it twice.
             if (ignitesOnHit)
@@ -154,10 +208,37 @@ public class PlayerProjectile : MonoBehaviour
                 fireball.Explode(enemy);
             }
 
+            // Frigid, last: the damage above has already broken any ice this shot
+            // landed on, and it broke it without earning the body a reprieve. So a
+            // frost arrow into a statue shatters it and leaves it chilled again in
+            // the same instant, ready for the next arrow to stop it - which is the
+            // loop the whole Order is built to run.
+            //
+            // isBlow: true. This is a hit the knight aimed and landed, so it is one
+            // of the two things in the game allowed to freeze.
+            if (ownerFrigidBoost != null && ownerFrigidBoost.ArrowsChill)
+            {
+                ownerFrigidBoost.TouchWithCold(enemy, true);
+            }
+
             Destroy(gameObject);
             return;
         }
 
         // No more fallback code needed - all enemies have been migrated to EnemyBase
+    }
+
+    // Cold thrown off a body coming apart. Chill only, and never onto the thing
+    // that was shattered - it has just been chilled by the arrow that broke it,
+    // and paying it twice would let one shot do the Order's whole cycle alone.
+    private void SpreadSplinters(Vector2 center, EnemyBase shatteredEnemy)
+    {
+        Collider2D[] caught = Physics2D.OverlapCircleAll(center, FrigidBoost.SplinterRadius);
+        for (int i = 0; i < caught.Length; i++)
+        {
+            EnemyBase other = caught[i] != null ? caught[i].GetComponent<EnemyBase>() : null;
+            if (other == null || other == shatteredEnemy || other.IsDead) continue;
+            ownerFrigidBoost.TouchWithCold(other, false);
+        }
     }
 }

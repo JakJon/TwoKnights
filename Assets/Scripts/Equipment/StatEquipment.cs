@@ -41,6 +41,20 @@ public class StatEquipment : EquipmentDefinition
     [SerializeField] private float startingIgniteChance = 0f;
     [SerializeField] private float fireTrailDurationBonus = 0f;
 
+    [Header("Dawn")]
+    [Tooltip("Fraction of every heal echoed to the other knight from wave one, before any Shared Light. 0.25 = a quarter.")]
+    [SerializeField] private float startingEchoFraction = 0f;
+    [Tooltip("Multiplies what health orbs heal, from wave one. 1.5 = half again.")]
+    [SerializeField] private float startingOrbHealMultiplier = 0f;
+
+    [Header("Frigid")]
+    [Tooltip("Multiplies how long this knight's chill lingers. 2 = twice as long, at every rank.")]
+    [SerializeField] private float chillDurationMultiplier = 1f;
+    [Tooltip("Seconds added to how long a freeze holds. Does nothing without Deep Freeze - the knight still has to be able to freeze at all.")]
+    [SerializeField] private float freezeDurationBonus = 0f;
+    [Tooltip("Grants Frost Tip at this rank from wave one, before any draft.")]
+    [SerializeField] private int startingFrostTip = 0;
+
     [Header("Shadow")]
     [Tooltip("Added to the shadow arrow damage multiplier. 0.15 = arrows land noticeably harder.")]
     [SerializeField] private float shadowArrowDamageBonus = 0f;
@@ -97,6 +111,27 @@ public class StatEquipment : EquipmentDefinition
             // SetIgniteChance keeps the larger value, so this can only ever be a
             // floor under whatever Ignited Tips goes on to grant
             if (startingIgniteChance > 0f) ember.SetIgniteChance(startingIgniteChance);
+        }
+
+        // --- Dawn: routed through the Order's own sheet, never a parallel path.
+        //     Both setters keep the larger value, so an item can only ever be a
+        //     floor under what the draft goes on to grant.
+        if (startingEchoFraction > 0f || startingOrbHealMultiplier > 0f)
+        {
+            var dawn = knight.GetComponent<DawnBoost>() ?? knight.AddComponent<DawnBoost>();
+            if (startingEchoFraction > 0f) dawn.SetEchoFraction(startingEchoFraction);
+            if (startingOrbHealMultiplier > 0f) dawn.SetOrbHealMultiplier(startingOrbHealMultiplier);
+        }
+
+        // --- Frigid: routed through the Order's own sheet, never a parallel path ---
+        if (chillDurationMultiplier > 1f || freezeDurationBonus > 0f || startingFrostTip > 0)
+        {
+            var frigid = knight.GetComponent<FrigidBoost>() ?? knight.AddComponent<FrigidBoost>();
+            if (chillDurationMultiplier > 1f) frigid.MultiplyChillDuration(chillDurationMultiplier);
+            if (freezeDurationBonus > 0f) frigid.AddFreezeDurationBonus(freezeDurationBonus);
+            // SetFrostTip keeps the larger rank, so this is only ever a floor
+            // under whatever the draft goes on to hand the knight.
+            if (startingFrostTip > 0) frigid.SetFrostTip(startingFrostTip);
         }
 
         // --- Shadow ---

@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="death-screen" class="death-overlay">
         <ui:VisualElement name="death-panel" class="death-panel">
-            <ui:Label text="Left Knight died from Wolf" name="death-message" class="death-message" />
+            <ui:Label text="&lt;color=#D1533F&gt;Left Knight&lt;/color&gt; died from Wolf" name="death-message" class="death-message" />
             <ui:VisualElement name="run-summary" class="run-summary">
                 <ui:VisualElement name="gold-summary" class="summary-block">
                     <ui:Label text="GOLD THIS RUN" name="gold-caption" class="summary-caption" />

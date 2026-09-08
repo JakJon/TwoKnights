@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a6a47b0498c91742bc67c17636fb1be, type: 3}
+  m_Name: Keep Looking Good
+  m_EditorClassIdentifier: 
+  paneSet: {fileID: 11400000, guid: e56bb789c93560a4ab4c5b4dcc1d9155, type: 2}
+  redirect: 0
+  panes:
+  - label: loop, right end
+    color: 0
+    facing: 0
+    position: {x: 7, y: 3.5}
+  - label: loop, left end
+    color: 0
+    facing: 1
+    position: {x: -7, y: 3.5}
+  - label: right angle, in
+    color: 1
+    facing: 1
+    position: {x: -7, y: -3.2}
+  - label: right angle, out
+    color: 1
+    facing: 2
+    position: {x: 7, y: -3.2}
+  - label: reversal, right
+    color: 2
+    facing: 0
+    position: {x: 5, y: -1.5}
+  - label: reversal, left
+    color: 2
+    facing: 0
+    position: {x: -5, y: -1.5}
+  - label: wrap, top
+    color: 3
+    facing: 2
+    position: {x: -4, y: 5}
+  - label: wrap, bottom
+    color: 3
+    facing: 3
+    position: {x: 4, y: -5}

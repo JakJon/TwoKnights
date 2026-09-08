@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d8268bdcd15e0544a41f0971b2312cb, type: 3}
   m_Name: Damage 2
   m_EditorClassIdentifier: 
-  upgradeName: Moderate Damage Boost
+  upgradeName: Damage Boost II
   description: A moderate boost to your damage per arrow.
   weight: 100
   unlockedBy:

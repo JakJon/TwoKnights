@@ -165,6 +165,10 @@ public class MapSelectPanel : MonoBehaviour
         // with a background tint instead of opacity — opacity would cascade onto
         // the padlock and leave it as faint as the thing it is covering.
         if (!unlocked) image.Add(BuildLockBadge());
+        // Earned by taking this map past MapProgressStore.StarWaveNumber. It sits
+        // in the artwork's top-right corner, over the picture rather than beside
+        // the name, so a shelf of maps can be read for stars at a glance.
+        else if (MapProgressStore.HasStar(map.MapId)) image.Add(BuildStar());
         pane.Add(image);
 
         var name = new Label(unlocked ? map.DisplayName : "? ? ?");
@@ -231,6 +235,33 @@ public class MapSelectPanel : MonoBehaviour
 
         scrim.Add(padlock);
         return scrim;
+    }
+
+    // A six-pointed star built from three crossed bars. Same reasoning as the
+    // padlock above: the camp UI has no icon atlas, and a star GLYPH would depend
+    // on the serif font happening to ship one — on a platform where it does not,
+    // the reward for twenty waves would render as a hollow box.
+    private static VisualElement BuildStar()
+    {
+        var star = new VisualElement();
+        star.AddToClassList("map-star");
+
+        var halo = new VisualElement();
+        halo.AddToClassList("map-star-halo");
+        star.Add(halo);
+
+        // The angles are set here rather than in USS. A rotated bar is the whole
+        // shape, and a stylesheet property that silently failed to apply would
+        // leave three bars stacked into one stripe rather than a star.
+        foreach (float degrees in new[] { 0f, 60f, 120f })
+        {
+            var ray = new VisualElement();
+            ray.AddToClassList("map-star-ray");
+            ray.style.rotate = new StyleRotate(new Rotate(new Angle(degrees, AngleUnit.Degree)));
+            star.Add(ray);
+        }
+
+        return star;
     }
 
     private static string StatusText(MapDefinition map, bool unlocked)

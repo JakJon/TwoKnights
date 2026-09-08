@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Crossfire 1
   m_EditorClassIdentifier: 
   waveName: Crossfire
-  weight: 1e+12
+  weight: 1000
   isUnlocked: 0
   waveDescription: Rock comes in mirrored lines, and a bomb rides the rim.
   unlockedAfterXWaves: 0

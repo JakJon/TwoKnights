@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc80d3d90b36b44ed4b5ac1c70a9f769, type: 3}
   m_Name: Crossfire 2
   m_EditorClassIdentifier: 
-  waveName: Crossfire 2
-  weight: 1e+12
+  waveName: Crossfire II
+  weight: 1000
   isUnlocked: 0
   waveDescription: Longer lines, less time to turn, and the rim starts filling up.
   unlockedAfterXWaves: 4

@@ -8,8 +8,33 @@ public class ShieldOrbit : MonoBehaviour
     public float CurrentAngle => _currentAngle;
     public Vector2 Direction => _direction;
 
+    // NOT degrees per second, whatever the field is called. It is fed to
+    // Quaternion.Slerp as the interpolation FRACTION (see Update), and that
+    // argument is clamped to 0..1 — so at 180 and sixty frames a second the
+    // fraction works out at 3.0, clamps to 1, and the guard is on the stick's
+    // angle the same frame the stick moved. THE SHIELD TURNS INSTANTLY, and
+    // anything above about 60 here is indistinguishable from anything else.
+    //
+    // Worth knowing before designing round it: the cost of crossing the dial is
+    // the player's reaction and their thumb, not any travel time the guard has.
+    // A flip volley can therefore ask for a tenth of a second and still be a
+    // fair ask — the Mine's tier III and IV flips do exactly that.
+    //
+    // AboutFace.MinimumFlipWindow still reads this as if it were a rate and
+    // derives 180/speed + 0.35 = 1.35s from it. That number is far more generous
+    // than the geometry requires; it is left alone because those waves are tuned
+    // and playtested at it, not because it is right.
+    public float RotationSpeed => rotationSpeed;
+
     // Confusion status (dark bat sonar) flips the joystick while active
     public bool InvertControls { get; set; }
+
+    /// <summary>
+    /// Whether the stick moves this guard at all. Only the tutorial lowers it, to
+    /// park the right knight's shield while that knight is still off the board.
+    /// See PlayerShooter.InputEnabled.
+    /// </summary>
+    public bool InputEnabled { get; set; } = true;
 
     private float _currentAngle;
     private Vector2 _direction;
@@ -55,7 +80,9 @@ public class ShieldOrbit : MonoBehaviour
     void Update()
     {
         // Read joystick input
-        Vector2 input = shieldInputAction?.ReadValue<Vector2>() ?? Vector2.zero;
+        Vector2 input = InputEnabled
+            ? (shieldInputAction?.ReadValue<Vector2>() ?? Vector2.zero)
+            : Vector2.zero;
         if (InvertControls) input = -input;
 
         if (input.magnitude > .5f) // Deadzone check

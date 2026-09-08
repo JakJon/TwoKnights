@@ -163,13 +163,6 @@ public class TestWavePicker : MonoBehaviour
 
         AddEntry(null, "Random (normal selection)", "");
 
-        var hint = new Label("▲▼ move   A choose   B random");
-        hint.style.fontSize = 11;
-        hint.style.color = Dim;
-        hint.style.unityTextAlign = TextAnchor.MiddleCenter;
-        hint.style.marginTop = 10;
-        panel.Add(hint);
-
         _overlay.style.display = DisplayStyle.Flex;
     }
 

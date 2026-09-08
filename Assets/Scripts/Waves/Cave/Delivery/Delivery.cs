@@ -29,42 +29,6 @@ public class Delivery : BaseWave
     // can react, it is deciding when a knight is allowed to look away from the
     // track. Every shape below is built out of shots at the same 7-unit radius, so
     // they all land in the same order they were fired.
-    public enum VolleyShape
-    {
-        Single, // one rock, one knight
-        Pair,   // two down the same shaft — the second lands while the first is still being answered
-        Split,  // both knights at once. Nobody is shooting anything during this one
-        Flip,   // same knight, above then below: the guard has to cross the whole dial
-        Fan     // a spread that walks outward around the knight's own half
-    }
-
-    [System.Serializable]
-    public class Volley
-    {
-        [Tooltip("Authoring only")]
-        public string label;
-
-        public VolleyShape shape = VolleyShape.Single;
-
-        [Tooltip("Which knight. Split takes both and ignores this.")]
-        public bool rightKnight;
-
-        [Tooltip("Mirror the volley to come up from underneath. Flip always uses both and ignores this.")]
-        public bool fromBelow;
-
-        [Tooltip("Seconds between shots inside the volley — used by Pair, Flip and Fan. Because flight time is identical for every shot, this is also the gap between their ARRIVALS.")]
-        public float spacing = 1f;
-
-        [Tooltip("Fan only: how many rocks in the spread")]
-        public int count = 3;
-
-        [Tooltip("Fan only: degrees it sweeps, from straight overhead outward to the knight's own side. Hard-capped at 80 — past that the spread reaches round to the other knight's half and gets absorbed by the wrong guard.")]
-        public float fanDegrees = 60f;
-
-        [Tooltip("THE FIRING WINDOW: quiet after this volley's last shot. This is the knob that keeps the wave fair — a delivery cart is 20 HP, two arrows, one and a half seconds apart, so anything under ~3s is a window nobody can kill a cart in.")]
-        public float restAfter = 3.5f;
-    }
-
     [Header("Track")]
     [Tooltip("A horseshoe: up one side, across, down the other. Its drop flags are where the cargo comes out.")]
     [SerializeField] private RailLayout railLayout;
@@ -84,7 +48,7 @@ public class Delivery : BaseWave
 
     [Header("Pressure")]
     [Tooltip("Cycled in order for as long as the firing window lasts, then round again from the top. Empty turns the shafts off entirely.")]
-    [SerializeField] private List<Volley> volleys = new List<Volley>();
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
 
     [Tooltip("Length of the firing window. New volleys stop being issued once it elapses; whatever is already in the air still falls.")]
     [SerializeField] private float projectileWindow = 24f;
@@ -92,12 +56,38 @@ public class Delivery : BaseWave
     [Tooltip("World units per second for THIS wave's rocks, overriding the prefab's 1. A shaft is 7 units up, so 1.75 puts a rock on the knight in four seconds instead of seven. 0 leaves the prefab alone.")]
     [SerializeField] private float rockSpeed = 1.75f;
 
+    [Header("The flanks")]
+    [Tooltip("Rats dropped in off the TOP edge, in groups. The horseshoe and the shafts both live overhead, so the vermin arrive into the same half of the dial the rocks do — the wave stops being 'watch up' and becomes 'watch up at what'. Each group carries its own lead-in, which is how they are staggered.")]
+    [SerializeField] private List<RatFlank> flanks = new List<RatFlank>();
+
+    [Tooltip("Once the authored consignment is spent, carts keep setting off while a flank rat is still alive. Leaving the vermin means answering deliveries for as long as you take over them.")]
+    [SerializeField] private bool freightWaitsOnTheVermin = true;
+
+    [Header("Ogres")]
+    [Tooltip("Brutes walking in from the edges, alternating sides. They ignore everything this wave is about and come straight for whichever knight they entered nearest — see OgreBand. Leave the count at 0 for a tier that should not have any.")]
+    [SerializeField] private OgreBand ogres = new OgreBand();
+
+    // Every ogre this wave put out. Cleared as the band is released — the asset
+    // is a ScriptableObject and outlives the run.
+    private readonly List<GameObject> _ogres = new List<GameObject>();
+
     [Header("Orbs")]
     [Tooltip("Crosses the bottom of the view, well clear of the horseshoe overhead — so taking one means turning a knight all the way down and off the route he is supposed to be watching.")]
     [SerializeField] private OrbRun orbs = new OrbRun { from = new Vector2(-12f, -4.5f), to = new Vector2(12f, -4.5f) };
 
+    // Every rat this wave put out. Cleared at the top of the wave — the asset is
+    // a ScriptableObject and outlives the run.
+    private readonly List<GameObject> _vermin = new List<GameObject>();
+
+    // False until every flank has finished arriving. Without it an empty
+    // roster during a group's lead-in reads as "the vermin are dead".
+    private bool _verminReleased;
+
     public override IEnumerator SpawnWave(Spawner spawner)
     {
+        _vermin.Clear();
+        _verminReleased = false;
+
         var rails = spawner.Rails;
         float layDuration = 0f;
 
@@ -119,6 +109,8 @@ public class Delivery : BaseWave
         }
 
         Coroutine orbRun = spawner.StartCoroutine(orbs.Release(spawner));
+        Coroutine vermin = spawner.StartCoroutine(ReleaseTheFlanks(spawner));
+        Coroutine brutes = spawner.StartCoroutine(ReleaseTheOgres(spawner));
 
         // The shafts keep the shields honest while the knights are busy doing
         // arithmetic about the carts — without it, a delivery route is a shooting
@@ -126,6 +118,8 @@ public class Delivery : BaseWave
         yield return spawner.StartCoroutine(WorkTheShafts(spawner));
 
         if (carts != null) yield return carts;
+        yield return vermin;
+        yield return brutes;
 
         spawner.StopCoroutine(orbRun);
 
@@ -155,6 +149,49 @@ public class Delivery : BaseWave
 
             if (i < cartOrder.Count - 1) yield return new WaitForSeconds(interval);
         }
+
+        yield return KeepDeliveringWhileVerminLive(rails, interval);
+    }
+
+    // The consignment is spent but the vermin are not, so the route keeps
+    // running. That is what makes the flank a decision: every second the rats
+    // are left alive is another delivery to stop.
+    private IEnumerator KeepDeliveringWhileVerminLive(RailNetwork rails, float interval)
+    {
+        if (!freightWaitsOnTheVermin || cartOrder == null || cartOrder.Count == 0) yield break;
+
+        int i = 0;
+        while (!_verminReleased || !RatFlank.AllDead(_vermin))
+        {
+            yield return new WaitForSeconds(interval);
+            if (rails.LineCount == 0) yield break;
+
+            GameObject prefab = cartOrder[i++ % cartOrder.Count];
+            if (prefab == null) continue;
+
+            int line = Mathf.Clamp(entryRun, 0, rails.LineCount - 1);
+            rails.SpawnCart(prefab, line, MineCart.TrackSpeed);
+        }
+    }
+
+    private IEnumerator ReleaseTheFlanks(Spawner spawner)
+    {
+        yield return null;
+        if (flanks == null || flanks.Count == 0)
+        {
+            _verminReleased = true;
+            yield break;
+        }
+
+        var running = new List<Coroutine>();
+        for (int i = 0; i < flanks.Count; i++)
+        {
+            if (flanks[i] == null || flanks[i].Total == 0) continue;
+            running.Add(spawner.StartCoroutine(flanks[i].Release(spawner, _vermin)));
+        }
+
+        for (int i = 0; i < running.Count; i++) yield return running[i];
+        _verminReleased = true;
     }
 
     // Round and round the authored list until the window runs out. The rest is
@@ -163,72 +200,16 @@ public class Delivery : BaseWave
     // takes — otherwise a five-rock fan would silently eat its own window.
     private IEnumerator WorkTheShafts(Spawner spawner)
     {
-        if (volleys == null || volleys.Count == 0) yield break;
-
-        float until = Time.time + Mathf.Max(0f, projectileWindow);
-        int index = 0;
-
-        while (Time.time < until)
-        {
-            Volley volley = volleys[index % volleys.Count];
-            index++;
-
-            if (volley == null) continue;
-
-            float busy = Fire(spawner, volley);
-            yield return new WaitForSeconds(busy + Mathf.Max(0f, volley.restAfter));
-        }
+        yield return RockVolley.WorkTheShafts(spawner, volleys, projectileWindow, rockSpeed);
     }
 
-    // Every shape is built from shots aimed at ONE knight and originating on that
-    // knight's own half, so a volley never crosses the other guard (hard rule) —
-    // the Fan's sweep is clamped for the same reason.
-    private float Fire(Spawner spawner, Volley volley)
+
+    // Beside the wave, never inside it. Ogres do not belong to any shift (see
+    // EnemyOgre.JoinsAmbushes) — they are a clock running underneath whatever
+    // else the wave is doing, and the wave is not finished until they are down.
+    private IEnumerator ReleaseTheOgres(Spawner spawner)
     {
-        Transform knight = volley.rightKnight ? spawner.RightPlayer : spawner.LeftPlayer;
-        Vector2 above = volley.rightKnight ? spawner.aboveRightPlayer : spawner.aboveLeftPlayer;
-        Vector2 below = volley.rightKnight ? spawner.belowRightPlayer : spawner.belowLeftPlayer;
-        Vector2 from = volley.fromBelow ? below : above;
-        float spacing = Mathf.Max(0.05f, volley.spacing);
-
-        switch (volley.shape)
-        {
-            case VolleyShape.Pair:
-                spawner.SpawnProjectileStraight(from, knight, 2, spacing, 0f, rockSpeed);
-                return spacing;
-
-            case VolleyShape.Split:
-                spawner.SpawnProjectile(spawner.LeftPlayer,
-                    volley.fromBelow ? spawner.belowLeftPlayer : spawner.aboveLeftPlayer, 0f, rockSpeed);
-                spawner.SpawnProjectile(spawner.RightPlayer,
-                    volley.fromBelow ? spawner.belowRightPlayer : spawner.aboveRightPlayer, 0f, rockSpeed);
-                return 0f;
-
-            case VolleyShape.Flip:
-                spawner.SpawnProjectile(knight, above, 0f, rockSpeed);
-                spawner.SpawnProjectile(knight, below, spacing, rockSpeed);
-                return spacing;
-
-            case VolleyShape.Fan:
-            {
-                int count = Mathf.Max(2, volley.count);
-
-                // Outward, into the knight's own half. Which way that is depends on
-                // BOTH which knight it is and which side of him the fan starts on —
-                // sweeping the wrong way walks the spread across the middle of the
-                // board and into the other knight's shield.
-                var direction = (volley.rightKnight ^ volley.fromBelow)
-                    ? Spawner.ArcDirection.Clockwise
-                    : Spawner.ArcDirection.CounterClockwise;
-
-                spawner.SpawnProjectileArc(knight, direction, from,
-                    Mathf.Clamp(volley.fanDegrees, 10f, 80f), count, spacing, 1, 0f, rockSpeed);
-                return spacing * (count - 1);
-            }
-
-            default:
-                spawner.SpawnProjectile(knight, from, 0f, rockSpeed);
-                return 0f;
-        }
+        _ogres.Clear();
+        yield return ogres.Release(spawner, _ogres);
     }
 }

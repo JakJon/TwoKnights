@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f63b6399a5b391ce7a68be01483f175, type: 3}
   m_Name: Bits and Pieces 2
   m_EditorClassIdentifier: 
-  waveName: Bits and Pieces 2
+  waveName: Bits and Pieces II
   weight: 1000
   isUnlocked: 0
   waveDescription: A third shift, and the wrecks of the first two still coming round.
@@ -53,3 +53,62 @@ MonoBehaviour:
     interval: 14
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
+  ogres:
+    label: 5 down and up the empty middle
+    count: 3
+    firstAt: 7
+    interval: 6
+    fireEveryNth: 3
+    entries:
+    - label: up the empty middle, right of centre
+      at: {x: 4, y: -8}
+      mark: 2
+    - label: up the empty middle, left of centre
+      at: {x: -4, y: -8}
+      mark: 1
+    - label: down the empty middle, right of centre
+      at: {x: 4, y: 8}
+      mark: 2
+    - label: down the empty middle, left of centre
+      at: {x: -4, y: 8}
+      mark: 1
+    startOnRight: 1
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.9
+    count: 3
+    fanDegrees: 60
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 0.25
+    restAfter: 4.5
+  - label: one on the right
+    shape: 0
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 1.78
+    restAfter: 4
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.9
+    count: 3
+    fanDegrees: 60
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 0.29
+    restAfter: 4.5
+  projectileWindow: 32
+  rockSpeed: 1.75

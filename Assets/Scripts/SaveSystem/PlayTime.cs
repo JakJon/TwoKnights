@@ -17,9 +17,11 @@ public static class PlayTime
     public static double Seconds => SaveManager.Data.playTimeSeconds;
 
     /// <summary>
-    /// "3h 12m" / "12m 04s" / "48s". Hours never roll over into days: a play time
-    /// is easier to compare as one number than as two units the reader has to
-    /// multiply, and this is read at a glance off a file bar.
+    /// "3h 12m" / "12m" / "0m". Hours never roll over into days: a play time is
+    /// easier to compare as one number than as two units the reader has to
+    /// multiply. Seconds are never shown — the only place this is read is a file
+    /// bar, which is a sense of how long the file has been lived in, and a figure
+    /// that ticks every second invites a precision that means nothing there.
     /// </summary>
     public static string Format(double seconds)
     {
@@ -28,11 +30,8 @@ public static class PlayTime
         int total = (int)seconds;
         int hours = total / 3600;
         int minutes = (total % 3600) / 60;
-        int secs = total % 60;
 
-        if (hours > 0) return $"{hours}h {minutes:00}m";
-        if (minutes > 0) return $"{minutes}m {secs:00}s";
-        return $"{secs}s";
+        return hours > 0 ? $"{hours}h {minutes:00}m" : $"{minutes}m";
     }
 
     /// <summary>

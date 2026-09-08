@@ -42,6 +42,22 @@ public static class StatsDatabase
         new StatDefinition("upgrades.order.shadow",   "Shadow Upgrades Taken",   "shadow upgrades"),
         new StatDefinition("upgrades.order.ember",    "Ember Upgrades Taken",    "ember upgrades"),
         new StatDefinition("upgrades.order.guardian", "Guardian Upgrades Taken", "guardian upgrades"),
+        new StatDefinition("upgrades.order.frigid",   "Frigid Upgrades Taken",   "frigid upgrades"),
+
+        // Frigid deeds. Chilled counts each body once in its life rather than once
+        // per application, the way the poison and ignite tallies already do.
+        new StatDefinition("frigid.chilled",   "Enemies Chilled",   "enemies chilled"),
+        new StatDefinition("frigid.frozen",    "Enemies Frozen",    "enemies frozen"),
+        new StatDefinition("frigid.shattered", "Enemies Shattered", "enemies shattered"),
+
+        // Dawn deeds. These were published by DawnBoost and PlayerHealth from the
+        // day the Order shipped; nothing had ever named them.
+        new StatDefinition("upgrades.order.dawn", "Dawn Upgrades Taken", "dawn upgrades"),
+        new StatDefinition("dawn.shared_light", "Light Passed On",  "heals passed to the other knight"),
+        new StatDefinition("dawn.lifebloom",    "Kills That Healed", "kills that healed"),
+        new StatDefinition("dawn.second_wind",  "Second Winds",      "second winds"),
+        new StatDefinition("dawn.benediction",  "Benedictions Paid", "benedictions paid"),
+        new StatDefinition("dawn.last_light",   "Falls Prevented",   "falls prevented"),
     };
 
     public static string GetDisplayName(string key)

@@ -20,8 +20,8 @@ MonoBehaviour:
   unlockedBy: []
   lockedBy: []
   stats:
-  - valueText: +3 HP
+  - valueText: +10 HP
     labelText: EVERY 12 KILLS
     isPositive: 1
-  killsPerMend: 12
-  mendAmount: 3
+  killsPerHeal: 12
+  healAmount: 10

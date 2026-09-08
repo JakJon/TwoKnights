@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [System.Serializable]
 public class SoundEffect
@@ -15,6 +15,8 @@ public class AudioManager : MonoBehaviour
     public SoundEffect playerHurt;
     public SoundEffect projectileSpawn;
     public SoundEffect playerProjectile;
+    // No longer played by anything — the reload cry was cut from PlayerShooter.
+    // Kept wired so it can be put back without redoing the scene reference.
     public SoundEffect reload;
     public SoundEffect projectileShield;
     public SoundEffect enemyShield;
@@ -50,10 +52,20 @@ public class AudioManager : MonoBehaviour
     public SoundEffect phantomStrike;
     public SoundEffect executeFlash;
     public SoundEffect poisonBurst;
+    // A vial of venom coming apart on the ground. Short, bright and quiet - it
+    // fires every fourth or fifth shot of a knight who has the upgrade, so it has
+    // to sit under the fight rather than announce itself the way a fireball does.
+    public SoundEffect glassBreak;
     // One soft puff per burn tick, deliberately near the noise floor: fire damage
     // lands once a second on every burning body at once, so this has to sit under
     // the fight rather than in it. Globally rate-limited — see EnemyBase.PlayBurnTick.
     public SoundEffect burnTick;
+
+    // Frigid. Three, not one per discipline: the player should learn "cold landed",
+    // "it stopped" and "it broke", never five separate cues for the same Order.
+    public SoundEffect frostChill;
+    public SoundEffect frostFreeze;
+    public SoundEffect frostShatter;
 
     // A knight rotting, one tick a second for twenty-five seconds. Deliberately
     // NOT the unified playerHurt: that sound is sized for a hit worth fifteen, and
@@ -70,6 +82,9 @@ public class AudioManager : MonoBehaviour
     public SoundEffect sonarPing;
     public SoundEffect wolfHowl;
     public SoundEffect wolfGrowl;
+    // The moment a wolf leaves its path and picks a knight. Louder and shorter
+    // than the growl, because it is a warning the player has to act on.
+    public SoundEffect wolfBark;
     public SoundEffect wolfHurt;
     public SoundEffect wolfDeath;
     public SoundEffect wolfBite;
@@ -102,6 +117,13 @@ public class AudioManager : MonoBehaviour
     public SoundEffect uiOpen;
     public SoundEffect upgradeMenuOpen;
     public SoundEffect upgradeConfirm;
+    // Upgrade card entrance: each card knocked down into place on card_click and the
+    // confirm button landed on card_settle, the same knock pitched lower. NOTHING PLAYS
+    // THESE ANY MORE — the upgrade menu was quietened down to the confirm alone. The
+    // slots and their wiring are kept so the cards can be given their knock back
+    // without re-authoring anything.
+    public SoundEffect cardClick;
+    public SoundEffect cardSettle;
 
     // [Header("Music")]
     // public AudioClip backgroundMusic;

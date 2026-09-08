@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adce65266f7f455aa64135de67cfa14b, type: 3}
+  m_Name: Sleeping Dart 2
+  m_EditorClassIdentifier: 
+  upgradeName: Sleeping Dart II
+  description: The dart comes round sooner and holds them longer.
+  weight: 30
+  order: 2
+  requiresOrderCount: 2
+  secondOrder: 1
+  requiresSecondOrderCount: 2
+  unlockedBy:
+  - {fileID: 11400000, guid: 0b118be0f64348329b54b589506d9864, type: 2}
+  lockedBy: []
+  stats:
+  - valueText: 1 in 8
+    labelText: SHOTS
+    isPositive: 1
+  - valueText: 8s
+    labelText: SLEEP
+    isPositive: 1
+  shotsPerDart: 8
+  sleepSeconds: 8
+  dartSprite: {fileID: 8094535273449727746, guid: 2a9a520617b7f8a4faf26b61b0ce9134, type: 3}
+  sleepZSprite: {fileID: 8094535273449727746, guid: 1027628d00e54d879bc3f3fd563a12b6, type: 3}

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd4dfdd53c8d07247a13e9b949c804db, type: 3}
   m_Name: Slimy2
   m_EditorClassIdentifier: 
-  waveName: A Sticky Situation 2
+  waveName: A Sticky Situation II
   weight: 1000
   isUnlocked: 0
   waveDescription: 

@@ -148,8 +148,8 @@ public class EquipmentPanel : MonoBehaviour
         _slotRows[0].Clear();
         _slotRows[1].Clear();
 
-        BuildColumn(0, "Left Knight", Loadout.LeftKnight);
-        BuildColumn(1, "Right Knight", Loadout.RightKnight);
+        BuildColumn(0, KnightNames.Left, Loadout.LeftKnight);
+        BuildColumn(1, KnightNames.Right, Loadout.RightKnight);
 
         RefreshSelection();
     }
@@ -275,17 +275,17 @@ public class EquipmentPanel : MonoBehaviour
         return effect + "\n" + flavor;
     }
 
+    // Controls are not spelled out anywhere in the menus any more — they are the
+    // same everywhere and the player already knows them. The one thing left is the
+    // fact that the pause screen's copy of this panel cannot be edited, which is
+    // NOT obvious from looking at it.
     private void UpdateHint()
     {
         if (_hint == null) return;
-        if (ReadOnly)
-        {
-            _hint.text = "◄► knight   ▲▼ slot   B back   ·   change this in camp";
-            return;
-        }
-        _hint.text = _pickerOpen
-            ? "▲▼ choose   A equip   B cancel"
-            : "◄► knight   ▲▼ slot   A change   B back";
+        // Hidden rather than blanked: an empty label still holds its margin open
+        // under the detail line.
+        _hint.text = "Change this in camp";
+        _hint.style.display = ReadOnly ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     // ---------- the picker ----------
@@ -432,7 +432,8 @@ public class EquipmentPanel : MonoBehaviour
         }
         string holder = Loadout.KnightHolding(id);
         if (holder == null || holder == KnightId) return null;
-        return holder == Loadout.LeftKnight ? "left knight" : "right knight";
+        return KnightNames.Tint(holder == Loadout.LeftKnight ? "left knight" : "right knight",
+                               holder == Loadout.LeftKnight);
     }
 
     private string DescribeCandidate(int index)

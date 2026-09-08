@@ -21,7 +21,6 @@
                 <ui:VisualElement name="quest-reward-icons" class="quest-reward-icons" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label text="&#9650;&#9660; browse   &#9664;&#9654; inspect reward   A fold group   B back" class="map-hint-line" />
         <!-- Floating name box for a hovered reward square; positioned in code -->
         <ui:Label name="quest-reward-tip" class="reward-tip" text="" style="display: none;" />
     </ui:VisualElement>

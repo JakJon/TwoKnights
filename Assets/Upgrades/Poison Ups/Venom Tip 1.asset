@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Venom Tip 1
   m_EditorClassIdentifier: 
   upgradeName: Venom Tip I
-  description: Arrows can poison enemies on hit.
+  description: Arrows can poison on hit, and drip beads of venom as they fly.
   weight: 100
   order: 1
   requiresOrderCount: 0
@@ -23,4 +23,8 @@ MonoBehaviour:
   - valueText: 30%
     labelText: CHANCE
     isPositive: 1
+  - valueText: 5s
+    labelText: VENOM TRAIL
+    isPositive: 1
   poisonChanceIncrease: 30
+  trailBubbleSeconds: 5

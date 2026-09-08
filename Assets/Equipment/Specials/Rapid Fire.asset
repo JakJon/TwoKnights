@@ -15,7 +15,7 @@ MonoBehaviour:
   id: rapid_fire
   displayName: Rapid Fire
   description: Your bow forgets it was ever meant to rest.
-  effect: 6 seconds of auto-fire with no cooldown.
+  effect: 5 seconds of auto-fire with no cooldown.
   icon: {fileID: -2211874699113431974, guid: 3478544e5f98ee74eb09377899367e49, type: 3}
   crystalCost: 0
   ownedFromTheStart: 1

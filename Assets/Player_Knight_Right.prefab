@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 7915696670190278785}
   - component: {fileID: 5515805839320075388}
   - component: {fileID: 5086894456762706539}
+  - component: {fileID: 1860292661875515885}
   m_Layer: 0
   m_Name: Player_Knight_Right
   m_TagString: PlayerRight
@@ -86,15 +87,15 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -4403443651375468547, guid: c968b72f5ba68c3459095d1145e7ddca, type: 3}
+  m_Sprite: {fileID: -1045602623566700396, guid: 94dfeee3b4de4a8b99d8b6cbabf70d0f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.2, y: 0.31}
+  m_Size: {x: 0.65625, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &7393066061949819235
@@ -112,6 +113,9 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   healthBar: {fileID: 0}
+  damageTextPrefab: {fileID: 3743341822335282499, guid: 225900761027b3641860ebbbe4304136, type: 3}
+  damageTextOffset: {x: 0, y: 0.2, z: 0}
+  damageTextStackSeparation: 0.25
 --- !u!114 &3369740735711854902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,6 +131,7 @@ MonoBehaviour:
   maxSpecial: 1000
   specialBar: {fileID: 0}
   specialAction: {fileID: -2015749805523769772, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  defaultSpecial: {fileID: 0}
   streakEnded: 0
 --- !u!114 &6453968112619528541
 MonoBehaviour:
@@ -140,7 +145,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4ee55d0046518647926853e4c6c7e13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerProjectilePrefab: {fileID: 8124615890466243421, guid: ae59e71457533dc48aeb46bba8f8365b, type: 3}
+  playerProjectilePrefab: {fileID: 8124615890466243421, guid: 05235797953fbc8469a6488acb073bbd, type: 3}
   shield: {fileID: 8189182321263953408}
   projectileSpeed: 10
   projectileLifetime: 4
@@ -224,8 +229,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.61904764, y: 0}
-    oldSize: {x: 0.65625, y: 0.96875}
-    newSize: {x: 0.2, y: 0.31}
+    oldSize: {x: 0.65625, y: 1}
+    newSize: {x: 0.65625, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
@@ -256,6 +261,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 169a6f82813e78b4fa3dd707f5ef3707, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1860292661875515885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1437825732208362206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a0ea0d4db50c344db36aa553d8d2445, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  backRight: {fileID: 4154052167229434147, guid: 938eb51f11ba4938a80e0c3be5d2df7b, type: 3}
+  backLeft: {fileID: -6084640859382233717, guid: 9daa1da932544bf7a843800067fb7681, type: 3}
+  frontLeft: {fileID: 6839563030555454722, guid: 6c14c8e46542420fa751e3c2e59eb947, type: 3}
+  frontRight: {fileID: -1045602623566700396, guid: 94dfeee3b4de4a8b99d8b6cbabf70d0f, type: 3}
+  shield: {fileID: 0}
 --- !u!1 &8765011026333924727
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,7 +357,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -6594630641199676969, guid: ae08c0082480a614d9b3598c4c341943, type: 3}
+  m_Sprite: {fileID: 3210941268258742713, guid: 9a6a7da28165432c85877bc5a9025f4c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

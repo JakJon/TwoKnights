@@ -187,7 +187,7 @@ public class QuestPanel : MonoBehaviour
             if (active.Count == 0) continue;
 
             bool collapsed = _collapsed.Contains(groupId);
-            AddHeader(groupId, GroupName(groupId), $"{done}/{done + active.Count}", collapsed, false, false);
+            AddHeader(groupId, GroupName(groupId), $"{done}/{done + active.Count}", collapsed, false);
             if (collapsed) continue;
 
             for (int i = 0; i < active.Count; i++) AddQuestRow(active[i]);
@@ -196,7 +196,7 @@ public class QuestPanel : MonoBehaviour
         if (finished.Count > 0)
         {
             AddHeader(COMPLETED_SHELF, "Completed", finished.Count.ToString(),
-                      !_completedShelfOpen, true, AnyUnseen(finished));
+                      !_completedShelfOpen, true);
             if (_completedShelfOpen)
             {
                 for (int i = 0; i < finished.Count; i++) AddQuestRow(finished[i]);
@@ -215,13 +215,12 @@ public class QuestPanel : MonoBehaviour
     /// <summary>
     /// A foldable header: either a map group, or the log's one Completed shelf.
     ///
-    /// The shelf takes the sweep when it holds a quest the player has never
-    /// opened. A quest that unlocks and completes in the same run lands
-    /// straight in the folded shelf, and QuestProgress.HasUnseen would keep the
-    /// camp's notification dot lit over a row nothing on screen pointed at.
+    /// No header ever takes the gold sweep. It marks a quest the player has not
+    /// read, and a header is not a quest — least of all the Completed shelf,
+    /// where every row is already finished and nothing is being announced.
     /// </summary>
     private void AddHeader(string groupId, string label, string count, bool collapsed,
-                           bool completedShelf, bool unseen)
+                           bool completedShelf)
     {
         string arrow = collapsed ? "▸" : "▾";
         string slug = string.IsNullOrEmpty(groupId) ? "camp" : groupId;
@@ -233,23 +232,11 @@ public class QuestPanel : MonoBehaviour
         button.AddToClassList(GROUP_CLASS);
         if (completedShelf) button.AddToClassList(SHELF_CLASS);
         button.focusable = true;
-        // Not cleared by focusing the header — it is the quests underneath that
-        // are unread, so it retires only once they have actually been opened
-        if (unseen) AttachSheen(button);
 
         int index = _rows.Count;
         button.RegisterCallback<FocusInEvent>(_ => SelectRow(index));
         _list.Add(button);
         _rows.Add(new Row { Button = button, Quest = null, GroupId = groupId, CompletedShelf = completedShelf });
-    }
-
-    private static bool AnyUnseen(List<Quest> quests)
-    {
-        for (int i = 0; i < quests.Count; i++)
-        {
-            if (!QuestProgress.IsSeen(quests[i].Id)) return true;
-        }
-        return false;
     }
 
     private void AddQuestRow(Quest quest)
@@ -459,6 +446,17 @@ public class QuestPanel : MonoBehaviour
                 catalog != null ? catalog.CrystalIcon : null,
                 reward.Crystals.ToString(),
                 "Crystals");
+        }
+
+        if (reward.UnlocksMap)
+        {
+            // The pane art only once the map is open — a locked map is drawn as
+            // "? ? ?" on the level select, and its picture would say more than
+            // its name does. See QuestReward.DescribeMapUnlock.
+            var mapCatalog = MapCatalog.Instance;
+            var map = mapCatalog != null ? mapCatalog.Find(reward.UnlocksMapId) : null;
+            bool open = map != null && MapProgressStore.IsUnlocked(map);
+            AddRewardSquare(open ? map.PreviewImage : null, null, reward.DescribeMapUnlock());
         }
 
         if (reward.GrantsEquipment)

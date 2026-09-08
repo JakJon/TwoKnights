@@ -287,6 +287,7 @@ public class TestModePanel : MonoBehaviour
             case UpgradeOrder.Ember: return "EMBER — FIRE";
             case UpgradeOrder.Guardian: return "GUARDIAN — TANK";
             case UpgradeOrder.Dawn: return "DAWN — HEALING";
+            case UpgradeOrder.Frigid: return "FRIGID — ICE";
             default: return "NEUTRAL";
         }
     }

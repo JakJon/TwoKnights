@@ -181,3 +181,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 10
   sourceName: rock
+  poisonSprite: {fileID: -5597471910209729029, guid: d39c2cc8283e4b1c9731399a64ff91fe, type: 3}
+  explosiveSprite: {fileID: -1353984318686622985, guid: 7227b73a77104cd99e33eafcd028cec5, type: 3}
+  explosiveDamage: 25
+  explosiveBlastRadius: 1.1
+  poisonSourceName: a Poisoned Rock
+  explosiveSourceName: a Powder Rock
+  trailScale: 1.5

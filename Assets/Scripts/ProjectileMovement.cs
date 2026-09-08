@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ProjectileMovement : MonoBehaviour
+public class ProjectileMovement : MonoBehaviour, IChillable
 {
     private Transform _target;
     [SerializeField] private float _speed = .75f;
@@ -31,10 +31,25 @@ public class ProjectileMovement : MonoBehaviour
         AudioManager.Instance.PlaySFX(AudioManager.Instance.projectileSpawn);
     }
 
+    // Glacial Ward II: a rock crossing a knight's ring of cold loses half its
+    // speed. Not damage and not defence - it is time to bring the shield round,
+    // which is the only currency the Frigid Order deals in.
+    private float _chillMultiplier = 1f;
+    private float _chillUntil = -1f;
+
+    public void ApplyChill(float speedMultiplier, float seconds)
+    {
+        if (seconds <= 0f) return;
+        _chillMultiplier = Mathf.Clamp(Mathf.Min(_chillMultiplier, speedMultiplier), 0.05f, 1f);
+        _chillUntil = Mathf.Max(_chillUntil, Time.time + seconds);
+    }
+
+    private float ChillScale => Time.time < _chillUntil ? _chillMultiplier : 1f;
+
     void Update()
     {
         // Move in a straight line toward the initial target direction
-        transform.Translate(Vector2.right * _speed * Time.deltaTime);
+        transform.Translate(Vector2.right * _speed * ChillScale * Time.deltaTime);
     }
 
     void FaceTarget()

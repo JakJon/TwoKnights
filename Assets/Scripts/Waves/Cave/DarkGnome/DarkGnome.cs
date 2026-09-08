@@ -6,22 +6,28 @@ using UnityEngine;
 // alone.
 //
 // The Millstone was a hundred small things arranged into one problem. This is the
-// opposite shape on the same track — ONE thing, with three thousand hit points,
-// riding the circuit the whole mine has been riding all map. He enters by himself
-// and the fight opens as a duel: a lap you can read, two weapons on two clocks,
-// and nothing in the way of your arrows.
+// opposite shape on the same track — ONE thing, with two and a half thousand hit
+// points, riding the circuit the whole mine has been riding all map. He enters
+// by himself and the fight opens as a duel: a lap you can read, two weapons on
+// two clocks, and nothing in the way of your arrows.
 //
 // What the fight does from there is take the track back off you. Every gear the
 // wheel changes into is bought with his health, and each one puts more iron
 // between the knights and the only target that matters:
 //
-//   3000  he rides alone. The player learns the lap.
+//   2500  he rides alone. The player learns the lap.
 //   2000  the whistle, the track winds up, and a haul rolls out behind him —
 //         gnomes with an empty cart between each and a keg at either end, so the
 //         loop that was a firing line becomes a queue you have to shoot through.
 //   1000  faster again, and twice the haul.
-//    500  he stops, roars off everything on him, and comes back with both
-//         weapons doubled.
+//    500  he stops, roars off everything on him, and comes back faster with the
+//         axes at double rate. The bomb stays one per crossing — the speed is
+//         the raise it gets.
+//
+// The gears are deliberately NOT respaced when the pool of health changes: the
+// opening duel is the part that shortens, because it is the part the player has
+// already read by the time it ends, and every rung below 2000 is a rung the
+// fight needed at the width it was authored at.
 //
 // The hauls ride HIS loop rather than a ring of their own, which is the whole
 // point: they are not a second problem, they are cover. A gnome nose to tail in
@@ -75,14 +81,31 @@ public class DarkGnome : BaseWave
     [SerializeField] private float bossSpeedScale = 1.5f;
 
     [Tooltip("He stops and roars the first frame he is at or below this. Everything on him comes off and both weapons double.")]
-    [SerializeField] private float roarAtHealth = 500f;
+    [SerializeField] private float roarAtHealth = 200f;
 
     [Header("The hauls")]
     [Tooltip("Gears the fight changes into as he is cut down, in order.")]
     [SerializeField] private List<Haul> hauls = new List<Haul>();
 
+    [Header("The shift underneath")]
+    [Tooltip("Gnomes released together every interval below, on top of the hauls. The hauls are cover that arrives on his health; this is a beat that arrives on a clock, so the fight has a pulse in it even while he is sitting between two rungs of the ladder.")]
+    [SerializeField] private int reliefGnomes = 3;
+
+    [Tooltip("Seconds between one relief release and the next. It STOPS the moment he roars - from there the fight is him at his last speed and whatever is already on the track, because a boss's last stand should be the boss and not the queue.")]
+    [SerializeField] private float reliefInterval = 10f;
+
+    [Tooltip("Cycled in order as relief riders are released. Same rolling stock the hauls are built out of.")]
+    [SerializeField] private List<GameObject> reliefCarts = new List<GameObject>();
+
     [Header("Orbs")]
-    [Tooltip("A three thousand point fight with no orbs in it is a fight the knights cannot recover from a single mistake in.")]
+    [Tooltip("Health orbs, released the first frame he drops through each of these fractions of his health. TWO of them, at 0.5 and 0.2 - a fight this long has to be recoverable, but on HIS clock rather than on a stopwatch, so a fast kill is not handed the same medicine a slow one earns. Past a couple of orbs it stops being a mercy and starts being a second health bar.")]
+    [SerializeField] private List<float> healthOrbAt = new List<float> { 0.5f, 0.2f };
+
+    [Tooltip("Where a threshold health orb crosses. Keep it clear of the loop, or it is an orb whose arrows the traffic eats.")]
+    [SerializeField] private Vector2 healthOrbFrom = new Vector2(-12f, -1.5f);
+    [SerializeField] private Vector2 healthOrbTo = new Vector2(12f, -1.5f);
+
+    [Tooltip("Mana orbs, on the ordinary timed run. Health is on the ladder above; this is the special bar, which the fight does want paying out steadily.")]
     [SerializeField] private OrbRun orbs = new OrbRun();
 
     public override IEnumerator SpawnWave(Spawner spawner)
@@ -138,7 +161,14 @@ public class DarkGnome : BaseWave
     private IEnumerator RunLadder(Spawner spawner, RailNetwork rails, EnemyDarkGnomeCart boss)
     {
         int next = 0;
+        int nextOrb = 0;
         bool roared = false;
+        float maxHealth = boss.GetMaxHealth();
+
+        // Started here rather than beside the wave because it has to die with the
+        // ladder: the relief is the fight's pulse, and the fight stops having one
+        // the moment he roars.
+        Coroutine relief = spawner.StartCoroutine(ReleaseRelief(rails, boss));
 
         while (boss != null && !boss.IsDead)
         {
@@ -146,6 +176,19 @@ public class DarkGnome : BaseWave
             {
                 yield return spawner.StartCoroutine(ReleaseHaul(rails, hauls[next]));
                 next++;
+            }
+
+            // Orbs on his health, the same shape as the hauls and for the same
+            // reason: several can fall to one volley, and a burst that takes him
+            // through two thresholds owes both rather than only the one it
+            // happened to stop on.
+            while (nextOrb < healthOrbAt.Count
+                   && boss.GetHealth() <= maxHealth * healthOrbAt[nextOrb])
+            {
+                spawner.SpawnOrb(healthOrbFrom, healthOrbTo, true);
+                Debug.Log($"[Overseer] Health orb at {healthOrbAt[nextOrb]:P0} " +
+                          $"({boss.GetHealth():F0} of {maxHealth:F0}).");
+                nextOrb++;
             }
 
             if (!roared && boss.GetHealth() <= roarAtHealth)
@@ -157,9 +200,66 @@ public class DarkGnome : BaseWave
             yield return null;
         }
 
+        if (relief != null) spawner.StopCoroutine(relief);
+
         // He is down (or gone). Whatever is still rolling has to be cleared before
         // the wave ends — the hauls are kills the player owes, not scenery.
         MarkAmbushReleased();
+    }
+
+    // A handful of riders onto the loop on a fixed clock, for as long as he is
+    // still climbing his own ladder.
+    //
+    // The hauls answer his HEALTH, which means the stretches between them are
+    // quiet in exactly the way a fight this long cannot afford: a player who is
+    // being careful gets a duel with nothing else in it, and a player who is not
+    // gets the whole shift at once on a threshold. This is the other clock. It
+    // does not care how he is doing, it just keeps sending three more.
+    //
+    // They ride HIS loop and gate the wave like anything else with a gnome on it
+    // - the group is already open, so they join it without any extra bookkeeping.
+    //
+    // It stops at the roar rather than at his death, and the difference matters:
+    // the last stand is meant to be him, faster, with the board as clear as the
+    // players have managed to get it. Riders still arriving into it would make the
+    // finish about the queue.
+    private IEnumerator ReleaseRelief(RailNetwork rails, EnemyDarkGnomeCart boss)
+    {
+        // One frame first, for the reason OrbRun.Release states at length:
+        // StartCoroutine hands back null for an enumerator that finishes without
+        // ever yielding, and the StopCoroutine above would then throw and strand
+        // the wave on a boss it can never finish.
+        yield return null;
+
+        int count = Mathf.Max(0, reliefGnomes);
+        if (count == 0 || reliefCarts == null || reliefCarts.Count == 0) yield break;
+
+        float wait = Mathf.Max(1f, reliefInterval);
+        float cell = railLayout != null ? railLayout.CellSize : 1f;
+        int cursor = 0;
+
+        while (true)
+        {
+            yield return new WaitForSeconds(wait);
+
+            if (boss == null || boss.IsDead || boss.InLastStand) yield break;
+            if (rails.LineCount == 0) yield break;
+
+            // Spaced against the gear the track is actually in, or a release at
+            // 2.25x comes out spaced for 1x and arrives strung out down the loop
+            float speed = MineCart.TrackSpeed * Mathf.Max(0.05f, rails.SpeedScale);
+            float gap = Mathf.Max(0.05f, cell / speed);
+
+            for (int i = 0; i < count; i++)
+            {
+                GameObject prefab = reliefCarts[cursor++ % reliefCarts.Count];
+                if (prefab != null)
+                {
+                    rails.SpawnCart(prefab, Mathf.Clamp(entryRun, 0, rails.LineCount - 1));
+                }
+                if (i < count - 1) yield return new WaitForSeconds(gap);
+            }
+        }
     }
 
     // Lays one haul onto the loop behind him, nose to tail. One cell of track per

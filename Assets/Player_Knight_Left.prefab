@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 7024718651193789254}
   - component: {fileID: 5968082803004057000}
   - component: {fileID: 9157264886913551907}
+  - component: {fileID: 9139481534346853694}
   m_Layer: 0
   m_Name: Player_Knight_Left
   m_TagString: PlayerLeft
@@ -86,15 +87,15 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -4403443651375468547, guid: c968b72f5ba68c3459095d1145e7ddca, type: 3}
+  m_Sprite: {fileID: 2415189905080567457, guid: a47e2d09ab2c7d74f8e4757f3b44aca1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.2, y: 0.31}
+  m_Size: {x: 0.65625, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &7334425175041041612
@@ -112,6 +113,9 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   healthBar: {fileID: 0}
+  damageTextPrefab: {fileID: 3743341822335282499, guid: 225900761027b3641860ebbbe4304136, type: 3}
+  damageTextOffset: {x: 0, y: 0.2, z: 0}
+  damageTextStackSeparation: 0.25
 --- !u!114 &4189576862051482252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,6 +131,7 @@ MonoBehaviour:
   maxSpecial: 1000
   specialBar: {fileID: 0}
   specialAction: {fileID: -4458409286072618481, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  defaultSpecial: {fileID: 0}
   streakEnded: 0
 --- !u!114 &8159734740094167333
 MonoBehaviour:
@@ -197,8 +202,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.61904764, y: 0}
-    oldSize: {x: 0.65625, y: 0.96875}
-    newSize: {x: 0.2, y: 0.31}
+    oldSize: {x: 0.65625, y: 1}
+    newSize: {x: 0.65625, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
@@ -256,6 +261,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 169a6f82813e78b4fa3dd707f5ef3707, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &9139481534346853694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2528923223428741810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a0ea0d4db50c344db36aa553d8d2445, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  backRight: {fileID: -4266781905096432520, guid: cdceb606b195fd94586ee3bd34d5013c, type: 3}
+  backLeft: {fileID: -8414335481759757413, guid: 7936fc9a1cde67249ab0b979a9a25306, type: 3}
+  frontLeft: {fileID: -5442357450490906779, guid: cfef3e6298b14bc4eaba7cdc32cd2086, type: 3}
+  frontRight: {fileID: 2415189905080567457, guid: a47e2d09ab2c7d74f8e4757f3b44aca1, type: 3}
+  shield: {fileID: 0}
 --- !u!1 &3669502630755628994
 GameObject:
   m_ObjectHideFlags: 0

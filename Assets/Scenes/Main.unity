@@ -179,6 +179,8 @@ MonoBehaviour:
   uiDocument: {fileID: 143688918}
   styleSheet: {fileID: 7433441132597879392, guid: c2f9c4c0a9d29824b96dfb1794abfac2, type: 3}
   upgradeManager: {fileID: 11400000, guid: 541b5ccd0e52f0c4abc9c9a83ea1b3e8, type: 2}
+  leftKnightPortrait: {fileID: 2415189905080567457, guid: a47e2d09ab2c7d74f8e4757f3b44aca1, type: 3}
+  rightKnightPortrait: {fileID: -1045602623566700396, guid: 94dfeee3b4de4a8b99d8b6cbabf70d0f, type: 3}
   waveManager: {fileID: 11400000, guid: 72b134bb0a1686d449fc6420aa410840, type: 2}
   navLeftAction: {fileID: 1497862213591620651, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   navRightAction: {fileID: 2702908591954731153, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
@@ -917,6 +919,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiDocument: {fileID: 913371068}
   styleSheet: {fileID: 7433441132597879392, guid: 50c47a472d649947831c0ccd167ec593, type: 3}
+  autoAdvanceSeconds: 1
+  inputGraceSeconds: 0.25
 --- !u!114 &913371068
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -983,7 +987,6 @@ MonoBehaviour:
   pieces:
   - kind: 0
     prefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
-  fallbackPiecePrefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
   cartVariants:
   - label: poison bomb gnome
     standard: {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
@@ -1009,8 +1012,10 @@ MonoBehaviour:
     everyNth: 3
     fromWaveNumber: 11
     countGroup: cage
+  fallbackPiecePrefab: {fileID: 7219734384045313969, guid: 99341f04bd41fdb4d9305f69a33ef3a8, type: 3}
   trackParent: {fileID: 0}
   viewCamera: {fileID: 519420031}
+  flagOffset: 0.9
 --- !u!4 &1142004719
 Transform:
   m_ObjectHideFlags: 0
@@ -1253,8 +1258,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0a821d98434ff24e8212ea22be3dd81, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1490680652
 GameObject:
   m_ObjectHideFlags: 0
@@ -1303,7 +1308,7 @@ MonoBehaviour:
   waveNameDisplay: {fileID: 1520333984}
   upgradeMenu: {fileID: 143688917}
   upgradeManager: {fileID: 11400000, guid: 541b5ccd0e52f0c4abc9c9a83ea1b3e8, type: 2}
-  questCompletePanel: {fileID: 0}
+  waveSurvivedPanel: {fileID: 0}
   projectilePrefab: {fileID: 6821730625427352102, guid: e3a735aa259ad5e4b8fc19605975b243, type: 3}
   brownRat: {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
   greyRat: {fileID: 7458023765239434115, guid: 6070b81a7ae0ab44bb9c66a15c3f0166, type: 3}
@@ -1314,10 +1319,13 @@ MonoBehaviour:
   brownWolfPrefab: {fileID: 5002236303498629586, guid: 999ff400cb9718143822bc10fffcd80d, type: 3}
   blackWolfPrefab: {fileID: 5002236303498629586, guid: a3275b14505447841b8f3a6bf0fd530e, type: 3}
   darkBat: {fileID: 1524171790021137871, guid: 4424adafa6589cf4ba02cbd43f6b01fc, type: 3}
+  ogrePrefab: {fileID: 1212333551141852500, guid: 702d08fe5619d21478ca600d07a98235, type: 3}
+  fireOgrePrefab: {fileID: 5860371335261493873, guid: 1c01a9a675df66d42ab78df969b02b7c, type: 3}
   darkBatInterval: 4
   healthOrbPrefab: {fileID: 5377450148777122619, guid: 46857fb8ddd904347b4a1908686016f8, type: 3}
   manaOrbPrefab: {fileID: 2554317483899268719, guid: a00f45b9aa5502440b3f2738a884e8f7, type: 3}
   railNetwork: {fileID: 1142004718}
+  mirrorNetwork: {fileID: 0}
 --- !u!1 &1520333980
 GameObject:
   m_ObjectHideFlags: 0
@@ -1682,6 +1690,21 @@ MonoBehaviour:
   poisonBurst:
     clip: {fileID: 8300000, guid: 7dccdaa921667b748a14dcc4d5b4d677, type: 3}
     volume: 0.403
+  glassBreak:
+    clip: {fileID: 8300000, guid: 948183bde2fb4b1ab0bb9d239cf07f39, type: 3}
+    volume: 0.7
+  burnTick:
+    clip: {fileID: 0}
+    volume: 1
+  frostChill:
+    clip: {fileID: 8300000, guid: c2b89f8e3273c7c4fb18b18f7e0e8d99, type: 3}
+    volume: 0.5
+  frostFreeze:
+    clip: {fileID: 8300000, guid: 99188114fd677244187c4821b8dabafb, type: 3}
+    volume: 0.65
+  frostShatter:
+    clip: {fileID: 8300000, guid: ee758308ae38a2f42bb96a67b6257cf5, type: 3}
+    volume: 0.7
   knightPoisonTick:
     clip: {fileID: 8300000, guid: 0c9db14a8cedf7941aa0a33cdf251065, type: 3}
     volume: 1
@@ -1712,6 +1735,9 @@ MonoBehaviour:
   wolfGrowl:
     clip: {fileID: 8300000, guid: bec8071d16ed3044f920feb2cf4a2612, type: 3}
     volume: 0.363
+  wolfBark:
+    clip: {fileID: 8300000, guid: 0c1fa6d2cfb164644d2f8ef061d422df, type: 3}
+    volume: 0.6
   wolfHurt:
     clip: {fileID: 8300000, guid: ec50d1cf156808f40b7276728674f87b, type: 3}
     volume: 0.646
@@ -1793,6 +1819,12 @@ MonoBehaviour:
   upgradeConfirm:
     clip: {fileID: 8300000, guid: 2027db11d2c74c540adc04facffbffb8, type: 3}
     volume: 0.452
+  cardClick:
+    clip: {fileID: 8300000, guid: 1c6781d19d2c4f5fad93f653e6e84c1c, type: 3}
+    volume: 1
+  cardSettle:
+    clip: {fileID: 8300000, guid: 0f774500e81941b9b93a8959fca08974, type: 3}
+    volume: 1
 --- !u!4 &1736909207
 Transform:
   m_ObjectHideFlags: 0
@@ -2197,7 +2229,7 @@ PrefabInstance:
     - target: {fileID: 6496588192788863459, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 2415189905080567457, guid: a47e2d09ab2c7d74f8e4757f3b44aca1, type: 3}
+      objectReference: {fileID: -1045602623566700396, guid: 94dfeee3b4de4a8b99d8b6cbabf70d0f, type: 3}
     - target: {fileID: 6496588192788863459, guid: 4179fb643dbdf5543af79982cb723a05, type: 3}
       propertyPath: m_WasSpriteAssigned
       value: 1

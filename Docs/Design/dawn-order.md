@@ -204,6 +204,67 @@ learned when local scaling shrank the band on scaled enemies.
 `DawnBoost`/`PlayerHealth` add `dawn.lifebloom`, `dawn.second_wind`,
 `dawn.benediction`, `dawn.shared_light`, `dawn.last_light`.
 
+## The quest line (`DawnQuests.cs`)
+
+*Added 2026-09-07, thirteen months after the Order shipped — Dawn had 12 upgrades
+and no quests at all, and neither did Guardian.*
+
+Five quests, the house shape: a light stat trigger reveals the initiation, the
+initiation admits you, admission opens two branches.
+
+Dawn's branches are not a disagreement about tactics the way Frigid's are. They are
+a disagreement about **who the light is for**. Vigil says it is for the other
+knight. Wellspring says you cannot pour from an empty cup. That is the Order's own
+pillar argued from both ends, which is the only way to make a line about healing
+have any tension in it at all.
+
+| Quest | Objective | Reward |
+|---|---|---|
+| Initiation: The Kept Watch | 100 echoed heals, 50 mending kills, 5 Dawn upgrades | 2 crystals |
+| The Longer Half | 300 echoed heals | **Warm Lantern** |
+| Both Of You, Standing | the feat below | **Oathbound Locket** |
+| Draw From The Well | 200 mending kills | 1 crystal |
+| The Last Light | acquire Last Light | **Dawnbreak Crown** |
+
+Every objective except the feat was already being published — `dawn.shared_light`,
+`dawn.lifebloom`, `upgrades.order.dawn` and `upgrades.taken.last_light` have been
+incrementing since the Order shipped and nothing had ever read them. They were also
+**unnamed in `StatsDatabase`**, so they would have rendered as raw keys; all six
+`dawn.*` stats now have display names.
+
+### The feat (`Feats.DawnPairPulledBack`)
+
+**A wave that drove a knight to a quarter health and still ended with both of them
+at full.**
+
+It is a feat rather than a counter because it is a "can you", not a "how much" —
+surviving is common; pulling the pair back from the edge inside the same wave is
+something you either managed or did not. And it cannot fall out of any existing
+tally: nothing else in the game knows what the pair looked like at the start of a
+wave and again at the end of it.
+
+`DawnVigil` in `Feats.cs` is the detector, wave-scoped static state on the same
+discipline as `RunPurity`. `Spawner` opens and closes the window; `PlayerHealth`
+reports the low-water mark **as it happens**, because a knight can dip to a sliver
+and be mended back inside one second and no end-of-wave reading would ever see it —
+which is exactly the moment the feat is about.
+
+### The three items
+
+All three bend the Dawn draft ×2, the way Everburning Coal does for Ember.
+
+- **Warm Lantern** — a quarter of every heal echoes to the partner from wave one.
+- **Oathbound Locket** — health orbs mend half again as much.
+- **Dawnbreak Crown** — +25 max health, and 40% of heals echo across.
+
+Two new `StatEquipment` fields (`startingEchoFraction`, `startingOrbHealMultiplier`)
+route through `DawnBoost`'s own setters rather than a parallel path. Both keep the
+larger value, so an item is only ever a floor under what the draft goes on to grant.
+
+Icons are 16×16 `.aseprite` in the house style, corner-alpha-guarded against the
+importer's tight crop. **`oathbound_locket` is the weakest of the six drawn this
+session** — it reads as two shells more than as a locket.
+
 ## Open / next
 
 - **Tuning is expected.** The proc numbers (3–5 HP) are deliberately timid. Dawn

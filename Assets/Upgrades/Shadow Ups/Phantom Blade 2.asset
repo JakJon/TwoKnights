@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Phantom Blade 2
   m_EditorClassIdentifier: 
   upgradeName: Phantom Blade II
-  description: A second echo joins, further out again - every swing strikes thrice.
+  description: A second echo joins, further out again.
   weight: 60
   order: 2
   requiresOrderCount: 0

@@ -197,11 +197,20 @@ public class WaveSurvivedPanel : MonoBehaviour
             ? DisplayStyle.Flex
             : DisplayStyle.None;
 
+        if (completed.Count > 0)
+        {
+            var heading = new Label(completed.Count == 1 ? "Quest Completed" : "Quests Completed");
+            heading.AddToClassList("ws-section-title");
+            _questList.Add(heading);
+        }
+
         for (int i = 0; i < completed.Count; i++)
         {
             var quest = completed[i];
 
-            var line = new Label($"{quest.Name} — Completed");
+            // The heading above says what happened to these, so the name stands
+            // on its own rather than repeating "— Completed" on every row.
+            var line = new Label(quest.Name);
             line.AddToClassList("ws-quest-name");
             _questList.Add(line);
 
@@ -267,8 +276,8 @@ public class WaveSurvivedPanel : MonoBehaviour
             _questList.Add(divider);
         }
 
-        var caption = new Label(unlocked.Count == 1 ? "NEW QUEST" : "NEW QUESTS");
-        caption.AddToClassList("ws-section-caption");
+        var caption = new Label(unlocked.Count == 1 ? "Quest Unlocked" : "Quests Unlocked");
+        caption.AddToClassList("ws-section-title");
         _questList.Add(caption);
 
         for (int i = 0; i < unlocked.Count; i++)

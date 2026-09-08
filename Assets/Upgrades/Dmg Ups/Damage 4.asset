@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d8268bdcd15e0544a41f0971b2312cb, type: 3}
   m_Name: Damage 4
   m_EditorClassIdentifier: 
-  upgradeName: Incredible Damage
+  upgradeName: Incredible Damage IV
   description: A huge increase in damage per arrow.
   weight: 35
   unlockedBy:

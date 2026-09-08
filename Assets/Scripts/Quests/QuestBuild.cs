@@ -7,6 +7,7 @@ public static class QuestBuild
 {
     public const string Forest = "camp_fields";
     public const string Mine = "mine";
+    public const string Keep = "pallid_keep";
     /// <summary>Quests that belong to no map — Order lines, camp business.</summary>
     public const string Camp = "";
 
@@ -37,7 +38,8 @@ public static class QuestBuild
     }
 
     public static QuestReward Reward(int crystals = 0, string equipmentId = null,
-                                     bool extraSlot = false, bool extraSpecialSlot = false)
+                                     bool extraSlot = false, bool extraSpecialSlot = false,
+                                     string unlocksMapId = null)
     {
         return new QuestReward
         {
@@ -45,6 +47,7 @@ public static class QuestBuild
             EquipmentId = equipmentId,
             ExtraEquipmentSlot = extraSlot,
             ExtraSpecialSlot = extraSpecialSlot,
+            UnlocksMapId = unlocksMapId,
         };
     }
 }

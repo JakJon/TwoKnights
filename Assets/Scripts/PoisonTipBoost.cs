@@ -5,6 +5,12 @@ using UnityEngine;
 public class PoisonTipBoost : MonoBehaviour
 {
     private float poisonChance = 0f; // Percentage chance (0-100)
+
+    // Venom Tip's trail: how long a bead shed by a poisoned arrow keeps working.
+    // 0 means the knight has no Venom Tip yet and therefore no trail. Ranks set it
+    // outright (5 / 10 / 15) rather than adding, so the asset states the real
+    // number and a re-pick cannot compound it past the top of the ladder.
+    private float trailBubbleSeconds = 0f;
     private int tickDamageBonus = 0; // Virulence: added to each poison tick
     private float tickRateMultiplier = 1f; // Virulence: <1 = faster ticks
     private int miasmaLevel = 0; // Miasma: 0 = off, 1-2 = death-cloud size/duration
@@ -26,6 +32,18 @@ public class PoisonTipBoost : MonoBehaviour
     {
         return poisonChance;
     }
+
+    /// <summary>
+    /// Set by each Venom Tip rank. Max rather than assignment for the same reason
+    /// every other tier here uses it: the draft can offer a rank the knight
+    /// already has, and picking it again must never be a downgrade.
+    /// </summary>
+    public void SetTrailBubbleSeconds(float seconds)
+    {
+        trailBubbleSeconds = Mathf.Max(trailBubbleSeconds, seconds);
+    }
+
+    public float TrailBubbleSeconds => trailBubbleSeconds;
 
     // Check if this shot should be poisoned based on chance
     public bool ShouldApplyPoison()

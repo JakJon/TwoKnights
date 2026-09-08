@@ -8,7 +8,7 @@ using UnityEngine;
 //
 // Bolted-on configuration follows PoisonProjectile/FireballProjectile: the prefab
 // carries sprite + collider identity, Launch/Orbit hand it the per-shot state.
-public class EnemyFireball : MonoBehaviour
+public class EnemyFireball : MonoBehaviour, IChillable
 {
     public enum Mode
     {
@@ -151,8 +151,15 @@ public class EnemyFireball : MonoBehaviour
                 Destroy(gameObject);
                 return;
             }
-            _orbitAngle += _orbitDegreesPerSecond * dt;
-            _pulseTime += dt;
+            // A sleeping slime's guard sleeps with it: the orbit and the breath
+            // both stop where they are rather than sweeping on around a body that
+            // is visibly frozen. Position is still written every frame so the ward
+            // stays welded to its owner however the owner is moved.
+            if (!_owner.IsAsleep)
+            {
+                _orbitAngle += _orbitDegreesPerSecond * dt;
+                _pulseTime += dt;
+            }
 
             // Breathe: the far extreme reaches past the knight (block it), the near one
             // tucks the ward back against the slime's flank
@@ -189,8 +196,26 @@ public class EnemyFireball : MonoBehaviour
             FaceHeading();
         }
 
-        transform.position += (Vector3)(HeadingVector() * _speed * dt);
+        // Only what is FLYING at a knight is slowed. The ward-orbit mode above
+        // returns before it reaches this line, so a boss's guard keeps its pace -
+        // chilling that would be chilling the boss's aura, not its ammunition.
+        transform.position += (Vector3)(HeadingVector() * _speed * ChillScale * dt);
     }
+
+    // Glacial Ward II: enemy ammunition crossing a knight's ring of cold loses
+    // half its speed. See IChillable.
+    private float _chillMultiplier = 1f;
+    private float _chillUntil = -1f;
+
+    public void ApplyChill(float speedMultiplier, float seconds)
+    {
+        if (seconds <= 0f) return;
+        _chillMultiplier = Mathf.Clamp(Mathf.Min(_chillMultiplier, speedMultiplier), 0.05f, 1f);
+        _chillUntil = Mathf.Max(_chillUntil, Time.time + seconds);
+    }
+
+    private float ChillScale { get { return Time.time < _chillUntil ? _chillMultiplier : 1f; } }
+
 
     private Vector2 HeadingVector()
     {

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38a3dc441f1152c49aa86408609cb488, type: 3}
   m_Name: Reload 1
   m_EditorClassIdentifier: 
-  upgradeName: 'Quick Reload '
+  upgradeName: Quick Reload I
   description: Shortens time between shots.
   weight: 100
   unlockedBy: []

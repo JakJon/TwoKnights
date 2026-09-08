@@ -3,35 +3,55 @@
     <ui:Template name="QuestOverlay" src="QuestOverlay.uxml" />
     <ui:Template name="EquipmentOverlay" src="EquipmentOverlay.uxml" />
     <ui:VisualElement name="pause-menu" class="pause-menu-overlay">
+        <!-- Landscape container: a knight's loadout down each side, the menu card
+             in the middle. The container itself draws nothing — only the centre
+             card is a card, so the loadout lists and their detail readouts sit
+             directly on the scrim. -->
         <ui:VisualElement name="pause-panel" class="pause-panel">
-            <ui:Label text="Paused" name="pause-title" class="pause-title" />
-            <ui:Label text="WAVE I" name="pause-wave" class="pause-wave" />
-            <ui:VisualElement name="pause-divider" class="pause-divider" />
-            <ui:VisualElement name="pause-loadout" class="pause-loadout">
-                <ui:VisualElement name="loadout-left" class="loadout-column">
-                    <ui:Label text="LEFT KNIGHT" name="loadout-left-title" class="loadout-title" />
+            <ui:VisualElement name="loadout-left" class="loadout-column">
+                <ui:Label text="LEFT KNIGHT'S UPGRADES" name="loadout-left-title" class="loadout-title knight--left" />
+                <ui:ScrollView name="loadout-left-scroll" class="loadout-scroll">
                     <ui:VisualElement name="loadout-left-list" class="loadout-list" />
-                </ui:VisualElement>
-                <ui:VisualElement name="loadout-divider" class="loadout-divider" />
-                <ui:VisualElement name="loadout-right" class="loadout-column">
-                    <ui:Label text="RIGHT KNIGHT" name="loadout-right-title" class="loadout-title" />
-                    <ui:VisualElement name="loadout-right-list" class="loadout-list" />
+                </ui:ScrollView>
+                <ui:Label text="▼" name="loadout-left-more" class="loadout-more" />
+                <ui:VisualElement name="detail-left" class="loadout-detail">
+                    <ui:Label name="detail-left-name" class="detail-name" />
+                    <ui:Label name="detail-left-desc" class="detail-desc" />
+                    <ui:VisualElement name="detail-left-stats" class="detail-stats" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="pause-divider-2" class="pause-divider" />
-            <ui:VisualElement name="pause-body" class="pause-body">
-                <ui:VisualElement name="main-actions" class="actions-container">
-                    <ui:Button text="RESUME" name="resume-button" class="menu-button primary" />
-                    <ui:Button text="QUESTS" name="pause-quests-button" class="menu-button" />
-                    <ui:Button text="EQUIPMENT" name="pause-equipment-button" class="menu-button" />
-                    <ui:Button text="QUIT" name="quit-button" class="menu-button secondary" />
-                </ui:VisualElement>
-                <ui:VisualElement name="confirm-actions" class="actions-container confirm" style="display: none;">
-                    <ui:Label text="Abandon the run and return to camp?" name="confirm-text" class="confirm-text" />
-                    <ui:VisualElement name="confirm-buttons" class="confirm-buttons">
-                        <ui:Button text="YES" name="confirm-yes" class="menu-button danger" />
-                        <ui:Button text="NO" name="confirm-no" class="menu-button primary" />
+
+            <ui:VisualElement name="pause-card" class="pause-card">
+                <ui:Label text="Paused" name="pause-title" class="pause-title" />
+                <ui:Label text="WAVE I" name="pause-wave" class="pause-wave" />
+                <ui:VisualElement name="pause-divider" class="pause-divider" />
+                <ui:VisualElement name="pause-body" class="pause-body">
+                    <ui:VisualElement name="main-actions" class="actions-container">
+                        <ui:Button text="RESUME" name="resume-button" class="menu-button primary" />
+                        <ui:Button text="QUESTS" name="pause-quests-button" class="menu-button" />
+                        <ui:Button text="EQUIPMENT" name="pause-equipment-button" class="menu-button" />
+                        <ui:Button text="QUIT" name="quit-button" class="menu-button secondary" />
                     </ui:VisualElement>
+                    <ui:VisualElement name="confirm-actions" class="actions-container confirm" style="display: none;">
+                        <ui:Label text="Abandon the run and return to camp?" name="confirm-text" class="confirm-text" />
+                        <ui:VisualElement name="confirm-buttons" class="confirm-buttons">
+                            <ui:Button text="YES" name="confirm-yes" class="menu-button danger" />
+                            <ui:Button text="NO" name="confirm-no" class="menu-button primary" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="loadout-right" class="loadout-column">
+                <ui:Label text="RIGHT KNIGHT'S UPGRADES" name="loadout-right-title" class="loadout-title knight--right" />
+                <ui:ScrollView name="loadout-right-scroll" class="loadout-scroll">
+                    <ui:VisualElement name="loadout-right-list" class="loadout-list" />
+                </ui:ScrollView>
+                <ui:Label text="▼" name="loadout-right-more" class="loadout-more" />
+                <ui:VisualElement name="detail-right" class="loadout-detail">
+                    <ui:Label name="detail-right-name" class="detail-name" />
+                    <ui:Label name="detail-right-desc" class="detail-desc" />
+                    <ui:VisualElement name="detail-right-stats" class="detail-stats" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

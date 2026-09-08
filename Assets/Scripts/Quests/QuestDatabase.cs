@@ -58,6 +58,8 @@ public static class QuestDatabase
         _quests.AddRange(SerpentQuests.All());
         _quests.AddRange(EmberQuests.All());
         _quests.AddRange(ShadowQuests.All());
+        _quests.AddRange(FrigidQuests.All());
+        _quests.AddRange(DawnQuests.All());
 
         // A duplicated id would silently make one of the two uncompletable —
         // both would resolve to the same save record

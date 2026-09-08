@@ -19,7 +19,7 @@ using UnityEngine;
 // kind of pressure a wave can buy.
 //
 // Any heal cures it outright rather than reducing it, and cures BOTH knights
-// rather than only the one who was mended — see PlayerHealth.CurePoison. Two
+// rather than only the one who was healed — see PlayerHealth.CurePoison. Two
 // things follow from that. Part-curing would make the player do arithmetic
 // mid-fight to work out whether an orb was worth an arrow, and the answer needs
 // to be readable at a glance. Curing one knight only would turn a single orb into
@@ -72,6 +72,27 @@ public class KnightPoison : MonoBehaviour
         KnightPoison poison = knight.GetComponent<KnightPoison>();
         if (poison == null) poison = knight.AddComponent<KnightPoison>();
         poison.Begin(sourceName, DefaultDuration);
+    }
+
+    /// <summary>
+    /// Clear poison from both knights. The wave boundary calls this: the poison is
+    /// a clock the player is meant to play the REST OF THE WAVE against, so it has
+    /// to stop when the wave does - carrying it through the upgrade menu into the
+    /// next wave would make it a tax on the run rather than pressure inside a fight,
+    /// and the health orb it was supposed to re-price is no longer on the board.
+    /// Safe on knights who were never poisoned, and on a knight who is gone.
+    /// </summary>
+    public static void CureAll()
+    {
+        Cure(GameObject.FindWithTag("PlayerLeft"));
+        Cure(GameObject.FindWithTag("PlayerRight"));
+    }
+
+    private static void Cure(GameObject knight)
+    {
+        if (knight == null) return;
+        KnightPoison poison = knight.GetComponent<KnightPoison>();
+        if (poison != null) poison.Cure();
     }
 
     /// <summary>

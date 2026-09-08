@@ -23,6 +23,13 @@ public class PlayerSpecial : MonoBehaviour
     public bool streakEnded;
     public bool specialBarFilled => _currentSpecial >= maxSpecial;
 
+    /// <summary>
+    /// Whether a full bar can actually be spent. The bar still fills while this is
+    /// down — the tutorial wants the player watching it fill before it tells them
+    /// what the button is for. See PlayerShooter.InputEnabled.
+    /// </summary>
+    public bool InputEnabled { get; set; } = true;
+
     // Read-only accessors for UI/status
     public int CurrentSpecial => _currentSpecial;
     public int MaxSpecial => maxSpecial;
@@ -31,7 +38,7 @@ public class PlayerSpecial : MonoBehaviour
     private bool _specialBarFilledSfxPlayed = false;
 
     // Hit-based special gain is frozen while the player's own special is running.
-    // Rapid Fire lands so many arrows in its 6s that the bar would refill before
+    // Rapid Fire lands so many arrows in its window that the bar would refill before
     // the special even ended. Deadline-based (not a flag) so it always expires,
     // even if the effect's coroutine is killed early.
     private float _gainFrozenUntil = -1f;
@@ -54,6 +61,9 @@ public class PlayerSpecial : MonoBehaviour
         specialBar.SetValue(_currentSpecial);
 
         _specials = Loadout.ResolveSpecials(Loadout.KnightIdFromTag(tag), ResolveStockSpecial());
+        // Nothing to fire means nothing to show: the bar keeps filling, it just
+        // isn't drawn, and the "special ready" stings stay quiet with it
+        specialBar.SetVisible(_specials.Count > 0);
         _specialBarFilledSfxPlayed = false;
     }
 
@@ -69,7 +79,7 @@ public class PlayerSpecial : MonoBehaviour
         var catalog = EquipmentCatalog.Instance;
         if (catalog == null) return null;
         if (GetComponent<RapidFire>() != null) return catalog.FindSpecial("rapid_fire");
-        if (GetComponent<HealSpecial>() != null) return catalog.FindSpecial("field_mending");
+        if (GetComponent<HealSpecial>() != null) return catalog.FindSpecial("field_healing");
         return null;
     }
 
@@ -80,7 +90,7 @@ public class PlayerSpecial : MonoBehaviour
 
     private void SpecialTriggerCheck()
     {
-        if (!specialBarFilled || specialAction == null)
+        if (!InputEnabled || !specialBarFilled || specialAction == null)
             return;
 
         if (!specialAction.action.triggered) return;
@@ -180,14 +190,14 @@ public class PlayerSpecial : MonoBehaviour
         if (_currentSpecial >= maxSpecial)
         {
             // Only play multiFull sound if bar wasn't already filled
-            if (previousSpecial < maxSpecial)
+            if (previousSpecial < maxSpecial && _specials.Count > 0)
             {
                 AudioManager.Instance.PlaySFX(AudioManager.Instance.multiFull);
             }
             
             _currentSpecial = maxSpecial;
 
-            if (!_specialBarFilledSfxPlayed && !streakEnded)
+            if (!_specialBarFilledSfxPlayed && !streakEnded && _specials.Count > 0)
             {
                 if (gameObject.CompareTag("PlayerLeft"))
                     AudioManager.Instance.PlaySFX(AudioManager.Instance.leftSpecial);

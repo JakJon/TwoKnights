@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10bc3ede9cc336a56e2e755601390c94, type: 3}
   m_Name: Near and Far 3
   m_EditorClassIdentifier:
-  waveName: Near and Far 3
+  waveName: Near and Far III
   weight: 1000
   isUnlocked: 0
   waveDescription: Two crates a shift, and the wrecks of the last one still coming
@@ -40,14 +40,17 @@ MonoBehaviour:
     leadIn: 0.75
     releaseInterval: 1.6
     batInterval: 5
+    projectileInterval: 9
   - label: second shift (13 carts)
     leadIn: 1.25
     releaseInterval: 1.2
     batInterval: 4.5
+    projectileInterval: 8
   - label: last shift (17 carts)
     leadIn: 1.25
     releaseInterval: 0.9
     batInterval: 4
+    projectileInterval: 7
   orbs:
     healthOrb: 0
     count: 2
@@ -55,3 +58,49 @@ MonoBehaviour:
     interval: 14
     from: {x: -12, y: 2}
     to: {x: 12, y: 2}
+  volleys:
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.2
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.52
+    restAfter: 3.5
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.72
+    restAfter: 3.5
+  - label: under and over, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 1
+    spacing: 0.3
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.54
+    restAfter: 3.5
+  - label: two down the right shaft
+    shape: 1
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.2
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.36
+    restAfter: 3.5
+  rockSpeed: 1.75

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f82b69b1b0f22de40b7e7d2eaf9b63d5, type: 3}
   m_Name: Night Hunt 1
   m_EditorClassIdentifier: 
-  waveName: Night Hunt 2
+  waveName: Night Hunt II
   weight: 1000
   isUnlocked: 0
   waveDescription: 'The pack strikes together: wolf low, bat high. Kill the stalker
@@ -26,3 +26,44 @@ MonoBehaviour:
   roundOneWolf: 0
   roundTwoWolf: 0
   roundThreeWolf: 1
+  batsPerStrike: 3
+  batSpacing: 0.7
+  ratsPerStrike: 1
+  wolvesPerStrike: 1
+  wolfSpacing: 1.2
+  volleys:
+  - label: two down the left
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.2
+    count: 3
+    fanDegrees: 60
+    salvo: 2
+    salvoSpread: 0.45
+    salvoStagger: 1.1
+    restAfter: 4.5
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.0
+    count: 3
+    fanDegrees: 60
+    salvo: 2
+    salvoSpread: 0.45
+    salvoStagger: 1.53
+    restAfter: 4.5
+  - label: under and over, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 1
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 2
+    salvoSpread: 0.45
+    salvoStagger: 1.15
+    restAfter: 4.5
+  projectileWindow: 58
+  rockSpeed: 1.6

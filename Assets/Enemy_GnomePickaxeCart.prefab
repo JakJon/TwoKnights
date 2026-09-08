@@ -253,9 +253,9 @@ MonoBehaviour:
   displayName: a Pickaxe Gnome
   directionThreshold: 0.01
   armDelay: 5
-  throwCooldown: 9
-  throwCooldownTwoLeft: 4.5
-  throwCooldownOneLeft: 3
+  throwCooldown: 6
+  throwCooldownTwoLeft: 3
+  throwCooldownOneLeft: 2
   throwOffset: {x: 0, y: 0.2}
   throwSound:
     clip: {fileID: 8300000, guid: 4fac13e93fd02ae4bb7fdf27ee3efe16, type: 3}

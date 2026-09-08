@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f63b6399a5b391ce7a68be01483f175, type: 3}
   m_Name: Bits and Pieces 3
   m_EditorClassIdentifier: 
-  waveName: Bits and Pieces 3
+  waveName: Bits and Pieces III
   weight: 1000
   isUnlocked: 0
   waveDescription: More riders than powder now. The tail of a shift comes down uncovered.
@@ -53,3 +53,73 @@ MonoBehaviour:
     interval: 14
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
+  ogres:
+    label: 8 down and up the empty middle
+    count: 4
+    firstAt: 6
+    interval: 5
+    fireEveryNth: 3
+    entries:
+    - label: down the empty middle, left of centre
+      at: {x: -4, y: 8}
+      mark: 1
+    - label: up the empty middle, right of centre
+      at: {x: 4, y: -8}
+      mark: 2
+    - label: up the empty middle, left of centre
+      at: {x: -4, y: -8}
+      mark: 1
+    - label: down the empty middle, right of centre
+      at: {x: 4, y: 8}
+      mark: 2
+    startOnRight: 0
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.85
+    count: 4
+    fanDegrees: 65
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 4
+  - label: two down the right shaft
+    shape: 1
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.36
+    restAfter: 3.5
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.85
+    count: 4
+    fanDegrees: 65
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.11
+    restAfter: 4
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.49
+    restAfter: 3.5
+  projectileWindow: 32
+  rockSpeed: 1.75

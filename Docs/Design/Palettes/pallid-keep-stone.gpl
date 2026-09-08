@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Pallid Keep - Stone (masonry)
+Columns: 4
+# Fallen pillars, broken statuary, rubble. Deliberately LESS saturated than the floor — cut stone reads as cut stone only if it is greyer than what it sits on.
+ 30  36  52	stone-1 1e2434
+ 48  57  79	stone-2 30394f
+ 74  86 114	stone-3 4a5672
+106 121 154	stone-4 6a799a

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int version = 9;
+    public int version = 10;
     // The name shown on this file's bar in the file select. Set once, at the
     // moment the file is created; there is no rename.
     public string profileName = "";
@@ -30,17 +30,24 @@ public class SaveData
     // spending must not reduce it — this is a record of what the file has found,
     // and it is what the file select shows.
     public int totalCrystalsEarned = 0;
-    // Equipment slots PER KNIGHT, not in total. The Crimson Twins quest is the
-    // one thing that raises this, to 2.
+    // Equipment slots PER KNIGHT, not in total. Two things raise it: the Crimson
+    // Twins quest, and buying one in the camp shop. Both add ONE, so a player who
+    // does both carries three.
     public int equipmentSlots = 1;
-    // Special slots PER KNIGHT. The Gold Cart quest raises this to 2, and a
-    // knight with two fires BOTH on one full bar — see PlayerSpecial.
+    // Special slots PER KNIGHT. The Gold Cart quest and the shop each add one,
+    // and a knight with two fires BOTH on one full bar — see PlayerSpecial.
     public int specialSlots = 1;
+    // Whether the shop's slot purchases have been made. The counts above already
+    // hold the effect; these only exist so the shop can mark the row bought and
+    // refuse to sell the same slot twice — a quest-granted slot must not read as
+    // a purchase, so this cannot be derived from the counts. See SlotShop.
+    public bool boughtEquipmentSlot = false;
+    public bool boughtSpecialSlot = false;
     // Every equipment item and special the player owns, quest-granted or bought.
     // Owning is separate from equipping: buying never auto-equips.
     public List<string> ownedEquipment = new List<string>();
     // A new file starts with the two stock specials already in their slots: the
-    // left knight fires Rapid Fire, the right one mends. They resolved that way
+    // left knight fires Rapid Fire, the right one heals. They resolved that way
     // anyway through PlayerSpecial's prefab fallback, but writing them down means
     // the camp shows a filled special slot on the first visit rather than an
     // empty one. A loaded save replaces this list wholesale, so existing files
@@ -48,7 +55,7 @@ public class SaveData
     public List<KnightLoadout> loadouts = new List<KnightLoadout>
     {
         new KnightLoadout { knightId = "left", specials = new List<string> { "rapid_fire" } },
-        new KnightLoadout { knightId = "right", specials = new List<string> { "field_mending" } },
+        new KnightLoadout { knightId = "right", specials = new List<string> { "field_healing" } },
     };
     // Quest ids the player has actually opened in the log. A quest that is
     // unlocked but absent here is what lights the notification dot.
@@ -64,6 +71,12 @@ public class SaveData
     // Equipment ids the player has actually looked at. Anything owned but absent
     // here lights the Equipment dot, same rule as seenQuests.
     public List<string> seenEquipment = new List<string>();
+
+    // --- Tutorial (v10) ---
+    // False on a brand-new file, which is what sends it into the tutorial instead
+    // of the camp (see TutorialRun.TryBegin). Written true only when the tutorial
+    // actually finishes, so quitting part-way through means it plays again.
+    public bool tutorialCompleted = false;
 }
 
 [Serializable]
@@ -85,6 +98,11 @@ public class MapRecord
     public bool unlocked;
     public bool gateCleared;
     public bool trueCleared;
+
+    // Most waves ever CLEARED on this map in one run. Separate from the save's
+    // single furthestWave, which is the whole file's best across every map — the
+    // level select needs to say how deep this map in particular has been run.
+    public int furthestWave;
 }
 
 [Serializable]

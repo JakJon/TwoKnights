@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1f5162858ac1404ca117b4d454c8b5e, type: 3}
   m_Name: Suppressing Fire 2
   m_EditorClassIdentifier: 
-  waveName: Suppressing Fire 2
+  waveName: Suppressing Fire II
   weight: 600
   isUnlocked: 0
   waveDescription: Sweeps to track, then reversals to punish the tracking.

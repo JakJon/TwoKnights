@@ -1,0 +1,139 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d01e11683f1a00b433a57226ae4cbf63, type: 3}
+  m_Name: Neighbours 4
+  m_EditorClassIdentifier:
+  waveName: Neighbours IV
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Seven loads, six beasts, and barely any road at all.
+  unlockedAfterXWaves: 12
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: dd71bd9bb1b61790228eeb033eb6b897, type: 2}
+  eastboundRun: 0
+  westboundRun: 1
+  crates:
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  crateCount: 7
+  crateInterval: 3.5
+  firstCrateAt: 1
+  wolves: 10
+  wolfInterval: 2.5
+  firstWolfAt: 5
+  packOrder:
+  - 0
+  - 2
+  courseDistance: 20
+  courseOffset: 1.2
+  courseLeadIn: 6
+  courseReversals: 0
+  flanks:
+  - label: five from each edge
+    fromTop: 3
+    fromBottom: 3
+    firstAt: 6
+    interval: 0.9
+    ratTypes:
+    - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+    - {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 16
+    interval: 16
+    from: {x: -12, y: 0.5}
+    to: {x: 12, y: 0.5}
+  ogres:
+    label: 8 vertically across both haul roads
+    count: 4
+    firstAt: 5
+    interval: 4.5
+    fireEveryNth: 3
+    entries:
+    - label: up across both haul roads, right
+      at: {x: 5, y: -8}
+      mark: 2
+    - label: up across both haul roads, left
+      at: {x: -5, y: -8}
+      mark: 1
+    - label: down across both haul roads, right
+      at: {x: 5, y: 8}
+      mark: 2
+    - label: down across both haul roads, left
+      at: {x: -5, y: 8}
+      mark: 1
+    startOnRight: 1
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: over and under, left
+    shape: 3
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.15
+    restAfter: 3
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.23
+    restAfter: 2.8
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.8
+    count: 4
+    fanDegrees: 65
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.2
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3
+  - label: both at once, from under
+    shape: 2
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.35
+    restAfter: 2.8
+  projectileWindow: 38
+  rockSpeed: 1.75

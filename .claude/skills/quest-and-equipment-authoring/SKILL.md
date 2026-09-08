@@ -292,6 +292,27 @@ cares about.
 shop and the equipment screen. Never put mechanics in `description`; several early items
 did and read as instructions rather than colour.
 
+### Never print world units to the player
+
+This holds for every player-facing string in the game — equipment `effect`, upgrade
+`description`, and every `stats` `valueText`/`labelText`, in `Assets/Equipment/` and
+`Assets/Upgrades/` alike.
+
+A Unity world unit means nothing to someone holding a controller. Text like `1.6u`,
+`2.3 units`, or `BURST RADIUS 2.3u` is a number the player cannot check against anything
+they can see, so it reads as noise and it dates the moment the value is retuned.
+
+- **Tier one states the thing exists**, without a size. "Your sword swings can throw off a
+  burst of cold." No radius line at all.
+- **Later tiers state the change as a percentage**, e.g. `44%` / `LARGER BURST`,
+  `20%` / `LONGER REACH`. A player can feel "bigger than what I had"; they cannot feel
+  "2.3".
+- **If a tier does not grow the size, it gets no size line.** Repeating the previous
+  tier's number reads as a gain that isn't there.
+
+Units are fine in the places players never see: C# comments, `[Tooltip]` strings, and the
+design docs under `Docs/Design/`. The rule is about what reaches the screen.
+
 ### Ownership and equipping
 
 `Loadout` is static and save-backed. Equipment is **exclusive across knights** — you own

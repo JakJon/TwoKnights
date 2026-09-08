@@ -65,6 +65,29 @@ public class PoisonCloud : MonoBehaviour
         return cloud;
     }
 
+    // A cloud whose size and lifetime the CALLER states, rather than picking one of
+    // the two Miasma levels. Vial Throw wants a cloud that is neither: a Miasma
+    // level 1 puff is gone in three seconds and a level 2 lingers ten and covers
+    // two units, and a vial arrives every four or five shots, so it wants
+    // something in between that it can state itself.
+    //
+    // `drift` is world units per second the puff carries on at, and which way. Zero
+    // leaves it where it was made. A vial passes its own heading, so the venom keeps
+    // going the way it was thrown rather than stopping dead where the glass broke.
+    public static PoisonCloud SpawnPuff(Vector2 position, float radius, float duration,
+        string ownerTag, Vector2 drift = default)
+    {
+        var cloudObject = new GameObject("PoisonCloud");
+        cloudObject.transform.position = position;
+        var cloud = cloudObject.AddComponent<PoisonCloud>();
+        cloud.radius = Mathf.Max(0.2f, radius);
+        cloud.duration = Mathf.Max(0.2f, duration);
+        cloud.ownerTag = ownerTag;
+        cloud.velocity = drift;
+        cloud.BuildCloudParticles();
+        return cloud;
+    }
+
     // One-shot radial pop for Plaguebringer bursts; cleans itself up
     public static void SpawnBurstEffect(Vector2 position)
     {

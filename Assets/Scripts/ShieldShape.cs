@@ -10,9 +10,14 @@ using UnityEngine;
 // and Curved Aegis each add it on demand and can arrive in either order.
 public class ShieldShape : MonoBehaviour
 {
-    // Mirrors the authored shield.aseprite: a 6x32 px bar sitting 1 px outboard of the
-    // canvas centre, imported at 32 px/unit. At length 1 with no curve the generated
-    // sprite reproduces it pixel for pixel, so an unupgraded shield never shifts.
+    // Mirrors the authored shield sprites: a 6x32 px bar sitting 1 px outboard of the
+    // canvas centre, imported at 32 px/unit. At length 1 with no curve the body colour
+    // and the whole emblem — the knight's band and the gold diamond around it — come
+    // out pixel for pixel, so a reshaped shield still reads as that knight's rather
+    // than turning into an anonymous slab. The last three rows at each tip are close
+    // but not identical: the authored bar tapers 4-5-6 px wide and carries eight bevel
+    // dots there, where the generated cap goes 4-6 and has none. Nothing can be done
+    // about that from here — the tips are wherever the upgrades put them.
     private const float PixelsPerUnit = 32f;
     private const float BarThicknessPixels = 6f;
     private const float BarLengthPixels = 32f;
@@ -22,8 +27,24 @@ public class ShieldShape : MonoBehaviour
     private const int PaddingPixels = 2;
 
     private static readonly Color32 OutlineColor = new Color32(0, 0, 0, 255);
-    private static readonly Color32 FillColor = new Color32(69, 40, 60, 255);
+    private static readonly Color32 BodyColor = new Color32(48, 57, 79, 255);      // #30394F
+    private static readonly Color32 TrimColor = new Color32(212, 162, 74, 255);    // #D4A24A
+    private static readonly Color32 LeftBandColor = new Color32(156, 56, 40, 255); // #9C3828
+    private static readonly Color32 RightBandColor = new Color32(46, 111, 216, 255); // #2E6FD8
     private static readonly Color32 TransparentColor = new Color32(0, 0, 0, 0);
+
+    // The authored shield carries a diamond of colour at its midpoint: a band in the
+    // knight's own colour, tipped above and below with gold. In the bar's own frame
+    // that figure is exactly |along| + |across| <= 4, with the outermost ring of the
+    // diamond gold and everything inside it the band — which is why two comparisons
+    // reproduce shield.aseprite here rather than a lookup table. It is anchored to the
+    // midpoint and sized in pixels, so a longer shield carries the same emblem rather
+    // than a stretched one.
+    private const float BandRadiusPixels = 3.5f;
+    private const float TrimRadiusPixels = 4.5f;
+
+    // Which knight this shield hangs off, resolved once from the ancestor tag.
+    private Color32 _bandColor = LeftBandColor;
 
     // Arc sampling: enough segments that the collider outline reads as a smooth bow
     private const int ArcSamples = 24;
@@ -87,6 +108,7 @@ public class ShieldShape : MonoBehaviour
 
         _renderer = GetComponent<SpriteRenderer>();
         _capsule = GetComponent<CapsuleCollider2D>();
+        _bandColor = ResolveBandColor();
 
         if (_capsule != null)
         {
@@ -101,6 +123,21 @@ public class ShieldShape : MonoBehaviour
             _colliderHalfThickness = BarThicknessPixels * 0.5f / PixelsPerUnit;
             _colliderCentre = new Vector2(BarOutboardOffsetPixels / PixelsPerUnit, 0f);
         }
+    }
+
+    // The shield hangs somewhere under its knight, so the tag is read off whichever
+    // ancestor carries one. Falling back to red matches the shield art as it stood
+    // before the right knight was repainted, which is the least surprising answer for
+    // anything that ends up holding a shield without being a tagged knight.
+    private Color32 ResolveBandColor()
+    {
+        for (Transform t = transform; t != null; t = t.parent)
+        {
+            if (t.CompareTag("PlayerRight")) return RightBandColor;
+            if (t.CompareTag("PlayerLeft")) return LeftBandColor;
+        }
+
+        return LeftBandColor;
     }
 
     private void Rebuild()
@@ -141,10 +178,27 @@ public class ShieldShape : MonoBehaviour
             for (int i = 0; i < width; i++)
             {
                 float x = originX + i + 0.5f;
-                float distance = BarDistance(new Vector2(x, y), halfLength, radius, halfThickness);
-                pixels[j * width + i] = distance > 0f
-                    ? TransparentColor
-                    : (distance > -OutlinePixels ? OutlineColor : FillColor);
+                float distance = BarDistance(new Vector2(x, y), halfLength, radius, halfThickness,
+                                             out float across, out float along);
+
+                Color32 colour;
+                if (distance > 0f)
+                {
+                    colour = TransparentColor;
+                }
+                else if (distance > -OutlinePixels)
+                {
+                    colour = OutlineColor;
+                }
+                else
+                {
+                    float diamond = Mathf.Abs(along) + Mathf.Abs(across);
+                    colour = diamond <= BandRadiusPixels ? _bandColor
+                           : diamond <= TrimRadiusPixels ? TrimColor
+                           : BodyColor;
+                }
+
+                pixels[j * width + i] = colour;
             }
         }
 
@@ -172,8 +226,15 @@ public class ShieldShape : MonoBehaviour
     // caps come out identical.
     private static float BarDistance(Vector2 point, float halfLength, float radius, float halfThickness)
     {
-        float across, along;
+        return BarDistance(point, halfLength, radius, halfThickness, out _, out _);
+    }
 
+    // The unrolled coordinates come back out because the rasteriser paints the band and
+    // its gold trim in this frame — the emblem has to bow with the bar, not sit in a
+    // fixed rectangle of the bitmap.
+    private static float BarDistance(Vector2 point, float halfLength, float radius, float halfThickness,
+                                     out float across, out float along)
+    {
         if (radius <= 0f)
         {
             across = point.x - BarOutboardOffsetPixels;

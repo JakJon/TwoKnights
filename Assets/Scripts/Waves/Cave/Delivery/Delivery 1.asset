@@ -37,7 +37,10 @@ MonoBehaviour:
     spacing: 1
     count: 3
     fanDegrees: 60
-    restAfter: 3.5
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 2.09
+    restAfter: 4
   - label: answer, right
     shape: 0
     rightKnight: 1
@@ -45,7 +48,10 @@ MonoBehaviour:
     spacing: 1
     count: 3
     fanDegrees: 60
-    restAfter: 3.5
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 1.78
+    restAfter: 4
   - label: two down the left shaft
     shape: 1
     rightKnight: 0
@@ -53,6 +59,9 @@ MonoBehaviour:
     spacing: 1.2
     count: 3
     fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 1.32
     restAfter: 4
   - label: over and under, right
     shape: 3
@@ -61,8 +70,42 @@ MonoBehaviour:
     spacing: 1.4
     count: 3
     fanDegrees: 60
-    restAfter: 4
-  projectileWindow: 26
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.73
+    restAfter: 4.5
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 55
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.33
+    restAfter: 4.5
+  projectileWindow: 32
+  flanks:
+  - label: first pair
+    fromTop: 2
+    fromBottom: 0
+    firstAt: 7
+    interval: 1.1
+    ratTypes:
+    - {fileID: 7458023765239434115, guid: 6070b81a7ae0ab44bb9c66a15c3f0166, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  - label: second pair
+    fromTop: 2
+    fromBottom: 0
+    firstAt: 17
+    interval: 1.1
+    ratTypes:
+    - {fileID: 7458023765239434115, guid: 6070b81a7ae0ab44bb9c66a15c3f0166, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  freightWaitsOnTheVermin: 1
   orbs:
     healthOrb: 0
     count: 1
@@ -70,3 +113,26 @@ MonoBehaviour:
     interval: 12
     from: {x: -12, y: -4.5}
     to: {x: 12, y: -4.5}
+  ogres:
+    label: 3 up off the empty floor and in past the horseshoe
+    count: 2
+    firstAt: 8
+    interval: 7
+    fireEveryNth: 3
+    entries:
+    - label: up through the empty floor, left of the shaft lane
+      at: {x: -6, y: -8}
+      mark: 1
+    - label: up through the empty floor, right of the shaft lane
+      at: {x: 6, y: -8}
+      mark: 2
+    - label: in past the head of the left climb
+      at: {x: -11.5, y: 5}
+      mark: 1
+    - label: in past the foot of the right descent
+      at: {x: 11.5, y: -4}
+      mark: 2
+    startOnRight: 0
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1

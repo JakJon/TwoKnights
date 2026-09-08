@@ -15,7 +15,7 @@ using UnityEngine;
 public class SecondWindUpgrade : BaseUpgrade
 {
     [SerializeField] private int damageToll = 60; // damage absorbed per window
-    [SerializeField] private float invulnerableSeconds = 5f;
+    [SerializeField] private float invulnerableSeconds = 6f;
     [SerializeField] private int healAmount = 0; // rank II also heals
 
     public override string ChainName => "Second Wind";

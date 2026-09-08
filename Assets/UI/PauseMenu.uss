@@ -27,17 +27,32 @@
     picking-mode: ignore;
 }
 
+/* The landscape container: loadout column, menu card, loadout column. This is
+   the card — one background spanning the whole panel, so the lists sit ON it
+   rather than out on the scrim beside it. */
 .pause-panel {
-    flex-direction: column;
-    align-items: stretch;
-    width: 34%;
-    min-width: 420px;
-    max-width: 800px;
-    padding: 30px 36px 34px 36px;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    width: 74%;
+    max-width: 1100px;
+    padding: 26px 30px 30px 30px;
     border-radius: 6px;
     background-color: rgb(33, 26, 16);
     border-width: 1px;
     border-color: rgb(58, 50, 34);
+}
+
+/* Centre section. Carries no fill of its own — the panel behind it does. */
+.pause-card {
+    flex-direction: column;
+    align-items: stretch;
+    align-self: stretch;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 47%;
+    min-width: 420px;
+    padding: 4px 30px 8px 30px;
 }
 
 .pause-title {
@@ -64,26 +79,19 @@
     margin: 0 8px 18px 8px;
 }
 
-/* ---- Loadout: each knight's owned upgrades, one row per chain ---- */
-
-.pause-loadout {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 18px;
-}
+/* ---- Loadout: each knight's owned upgrades, one row per chain ----
+   The column is a fixed height on purpose. Its detail readout fills whatever
+   the list leaves over, so selecting a long-winded upgrade cannot grow the
+   side and shove the centre card around. */
 
 .loadout-column {
     flex-direction: column;
     align-items: stretch;
     flex-grow: 1;
     flex-basis: 0;
-}
-
-.loadout-divider {
-    width: 1px;
-    background-color: rgb(58, 50, 34);
-    margin: 2px 18px;
+    min-width: 0;
+    height: 430px;
+    margin: 0 12px;
 }
 
 .loadout-title {
@@ -92,7 +100,15 @@
     letter-spacing: 2px;
     color: rgb(212, 162, 74);
     -unity-text-align: middle-center;
+    white-space: normal;
     margin-bottom: 8px;
+}
+
+/* caps at ~7 rows; past that the list scrolls and .loadout-more appears */
+.loadout-scroll {
+    flex-grow: 0;
+    flex-shrink: 0;
+    max-height: 224px;
 }
 
 .loadout-list {
@@ -112,6 +128,24 @@
     background-color: rgb(42, 34, 21);
     border-left-width: 3px;
     border-left-color: rgb(58, 50, 34);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-top-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
+    transition-property: background-color, color, border-color;
+    transition-duration: 0.12s;
+}
+
+/* gold owns the highlight here too, matching the buttons */
+.loadout-chip:hover,
+.loadout-chip:focus {
+    background-color: rgb(51, 40, 21);
+    color: rgb(255, 248, 230);
+    border-top-color: rgb(212, 162, 74);
+    border-right-color: rgb(212, 162, 74);
+    border-bottom-color: rgb(212, 162, 74);
 }
 
 .loadout-chip.order--serpent { border-left-color: rgb(126, 179, 91); }
@@ -119,6 +153,7 @@
 .loadout-chip.order--ember { border-left-color: rgb(226, 120, 63); }
 .loadout-chip.order--guardian { border-left-color: rgb(158, 168, 178); }
 .loadout-chip.order--dawn { border-left-color: rgb(240, 200, 170); }
+.loadout-chip.order--frigid { border-left-color: rgb(120, 200, 224); }
 
 /* placeholder when a knight has taken nothing yet */
 .loadout-empty {
@@ -129,15 +164,123 @@
     padding: 6px 0;
 }
 
+/* "there is more below" nudge; code shows it only while the list can scroll down */
+.loadout-more {
+    font-size: 10px;
+    color: rgb(212, 162, 74);
+    -unity-text-align: middle-center;
+    height: 14px;
+    display: none;
+}
+
+/* thin, chrome-free scrollbar — the list should not look like a form field */
+.loadout-scroll .unity-scroller--vertical {
+    width: 5px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    margin-left: 4px;
+}
+
+.loadout-scroll .unity-scroller__low-button,
+.loadout-scroll .unity-scroller__high-button {
+    display: none;
+}
+
+.loadout-scroll .unity-scroller--vertical .unity-base-slider--vertical {
+    width: 5px;
+    min-width: 5px;
+    margin: 0;
+}
+
+.loadout-scroll .unity-base-slider__tracker {
+    background-color: rgb(42, 34, 21);
+    border-width: 0;
+    border-radius: 3px;
+    margin: 0;
+}
+
+.loadout-scroll .unity-base-slider__dragger {
+    width: 5px;
+    min-width: 5px;
+    left: 0;
+    background-color: rgb(97, 82, 51);
+    border-width: 0;
+    border-radius: 3px;
+}
+
+/* ---- Detail readout: the focused upgrade's own words and numbers ----
+   Deliberately undressed — no border, no fill, ever. It reads as text printed
+   on the scrim beneath its list, not as a second panel. */
+
+.loadout-detail {
+    flex-direction: column;
+    align-items: stretch;
+    flex-grow: 1;
+    overflow: hidden;
+    margin-top: 8px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+
+.detail-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(236, 228, 211);
+    -unity-text-align: middle-left;
+    white-space: normal;
+    margin-bottom: 4px;
+}
+
+.detail-name.order--serpent { color: rgb(126, 179, 91); }
+.detail-name.order--shadow { color: rgb(129, 128, 214); }
+.detail-name.order--ember { color: rgb(226, 120, 63); }
+.detail-name.order--guardian { color: rgb(158, 168, 178); }
+.detail-name.order--dawn { color: rgb(240, 200, 170); }
+.detail-name.order--frigid { color: rgb(120, 200, 224); }
+
+.detail-desc {
+    font-size: 11px;
+    color: rgb(167, 156, 133);
+    -unity-text-align: upper-left;
+    white-space: normal;
+    margin-bottom: 6px;
+}
+
+.detail-stats {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.detail-stat {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1.5px;
+    -unity-text-align: middle-left;
+    white-space: normal;
+    margin: 1px 0;
+}
+
+.detail-stat--buff { color: rgb(107, 191, 165); }
+.detail-stat--bane { color: rgb(196, 74, 74); }
+
 .pause-body {
     flex-direction: column;
     align-items: stretch;
+    flex-grow: 1;
 }
 
 .actions-container {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    flex-grow: 1;
+}
+
+/* The four run buttons share out the full height the loadout columns set. The
+   quit prompt deliberately keeps the centred packing it inherits above — that
+   one is a question, not a menu, and wants to read as a block. */
+#main-actions {
+    justify-content: space-between;
 }
 
 .menu-button {
@@ -207,3 +350,10 @@
     min-width: 150px;
     margin: 0 8px;
 }
+
+/* ---------- knight identity ----------
+   Red for the left knight, blue for the right, matching the plume each one wears
+   on the field. Kept in step with KnightNames.cs, which tints the same two names
+   when a label is built in code instead of authored here. */
+.knight--left { color: rgb(209, 83, 63); }
+.knight--right { color: rgb(73, 133, 230); }

@@ -68,6 +68,9 @@ public class NearAndFar : BaseWave
 
         [Tooltip("Seconds between this shift's bats. The first one is held back by this much as well, so the carts are always the thing that arrives first.")]
         public float batInterval = 5f;
+
+        [Tooltip("Seconds of quiet between volleys down the shafts while this shift is alive. 0 turns the shafts off for the shift — which also makes leaving it up free, so use it sparingly.")]
+        public float projectileInterval = 5f;
     }
 
     [Header("Track")]
@@ -109,6 +112,13 @@ public class NearAndFar : BaseWave
     [Header("Shifts")]
     [Tooltip("In order — one entry per shift, and the entry is the shift's PACING only. Each one waits for the last to be dead before it sets off, and each is one cart per kind heavier than the one before.")]
     [SerializeField] private List<Ambush> ambushes = new List<Ambush>();
+
+    [Header("Rock")]
+    [Tooltip("Cycled in order as the shafts work. The loop already owns straight overhead and straight underneath — the whole wave is a guard flipping between the two — so the rock is what makes that flip cost something: it arrives from ABOVE while the near track is running point-blank beneath you.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("World units per second for this wave's rock. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 1.75f;
 
     [Header("Orbs")]
     [Tooltip("Crosses the band between the shields and the far track by default — the one stripe of the board no cart occupies, so an orb is never a shot the ring eats. Keep it off y=-1..-2 and y=4..5, which is where carts ride.")]
@@ -161,6 +171,13 @@ public class NearAndFar : BaseWave
             Coroutine carts = spawner.StartCoroutine(ReleaseCarts(rails, ambush, i, layDuration));
             Coroutine bats = spawner.StartCoroutine(ReleaseBats(spawner, ambush, layDuration));
 
+            // The shift is the clock: the shafts work for exactly as long as it
+            // is alive, so a gnome left up on the far track is rock the players
+            // keep paying for. Not waited on — it ends itself when the shift does.
+            Coroutine shafts = ambush.projectileInterval > 0f
+                ? spawner.StartCoroutine(WorkTheShafts(spawner, ambush.projectileInterval))
+                : null;
+
             yield return carts;
             yield return bats;
 
@@ -181,6 +198,8 @@ public class NearAndFar : BaseWave
             MarkAmbushReleased();
 
             yield return WaitForAmbushClear();
+
+            if (shafts != null) spawner.StopCoroutine(shafts);
         }
 
         // Orbs already on the board finish their crossing on their own; what stops
@@ -367,5 +386,20 @@ public class NearAndFar : BaseWave
     {
         if (list == null || list.Count == 0) return null;
         return list[cursor++ % list.Count];
+    }
+
+    private IEnumerator WorkTheShafts(Spawner spawner, float interval)
+    {
+        if (volleys == null || volleys.Count == 0) yield break;
+
+        float wait = Mathf.Max(0.1f, interval);
+        int shot = 0;
+
+        while (!IsAmbushClear())
+        {
+            RockVolley volley = volleys[shot++ % volleys.Count];
+            float busy = RockVolley.Fire(spawner, volley, rockSpeed);
+            yield return new WaitForSeconds(busy + wait);
+        }
     }
 }

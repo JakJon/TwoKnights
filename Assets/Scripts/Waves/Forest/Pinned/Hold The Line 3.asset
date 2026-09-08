@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08af284506c317e4787736b4b2348b1c, type: 3}
   m_Name: Hold The Line 3
   m_EditorClassIdentifier: 
-  waveName: Hold the Line 3
+  waveName: Hold the Line III
   weight: 600
   isUnlocked: 0
   waveDescription: Two shifts, black wolves, and a bat that turns your hands against

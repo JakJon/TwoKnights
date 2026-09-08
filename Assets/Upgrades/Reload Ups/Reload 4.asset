@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38a3dc441f1152c49aa86408609cb488, type: 3}
   m_Name: Reload 4
   m_EditorClassIdentifier: 
-  upgradeName: Semi-Automatic Bow
+  upgradeName: Semi-Automatic Bow IV
   description: Reloading is a thing of the past.
   weight: 3
   order: 0

@@ -20,7 +20,7 @@
                 </ui:VisualElement>
                 <ui:Label name="left-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
             </ui:VisualElement>
-            <ui:VisualElement class="bar-row" picking-mode="Ignore">
+            <ui:VisualElement name="left-special-row" class="bar-row" picking-mode="Ignore">
                 <ui:VisualElement class="bar" picking-mode="Ignore">
                     <ui:VisualElement name="left-special-fill" class="bar-fill special-fill" picking-mode="Ignore" />
                     <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
@@ -37,7 +37,7 @@
                 </ui:VisualElement>
                 <ui:Label name="right-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
             </ui:VisualElement>
-            <ui:VisualElement class="bar-row" picking-mode="Ignore">
+            <ui:VisualElement name="right-special-row" class="bar-row" picking-mode="Ignore">
                 <ui:VisualElement class="bar" picking-mode="Ignore">
                     <ui:VisualElement name="right-special-fill" class="bar-fill special-fill" picking-mode="Ignore" />
                     <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />

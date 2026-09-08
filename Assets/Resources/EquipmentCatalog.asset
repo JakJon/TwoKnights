@@ -29,6 +29,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 06d8afa2adb17177e168f73751095364, type: 2}
   - {fileID: 11400000, guid: f8ffef731789d9d1003569ac51903f61, type: 2}
   - {fileID: 11400000, guid: 47abd0fbf0c5381874f96db5cf41f889, type: 2}
+  - {fileID: 11400000, guid: 633bd4f659d5ee241a817f904768059b, type: 2}
+  - {fileID: 11400000, guid: 5dd8d41634b36ef44ac302ad3075e0f3, type: 2}
+  - {fileID: 11400000, guid: d31f94a4547e0354d8802760479f8d60, type: 2}
+  - {fileID: 11400000, guid: 8e2d15159636ccf4abfbe57f976b2b53, type: 2}
+  - {fileID: 11400000, guid: fb7f548dc9f109443b3e699db053637d, type: 2}
+  - {fileID: 11400000, guid: b4912a0451635b1429b9159b954a4c12, type: 2}
   specials:
   - {fileID: 11400000, guid: c541ada727aea81af93bf6099e812189, type: 2}
   - {fileID: 11400000, guid: 37e0630970ad001734f70ac6489848b5, type: 2}
@@ -36,3 +42,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f7f87468150c7038469e392a689cac45, type: 2}
   crystalIcon: {fileID: -4542957706443726385, guid: ec96d62d4785de449b8f68077febed3d, type: 3}
   equipmentSlotIcon: {fileID: 1783469149218365875, guid: ce95f3f65d3414e4dba4a1969caddd8f, type: 3}
+  specialSlotIcon: {fileID: 0}

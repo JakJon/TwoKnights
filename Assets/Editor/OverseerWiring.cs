@@ -100,7 +100,7 @@ public static class OverseerWiring
         }
 
         var so = new SerializedObject(boss);
-        Set(so, "health", 3000f);
+        Set(so, "health", 2500f);
         SetString(so, "displayName", "The Overseer");
         SetString(so, "bossTitle", "The Overseer");
         SetRef(so, "wreckPrefab", null);            // a boss does not leave a wreck rolling
@@ -120,7 +120,6 @@ public static class OverseerWiring
         Set(so, "roarSeconds", 2f);
         Set(so, "lastStandSpeedScale", 1.5f);
         Set(so, "lastStandThrowScale", 0.5f);
-        Set(so, "lastStandBombSpread", 1f);
         so.ApplyModifiedProperties();
 
         ApplyDarkArt(instance);
@@ -128,7 +127,7 @@ public static class OverseerWiring
         GameObject saved = PrefabUtility.SaveAsPrefabAsset(instance, BossPrefabPath);
         Object.DestroyImmediate(instance);
 
-        Debug.Log($"[OverseerWiring] Boss prefab -> {BossPrefabPath} (3000 HP, black gnome / gold cart).");
+        Debug.Log($"[OverseerWiring] Boss prefab -> {BossPrefabPath} (2500 HP, black gnome / gold cart).");
         return saved;
     }
 

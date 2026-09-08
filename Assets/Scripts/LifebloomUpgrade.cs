@@ -1,14 +1,14 @@
 using UnityEngine;
 
-// Dawn discipline: the kill door. Every Nth enemy this knight kills mends them.
+// Dawn discipline: the kill door. Every Nth enemy this knight kills heals them.
 // The cadence is COUNTED, never rolled — the player can watch it coming, the
 // same way Ember's Fireball lands on a beat you can count to. A chance-based
 // lifesteal would make the same average health feel like weather.
 [CreateAssetMenu(fileName = "LifebloomUpgrade", menuName = "Upgrades/Lifebloom")]
 public class LifebloomUpgrade : BaseUpgrade
 {
-    [SerializeField] private int killsPerMend = 12;
-    [SerializeField] private int mendAmount = 3;
+    [SerializeField] private int killsPerHeal = 12;
+    [SerializeField] private int healAmount = 3;
 
     public override string ChainName => "Lifebloom";
 
@@ -28,8 +28,8 @@ public class LifebloomUpgrade : BaseUpgrade
             boost = targetKnight.AddComponent<DawnBoost>();
         }
 
-        boost.SetLifebloom(killsPerMend, mendAmount);
+        boost.SetLifebloom(killsPerHeal, healAmount);
 
-        Debug.Log($"Applied Lifebloom to {targetKnight.name}: every {killsPerMend} kills mends {mendAmount}");
+        Debug.Log($"Applied Lifebloom to {targetKnight.name}: every {killsPerHeal} kills heals {healAmount}");
     }
 }

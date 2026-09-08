@@ -1,0 +1,7 @@
+GIMP Palette
+Name: Pallid Keep - Accents
+Columns: 3
+# Byte-for-byte identical to gilded-vigil-accents and amethyst-hollow-accents. Gold means "pickup" on every map; the moment that shifts per-biome the player has to relearn it.
+212 162  74	accent-gold d4a24a
+194 112  63	accent-leaf c2703f
+143 179 209	accent-sky 8fb3d1

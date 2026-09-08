@@ -22,6 +22,13 @@ public class PlayerShooter : MonoBehaviour
     public float cooldownTime = 1.5f;
     public bool rapidFireEnabled = false;
 
+    /// <summary>
+    /// Whether this knight's bow answers the trigger. Only the tutorial lowers
+    /// it, so it can hand the controls over one at a time; everything else in the
+    /// game leaves a knight's weapons live from the moment it is on the field.
+    /// </summary>
+    public bool InputEnabled { get; set; } = true;
+
     // No-cooldown window: shared by the RapidFire special and Thousand Cuts
     // (Shadow capstone). Never mutate cooldownTime for temporary effects — it's
     // the persistent, upgrade-modified value (Reload upgrades multiply it).
@@ -53,6 +60,7 @@ public class PlayerShooter : MonoBehaviour
         shootAction.action.Disable();
         _isHoldingButton = false;
         SetFireballChargeFx(false);
+        SetVialChargeFx(false);
     }
 
     // Ember tell: while the loaded shot is the fireball, the shield smoulders. The
@@ -87,11 +95,58 @@ public class PlayerShooter : MonoBehaviour
         _fireballChargeActive = active;
     }
 
+    // Serpent/Shadow tell: Zs drift off the shield while the loaded shot is the
+    // sleeping dart. Deliberately the same shape of promise as the fireball's
+    // smoulder above, and deliberately independent of it - when both are loaded
+    // the shield shows BOTH, because both are going to happen.
+    private void UpdateDartChargeFx()
+    {
+        SleepBoost sleepBoost = GetComponent<SleepBoost>();
+        if (sleepBoost == null || shield == null) return;
+
+        // SleepFx owns the lifetime: it raises the Zs when the dart is next and
+        // takes them off by itself the moment it isn't, so there is no enabled
+        // flag to keep in step here.
+        if (sleepBoost.NextShotIsDart) SleepFx.ShowShieldTell(shield.gameObject, sleepBoost);
+    }
+
+    // Serpent tell: the shield steams while the loaded shot is the vial. Same
+    // shape of promise as the fireball's smoulder and the dart's Zs, and
+    // deliberately independent of both - when several are loaded the shield shows
+    // all of them, because all of them are going to happen.
+    private ParticleSystem _vialChargeFx;
+    private bool _vialChargeActive;
+
+    private void UpdateVialChargeFx()
+    {
+        PoisonVialBoost vialBoost = GetComponent<PoisonVialBoost>();
+        bool shouldCharge = vialBoost != null && vialBoost.NextShotIsVial;
+
+        if (shouldCharge && _vialChargeFx == null && shield != null)
+        {
+            _vialChargeFx = PoisonFx.AttachShieldCharge(shield.gameObject);
+        }
+
+        SetVialChargeFx(shouldCharge);
+    }
+
+    private void SetVialChargeFx(bool active)
+    {
+        if (_vialChargeFx == null || active == _vialChargeActive) return;
+
+        var emission = _vialChargeFx.emission;
+        emission.enabled = active;
+        if (active) _vialChargeFx.Play();
+        _vialChargeActive = active;
+    }
+
     private void Update()
     {
         UpdateFireballChargeFx();
+        UpdateDartChargeFx();
+        UpdateVialChargeFx();
 
-        if (_canShoot && (_isHoldingButton || rapidFireEnabled))
+        if (InputEnabled && _canShoot && (_isHoldingButton || rapidFireEnabled))
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.playerProjectile);
             StartCoroutine(ShootProjectile());
@@ -124,6 +179,19 @@ public class PlayerShooter : MonoBehaviour
         GameObject projectile = Instantiate(prefabToFire, spawnPosition, spawnRotation);
         projectile.tag = gameObject.tag + "Projectile";
 
+        // Sleeping Dart. The counter runs on EVERY shot, independent of Ember: the
+        // two cadences are separate promises and neither gets to eat the other.
+        // When they land on the same shot the shield fires one of each - the
+        // fireball is the shot that was already leaving, and the dart goes out
+        // beside it rather than waiting its turn.
+        SleepBoost sleepBoost = GetComponent<SleepBoost>();
+        bool isDart = sleepBoost != null && sleepBoost.AdvanceShotAndCheckDart();
+        if (isDart && !isFireball)
+        {
+            projectile.AddComponent<SleepDartProjectile>()
+                      .Configure(sleepBoost.SleepSeconds, sleepBoost.DartSprite);
+        }
+
         // Check if this projectile should be poisoned
         PoisonTipBoost poisonTipBoost = GetComponent<PoisonTipBoost>();
         if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
@@ -152,6 +220,16 @@ public class PlayerShooter : MonoBehaviour
         // Read BEFORE the fireball multiplier so shadow arrows and shurikens keep
         // scaling off a normal arrow instead of spiking every Nth shot.
         int mainProjectileFinalDamage = playerProjectileComponent != null ? playerProjectileComponent.damage : 0;
+
+        // Frigid: every shot a Frigid knight fires carries the sheet. There is no
+        // roll and no counter - the Order is the one with no dice in it, so the
+        // only question is whether the knight has bought the arrow chain yet.
+        FrigidBoost frigidBoost = GetComponent<FrigidBoost>();
+        if (playerProjectileComponent != null && frigidBoost != null)
+        {
+            playerProjectileComponent.ownerFrigidBoost = frigidBoost;
+            if (frigidBoost.ArrowsChill) FrostFx.AttachArrowTrail(projectile);
+        }
 
         if (playerProjectileComponent != null && emberBoost != null)
         {
@@ -188,6 +266,28 @@ public class PlayerShooter : MonoBehaviour
             StartCoroutine(SpawnShadowArrows(shadowArrowBoost, projectile, shield.Direction, spawnRotation, gameObject.tag + "Projectile", poisonTipBoost, mainProjectileFinalDamage, emberBoost));
         }
 
+        // The dart riding alongside a fireball. Spawned here rather than above so
+        // it can be paid the same damage bonus the main shot just worked out.
+        if (isDart && isFireball)
+        {
+            SpawnCompanionDart(sleepBoost, spawnPosition, spawnRotation, mainProjectileFinalDamage,
+                               ninjaBoost, poisonTipBoost);
+        }
+
+        // Vial Throw (Serpent): the vials go out BESIDE the arrow, never instead of
+        // it. A vial is the knight's other hand - it costs the shot nothing, which
+        // is the whole reason a counter can promise one every fifth arrow without
+        // the promise also being a hole in the knight's damage.
+        //
+        // Its own counter, advanced on every shot and independent of Ember's and
+        // the dart's, for the reason SleepBoost states: three cadences that could
+        // eat each other are three promises the player cannot rely on.
+        PoisonVialBoost vialBoost = GetComponent<PoisonVialBoost>();
+        if (vialBoost != null && vialBoost.AdvanceShotAndCheckVial())
+        {
+            ThrowVials(vialBoost, spawnPosition);
+        }
+
         // Start lifetime countdown
         StartCoroutine(DestroyProjectile(projectile));
 
@@ -207,10 +307,32 @@ public class PlayerShooter : MonoBehaviour
             yield return null;
         }
         
-        // Hide reload bar and re-enable shooting
+        // Hide reload bar and re-enable shooting. Silently: the reload cry used to
+        // go off here, a second and a half after a shot with nothing on screen to
+        // explain it, and it read as the arrow making a noise on its way out. The
+        // bar coming back is the tell that the bow is ready.
         shield.SetReloadBarVisible(false);
-        AudioManager.Instance.PlaySFX(AudioManager.Instance.reload);
         _canShoot = true;
+    }
+
+    // Every vial of one throw, out at once. Thrown from the SHIELD rather than
+    // from the knight, and measured along the shield's facing, so "two units along
+    // the aim" means two units from where the player is already looking - the same
+    // frame of reference every other thing that leaves this knight uses.
+    private void ThrowVials(PoisonVialBoost boost, Vector2 from)
+    {
+        Sprite sprite = PoisonVialSprite.Current;
+        if (sprite == null) return;
+
+        Vector2 aim = shield.Direction;
+        var throws = boost.Throws;
+
+        for (int i = 0; i < throws.Count; i++)
+        {
+            PoisonVialBoost.Throw t = throws[i];
+            Vector2 direction = t.alongAim ? aim : -aim;
+            PoisonVial.Throw(sprite, from, direction, t.distance, gameObject.tag);
+        }
     }
 
     // Ember tuning knobs
@@ -231,6 +353,48 @@ public class PlayerShooter : MonoBehaviour
         fireball.blastDamage = Mathf.Max(1, baseDamage);
         fireball.ownerBoost = emberBoost;
         fireball.ownerTag = gameObject.tag;
+    }
+
+    // An ordinary arrow wearing the dart, sent out beside a fireball on the shot
+    // where both cadences came due. It is offset across the facing so the two
+    // leave as a readable pair instead of one hiding inside the other - and the
+    // fireball lobs slower anyway, so they separate on their own after that.
+    //
+    // Damage is the arrow's, not the fireball's: the dart is a normal shot that
+    // happens to put things to sleep, and paying it the fireball's multiplier
+    // would make the doubled-up shot the best damage in the game by accident.
+    private void SpawnCompanionDart(SleepBoost sleepBoost, Vector2 spawnPosition,
+                                    Quaternion spawnRotation, int arrowDamage,
+                                    NinjaBoost ninjaBoost, PoisonTipBoost poisonTipBoost)
+    {
+        Vector2 perpendicular = new Vector2(-shield.Direction.y, shield.Direction.x);
+        Vector2 dartSpawn = spawnPosition + perpendicular * 0.22f;
+
+        GameObject dart = Instantiate(playerProjectilePrefab, dartSpawn, spawnRotation);
+        dart.tag = gameObject.tag + "Projectile";
+        dart.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * projectileSpeed;
+
+        PlayerProjectile component = dart.GetComponent<PlayerProjectile>();
+        if (component != null)
+        {
+            component.damage = Mathf.Max(1, arrowDamage);
+            component.ownerNinjaBoost = ninjaBoost;
+            // The main shot is the one that drinks from the field; a second
+            // projectile absorbing the same cloud would pay the build twice
+            component.absorbsFieldEffects = false;
+            component.ownerFrigidBoost = GetComponent<FrigidBoost>();
+        }
+
+        // Its own poison roll, exactly as each shuriken gets one
+        if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
+        {
+            dart.AddComponent<PoisonProjectile>().ConfigureFromBoost(poisonTipBoost);
+        }
+
+        dart.AddComponent<SleepDartProjectile>()
+            .Configure(sleepBoost.SleepSeconds, sleepBoost.DartSprite);
+
+        StartCoroutine(DestroyProjectile(dart));
     }
 
     // Shuriken Fan: angled copies of the main arrow at 35% damage; each rolls
@@ -273,6 +437,9 @@ public class PlayerShooter : MonoBehaviour
                 comp.volley = volley;
             }
 
+            // Frigid rides every projectile the knight puts out, this one included
+            FrigidBoost shurikenFrigid = GetComponent<FrigidBoost>();
+
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
                 PoisonProjectile poison = shuriken.AddComponent<PoisonProjectile>();
@@ -294,6 +461,12 @@ public class PlayerShooter : MonoBehaviour
                 // Shurikens don't absorb fire/poison from the field — only the main shot does
                 projectileComponent.absorbsFieldEffects = false;
 
+                projectileComponent.ownerFrigidBoost = shurikenFrigid;
+                if (shurikenFrigid != null && shurikenFrigid.ArrowsChill)
+                {
+                    FrostFx.AttachArrowTrail(shuriken);
+                }
+
                 // Independent ignite roll per shuriken, mirroring the poison roll
                 if (emberBoost != null && emberBoost.ShouldIgnite())
                 {
@@ -313,6 +486,11 @@ public class PlayerShooter : MonoBehaviour
         
         if (projectile != null)
         {
+            // A fireball that reaches the end of its flight burns out; every other
+            // way one can end bursts it (see FireballProjectile.OnDestroy)
+            FireballProjectile fireball = projectile.GetComponent<FireballProjectile>();
+            if (fireball != null) fireball.MarkBurnedOut();
+
             Destroy(projectile);
         }
     }
@@ -348,6 +526,8 @@ public class PlayerShooter : MonoBehaviour
             shadowArrow.tag = projectileTag;
 
             // Independent poison chance per arrow
+            FrigidBoost shadowFrigid = GetComponent<FrigidBoost>();
+
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
                 PoisonProjectile shadowPoison = shadowArrow.AddComponent<PoisonProjectile>();
@@ -376,6 +556,7 @@ public class PlayerShooter : MonoBehaviour
                     comp.damage = scaledShadowDamage;
                     comp.ownerNinjaBoost = shadowNinjaBoost;
                     comp.ignitesOnHit = shadowIgnites;
+                    comp.ownerFrigidBoost = shadowFrigid;
                     // Shadow arrows don't absorb fire/poison from the field — only the main shot does
                     comp.absorbsFieldEffects = false;
                 }

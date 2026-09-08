@@ -1,0 +1,40 @@
+GIMP Palette
+Name: Pallid Keep - Environment (all 34)
+Columns: 5
+# The whole Map 3 environment in one palette: ground, wall, stone, grit, spectre, portal, accents.
+# Load this one to paint the backdrop; load a per-group file when you want a single ramp in front of you.
+# Aseprite equivalent: Assets/Graphics/palletes/keep_full.aseprite (Palette > options > Load palette from sprite).
+ 10  18  40	ground-1 0a1228
+ 17  28  60	ground-2 111c3c
+ 25  41  83	ground-3 192953
+ 36  58 110	ground-4 243a6e
+ 48  76 138	ground-5 304c8a
+  4   6  16	wall-1 040610
+  7  11  26	wall-2 070b1a
+ 11  17  38	wall-3 0b1126
+ 16  25  55	wall-4 101937
+ 30  36  52	stone-1 1e2434
+ 48  57  79	stone-2 30394f
+ 74  86 114	stone-3 4a5672
+106 121 154	stone-4 6a799a
+ 46  33  30	grit-1 2e211e
+ 72  51  42	grit-2 48332a
+101  72  55	grit-3 654837
+126  92  68	grit-4 7e5c44
+ 60  58  84	spectre-1 3c3a54
+108 104 138	spectre-2 6c688a
+168 166 196	spectre-3 a8a6c4
+238 240 250	spectre-4 eef0fa
+ 52  48  58	portal-frame-1 34303a
+138 140 154	portal-frame-2 8a8c9a
+ 42 138  82	portal-green-1 2a8a52
+126 240 154	portal-green-2 7ef09a
+ 34 132 148	portal-cyan-1 228494
+122 236 250	portal-cyan-2 7aecfa
+156  56  40	portal-vermilion-1 9c3828
+255 122  84	portal-vermilion-2 ff7a54
+146  46 122	portal-magenta-1 922e7a
+246 130 218	portal-magenta-2 f682da
+212 162  74	accent-gold d4a24a
+194 112  63	accent-leaf c2703f
+143 179 209	accent-sky 8fb3d1

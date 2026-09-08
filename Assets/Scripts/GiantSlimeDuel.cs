@@ -121,10 +121,17 @@ public class GiantSlimeDuel : MonoBehaviour
             yield return new WaitForSeconds(_config.volleyInterval);
             if (BothDown) break;
 
-            // Once a twin raises its ward it stops shooting; when both have, there's
-            // nothing to telegraph and the clock just idles
-            bool leftShoots = Alive(_left) && !_left.InWardPhase;
-            bool rightShoots = Alive(_right) && !_right.InWardPhase;
+            // Once a twin raises its ward it stops shooting, and a darted twin
+            // stops shooting for as long as it is under; when neither can, there
+            // is nothing to telegraph and the clock just idles. The twins refuse
+            // the volley themselves as well - this gate is what keeps the horn
+            // from sounding over a wind-up that is not going to happen.
+            // IsHeld rather than IsAsleep: a twin stopped by ice has exactly as
+            // much business firing as one stopped by a dart, and asking the one
+            // question means the next thing that holds a body still is covered
+            // here without anybody remembering to come back.
+            bool leftShoots = Alive(_left) && !_left.InWardPhase && !_left.IsHeld;
+            bool rightShoots = Alive(_right) && !_right.InWardPhase && !_right.IsHeld;
             if (!leftShoots && !rightShoots) continue;
 
             if (leftShoots) _left.Telegraph(_config.telegraphPause);
@@ -139,8 +146,8 @@ public class GiantSlimeDuel : MonoBehaviour
                 : EnemyGiantSlime.VolleyPattern.Straight;
 
             // Same frame for both — that simultaneity is the pair's whole signature
-            if (Alive(_left) && !_left.InWardPhase) _left.FireVolley(pattern);
-            if (Alive(_right) && !_right.InWardPhase) _right.FireVolley(pattern);
+            if (Alive(_left) && !_left.InWardPhase && !_left.IsHeld) _left.FireVolley(pattern);
+            if (Alive(_right) && !_right.InWardPhase && !_right.IsHeld) _right.FireVolley(pattern);
 
             volley++;
         }

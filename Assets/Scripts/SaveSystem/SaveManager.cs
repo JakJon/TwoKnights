@@ -6,12 +6,6 @@ public static class SaveManager
     /// <summary>How many files the file select offers.</summary>
     public const int SlotCount = 3;
 
-    /// <summary>
-    /// The name given to a save that predates file slots. There was only ever one
-    /// such file and it becomes File 1, so this is the one migrated name.
-    /// </summary>
-    private const string LegacyProfileName = "Ashlee";
-
     // Slot 1 deliberately keeps the original filename: the file every existing
     // player already has on disk IS file 1, with no copying or renaming step that
     // could half-fail and lose a save.
@@ -236,12 +230,11 @@ public static class SaveManager
         }
         if (data.version < 8)
         {
-            // A save written before file slots existed is, by definition, the one
-            // file the player has been playing all along, and it lands in slot 1.
-            if (string.IsNullOrEmpty(data.profileName))
-            {
-                data.profileName = slot <= 1 ? LegacyProfileName : DefaultProfileName(slot);
-            }
+            // A save written before file slots existed is the one file the player
+            // has been playing all along, and it lands in slot 1. It needs no name
+            // of its own — EnsureProfileName gives every unnamed file "File N" on
+            // the way out of Load, which is the honest label for a file nobody has
+            // ever been asked to name.
 
             // No lifetime record was ever kept, so seed it from the balance. You
             // cannot be holding more crystals than you earned, which makes this a
@@ -259,6 +252,30 @@ public static class SaveManager
             if (data.specialSlots < 1) data.specialSlots = 1;
             data.version = 9;
         }
+        if (data.version < 10)
+        {
+            // Existing players must not be marched through a tutorial for a game
+            // they already know — but "the file exists on disk" is NOT the same as
+            // "it has been played". A file gets written the moment it is picked, so
+            // that test also catches a file somebody opened once and left, which is
+            // exactly the file that still wants teaching. Ask for evidence instead.
+            data.tutorialCompleted = HasBeenPlayed(data);
+            data.version = 10;
+        }
+    }
+
+    /// <summary>
+    /// Whether anything has actually happened on this file. Any one of these is
+    /// proof: a wave was reached, currency was earned, or a quest was finished.
+    /// Play time alone is not — sitting in the camp menu accrues it.
+    /// </summary>
+    private static bool HasBeenPlayed(SaveData data)
+    {
+        if (data.furthestWave > 0) return true;
+        if (data.gold > 0) return true;
+        if (data.totalCrystalsEarned > 0 || data.crystals > 0) return true;
+        if (data.completedQuests != null && data.completedQuests.Count > 0) return true;
+        return false;
     }
 
     private static void PruneCompletions(SaveData data, params string[] questIds)

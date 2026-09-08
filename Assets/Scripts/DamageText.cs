@@ -9,6 +9,35 @@ public class DamageText : MonoBehaviour
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private Vector3 moveDirection = Vector3.up;
     [SerializeField] private AnimationCurve alphaCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
+
+    // ---- size by damage ----
+    //
+    // A number's size IS the number. A one-point poison tick and a fifty-point
+    // powder rock both used to print at the same 2.5, which meant the only way
+    // to tell a graze from a disaster was to read the digits — on a screen with
+    // two knights, a pack and a health bar to watch, nobody reads the digits.
+    //
+    // Scaled off a curve rather than straight off the number: linear puts almost
+    // everything the game actually deals down at the small end, because ordinary
+    // hits are ten and the top of the range is fifty. The power below is picked
+    // so a normal arrow lands about where the old fixed size was, and everything
+    // is legible as bigger or smaller than that.
+    [Header("Size by damage")]
+    [Tooltip("Damage that prints at the smallest size — a poison tick.")]
+    [SerializeField] private int smallestDamage = 1;
+
+    [Tooltip("Damage that prints at the largest size. Anything above this is drawn at the same size; the number itself says how far above.")]
+    [SerializeField] private int largestDamage = 50;
+
+    [Tooltip("Font size at smallestDamage")]
+    [SerializeField] private float smallestSize = 1.3f;
+
+    [Tooltip("Font size at largestDamage")]
+    [SerializeField] private float largestSize = 9f;
+
+    [Tooltip("Below 1 the small end of the range is stretched out, so the ten-point hits the game is mostly made of are told apart from each other instead of all bunching at the bottom. 0.7 puts a plain arrow at roughly the old fixed size.")]
+    [SerializeField] private float sizeCurve = 0.7f;
+
     
     private TextMeshPro textMesh;
     private Color originalColor;
@@ -48,6 +77,7 @@ public class DamageText : MonoBehaviour
             textMesh.text = $"-{damage}";
             // Use provided color or default to red
             textMesh.color = color ?? Color.red;
+            ApplySize(damage);
         }
         
         // Adjust starting position (lower the text)
@@ -56,6 +86,31 @@ public class DamageText : MonoBehaviour
         basePosition = transform.position;
         
         StartCoroutine(AnimateText());
+    }
+
+    /// <summary>
+    /// How big a hit of <paramref name="damage"/> prints. Public and static so
+    /// callers that stack these can ask how much room one is about to take up.
+    /// </summary>
+    public float SizeFor(int damage)
+    {
+        int low = Mathf.Max(0, smallestDamage);
+        int high = Mathf.Max(low + 1, largestDamage);
+
+        float t = Mathf.InverseLerp(low, high, Mathf.Clamp(damage, low, high));
+        t = Mathf.Pow(t, Mathf.Max(0.05f, sizeCurve));
+        return Mathf.Lerp(smallestSize, largestSize, t);
+    }
+
+    private void ApplySize(int damage)
+    {
+        float size = SizeFor(damage);
+        textMesh.fontSize = size;
+
+        // TMP keeps its own base for auto-sizing; without this a prefab that
+        // ever has auto-sizing switched on would snap straight back to 2.5.
+        textMesh.fontSizeMin = size;
+        textMesh.fontSizeMax = size;
     }
 
     // Public API to nudge the text upward while it animates

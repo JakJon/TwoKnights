@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bcf5bd83e1f404fa61eb257ccd79f60, type: 3}
+  m_Name: Long Sword 1
+  m_EditorClassIdentifier: 
+  upgradeName: Long Sword I
+  description: A longer, heavier blade. It reaches further and bites harder, but comes round slower.
+  weight: 30
+  order: 3
+  requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
+  unlockedBy: []
+  lockedBy: []
+  stats:
+  - valueText: +33%
+    labelText: REACH
+    isPositive: 1
+  - valueText: 15
+    labelText: SWORD DAMAGE
+    isPositive: 1
+  - valueText: -20%
+    labelText: SWING SPEED
+    isPositive: 0
+  lengthMultiplier: 1.33
+  slowMultiplier: 1.25
+  baseDamage: 15

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01ae97c2f984c50f2508057b43996e79, type: 3}
+  m_Name: Winters Tooth
+  m_EditorClassIdentifier: 
+  id: winters_tooth
+  displayName: Winter's Tooth
+  description: Something's fang, pulled from something else's ribs, both of them
+    long frozen. Arrows drawn past it come away cold.
+  effect: Your arrows carry cold from the first wave.
+  icon: {fileID: -7826511449477556622, guid: 93aef70cbaa702f45905ea67c281c2d9, type: 3}
+  crystalCost: 0
+  stats:
+  - valueText: FROST TIP I
+    labelText: FROM WAVE ONE
+    isPositive: 1
+  maxHealthBonus: 0
+  fireCooldownMultiplier: 1
+  grantsHeadStart: 0
+  favouredOrder: 6
+  favouredOrderMultiplier: 2
+  poisonTickBonus: 0
+  startingPoisonChance: 0
+  poisonDeathSpecial: 0
+  igniteDpsBonus: 0
+  startingIgniteChance: 0
+  fireTrailDurationBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 1
+  shadowArrowDamageBonus: 0
+  phantomEchoBonus: 0
+  startingShadowArrows: 0
+  shadowArrowPrefab: {fileID: 0}
+  confusionDurationMultiplier: 1

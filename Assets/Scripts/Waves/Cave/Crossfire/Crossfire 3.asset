@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc80d3d90b36b44ed4b5ac1c70a9f769, type: 3}
   m_Name: Crossfire 3
   m_EditorClassIdentifier: 
-  waveName: Crossfire 3
-  weight: 1e+12
+  waveName: Crossfire III
+  weight: 1000
   isUnlocked: 0
   waveDescription: Five to a line, and barely a beat between them.
   unlockedAfterXWaves: 8
@@ -23,7 +23,7 @@ MonoBehaviour:
   entryRun: 2
   gnomeCarts:
   - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-  gnomes: 6
+  gnomes: 9
   gnomeInterval: 5
   firstRiderAt: 1
   rocksPerBurst: 5

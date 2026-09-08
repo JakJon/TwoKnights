@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Benediction 2
   m_EditorClassIdentifier: 
   upgradeName: Benediction II
-  description: The blessing doubles, and both knights are untouchable as it breaks.
+  description: The blessing doubles on both knights, and both are untouchable as it breaks.
   weight: 35
   order: 5
   requiresOrderCount: 0
@@ -21,11 +21,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 03748a998119461685daa661efb8bea6, type: 2}
   lockedBy: []
   stats:
-  - valueText: +30 HP
-    labelText: TO PARTNER
+  - valueText: +40 HP
+    labelText: TO BOTH KNIGHTS
     isPositive: 1
   - valueText: 1s
     labelText: UNTOUCHABLE BOTH
     isPositive: 1
-  mendAmount: 30
+  healAmount: 40
   invulnerableSeconds: 1

@@ -44,3 +44,39 @@ MonoBehaviour:
     interval: 12
     from: {x: -12, y: -1.5}
     to: {x: 12, y: -1.5}
+  volleys:
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 2.28
+    restAfter: 5
+  - label: one on the left
+    shape: 0
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 2.15
+    restAfter: 4.5
+  - label: one on the right
+    shape: 0
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 2.91
+    restAfter: 4.5
+  projectileWindow: 34
+  rockSpeed: 1.75

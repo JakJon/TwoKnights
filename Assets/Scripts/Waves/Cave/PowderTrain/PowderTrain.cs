@@ -58,6 +58,16 @@ public class PowderTrain : BaseWave
 
     [SerializeField] private GameObject ratType;
 
+    [Header("Rock")]
+    [Tooltip("Cycled in order for the window below. THE FENCE ONLY WORKS ONE WAY — that is the wave's whole thesis, and rock is the sharpest statement of it: a cart eats the knights' arrows, but nothing stops a rock coming the other way through the ring. The guard has to answer while the gap it needed rotates past.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("Length of the firing window, from the ring finishing its fall.")]
+    [SerializeField] private float projectileWindow = 30f;
+
+    [Tooltip("World units per second for this wave's rock. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 1.75f;
+
     [Header("Orbs")]
     [Tooltip("Crosses INSIDE the ring by default. Outside it the orb would sit behind the fence, shootable only through a gap — which turns a reward into a second puzzle competing with the one the wave is already asking.")]
     [SerializeField] private OrbRun orbs = new OrbRun();
@@ -83,6 +93,7 @@ public class PowderTrain : BaseWave
         }
 
         Coroutine orbRun = spawner.StartCoroutine(orbs.Release(spawner));
+        Coroutine shafts = spawner.StartCoroutine(WorkTheShafts(spawner, layDuration));
 
         yield return new WaitForSeconds(layDuration + Mathf.Max(0f, enemyStartDelay));
 
@@ -94,6 +105,7 @@ public class PowderTrain : BaseWave
         }
 
         if (train != null) yield return train;
+        yield return shafts;
 
         spawner.StopCoroutine(orbRun);
 
@@ -176,5 +188,13 @@ public class PowderTrain : BaseWave
     private GameObject RatPrefab(Spawner spawner)
     {
         return ratType != null ? ratType : spawner.greyRat;
+    }
+
+    // Held until the ring has finished landing: rock arriving through a fence
+    // that is not there yet reads as the wave misfiring rather than as the point.
+    private IEnumerator WorkTheShafts(Spawner spawner, float layDuration)
+    {
+        if (layDuration > 0f) yield return new WaitForSeconds(layDuration);
+        yield return RockVolley.WorkTheShafts(spawner, volleys, projectileWindow, rockSpeed);
     }
 }

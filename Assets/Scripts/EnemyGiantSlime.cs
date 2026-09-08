@@ -14,6 +14,9 @@ using System.Collections;
 // shoots the knight on ITS side, so simultaneous volleys never converge on one shield.
 public class EnemyGiantSlime : EnemyBase
 {
+    // No execute: see EnemyBase.IsBoss
+    public override bool IsBoss => true;
+
     public override EnemyFamily Family => EnemyFamily.Ooze;
 
     public enum Side { Left, Right }

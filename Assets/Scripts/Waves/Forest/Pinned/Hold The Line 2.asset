@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08af284506c317e4787736b4b2348b1c, type: 3}
   m_Name: Hold The Line 2
   m_EditorClassIdentifier: 
-  waveName: Hold the Line 2
+  waveName: Hold the Line II
   weight: 600
   isUnlocked: 0
   waveDescription: The barrage shifts once. Rats and a king slime arrive together

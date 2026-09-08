@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30f20533f6df10648b22aac557d534e3, type: 3}
   m_Name: Shadow 4
   m_EditorClassIdentifier: 
-  upgradeName: Shadow Arrow Four
+  upgradeName: Shadow Arrow IV
   description: A fourth shadow arrow joins the fray.
   weight: 50
   order: 2

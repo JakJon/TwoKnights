@@ -77,7 +77,34 @@ public class QuestReward
     /// <summary>Gives every knight one more special slot, and a knight with two fires both on one bar. Cumulative, same as the equipment slot.</summary>
     public bool ExtraSpecialSlot;
 
+    /// <summary>
+    /// Map id opened by finishing this quest; empty for none. The unlock is
+    /// normally the MAP's own business — MapProgressStore opens the next map the
+    /// moment a gate boss first falls — so this is mostly a way for the quest
+    /// that asks for that kill to say out loud what the kill is worth. Completing
+    /// the quest applies it as well, which is a no-op when the gate already did.
+    /// </summary>
+    public string UnlocksMapId;
+
     public bool GrantsEquipment => !string.IsNullOrEmpty(EquipmentId);
+    public bool UnlocksMap => !string.IsNullOrEmpty(UnlocksMapId);
+
+    /// <summary>
+    /// What to call the map this quest opens. Named once it is actually open,
+    /// and "A new map" while it is still shut: the level select draws a locked
+    /// map as "? ? ?", and the quests that open one are the same quests that
+    /// hide their objective, so naming it early gives away the thing at the
+    /// bottom of the map. By the time such a quest completes the gate kill has
+    /// already run, so the reward reads as the real name where it matters.
+    /// </summary>
+    public string DescribeMapUnlock()
+    {
+        if (!UnlocksMap) return "";
+        var catalog = MapCatalog.Instance;
+        var map = catalog != null ? catalog.Find(UnlocksMapId) : null;
+        if (map == null || !MapProgressStore.IsUnlocked(map)) return "A new map";
+        return map.DisplayName;
+    }
 
     /// <summary>
     /// "The Gnawed Crown, A second equipment slot" — everything the quest gives
@@ -93,6 +120,7 @@ public class QuestReward
     public string DescribeItems()
     {
         var parts = new System.Collections.Generic.List<string>();
+        if (UnlocksMap) parts.Add(DescribeMapUnlock());
         if (GrantsEquipment)
         {
             var catalog = EquipmentCatalog.Instance;

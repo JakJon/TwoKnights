@@ -25,7 +25,7 @@ MonoBehaviour:
   bossPrefab: {fileID: 4426783449998927009, guid: bcf11d06f2ff3b74dbbb1d2b5d7c13a8, type: 3}
   entryDelay: 1
   bossSpeedScale: 1.5
-  roarAtHealth: 500
+  roarAtHealth: 200
   hauls:
   - label: ten wide
     atBossHealth: 2000
@@ -99,10 +99,20 @@ MonoBehaviour:
     - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
     - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
     whistle: 1
+  reliefGnomes: 3
+  reliefInterval: 10
+  reliefCarts:
+  - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+  - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+  healthOrbAt:
+  - 0.5
+  - 0.2
+  healthOrbFrom: {x: -12, y: -1.5}
+  healthOrbTo: {x: 12, y: -1.5}
   orbs:
-    healthOrb: 1
-    count: 6
+    healthOrb: 0
+    count: 4
     firstAt: 15
     interval: 20
-    from: {x: -12, y: -1.5}
-    to: {x: 12, y: -1.5}
+    from: {x: -12, y: 2}
+    to: {x: 12, y: 2}

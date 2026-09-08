@@ -22,7 +22,7 @@ MonoBehaviour:
   useEnemyTracking: 1
   ratKingPrefab: {fileID: 6804790731799434195, guid: 5e132047ef3a3ef4e92e8d3fd5a65e5d, type: 3}
   config:
-    health: 750
+    health: 1500
     moveSpeed: 3
     actionCooldown: 3.5
     telegraphPause: 0.9

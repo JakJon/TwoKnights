@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d5dbd19163e995478b12dcc4ef6d9fd, type: 3}
   m_Name: Sheeps Clothing 1
   m_EditorClassIdentifier: 
-  waveName: Sheep's Clothing 2
+  waveName: Sheep's Clothing II
   weight: 1000
   isUnlocked: 0
   waveDescription: A wall of slimes shields a stalking wolf. Break the wall before

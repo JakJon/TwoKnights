@@ -77,6 +77,23 @@ public class CartLoads : BaseWave
     [Tooltip("Seconds between one crate and the next, alternating red then green. This is a PERMANENT spacing on a loop: consecutive crates on one line end up 4.8 x this apart on a 36-unit lap, so keep it under 36 / (4.8 x crates per line) or the line laps itself.")]
     [SerializeField] private float releasePause = 1.8f;
 
+    [Header("Rock")]
+    [Tooltip("Volleys down the shafts, cycled in order for the window below. The mine had only three waves that threw a rock at all, which left the guard — half of what a knight is — idle through the rest. This is the second question a wave asks while the first one is still standing.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("Length of the firing window, from the start of the wave. New volleys stop being issued once it elapses; whatever is already in the air still falls.")]
+    [SerializeField] private float projectileWindow = 24f;
+
+    [Tooltip("World units per second for THIS wave's rock, overriding the prefab's 1. A shaft is seven units up, so 1.75 puts a rock on a knight in four seconds instead of seven. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 1.75f;
+
+    [Header("The flanks")]
+    [Tooltip("Rats dropped in off the top and bottom edges. Both shafts run up the EDGES of the board, so a guard watching one is turned hard sideways — these arrive in the half of the dial that guard has given up. Empty on the opening tier.")]
+    [SerializeField] private List<RatFlank> flanks = new List<RatFlank>();
+
+    [Tooltip("Once the authored consignment is spent, the shafts keep feeding while a flank rat is still alive, so leaving the vermin for later means answering freight for as long as you take over them.")]
+    [SerializeField] private bool freightWaitsOnTheVermin = true;
+
     [Header("Orbs")]
     [Tooltip("The high crossing, over the top of the fight. Runs clear of both rails at y=4.3.")]
     [SerializeField] private OrbRun highOrbs = new OrbRun
@@ -97,9 +114,19 @@ public class CartLoads : BaseWave
     // different consignment each time the wave came up.
     private int _crate;
 
+    // Every rat this wave put out. Cleared at the top of the wave — the asset is
+    // a ScriptableObject and outlives the run.
+    private readonly List<GameObject> _vermin = new List<GameObject>();
+
+    // False until every flank has finished arriving. Without it an empty
+    // roster during a group's lead-in reads as "the vermin are dead".
+    private bool _verminReleased;
+
     public override IEnumerator SpawnWave(Spawner spawner)
     {
         _crate = 0;
+        _vermin.Clear();
+        _verminReleased = false;
 
         var rails = spawner.Rails;
         if (rails == null)
@@ -129,7 +156,12 @@ public class CartLoads : BaseWave
         // MarkSpawningComplete is the ONLY thing standing between a half-released
         // consignment and a wave that decides it is finished — it must not run
         // until every crate is actually out.
+        Coroutine vermin = spawner.StartCoroutine(ReleaseTheFlanks(spawner));
+        Coroutine shafts = spawner.StartCoroutine(WorkTheShafts(spawner));
+
         yield return spawner.StartCoroutine(Release(rails, outerLine, innerLine, layDuration));
+        yield return vermin;
+        yield return shafts;
 
         spawner.StopCoroutine(highRun);
         spawner.StopCoroutine(lowRun);
@@ -194,6 +226,55 @@ public class CartLoads : BaseWave
 
             if (o < outer.Count || n < inner.Count) yield return new WaitForSeconds(pause);
         }
+
+        yield return KeepFeedingWhileVerminLive(rails, pause);
+    }
+
+    // The consignment is spent but the vermin are not: the shafts keep running.
+    // This is what makes the flank a decision rather than a distraction — every
+    // second the rats are left alive is another crate to answer, so "clear the
+    // rats first" costs freight and "clear the freight first" costs nothing but
+    // never ends.
+    private IEnumerator KeepFeedingWhileVerminLive(RailNetwork rails, float pause)
+    {
+        if (!freightWaitsOnTheVermin) yield break;
+
+        bool outersTurn = true;
+        while (!_verminReleased || !RatFlank.AllDead(_vermin))
+        {
+            // The wait comes first: the authored consignment's last crate has
+            // only just gone out, and a sustain crate on the same frame would
+            // read as the wave hiccupping rather than as it carrying on.
+            yield return new WaitForSeconds(pause);
+            if (rails.LineCount == 0) yield break;
+
+            GameObject prefab = NextOf(crateCarts, ref _crate);
+            if (prefab == null) yield break;
+
+            int run = Mathf.Clamp(outersTurn ? OuterEntryRun : InnerEntryRun, 0, rails.LineCount - 1);
+            rails.SpawnCart(prefab, run, MineCart.TrackSpeed);
+            outersTurn = !outersTurn;
+        }
+    }
+
+    private IEnumerator ReleaseTheFlanks(Spawner spawner)
+    {
+        yield return null;
+        if (flanks == null || flanks.Count == 0)
+        {
+            _verminReleased = true;
+            yield break;
+        }
+
+        var running = new List<Coroutine>();
+        for (int i = 0; i < flanks.Count; i++)
+        {
+            if (flanks[i] == null || flanks[i].Total == 0) continue;
+            running.Add(spawner.StartCoroutine(flanks[i].Release(spawner, _vermin)));
+        }
+
+        for (int i = 0; i < running.Count; i++) yield return running[i];
+        _verminReleased = true;
     }
 
     // Round the authored list, carrying the cursor across the whole wave so that
@@ -202,5 +283,13 @@ public class CartLoads : BaseWave
     {
         if (list == null || list.Count == 0) return null;
         return list[cursor++ % list.Count];
+    }
+
+    // Beside the wave, never inside it: the window is a fixed number of seconds
+    // from the start, so it neither stretches nor truncates with how fast the
+    // players clear whatever else is on the board.
+    private IEnumerator WorkTheShafts(Spawner spawner)
+    {
+        yield return RockVolley.WorkTheShafts(spawner, volleys, projectileWindow, rockSpeed);
     }
 }

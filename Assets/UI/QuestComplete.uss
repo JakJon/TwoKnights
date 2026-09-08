@@ -62,8 +62,22 @@
     margin-top: 20px;
 }
 
-/* "NEW QUESTS" — a caption, not a headline. It labels the block below it
-   and gets out of the way of the names, which are the part worth reading. */
+/* "Quests Completed" / "Quests Unlocked" — headlines in their own right, at
+   the panel title's size and gold, so the two blocks are told apart from across
+   the room rather than by reading the rows under them. */
+.ws-section-title {
+    font-size: 46px;
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 6px;
+    color: rgb(240, 205, 120);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    max-width: 100%;
+    margin-top: 16px;
+}
+
+/* Kept for any caption that wants to stay out of the way of what it labels. */
 .ws-section-caption {
     font-size: 12px;
     -unity-font-style: bold;

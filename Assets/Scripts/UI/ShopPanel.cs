@@ -26,6 +26,9 @@ public class ShopPanel : MonoBehaviour
 
     private enum Tab { Equipment = 0, Specials = 1 }
 
+    /// <summary>Which of the two slot purchases a row is, or neither.</summary>
+    private enum SlotKind { None = 0, Equipment = 1, Special = 2 }
+
     [SerializeField] private UIDocument uiDocument;
 
     private VisualElement _root;
@@ -38,19 +41,75 @@ public class ShopPanel : MonoBehaviour
     private Label _tabSpecials;
     private Button _closeButton;
 
-    // A row is either an equipment item or a special; only one of the two is set
+    // A row is an equipment item, a special, or one of the two slot purchases —
+    // exactly one of the three is set. Slots have no definition asset to read
+    // from (they are not objects), so their text is stated here.
     private struct Entry
     {
         public VisualElement Row;
         public EquipmentDefinition Equipment;
         public SpecialDefinition Special;
+        public SlotKind Slot;
 
-        public string Id => Equipment != null ? Equipment.Id : (Special != null ? Special.Id : null);
-        public string Name => Equipment != null ? Equipment.DisplayName : (Special != null ? Special.DisplayName : "");
-        public string Description => Equipment != null ? Equipment.Description : (Special != null ? Special.Description : "");
-        public int Cost => Equipment != null ? Equipment.CrystalCost : (Special != null ? Special.CrystalCost : 0);
-        public Sprite Icon => Equipment != null ? Equipment.Icon : (Special != null ? Special.Icon : null);
-        public string Effect => Equipment != null ? Equipment.Effect : (Special != null ? Special.Effect : "");
+        public string Name =>
+            Slot == SlotKind.Equipment ? "Equipment Slot" :
+            Slot == SlotKind.Special ? "Special Slot" :
+            Equipment != null ? Equipment.DisplayName : (Special != null ? Special.DisplayName : "");
+
+        public string Description =>
+            Slot == SlotKind.Equipment
+                ? "The quartermaster can be talked into a second belt loop, given a reason."
+                : Slot == SlotKind.Special
+                    ? "Whatever it is you do when the bar fills, you can learn to do two of them at once."
+                    : Equipment != null ? Equipment.Description : (Special != null ? Special.Description : "");
+
+        public string Effect =>
+            Slot == SlotKind.Equipment
+                ? "+1 equipment slot on both knights."
+                : Slot == SlotKind.Special
+                    ? "+1 special slot on both knights. Every slot fires on one full bar."
+                    : Equipment != null ? Equipment.Effect : (Special != null ? Special.Effect : "");
+
+        public int Cost =>
+            Slot == SlotKind.Equipment ? SlotShop.EquipmentSlotPrice :
+            Slot == SlotKind.Special ? SlotShop.SpecialSlotPrice :
+            Equipment != null ? Equipment.CrystalCost : (Special != null ? Special.CrystalCost : 0);
+
+        public Sprite Icon
+        {
+            get
+            {
+                if (Slot == SlotKind.None)
+                    return Equipment != null ? Equipment.Icon : (Special != null ? Special.Icon : null);
+                var catalog = EquipmentCatalog.Instance;
+                if (catalog == null) return null;
+                return Slot == SlotKind.Equipment ? catalog.EquipmentSlotIcon : catalog.SpecialSlotIcon;
+            }
+        }
+
+        /// <summary>
+        /// The one place a row's "you already have this" is decided, so the list,
+        /// the detail line and the purchase cannot disagree about it. Three
+        /// different questions underneath: a slot was bought, a stock special was
+        /// never for sale, an item is in the owned list.
+        /// </summary>
+        public bool Owned
+        {
+            get
+            {
+                if (Slot == SlotKind.Equipment) return SlotShop.EquipmentSlotBought;
+                if (Slot == SlotKind.Special) return SlotShop.SpecialSlotBought;
+                if (Special != null && Special.OwnedFromTheStart) return true;
+                return Loadout.IsOwned(Equipment != null ? Equipment.Id : (Special != null ? Special.Id : null));
+            }
+        }
+
+        /// <summary>A slot is bought, not owned — you cannot carry it.</summary>
+        public string OwnedWord => Slot == SlotKind.None ? "OWNED" : "BOUGHT";
+
+        public string OwnedTail => Slot == SlotKind.None
+            ? "\nAlready yours — set it in Equipment."
+            : "\nAlready bought.";
     }
 
     private readonly List<Entry> _entries = new List<Entry>();
@@ -184,12 +243,18 @@ public class ShopPanel : MonoBehaviour
         var catalog = EquipmentCatalog.Instance;
         if (catalog != null)
         {
+            // The slot heads its own tab. Top rather than bottom because it is
+            // the dearest thing on either list and the one a player saving up is
+            // saving for — a purchase you have to scroll to find is one nobody
+            // plans around.
             if (_tab == Tab.Equipment)
             {
+                AddRow(new Entry { Slot = SlotKind.Equipment });
                 foreach (var def in catalog.ShopStock) AddRow(new Entry { Equipment = def });
             }
             else
             {
+                AddRow(new Entry { Slot = SlotKind.Special });
                 foreach (var special in catalog.SpecialStock) AddRow(new Entry { Special = special });
             }
         }
@@ -212,8 +277,7 @@ public class ShopPanel : MonoBehaviour
 
     private void AddRow(Entry entry)
     {
-        bool owned = Loadout.IsOwned(entry.Id)
-                     || (entry.Special != null && entry.Special.OwnedFromTheStart);
+        bool owned = entry.Owned;
         bool affordable = CrystalBank.CanAfford(entry.Cost);
 
         var row = new VisualElement();
@@ -239,7 +303,7 @@ public class ShopPanel : MonoBehaviour
         VisualElement price;
         if (owned)
         {
-            var ownedLabel = new Label("OWNED");
+            var ownedLabel = new Label(entry.OwnedWord);
             ownedLabel.AddToClassList("shop-row-owned-label");
             price = ownedLabel;
         }
@@ -277,10 +341,8 @@ public class ShopPanel : MonoBehaviour
         if (_detail != null)
         {
             var entry = _entries[Index];
-            bool owned = Loadout.IsOwned(entry.Id)
-                         || (entry.Special != null && entry.Special.OwnedFromTheStart);
-            string tail = owned
-                ? "\nAlready yours — set it in Equipment."
+            string tail = entry.Owned
+                ? entry.OwnedTail
                 : (CrystalBank.CanAfford(entry.Cost) ? "" : "\nNot enough crystals.");
             _detail.text = ItemText.Detail(entry.Effect, entry.Description) + tail;
         }
@@ -291,8 +353,21 @@ public class ShopPanel : MonoBehaviour
         if (Index < 0 || Index >= _entries.Count) return;
         var entry = _entries[Index];
 
-        if (Loadout.IsOwned(entry.Id)) return;
-        if (entry.Special != null && entry.Special.OwnedFromTheStart) return;
+        if (entry.Owned) return;
+
+        // A slot pays for itself inside SlotShop — it has to bank the purchase
+        // and raise the count under one gate, and there is nothing to Own().
+        if (entry.Slot != SlotKind.None)
+        {
+            bool bought = entry.Slot == SlotKind.Equipment
+                ? SlotShop.TryBuyEquipmentSlot()
+                : SlotShop.TryBuySpecialSlot();
+            AudioManager.Instance?.PlaySFX(bought
+                ? AudioManager.Instance.uiConfirm
+                : AudioManager.Instance.uiCancel);
+            if (bought) Rebuild();
+            return;
+        }
 
         // TrySpend is the gate: it refuses and changes nothing when short, so
         // there is no window where the item is granted but unpaid
@@ -302,7 +377,7 @@ public class ShopPanel : MonoBehaviour
             return;
         }
 
-        Loadout.Own(entry.Id);
+        Loadout.Own(entry.Equipment != null ? entry.Equipment.Id : entry.Special.Id);
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
         // Buying never auto-equips — what a knight carries stays the player's call
         Rebuild();

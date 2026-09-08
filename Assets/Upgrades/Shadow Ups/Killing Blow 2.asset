@@ -21,7 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 555ba42459e27d70dc2b8f8eb06985c6, type: 2}
   lockedBy: []
   stats:
-  - valueText: 25%
+  - valueText: 40%
     labelText: HEALTH THRESHOLD
     isPositive: 1
-  executeThreshold: 0.25
+  executeThreshold: 0.4

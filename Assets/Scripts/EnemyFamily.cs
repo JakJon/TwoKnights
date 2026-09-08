@@ -16,5 +16,6 @@ public enum EnemyFamily
     Vermin = 1,   // rats, bats, dark bats, the Rat King
     Beast = 2,    // wolves
     Ooze = 3,     // slimes, giant slimes
-    Cart = 4      // mine carts and everything riding one
+    Cart = 4,     // mine carts and everything riding one
+    Brute = 5     // ogres
 }

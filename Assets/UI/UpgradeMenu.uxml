@@ -3,26 +3,41 @@
         <ui:VisualElement name="layout-root" class="layout-root">
             <!-- Left Knight Status Panel -->
             <ui:VisualElement name="left-status" class="status-panel left">
-                <ui:Label text="Left Knight" class="status-title" />
+                <ui:VisualElement name="left-portrait" class="knight-portrait">
+                    <ui:VisualElement name="left-aura-back" class="knight-aura" />
+                    <ui:VisualElement name="left-portrait-art" class="knight-portrait-art" />
+                    <ui:VisualElement name="left-aura" class="knight-aura" />
+                </ui:VisualElement>
+                <ui:Label text="Left Knight" class="status-title knight--left" />
                 <ui:Label text="Health: 0 / 0" name="left-health" class="stat-line" />
                 <ui:Label text="Special: 0 / 0" name="left-special" class="stat-line" />
                 <ui:Label text="Upgrades" class="status-subtitle" />
-                <ui:ScrollView name="left-upgrades" class="upgrades-list" />
+                <ui:ScrollView name="left-upgrades-scroll" class="loadout-scroll">
+                    <ui:VisualElement name="left-upgrades" class="loadout-list" />
+                </ui:ScrollView>
+                <ui:Label text="▼" name="left-upgrades-more" class="loadout-more" />
+                <!-- The focused row's own words and numbers, printed under its
+                     list exactly as the pause menu does it. -->
+                <ui:VisualElement name="detail-left" class="loadout-detail">
+                    <ui:Label name="detail-left-name" class="detail-name" />
+                    <ui:Label name="detail-left-desc" class="detail-desc" />
+                    <ui:VisualElement name="detail-left-stats" class="detail-stats" />
+                </ui:VisualElement>
             </ui:VisualElement>
 
             <!-- Center Content: Upgrade Selection -->
             <ui:VisualElement name="center-content" class="center-content">
-                <ui:Label text="Upgrade Left Knight" name="selection-status" class="selection-status" />
+                <!-- Which wave the run just cleared, over the knight it is
+                     paying out to. The draft is the only screen between waves,
+                     so it is where "how far am I" belongs. -->
+                <ui:Label text="Wave 1" name="wave-number" class="wave-number" />
+                <ui:Label text="Upgrade &lt;color=#D1533F&gt;Left Knight&lt;/color&gt;" name="selection-status" class="selection-status" />
                 <ui:VisualElement name="menu-items" class="menu-items">
                     <ui:VisualElement name="upgrade-column" class="upgrade-column">
                         <ui:VisualElement name="item-one" class="menu-item upgrade">
                             <ui:VisualElement class="card-top">
                                 <ui:Label text="Upgrade One" name="upgrade-title" class="upgrade-title" />
                                 <ui:VisualElement class="card-badges">
-                                    <ui:VisualElement class="order-badge">
-                                        <ui:VisualElement class="order-diamond" />
-                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
-                                    </ui:VisualElement>
                                     <ui:VisualElement class="rarity-badge">
                                         <ui:VisualElement class="rarity-diamond" />
                                         <ui:Label text="COMMON" name="upgrade-rarity" class="upgrade-rarity" />
@@ -31,7 +46,13 @@
                             </ui:VisualElement>
                             <ui:VisualElement class="card-body">
                                 <ui:Label text="Description of upgrade one goes here" name="upgrade-description" class="upgrade-description" />
-                                <ui:VisualElement name="stat-badges" class="stat-badges" />
+                                <ui:VisualElement class="card-stats-row">
+                                    <ui:VisualElement class="order-badge">
+                                        <ui:VisualElement class="order-diamond" />
+                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
+                                    </ui:VisualElement>
+                                    <ui:VisualElement name="stat-badges" class="stat-badges" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                             <ui:VisualElement name="chain-row" class="chain-row">
                                 <ui:VisualElement name="chain-pips" class="chain-pips" />
@@ -42,10 +63,6 @@
                             <ui:VisualElement class="card-top">
                                 <ui:Label text="Upgrade Two" name="upgrade-title" class="upgrade-title" />
                                 <ui:VisualElement class="card-badges">
-                                    <ui:VisualElement class="order-badge">
-                                        <ui:VisualElement class="order-diamond" />
-                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
-                                    </ui:VisualElement>
                                     <ui:VisualElement class="rarity-badge">
                                         <ui:VisualElement class="rarity-diamond" />
                                         <ui:Label text="RARE" name="upgrade-rarity" class="upgrade-rarity" />
@@ -54,7 +71,13 @@
                             </ui:VisualElement>
                             <ui:VisualElement class="card-body">
                                 <ui:Label text="Description of upgrade two goes here" name="upgrade-description" class="upgrade-description" />
-                                <ui:VisualElement name="stat-badges" class="stat-badges" />
+                                <ui:VisualElement class="card-stats-row">
+                                    <ui:VisualElement class="order-badge">
+                                        <ui:VisualElement class="order-diamond" />
+                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
+                                    </ui:VisualElement>
+                                    <ui:VisualElement name="stat-badges" class="stat-badges" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                             <ui:VisualElement name="chain-row" class="chain-row">
                                 <ui:VisualElement name="chain-pips" class="chain-pips" />
@@ -65,10 +88,6 @@
                             <ui:VisualElement class="card-top">
                                 <ui:Label text="Upgrade Three" name="upgrade-title" class="upgrade-title" />
                                 <ui:VisualElement class="card-badges">
-                                    <ui:VisualElement class="order-badge">
-                                        <ui:VisualElement class="order-diamond" />
-                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
-                                    </ui:VisualElement>
                                     <ui:VisualElement class="rarity-badge">
                                         <ui:VisualElement class="rarity-diamond" />
                                         <ui:Label text="EPIC" name="upgrade-rarity" class="upgrade-rarity" />
@@ -77,7 +96,13 @@
                             </ui:VisualElement>
                             <ui:VisualElement class="card-body">
                                 <ui:Label text="Description of upgrade three goes here" name="upgrade-description" class="upgrade-description" />
-                                <ui:VisualElement name="stat-badges" class="stat-badges" />
+                                <ui:VisualElement class="card-stats-row">
+                                    <ui:VisualElement class="order-badge">
+                                        <ui:VisualElement class="order-diamond" />
+                                        <ui:Label text="" name="upgrade-order" class="upgrade-order" />
+                                    </ui:VisualElement>
+                                    <ui:VisualElement name="stat-badges" class="stat-badges" />
+                                </ui:VisualElement>
                             </ui:VisualElement>
                             <ui:VisualElement name="chain-row" class="chain-row">
                                 <ui:VisualElement name="chain-pips" class="chain-pips" />
@@ -91,11 +116,26 @@
 
             <!-- Right Knight Status Panel -->
             <ui:VisualElement name="right-status" class="status-panel right">
-                <ui:Label text="Right Knight" class="status-title" />
+                <ui:VisualElement name="right-portrait" class="knight-portrait">
+                    <ui:VisualElement name="right-aura-back" class="knight-aura" />
+                    <ui:VisualElement name="right-portrait-art" class="knight-portrait-art" />
+                    <ui:VisualElement name="right-aura" class="knight-aura" />
+                </ui:VisualElement>
+                <ui:Label text="Right Knight" class="status-title knight--right" />
                 <ui:Label text="Health: 0 / 0" name="right-health" class="stat-line" />
                 <ui:Label text="Special: 0 / 0" name="right-special" class="stat-line" />
                 <ui:Label text="Upgrades" class="status-subtitle" />
-                <ui:ScrollView name="right-upgrades" class="upgrades-list" />
+                <ui:ScrollView name="right-upgrades-scroll" class="loadout-scroll">
+                    <ui:VisualElement name="right-upgrades" class="loadout-list" />
+                </ui:ScrollView>
+                <ui:Label text="▼" name="right-upgrades-more" class="loadout-more" />
+                <!-- The focused row's own words and numbers, printed under its
+                     list exactly as the pause menu does it. -->
+                <ui:VisualElement name="detail-right" class="loadout-detail">
+                    <ui:Label name="detail-right-name" class="detail-name" />
+                    <ui:Label name="detail-right-desc" class="detail-desc" />
+                    <ui:VisualElement name="detail-right-stats" class="detail-stats" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

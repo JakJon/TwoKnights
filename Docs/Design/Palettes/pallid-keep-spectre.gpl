@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Pallid Keep - Spectre (ghostlight)
+Columns: 4
+# Hero decoration: corpse-candles, cold light in the arrow slits, the haze off a dead thing. Bone white with a lilac cast — NOT cyan, which now belongs to a portal twin. Pops by VALUE, not hue: spectre-4 is the brightest thing on the map, which is what makes a deep blue room feel haunted rather than merely dark.
+ 60  58  84	spectre-1 3c3a54
+108 104 138	spectre-2 6c688a
+168 166 196	spectre-3 a8a6c4
+238 240 250	spectre-4 eef0fa

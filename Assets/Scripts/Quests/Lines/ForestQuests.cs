@@ -46,7 +46,7 @@ public static class ForestQuests
             // The objective never says "wave ten" — the quest is to go and look
             objectives: One("maps.camp_fields.gate_cleared", 1,
                             "Venture further into the forest", hideProgress: true),
-            reward: Reward(equipmentId: "gnawed_crown"));
+            reward: Reward(equipmentId: "gnawed_crown", unlocksMapId: Mine));
 
         yield return new Quest(
             id: FirstWatch,

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71c4817d83de46e44aafc7d87ab58ff6, type: 3}
+  m_Name: Pallid Keep
+  m_EditorClassIdentifier: 
+  mapId: pallid_keep
+  displayName: Pallid Keep
+  unlockedByDefault: 0
+  previewImage: {fileID: -4760992463451118159, guid: 874bf6ff8a6f8454c85ead115dc188b6, type: 3}
+  tagline: 
+  lockedHint: Defeat the Millstone
+  completionMarkColor: {r: 0.4117647, g: 0.627451, b: 0.9215686, a: 1}
+  waves:
+  - {fileID: 11400000, guid: 83fc6163c0f15ed44ae751e0c19843da, type: 2}
+  waveFolders:
+  - Assets/Scripts/Waves/Castle/LookingGood
+  gateBoss: {fileID: 0}
+  gateBossWaveNumber: 10
+  gateBossRepeats: 1
+  gateBossEndsRun: 1
+  trueBoss: {fileID: 0}
+  trueBossWaveNumber: 20
+  strongerEnemiesFromWave: 1
+  stages:
+  - label: Keep
+    fromWaveNumber: 1
+    backdrop: {fileID: -4760992463451118159, guid: 874bf6ff8a6f8454c85ead115dc188b6, type: 3}
+    foreground: {fileID: 0}
+    canopy: {fileID: 0}
+    ventureLine: 
+  unlocksMapId: 

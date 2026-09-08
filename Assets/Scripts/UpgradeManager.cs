@@ -170,6 +170,12 @@ public class UpgradeManager : ScriptableObject
             if (up.RequiresOrderCount > 0 && CountOwnedInOrder(owned, up.Order) < up.RequiresOrderCount)
                 continue;
 
+            // Cross-order gating for the handful that belong to two Orders at
+            // once - both counts have to be met, not either one
+            if (up.RequiresSecondOrderCount > 0
+                && CountOwnedInOrder(owned, up.SecondOrder) < up.RequiresSecondOrderCount)
+                continue;
+
             // Conflict rule: if an upgrade exists in both arrays for this evaluation, treat as unlocked and optionally throw
             bool conflict = up.UnlockedBy.Any() && up.LockedBy.Any() && up.UnlockedBy.Intersect(up.LockedBy).Any();
             if (conflict)
@@ -242,11 +248,13 @@ public class UpgradeManager : ScriptableObject
         return sb.ToString();
     }
 
-    // One display row per owned chain for a knight: the highest tier's name and Order.
+    // One display row per owned chain for a knight: the highest tier's name and Order,
+    // plus the asset itself so UI that wants its description or stats need not look it up again.
     public struct AppliedUpgradeInfo
     {
         public string Name;
         public UpgradeOrder Order;
+        public BaseUpgrade Upgrade;
     }
 
     // Expose the applied loadout for UI: one row per chain, showing only the highest
@@ -268,7 +276,7 @@ public class UpgradeManager : ScriptableObject
                 if (other != null && other.GetType() == best.GetType() && GetChainDepth(other) > GetChainDepth(best))
                     best = other;
             }
-            rows.Add(new AppliedUpgradeInfo { Name = best.UpgradeName, Order = best.Order });
+            rows.Add(new AppliedUpgradeInfo { Name = best.UpgradeName, Order = best.Order, Upgrade = best });
         }
         return rows;
     }

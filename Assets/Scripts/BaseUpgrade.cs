@@ -30,6 +30,14 @@ public abstract class BaseUpgrade : ScriptableObject
     [SerializeField] protected float weight = 1f; // Higher weight = more likely to be selected
     [SerializeField] protected UpgradeOrder order = UpgradeOrder.Neutral;
     [SerializeField] protected int requiresOrderCount = 0; // Owned upgrades of this Order needed before this appears (capstone gating)
+
+    // A few upgrades belong to two Orders at once (Sleeping Dart is Shadow AND
+    // Serpent). `order` stays the single Order they are COUNTED as and coloured
+    // by - the draft's per-Order variety quota and the quest tallies both need
+    // one answer - and this pair adds a second, independent gate on top. Leave
+    // it Neutral/0 and nothing changes.
+    [SerializeField] protected UpgradeOrder secondOrder = UpgradeOrder.Neutral;
+    [SerializeField] protected int requiresSecondOrderCount = 0;
     [SerializeField] protected List<BaseUpgrade> unlockedBy = new List<BaseUpgrade>();
     [SerializeField] protected List<BaseUpgrade> lockedBy = new List<BaseUpgrade>();
     [SerializeField] protected List<UpgradeStat> stats = new List<UpgradeStat>();
@@ -39,6 +47,8 @@ public abstract class BaseUpgrade : ScriptableObject
     public float Weight => weight;
     public UpgradeOrder Order => order;
     public int RequiresOrderCount => requiresOrderCount;
+    public UpgradeOrder SecondOrder => secondOrder;
+    public int RequiresSecondOrderCount => requiresSecondOrderCount;
     public IReadOnlyList<BaseUpgrade> UnlockedBy => unlockedBy;
     public IReadOnlyList<BaseUpgrade> LockedBy => lockedBy;
     public IReadOnlyList<UpgradeStat> Stats => stats;

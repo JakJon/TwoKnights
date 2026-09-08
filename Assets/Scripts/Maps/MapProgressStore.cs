@@ -68,6 +68,39 @@ public static class MapProgressStore
         return record != null && record.trueCleared;
     }
 
+    /// <summary>How deep this map has ever been run, in waves CLEARED.</summary>
+    public static int FurthestWave(string mapId)
+    {
+        var record = Get(mapId);
+        return record != null ? record.furthestWave : 0;
+    }
+
+    /// <summary>
+    /// Waves a run just cleared on this map. Only ever raises the record, so the
+    /// order runs happen in cannot lose a deeper one.
+    /// </summary>
+    public static void RecordWavesCleared(string mapId, int wavesCleared)
+    {
+        if (string.IsNullOrEmpty(mapId) || wavesCleared <= 0) return;
+        var record = Get(mapId);
+        if (record == null || record.furthestWave >= wavesCleared) return;
+        record.furthestWave = wavesCleared;
+        SaveManager.Save();
+    }
+
+    /// <summary>
+    /// Waves a run has to clear on one map before that map wears its star on the
+    /// level select. Twenty is well past either shipped map's gate, so the star
+    /// says "went deep here" rather than "finished the tutorial".
+    /// </summary>
+    public const int StarWaveNumber = 20;
+
+    /// <summary>Has this map ever been run past <see cref="StarWaveNumber"/>?</summary>
+    public static bool HasStar(string mapId)
+    {
+        return FurthestWave(mapId) >= StarWaveNumber;
+    }
+
     public static void Unlock(string mapId)
     {
         var record = Get(mapId);

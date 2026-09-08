@@ -26,11 +26,16 @@ MonoBehaviour:
     carts:
     - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
     - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
     leadIn: 0.75
     releaseInterval: 1.6
     projectileInterval: 6
   - label: second shift
     carts:
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
     - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
     - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
     - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
@@ -41,9 +46,13 @@ MonoBehaviour:
     carts:
     - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
     - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
     leadIn: 1.5
     releaseInterval: 1.4
     projectileInterval: 5
+  speedUpScale: 1.35
+  whistleOnSpeedUp: 1
   orbs:
     healthOrb: 0
     count: 1
@@ -51,3 +60,43 @@ MonoBehaviour:
     interval: 12
     from: {x: -12, y: -1.5}
     to: {x: 12, y: -1.5}
+  wardStones: 4
+  wardStonePrefab: {fileID: 6821730625427352102, guid: e3a735aa259ad5e4b8fc19605975b243, type: 3}
+  wardRadius: 0.9
+  wardSpin: 120
+  wardRegrow: 4
+  volleys:
+  - label: one on the left
+    shape: 0
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 2.75
+    restAfter: 3.5
+  - label: one on the right
+    shape: 0
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 2.34
+    restAfter: 3.5
+  - label: over and under, left
+    shape: 3
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.4
+    count: 3
+    fanDegrees: 60
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 1.58
+    restAfter: 3.5
+  rockSpeed: 1.75

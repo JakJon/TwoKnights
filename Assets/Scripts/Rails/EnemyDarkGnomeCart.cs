@@ -26,9 +26,12 @@ using UnityEngine;
 //     tell is the cart approaching the middle of the screen, the same tell the
 //     ordinary bomb gnome has trained them to read all map.
 //
-// At the last stand he stops, roars, and comes back faster with everything
-// doubled. The roar is also the one moment in the mine where a status is taken
-// OFF something — see BeginLastStand for why that is a promise and not a cheat.
+// At the last stand he stops, roars, and comes back faster with the axes at
+// double rate. The powder is deliberately NOT doubled with them — it is already
+// a position rather than a timer, so the extra speed pays it out oftener on its
+// own, and two bombs at once are read by standing between them. The roar is also
+// the one moment in the mine where a status is taken OFF something — see
+// BeginLastStand for why that is a promise and not a cheat.
 public class EnemyDarkGnomeCart : EnemyGnomeCart
 {
     [Header("Pickaxes")]
@@ -69,13 +72,10 @@ public class EnemyDarkGnomeCart : EnemyGnomeCart
     [SerializeField] private float roarSeconds = 2f;
 
     [Tooltip("What the cart's own speed is multiplied by when he comes back up. On TOP of whatever gear the track is already in.")]
-    [SerializeField] private float lastStandSpeedScale = 1.5f;
+    [SerializeField] private float lastStandSpeedScale = 1.275f;
 
     [Tooltip("Pickaxe cooldown multiplier after the roar. 0.5 is double the throw rate, at whatever the crowd has thinned it to.")]
     [SerializeField] private float lastStandThrowScale = 0.5f;
-
-    [Tooltip("How far either side of the midpoint the PAIR of bombs lands after the roar. Two on the exact centre line would be one bomb wearing another.")]
-    [SerializeField] private float lastStandBombSpread = 1f;
 
     [Tooltip("Shown over the health bar and on the death screen.")]
     [SerializeField] private string bossTitle = "The Overseer";
@@ -108,6 +108,9 @@ public class EnemyDarkGnomeCart : EnemyGnomeCart
 
     // The wave ends on him, so he has to be a kill the wave is counting
     protected override bool TracksWaveCompletion => true;
+
+    // No execute: see EnemyBase.IsBoss
+    public override bool IsBoss => true;
 
     /// <summary>True while the roar is running. Damage simply does not land.</summary>
     public bool IsInvincible => Time.time < _invincibleUntil;
@@ -325,23 +328,17 @@ public class EnemyDarkGnomeCart : EnemyGnomeCart
         Vector3 at = ThrowPoint;
         at.x = _midX;
 
-        if (!_lastStand)
-        {
-            Instantiate(prefab, at, Quaternion.identity);
-        }
-        else
-        {
-            // Straddling the line rather than stacked on it. Both still travel
-            // straight to the knights' level, so the pair covers the gap the
-            // single one only threatened the middle of.
-            float spread = Mathf.Max(0.1f, lastStandBombSpread);
-            Instantiate(prefab, at + new Vector3(-spread, 0f, 0f), Quaternion.identity);
-            Instantiate(prefab, at + new Vector3(spread, 0f, 0f), Quaternion.identity);
-        }
+        // One on the line, at the last stand as much as before it. The powder is
+        // the weapon the knights answer by MOVING, and a pair straddling the
+        // midpoint was answered by standing where neither of them was — which made
+        // the doubled bomb easier to read than the single, not harder. The roar's
+        // teeth are the pickaxes and the speed; the powder stays the metronome it
+        // has been all fight, only arriving oftener because he crosses oftener.
+        Instantiate(prefab, at, Quaternion.identity);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         Debug.Log($"[Overseer] bomb #{_bombsThrown} ({(poison ? "GREEN" : "powder")}) at x={_midX:F2}, " +
-                  $"y={transform.position.y:F2}{(_lastStand ? ", paired" : "")}");
+                  $"y={transform.position.y:F2}");
 #endif
     }
 
@@ -397,7 +394,9 @@ public class EnemyDarkGnomeCart : EnemyGnomeCart
     /// <summary>
     /// Called by the wave when his health crosses the last threshold. He stops
     /// where he is, is untouchable for the length of the roar, and everything on
-    /// him is taken off — then he comes back up faster with both weapons doubled.
+    /// him is taken off — then he comes back up faster, throwing axes twice as
+    /// often. The bombs keep their one-per-crossing rule and get their raise out
+    /// of the speed instead.
     ///
     /// The strip is a real promise and not a cheat: he is meat like every other
     /// rider (ImmuneToAreaDamage is false), so poison and fire have worked on him

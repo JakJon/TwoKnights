@@ -1,0 +1,8 @@
+GIMP Palette
+Name: Pallid Keep - Grit / rot
+Columns: 4
+# Rotted timber, rust, dust, and the worn circles under each knight's station. The only warm pixels in the scene besides the accents, and against a floor this deep they carry more weight than they did on the other two maps.
+ 46  33  30	grit-1 2e211e
+ 72  51  42	grit-2 48332a
+101  72  55	grit-3 654837
+126  92  68	grit-4 7e5c44

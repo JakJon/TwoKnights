@@ -74,6 +74,16 @@ public class GameSceneManager : MonoBehaviour
             {
                 SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, waveReached);
                 SaveManager.Save();
+
+                // Per map, and in waves CLEARED rather than reached: the wave the
+                // knight died on was not beaten, and the level select's star is a
+                // claim about what this map has actually been taken through.
+                var diedOn = WaveManager.ActiveInstance.CurrentMap;
+                if (diedOn != null)
+                {
+                    MapProgressStore.RecordWavesCleared(diedOn.MapId,
+                        WaveManager.ActiveInstance.CompletedWavesCount);
+                }
             }
         }
 
@@ -110,6 +120,8 @@ public class GameSceneManager : MonoBehaviour
         {
             SaveManager.Data.furthestWave = Mathf.Max(SaveManager.Data.furthestWave, wavesCompleted);
             SaveManager.Save();
+
+            if (map != null) MapProgressStore.RecordWavesCleared(map.MapId, wavesCompleted);
         }
 
         // The boss kill that ended the run is counted but not yet on disk

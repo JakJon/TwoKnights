@@ -20,7 +20,7 @@ public class DawnBoost : MonoBehaviour
 {
     // --- Sunwell: the orb door ---
     private float orbHealMultiplier = 1f;
-    private int manaOrbMend = 0;
+    private int manaOrbHeal = 0;
     private bool slowsOrbs = false;
 
     // Sunwell III slows orbs for BOTH knights — the orb is shared ground, so
@@ -34,9 +34,9 @@ public class DawnBoost : MonoBehaviour
 
     // --- Lifebloom: the kill door ---
     // Deterministic, not a dice roll: the player can count to twelve and know
-    // the mend is coming, the same way Ember's Fireball cadence is countable.
+    // the heal is coming, the same way Ember's Fireball cadence is countable.
     private int lifebloomInterval = 0;
-    private int lifebloomMend = 0;
+    private int lifebloomHeal = 0;
     private int killCounter = 0;
 
     // --- Second Wind: the toll door ---
@@ -51,14 +51,14 @@ public class DawnBoost : MonoBehaviour
     private int damageTowardSecondWind = 0;
 
     // --- Benediction: the special door ---
-    private int benedictionMend = 0;
+    private int benedictionHeal = 0;
     private float benedictionInvuln = 0f;
 
     // --- Last Light: capstone ---
     private bool lastLight = false;
     private bool lastLightSpent = false;
 
-    public const int LastLightMend = 25;
+    public const int LastLightHeal = 25;
     public const float LastLightInvulnSeconds = 2f;
 
     // The colour every Dawn effect flashes, matching the Order's UI accent
@@ -83,9 +83,9 @@ public class DawnBoost : MonoBehaviour
         orbHealMultiplier = Mathf.Max(orbHealMultiplier, multiplier);
     }
 
-    public void SetManaOrbMend(int amount)
+    public void SetManaOrbHeal(int amount)
     {
-        manaOrbMend = Mathf.Max(manaOrbMend, amount);
+        manaOrbHeal = Mathf.Max(manaOrbHeal, amount);
     }
 
     public void EnableSlowOrbs()
@@ -93,7 +93,7 @@ public class DawnBoost : MonoBehaviour
         slowsOrbs = true;
     }
 
-    public int ManaOrbMend => manaOrbMend;
+    public int ManaOrbHeal => manaOrbHeal;
     public bool SlowsOrbs => slowsOrbs;
 
     // Rounded up, so the first Sunwell tier is always worth at least +1 even on
@@ -139,13 +139,13 @@ public class DawnBoost : MonoBehaviour
 
     // ---- Lifebloom ----
 
-    public void SetLifebloom(int interval, int mend)
+    public void SetLifebloom(int interval, int heal)
     {
         // Lower interval = more often, so Min is the upgrade direction here
         lifebloomInterval = lifebloomInterval == 0
             ? Mathf.Max(1, interval)
             : Mathf.Min(lifebloomInterval, Mathf.Max(1, interval));
-        lifebloomMend = Mathf.Max(lifebloomMend, mend);
+        lifebloomHeal = Mathf.Max(lifebloomHeal, heal);
     }
 
     public int LifebloomInterval => lifebloomInterval;
@@ -162,7 +162,7 @@ public class DawnBoost : MonoBehaviour
         PlayerHealth health = GetComponent<PlayerHealth>();
         if (health == null) return;
 
-        health.Heal(lifebloomMend);
+        health.Heal(lifebloomHeal);
         GetComponent<GlowManager>()?.StartGlow(DawnGlow, 0.25f);
         PlayerStats.Increment("dawn.lifebloom");
     }
@@ -204,37 +204,51 @@ public class DawnBoost : MonoBehaviour
 
     // ---- Benediction ----
 
-    public void SetBenediction(int mend, float invulnSeconds)
+    public void SetBenediction(int heal, float invulnSeconds)
     {
-        benedictionMend = Mathf.Max(benedictionMend, mend);
+        benedictionHeal = Mathf.Max(benedictionHeal, heal);
         benedictionInvuln = Mathf.Max(benedictionInvuln, invulnSeconds);
     }
 
-    public bool HasBenediction => benedictionMend > 0;
+    public bool HasBenediction => benedictionHeal > 0;
 
     /// <summary>
-    /// Spending a special lifts the OTHER knight, whatever the special was —
-    /// Rapid Fire, Field Mending, anything a later loadout adds. Hooked once in
+    /// Spending a special lifts BOTH knights, whatever the special was — Rapid
+    /// Fire, Field Healing, anything a later loadout adds. Hooked once in
     /// PlayerSpecial rather than inside each special, so a new special cannot
     /// quietly escape the rule.
+    ///
+    /// It used to pay the partner only, and paying both is the owner's call
+    /// (2026-09-06). The old shape made Benediction a gift you could not use on
+    /// yourself, which meant the knight who did the work of filling the bar was
+    /// the one knight it never reached — and since the special is spent at the
+    /// worst moment of a wave, that is usually the knight who needed it. Paying
+    /// both keeps the "your special is a thing you do FOR the pair" reading and
+    /// stops it being a reason to hold the bar until your partner is hurt.
     /// </summary>
     public void PayBenediction(string ownTag)
     {
-        if (benedictionMend <= 0) return;
+        if (benedictionHeal <= 0) return;
 
-        GameObject other = OtherKnight(ownTag);
-        if (other == null) return;
-
-        other.GetComponent<PlayerHealth>()?.Heal(benedictionMend);
-        other.GetComponent<GlowManager>()?.StartGlow(DawnGlow, 1f);
-
-        if (benedictionInvuln > 0f)
-        {
-            other.GetComponent<PlayerHealth>()?.SetInvulnerable(benedictionInvuln);
-            GetComponent<PlayerHealth>()?.SetInvulnerable(benedictionInvuln);
-        }
+        Bless(gameObject);
+        Bless(OtherKnight(ownTag));
 
         PlayerStats.Increment("dawn.benediction");
+    }
+
+    // One knight's share of the blessing: the heal, the glow that says where it
+    // landed, and rank II's untouchable beat. Pulled out so the two knights
+    // cannot drift apart — the whole point of the upgrade is that they get the
+    // same thing.
+    private void Bless(GameObject knight)
+    {
+        if (knight == null) return;
+
+        PlayerHealth health = knight.GetComponent<PlayerHealth>();
+        health?.Heal(benedictionHeal);
+        knight.GetComponent<GlowManager>()?.StartGlow(DawnGlow, 1f);
+
+        if (benedictionInvuln > 0f) health?.SetInvulnerable(benedictionInvuln);
     }
 
     // ---- Last Light (capstone) ----

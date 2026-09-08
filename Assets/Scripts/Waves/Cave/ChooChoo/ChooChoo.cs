@@ -78,6 +78,36 @@ public class ChooChoo : BaseWave
     [Tooltip("Shifts, in order. Each one waits for the last one's gnomes to be dead before it sets off.")]
     [SerializeField] private List<Ambush> ambushes = new List<Ambush>();
 
+    [Header("The gear change")]
+    [Tooltip("What the whole loop gears up to once half the shift's gnomes are down. One change, once, for the rest of the wave: the players earn a faster track by clearing it, and the second half of every shift is fought at that speed.")]
+    [SerializeField] private float speedUpScale = 1.35f;
+
+    [Tooltip("Two blasts off the mine whistle on the gear change — the same announcement the Millstone makes, and the only warning the players get that the track just got quicker.")]
+    [SerializeField] private bool whistleOnSpeedUp = true;
+
+    [Header("The guard")]
+    [Tooltip("Stones in the ring one rider of every shift comes out wearing. 0 sends the shift out bare. This is the tier dial and it is a dial over the GAPS, not over hit points: evenly spaced on a 0.9-unit ring, four stones leave gaps over a unit wide and eleven leave a quarter of one. House ladder across the four tiers: 4 / 6 / 8 / 11.")]
+    [SerializeField] private int wardStones;
+
+    [Tooltip("The rock the guard is made of. Read for its sprite and its hitbox only — the ring builds its own stones, because a rock prefab registers with wave tracking and eleven of them circling a gnome would hold the wave open forever.")]
+    [SerializeField] private GameObject wardStonePrefab;
+
+    [Tooltip("How far off the rider the ring sits. Wide enough to be a barrier in front of him rather than a texture on him; narrow enough that a knight who has closed the range can still see which gap is coming.")]
+    [SerializeField] private float wardRadius = 0.9f;
+
+    [Tooltip("Degrees per second the guard turns. This is the clock the player is reading — 120 is a full turn every three seconds, which is slow enough to time a shot into a gap and quick enough that the gap does not wait for you.")]
+    [SerializeField] private float wardSpin = 120f;
+
+    [Tooltip("Seconds before a broken stone is back in its own slot. Its own slot, so grinding the ring down never widens the gaps — which is what keeps threading them the real answer.")]
+    [SerializeField] private float wardRegrow = 4f;
+
+    [Header("Rock")]
+    [Tooltip("Cycled in order as the shafts work. This used to be one rock at a time round four fixed points, which is a metronome rather than a pattern — the guard learned it in one wave and never had to read it again. Each ambush still says HOW OFTEN it fires, below.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("World units per second for this wave's rock. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 1.75f;
+
     [Header("Orbs")]
     [Tooltip("Crosses INSIDE the loop by default — an orb outside the ring can only be shot through a gap in the traffic, which is a harsher trade than this wave is asking for.")]
     [SerializeField] private OrbRun orbs = new OrbRun();
@@ -87,9 +117,17 @@ public class ChooChoo : BaseWave
     // open a different corner each time the wave came up.
     private int _shot;
 
+    // Every gnome rider this wave has put on the track. Entries go null as they
+    // die, which is how the gear change knows half the shift is down. Cleared at
+    // the top of the wave — the asset outlives the run.
+    private readonly List<GameObject> _riders = new List<GameObject>();
+    private bool _gearedUp;
+
     public override IEnumerator SpawnWave(Spawner spawner)
     {
         _shot = 0;
+        _riders.Clear();
+        _gearedUp = false;
 
         var rails = spawner.Rails;
         if (rails == null)
@@ -109,6 +147,11 @@ public class ChooChoo : BaseWave
         // Beside the wave, never inside it: the shifts are player-paced, so an orb
         // run joined to the spawn phase would stretch or truncate with them
         Coroutine orbRun = spawner.StartCoroutine(orbs.Release(spawner));
+
+        // Watches the whole wave rather than one shift: "half the gnomes" is a
+        // claim about the shift the wave is going to work through, so the gear
+        // change lands once, wherever in the wave that half falls.
+        Coroutine gearbox = spawner.StartCoroutine(WatchForHalfDown(rails, PlannedGnomes()));
 
         for (int i = 0; i < ambushes.Count; i++)
         {
@@ -134,9 +177,61 @@ public class ChooChoo : BaseWave
         // Orbs already on the board finish their crossing on their own; what stops
         // here is any that had not been released yet
         spawner.StopCoroutine(orbRun);
+        if (gearbox != null) spawner.StopCoroutine(gearbox);
 
         MarkSpawningComplete();
         yield return null;
+    }
+
+    // How many gnomes the wave will release across every shift. Counted up front
+    // from what is authored, so the change fires halfway through the SHIFT and
+    // not halfway through whichever group happens to be on the track.
+    private int PlannedGnomes()
+    {
+        int total = 0;
+        for (int i = 0; i < ambushes.Count; i++)
+        {
+            Ambush ambush = ambushes[i];
+            if (ambush == null || ambush.carts == null) continue;
+            for (int c = 0; c < ambush.carts.Count; c++)
+            {
+                GameObject prefab = ambush.carts[c];
+                if (prefab != null && prefab.GetComponent<EnemyGnomeCart>() != null) total++;
+            }
+        }
+        return total;
+    }
+
+    private IEnumerator WatchForHalfDown(RailNetwork rails, int planned)
+    {
+        if (rails == null || planned <= 0 || speedUpScale <= 1f) yield break;
+
+        int half = Mathf.CeilToInt(planned * 0.5f);
+
+        while (!_gearedUp)
+        {
+            int down = 0;
+            for (int i = 0; i < _riders.Count; i++)
+            {
+                if (_riders[i] == null) down++;
+            }
+
+            if (down >= half)
+            {
+                _gearedUp = true;
+                rails.SetSpeedScale(speedUpScale);
+                if (whistleOnSpeedUp && AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlaySFX(AudioManager.Instance.cartWhistle);
+                }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"[ChooChoo] {down} of {planned} gnome(s) down — the loop is now at {speedUpScale:F2}x.");
+#endif
+                yield break;
+            }
+
+            yield return null;
+        }
     }
 
     // One cart at a time, all from the same mouth. They are NOT dealt across the
@@ -149,6 +244,7 @@ public class ChooChoo : BaseWave
 
         float interval = Mathf.Max(0.1f, ambush.releaseInterval);
         List<GameObject> order = GnomesFirst(ambush.carts);
+        bool guarded = false;
 
         for (int i = 0; i < order.Count; i++)
         {
@@ -161,7 +257,28 @@ public class ChooChoo : BaseWave
             }
 
             int line = Mathf.Clamp(entryRun, 0, rails.LineCount - 1);
-            rails.SpawnCart(order[i], line, MineCart.TrackSpeed);
+            MineCart cart = rails.SpawnCart(order[i], line, MineCart.TrackSpeed);
+
+            // Only riders count toward the gear change: kegs and empty wrecks
+            // are hazards on the loop, not the shift the players are clearing.
+            if (cart != null && cart.GetComponent<EnemyGnomeCart>() != null)
+            {
+                _riders.Add(cart.gameObject);
+
+                // One guarded rider per shift, and he is the FIRST one out. Not a
+                // random one and not all of them: the ring is a question the
+                // player has to have time to read, so it arrives on the cart that
+                // is on screen by itself, and by the time the rest of the shift is
+                // round the answer is already known. GnomesFirst has already put
+                // the riders at the front, so "first cart with a gnome on it" and
+                // "first gnome" are the same slot.
+                if (!guarded && wardStones > 0)
+                {
+                    guarded = true;
+                    GnomeWardRing.Attach(cart.gameObject, wardStonePrefab, wardStones,
+                                         wardRadius, wardSpin, wardRegrow);
+                }
+            }
 
             if (i < order.Count - 1) yield return new WaitForSeconds(interval);
         }
@@ -207,33 +324,21 @@ public class ChooChoo : BaseWave
     // it running on the Spawner.
     private IEnumerator WorkTheShafts(Spawner spawner, float interval)
     {
+        if (volleys == null || volleys.Count == 0) yield break;
+
         float wait = Mathf.Max(0.1f, interval);
 
+        // The ambush is the clock, not a window: the shafts work for exactly as
+        // long as the shift on the loop is alive, so leaving a gnome up is what
+        // keeps the rock coming. The ambush's own interval stands in for each
+        // volley's restAfter, which is how a tier says the shafts got busier
+        // without re-authoring every shape.
         while (!IsAmbushClear())
         {
-            SpawnShot(spawner);
-            yield return new WaitForSeconds(wait);
+            RockVolley volley = volleys[_shot++ % volleys.Count];
+            float busy = RockVolley.Fire(spawner, volley, rockSpeed);
+            yield return new WaitForSeconds(busy + wait);
         }
     }
 
-    // Each shot drops straight down (or straight up) onto its own knight, so a
-    // volley never crosses the other knight's guard
-    private void SpawnShot(Spawner spawner)
-    {
-        switch (_shot++ % 4)
-        {
-            case 0:
-                spawner.SpawnProjectile(spawner.LeftPlayer, spawner.aboveLeftPlayer);
-                break;
-            case 1:
-                spawner.SpawnProjectile(spawner.RightPlayer, spawner.aboveRightPlayer);
-                break;
-            case 2:
-                spawner.SpawnProjectile(spawner.LeftPlayer, spawner.belowLeftPlayer);
-                break;
-            default:
-                spawner.SpawnProjectile(spawner.RightPlayer, spawner.belowRightPlayer);
-                break;
-        }
-    }
 }

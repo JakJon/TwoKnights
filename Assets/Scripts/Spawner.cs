@@ -25,6 +25,8 @@ public class Spawner : MonoBehaviour
     [SerializeField] public GameObject brownWolfPrefab;
     [SerializeField] public GameObject blackWolfPrefab;
     [SerializeField] public GameObject darkBat;
+    [SerializeField] public GameObject ogrePrefab;
+    [SerializeField] public GameObject fireOgrePrefab;
     [Tooltip("Every Nth bat of a wave spawns as a dark bat once past the gate boss. Deterministic — wave content must never roll dice")]
     [SerializeField] private int darkBatInterval = 4;
     private int _batCallCount; // bat spawn calls this wave, in wave-script order
@@ -32,6 +34,8 @@ public class Spawner : MonoBehaviour
     [SerializeField] public GameObject manaOrbPrefab;
     [Tooltip("Mine-map track builder. Waves ask for a RailLayout through Spawner.Rails.")]
     [SerializeField] private RailNetwork railNetwork;
+    [Tooltip("Castle-map mirror builder. Waves ask for a MirrorLayout through Spawner.Mirrors. Left empty on purpose — MirrorNetwork builds itself on first use.")]
+    [SerializeField] private MirrorNetwork mirrorNetwork;
 
     private Transform _leftPlayer;
     private Transform _rightPlayer;
@@ -65,6 +69,18 @@ public class Spawner : MonoBehaviour
             if (railNetwork == null)
                 railNetwork = FindFirstObjectByType<RailNetwork>(FindObjectsInactive.Include);
             return railNetwork;
+        }
+    }
+
+    // Never null, unlike Rails: the castle's panes are built at runtime rather
+    // than authored into the arena scene, so asking for them is what creates
+    // them. A map that never asks never gets one — see MirrorNetwork.Ensure.
+    public MirrorNetwork Mirrors
+    {
+        get
+        {
+            if (mirrorNetwork == null) mirrorNetwork = MirrorNetwork.Ensure();
+            return mirrorNetwork;
         }
     }
     #endregion
@@ -116,6 +132,22 @@ public class Spawner : MonoBehaviour
         // Whetstone: a knight carrying it drafts once before anything spawns.
         // If nobody has one this falls straight through to wave one.
         QueueHeadStarts();
+
+        // A brand-new file learns the controls before it fights anything. The
+        // tutorial owns the arena until it is done, then calls BeginFirstWave
+        // itself — so wave one starts the same way either way.
+        if (TutorialDirector.TryBegin(this)) return;
+
+        BeginFirstWave();
+    }
+
+    /// <summary>
+    /// Opens the run: any owed head-start draft first, then wave one. Called
+    /// straight from Start on an ordinary run, and by the tutorial on the far side
+    /// of itself.
+    /// </summary>
+    public void BeginFirstWave()
+    {
         if (!TryShowNextHeadStart()) StartNextWave();
     }
 
@@ -218,6 +250,12 @@ public class Spawner : MonoBehaviour
         BeginWave(waveManager.SelectNextWave());
     }
 
+    private static PlayerHealth FindKnightHealth(string knightTag)
+    {
+        GameObject knight = GameObject.FindWithTag(knightTag);
+        return knight != null ? knight.GetComponent<PlayerHealth>() : null;
+    }
+
     private void BeginWave(BaseWave nextWave)
     {
         if (nextWave == null) return;
@@ -225,9 +263,14 @@ public class Spawner : MonoBehaviour
             waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
         _isWaveInProgress = true;
         _batCallCount = 0; // dark-bat cadence restarts every wave
+        DawnVigil.BeginWave();
         // Last wave's track comes down as this one starts, so rails stay up
         // through the wave-complete beat and the upgrade menu
         if (Rails != null) Rails.ClearAll();
+        // Same beat for the castle's mirrors. Asked for through the field rather
+        // than the property so a map with no mirrors does not build a network
+        // just to tear it down again.
+        if (mirrorNetwork != null) mirrorNetwork.Clear();
         StartCoroutine(RunWave(nextWave));
     }
 
@@ -335,6 +378,10 @@ public class Spawner : MonoBehaviour
         // Start wave tracking
         wave.StartWaveTracking();
 
+        // The rock cadence is per wave, not per run: "every tenth is poisoned"
+        // has to mean the same thing on the first wave of a run and the twentieth.
+        RockEscalation.ResetForWave();
+
         // Meeting a wave type counts as having explored it, win or lose.
         // Credited to the map it belongs to — explorer quests are per map.
         var exploredMap = waveManager != null ? waveManager.CurrentMap : null;
@@ -350,6 +397,20 @@ public class Spawner : MonoBehaviour
         wave.EndWaveTracking();
         
         _isWaveInProgress = false;
+
+        // Read before WaveCompleted so it is answering the wave that just ran,
+        // and before the upgrade menu can heal anybody.
+        DawnVigil.EndWave(
+            FindKnightHealth("PlayerLeft"),
+            FindKnightHealth("PlayerRight"));
+
+        // The backdrop freezes BEFORE the wave number moves. CurrentWaveNumber is
+        // what BackgroundController polls, so holding it any later than this - after
+        // the "Wave Survived" panel, as it used to - let the crossing wave's new
+        // backdrop pop up over the cleared arena while the player was still looking
+        // at it. Released behind the black curtain further down.
+        BackgroundController.Instance?.Hold();
+
         waveManager.WaveCompleted();
 
         // Stat writes are batched in memory rather than hitting disk per kill;
@@ -362,8 +423,21 @@ public class Spawner : MonoBehaviour
         // the last one's inferno and the difficulty curve would invert.
         FireField.ClearAll();
 
+        // And the ice with it. A Permafrost hold has no deadline of its own to run
+        // out, so a statue made in wave eleven would still be standing in wave
+        // twelve - the same inverted difficulty curve, in blue.
+        FrigidBoost.ClearFieldFrost();
+
+        // The knights' poison dies with the wave for the same reason - see
+        // KnightPoison.CureAll. It is a clock to beat inside a fight, not a debt
+        // to carry into the next one.
+        KnightPoison.CureAll();
+
         if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
         {
+            // Every path out of here has to let the backdrop go, or the hold above
+            // outlives the wave that took it.
+            BackgroundController.Instance?.ReleaseAndApply();
             VentureCurtain.ForceClear();
             yield break;
         }
@@ -372,6 +446,7 @@ public class Spawner : MonoBehaviour
         var outcome = waveManager.ConsumePendingOutcome();
         if (outcome != RunOutcome.None && GameSceneManager.Instance != null)
         {
+            BackgroundController.Instance?.ReleaseAndApply();
             VentureCurtain.ForceClear();
             GameSceneManager.Instance.OnVictory(waveManager.CurrentMap, outcome == RunOutcome.TrueVictory,
                 waveManager.CompletedWavesCount);
@@ -403,10 +478,6 @@ public class Spawner : MonoBehaviour
         _pendingVentureLine = (crossing && stage != null) ? stage.ventureLine : null;
 
         _isTransitionActive = true;
-        // The backdrop swap waits behind the black: CurrentWaveNumber advanced
-        // the instant WaveCompleted() ran, so unheld it would pop on the cleared
-        // arena seconds before the menu even opens
-        BackgroundController.Instance?.Hold();
         Time.timeScale = 0f;
         yield return StartCoroutine(VentureCurtain.Close(!string.IsNullOrEmpty(_pendingVentureLine)));
         BackgroundController.Instance?.ReleaseAndApply();
@@ -538,12 +609,16 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate = false, Vector2? entryPoint = null)
+    // `roster`, when given, collects the rat once it exists. A rat cannot be
+    // handed back from here — the spawn is a delayed coroutine — so a wave that
+    // has to know when ITS rats are dead (rather than when every enemy is) reads
+    // the roster and drops the entries Unity has nulled out.
+    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate = false, Vector2? entryPoint = null, List<GameObject> roster = null)
     {
-        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassStrengthGate, entryPoint));
+        StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassStrengthGate, entryPoint, roster));
     }
 
-    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate, Vector2? entryPoint)
+    private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate, Vector2? entryPoint, List<GameObject> roster = null)
     {
         yield return new WaitForSeconds(delay);
         // bypassStrengthGate lets the rat king summon his brown brood mid-fight
@@ -565,6 +640,66 @@ public class Spawner : MonoBehaviour
                 enemyRat.SetEntryPoint(entryPoint.Value);
             }
         }
+
+        if (roster != null) roster.Add(enemy);
+    }
+
+    /// <summary>
+    /// Puts an ogre down at <paramref name="spawnPosition"/>. WHERE it lands is
+    /// the whole authoring decision: the ogre reads the nearer knight off its own
+    /// spawn point and walks at him for the rest of its life, so a wave chooses
+    /// which knight is in trouble by choosing a side of the board. It picks the
+    /// far knight to throw at in the same breath, which is why a fire ogre put
+    /// down dead centre is a coin toss rather than a decision — place them out
+    /// past a knight's shoulder, not on the midline.
+    ///
+    /// `roster` collects the ogre once it exists, the same contract SpawnRat
+    /// uses, so a wave can hold itself open until its ogres in particular are down.
+    /// </summary>
+    /// <summary>
+    /// Puts an ogre down at <paramref name="spawnPosition"/>, which must be off
+    /// the edge of the frame. WHERE it lands is the whole authoring decision: an
+    /// ogre walks a straight line from there to its knight and never deviates,
+    /// so the entry point chooses which part of the board it crosses on the way.
+    /// See OgreBand and OgreEntry, which is where waves say this.
+    ///
+    /// `mark` names the knight outright. Left null the ogre reads the nearer one
+    /// off its own landing spot, which is right for anything clearly on one side
+    /// and useless on the centre line, where the two are equidistant and the
+    /// tie-break would hand every one of them to the same knight.
+    ///
+    /// `roster` collects the ogre once it exists, the same contract SpawnRat
+    /// uses, so a wave can hold itself open until its ogres in particular are down.
+    /// </summary>
+    public void SpawnOgre(Vector2 spawnPosition, float delay = 0f, bool fire = false,
+                          List<GameObject> roster = null, Transform mark = null)
+    {
+        StartCoroutine(SpawnOgreAfterDelay(spawnPosition, delay, fire, roster, mark));
+    }
+
+    private IEnumerator SpawnOgreAfterDelay(Vector2 spawnPosition, float delay, bool fire,
+                                            List<GameObject> roster, Transform mark)
+    {
+        if (delay > 0f) yield return new WaitForSeconds(delay);
+
+        GameObject prefab = fire ? fireOgrePrefab : ogrePrefab;
+        if (prefab == null)
+        {
+            Debug.LogWarning($"Spawner: no {(fire ? "fireOgrePrefab" : "ogrePrefab")} assigned; nothing spawned.");
+            yield break;
+        }
+
+        GameObject ogre = Instantiate(prefab);
+        ogre.transform.position = spawnPosition;
+
+        // Before Start runs, the same contract EnemyRat.SetEntryPoint uses
+        if (mark != null)
+        {
+            EnemyOgre brute = ogre.GetComponent<EnemyOgre>();
+            if (brute != null) brute.AssignTarget(mark, mark == _leftPlayer ? _rightPlayer : _leftPlayer);
+        }
+
+        if (roster != null) roster.Add(ogre);
     }
 
     public void SpawnSlime(int size, Vector2 spawnPosition, float delay, Transform targetPlayer)
@@ -666,22 +801,68 @@ public class Spawner : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// The floor on the gap between two projectiles of the SAME group, in seconds
+    /// (owner's rule, 2026-09-06): **a spawn pattern is always staggered, and two
+    /// projectiles never leave on the same frame.**
+    ///
+    /// This is not a polish note, it is a fairness rule, and it comes straight out
+    /// of the two-knight geometry. A knight has ONE guard and it covers one
+    /// direction. Rock that arrives spread over time is a thing a player holds a
+    /// facing through and reads; rock that arrives all at once is a number
+    /// subtracted from their health with a picture attached, and no amount of
+    /// aim, reaction or upgrade changes the outcome. Flight time is identical for
+    /// every projectile of a group, so the gap between RELEASES is exactly the gap
+    /// between ARRIVALS — which is why enforcing it here works at all.
+    ///
+    /// Enforced in the two group helpers below rather than left to callers,
+    /// because "the wave author remembered" is not a guarantee: every wave, boss
+    /// fan and shaft volley in the game funnels through SpawnProjectileStraight
+    /// and SpawnProjectileArc, and a 0 passed to either used to mean "all of them,
+    /// this frame". A caller asking for a bigger gap always gets the bigger gap;
+    /// this only ever raises a floor.
+    /// </summary>
+    public const float MinProjectileStagger = 0.06f;
+
     // `speed` of 0 or less leaves the rock prefab's own speed alone, which is what
     // every caller but Delivery wants — see ProjectileMovement.Initialize for why
     // flight time belongs to the wave rather than to the prefab.
     public void SpawnProjectile(Transform targetPlayer, Vector2 spawnPosition, float delay = 0f, float speed = 0f)
     {
-        StartCoroutine(SpawnProjectileAfterDelay(targetPlayer, spawnPosition, delay, speed));
+        // The variant is claimed HERE rather than inside the coroutine. A volley
+        // is authored as an order — first this rock, then that one — and the
+        // per-rock delays would otherwise shuffle the cadence out of that order.
+        RockVariant variant = RockEscalation.NextVariant();
+        StartCoroutine(SpawnProjectileAfterDelay(targetPlayer, spawnPosition, delay, speed, variant));
     }
 
-    private IEnumerator SpawnProjectileAfterDelay(Transform targetPlayer, Vector2 spawnPosition, float delay, float speed)
+    private IEnumerator SpawnProjectileAfterDelay(Transform targetPlayer, Vector2 spawnPosition, float delay,
+                                                  float speed, RockVariant variant)
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
 
-        GameObject projectile = Instantiate(projectilePrefab);
+        // AT the spawn point, not at the prefab's authored position. The rock's
+        // trails simulate in WORLD space, so a rock that is born by the right
+        // knight and only moved to its shaft a line later puffs a lungful of
+        // bubbles over that knight before the throw has even started.
+        GameObject projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
+
+        // Dressed before it is aimed, so the trail is already alight on the
+        // frame the rock first appears
+        ProjectileSettings settings = projectile.GetComponent<ProjectileSettings>();
+        if (settings != null) settings.Become(variant);
+
         ProjectileMovement pm = projectile.GetComponent<ProjectileMovement>();
-        pm.Initialize(targetPlayer, spawnPosition, speed);
+
+        // Deep in the mine every rock hurries. Applied to whatever the wave asked
+        // for; a wave that left the speed alone gets the prefab's own hurried.
+        float scale = RockEscalation.SpeedScale;
+        float launchSpeed = speed > 0f
+            ? speed * scale
+            : (scale > 1f ? pm.Speed * scale : 0f);
+
+        pm.Initialize(targetPlayer, spawnPosition, launchSpeed);
     }
 
     private Vector2 ArcCenterFor(Transform targetPlayer)
@@ -694,12 +875,21 @@ public class Spawner : MonoBehaviour
     public float ProjectileArcFlightSeconds(Transform targetPlayer, Vector2 arcStart)
     {
         float radius = Vector2.Distance(arcStart, ArcCenterFor(targetPlayer));
-        return radius / projectilePrefab.GetComponent<ProjectileMovement>().Speed;
+        // Must include the mine's late-run hurry, or a boss pacing its volleys
+        // off this number would leave gaps it thinks are safe and are not.
+        float speed = projectilePrefab.GetComponent<ProjectileMovement>().Speed * RockEscalation.SpeedScale;
+        return radius / speed;
     }
 
     public void SpawnProjectileArc(Transform targetPlayer, ArcDirection direction, Vector2 arcStart, float arcDegrees, int projectileCount,
         float delayBetweenProjectiles, int arcCount = 1, float delayBetweenArcs = 0f, float speed = 0f)
     {
+        // Never a whole arc on one frame — see MinProjectileStagger
+        if (projectileCount > 1)
+        {
+            delayBetweenProjectiles = Mathf.Max(MinProjectileStagger, delayBetweenProjectiles);
+        }
+
         Vector2 arcCenter = ArcCenterFor(targetPlayer);
         float radius = Vector2.Distance(arcStart, arcCenter);
         StartCoroutine(SpawnProjectileArcCoroutine(targetPlayer, direction, arcCenter, radius, arcStart, arcDegrees, projectileCount, 
@@ -729,6 +919,12 @@ public class Spawner : MonoBehaviour
 
     public void SpawnProjectileStraight(Vector2 spawnPosition, Transform targetPlayer, float projectileAmount, float projectileDelay, float initialDelay = 0f, float speed = 0f)
     {
+        // Never a whole file on one frame — see MinProjectileStagger
+        if (projectileAmount > 1)
+        {
+            projectileDelay = Mathf.Max(MinProjectileStagger, projectileDelay);
+        }
+
         StartCoroutine(SpawnProjectileStraightCoroutine(spawnPosition, targetPlayer, projectileAmount, projectileDelay, initialDelay, speed));
     }
 

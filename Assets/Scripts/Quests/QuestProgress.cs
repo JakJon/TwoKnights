@@ -13,6 +13,7 @@ public static class QuestProgress
     // Quests already known to be unlocked, so becoming unlocked fires exactly once
     private static readonly HashSet<string> _knownUnlocked = new HashSet<string>();
     private static bool _evaluating;
+    private static bool _seeding;
 
     public static void EnsureInitialized()
     {
@@ -143,15 +144,29 @@ public static class QuestProgress
                 // reason. The extra slot arrives empty; nothing is auto-filled.
                 SaveManager.Data.specialSlots = Mathf.Max(1, SaveManager.Data.specialSlots) + 1;
             }
+            if (reward.UnlocksMap)
+            {
+                // Ordinarily already done: the gate kill this quest asks for opens
+                // the map, and only then does the quest complete. Applying it here
+                // too is idempotent, and it means the listed reward is true even
+                // for a quest that opens a map off something other than a gate.
+                MapProgressStore.Unlock(reward.UnlocksMapId);
+            }
         }
-
-        SaveManager.Save();
-        OnQuestCompleted?.Invoke(quest.Id);
 
         // Completion is published as a stat so quest chains gate on it through
         // the same path as everything else — no separate prerequisite mechanism,
         // and the write re-enters Evaluate to open whatever comes next.
+        //
+        // It goes in BEFORE the file write. A stat write only dirties PlayerStats
+        // and waits for the next flush, so publishing after the save meant a
+        // session could end holding the completion on disk and its gate only in
+        // memory — the record survived, the thing chains actually read did not.
+        // Both now land in the same write.
         PlayerStats.Set(QuestDatabase.CompletionStatKey(quest.Id), 1);
+
+        SaveManager.Save();
+        OnQuestCompleted?.Invoke(quest.Id);
         return true;
     }
 
@@ -164,6 +179,11 @@ public static class QuestProgress
 
     private static void HandleStatChanged(string key, int value)
     {
+        // Seeding republishes a whole file's completions in one go. Letting that
+        // run Evaluate would announce every already-open quest as newly unlocked,
+        // which is the exact thing the re-seed exists to prevent.
+        if (_seeding) return;
+
         foreach (var quest in QuestDatabase.All)
         {
             if (quest.WatchesStat(key)) OnQuestProgressChanged?.Invoke(quest.Id);
@@ -216,10 +236,43 @@ public static class QuestProgress
     // dot is driven by seenQuests, not by this event
     private static void SeedUnlocked()
     {
-        _knownUnlocked.Clear();
-        foreach (var quest in QuestDatabase.All)
+        _seeding = true;
+        try
         {
-            if (quest.IsUnlocked) _knownUnlocked.Add(quest.Id);
+            RepublishCompletions();
+
+            _knownUnlocked.Clear();
+            foreach (var quest in QuestDatabase.All)
+            {
+                if (quest.IsUnlocked) _knownUnlocked.Add(quest.Id);
+            }
+        }
+        finally
+        {
+            _seeding = false;
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds the completion stats from the completion records, making the
+    /// record the single source of truth and the stat a cache of it.
+    ///
+    /// The stat used to be written once, at the moment of completion, and a save
+    /// that lost that write — a crash or a quit before the next flush — kept the
+    /// completion and lost the gate. Nothing recomputed it, so every quest behind
+    /// that link stayed invisible on that file permanently. Deriving it on load
+    /// repairs saves already in that state as well as preventing new ones.
+    /// </summary>
+    private static void RepublishCompletions()
+    {
+        var list = SaveManager.Data.completedQuests;
+        if (list == null) return;
+        foreach (var entry in list)
+        {
+            if (entry == null || string.IsNullOrEmpty(entry.questId)) continue;
+            // A no-op on a healthy save: Set ignores a write that changes nothing,
+            // so only a file actually missing a gate is dirtied.
+            PlayerStats.Set(QuestDatabase.CompletionStatKey(entry.questId), 1);
         }
     }
 

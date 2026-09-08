@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10bc3ede9cc336a56e2e755601390c94, type: 3}
   m_Name: Near and Far 2
   m_EditorClassIdentifier:
-  waveName: Near and Far 2
+  waveName: Near and Far II
   weight: 1000
   isUnlocked: 0
   waveDescription: Pickaxes on the near pass now. Nowhere on the loop is quiet.
@@ -39,14 +39,17 @@ MonoBehaviour:
     leadIn: 0.75
     releaseInterval: 1.8
     batInterval: 5.5
+    projectileInterval: 5.5
   - label: second shift (12 carts)
     leadIn: 1.5
     releaseInterval: 1.3
     batInterval: 5
+    projectileInterval: 5
   - label: last shift (16 carts)
     leadIn: 1.5
     releaseInterval: 1.0
     batInterval: 4.5
+    projectileInterval: 4.5
   orbs:
     healthOrb: 0
     count: 1
@@ -54,3 +57,38 @@ MonoBehaviour:
     interval: 12
     from: {x: -12, y: 2}
     to: {x: 12, y: 2}
+  volleys:
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.3
+    count: 3
+    fanDegrees: 60
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 1.41
+    restAfter: 3.5
+  - label: one on the right
+    shape: 0
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 2.18
+    restAfter: 3.5
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.3
+    count: 3
+    fanDegrees: 60
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 1.47
+    restAfter: 3.5
+  rockSpeed: 1.75

@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Gilded Vigil — warm near-black ground, one aged-gold accent.
    Surfaces separate by value (ground → panel → card → lifted),
    not by heavy outlines. Gold owns every interactive state.
@@ -28,12 +28,20 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    width: 56%;
-    min-width: 560px;
+    width: 54%;
+    min-width: 520px;
     height: 100%;
     background-color: transparent;
     border-width: 0;
-    padding: 2% 3%;
+    /* No top padding: layout-root already pays 2% above this, and paying it
+       twice put the wave line most of an inch down the screen with nothing in
+       the gap. The sides and the bottom still want theirs — but the bottom pays
+       half, because the confirm button was being pushed past the panel edge. */
+    padding: 0 3% 1% 3%;
+    /* And climb back up through most of what layout-root pays above us. The wave
+       caption does not need an inch of empty gold above it, and every pixel taken
+       off the top is a pixel the confirm button gets at the bottom. */
+    margin-top: -16px;
 }
 
 /* ---------- side status panels (frameless: value + one divider, no boxes) ---------- */
@@ -42,16 +50,140 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    width: 21%;
-    min-width: 240px;
+    width: 19%;
+    min-width: 220px;
     height: 100%;
     background-color: transparent;
     border-width: 0;
     padding: 1.5%;
 }
 
-.status-panel.left { margin-right: 1%; }
-.status-panel.right { margin-left: 1%; }
+.status-panel.left { margin-right: 4%; }
+.status-panel.right { margin-left: 4%; }
+
+/* ---------- knight portrait + order aura ----------
+   The portrait sits above the knight's name. Motes drift up out of it, one colour
+   per Order, and the stream thickens with every upgrade taken from that Order —
+   see UpgradeMenu.OrderAura. */
+
+/* Sized to the knight, not to the panel. The Ember sparks run up the left and right
+   edges of this box, so a full-width frame threw them out at the panel margins with
+   nothing between them and the knight. */
+.knight-portrait {
+    width: 104px;
+    height: 84px;
+    align-self: center;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+    overflow: visible;
+}
+
+/* The sprite imports with a point filter, so it upscales to the box crisply.
+   background-size/-repeat/-position rather than the deprecated
+   -unity-background-scale-mode, which warns on Unity 6. */
+.knight-portrait-art {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(0, 0, 0, 0);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Full-bleed layer the motes live in, so they can drift past the portrait's edges. */
+.knight-aura {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: visible;
+}
+
+/* Serpent: a bubble rising off the knight. Size, colour, opacity and travel are
+   all set inline, because they scale with how deep the knight is in the Order. */
+.order-mote {
+    position: absolute;
+    border-radius: 50%;
+    transition-property: translate, opacity;
+    transition-timing-function: ease-out;
+}
+
+/* Dawn: a disc of the soft-falloff texture, tinted and sized inline as the Order
+   deepens. No border-radius and no background-colour — the fade to nothing lives in
+   the texture's alpha, which is the whole point of it. */
+.order-glow {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition-property: scale, width, height;
+    transition-timing-function: ease-in-out;
+}
+
+/* Ember: one spark. Everything about it — size, colour, where it starts and how hard
+   it is thrown — is set inline per spark, and the timing function is swapped between
+   its rise and its fall, so only the shape lives here. */
+.order-ember {
+    position: absolute;
+    border-radius: 50%;
+    transition-property: translate, opacity, background-color;
+}
+
+/* Frigid: one speck of cold. Same shape as an ember and for the same reason - size,
+   colour and travel are per-speck and set inline. The difference is entirely in the
+   code: these sink instead of rising, and they move linearly instead of easing. */
+.order-frost {
+    position: absolute;
+    border-radius: 50%;
+    transition-property: translate, opacity, background-color;
+}
+
+/* Guardian: the ring the shield diamonds ride, spun from code. */
+/* Shadow: the knight's outline behind him, flat purple. The texture is generated at
+   runtime as pure white with his alpha (see UpgradeMenu.Silhouette), so tinting it here
+   fills the whole shape one colour instead of shading his armour. Geometry matches
+   .knight-portrait-art exactly — 64px centred on the bottom of the box — so the shape
+   lines up with the knight rather than floating off him. */
+.order-silhouette {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    left: 50%;
+    bottom: 0;
+    margin-left: -32px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    -unity-background-image-tint-color: rgb(150, 118, 255);
+    transition-property: opacity, scale;
+    transition-timing-function: ease-in-out;
+}
+
+/* A ghost of that outline, scaling and fading on its own timing. */
+.order-echo {
+    transition-property: scale, opacity;
+}
+
+/* Guardian: one shield, turned on its point. Driven per-shield from code — position,
+   size and alpha all change as it swings around the near and far halves of the orbit. */
+.order-shield {
+    position: absolute;
+    rotate: 45deg;
+    transition-property: translate, width, height, background-color;
+    transition-timing-function: linear;
+}
+
+/* The light a shield carries with it, brightest as it passes in front. */
+.order-gleam {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition-property: translate, width, height, -unity-background-image-tint-color;
+    transition-timing-function: linear;
+}
 
 .status-title {
     align-self: stretch;
@@ -95,7 +227,196 @@
     padding: 4px;
 }
 
+
+/* ---------- Owned-loadout columns ----------
+   The two knight panels show what has already been drafted the same way the
+   pause menu does: a scrolling list of Order-railed chips, and the focused
+   chip's own description and numbers printed underneath. These rules are a
+   deliberate copy of the pause menu's rather than a shared file - the two
+   screens are meant to look identical here, and a shared sheet dragged in by
+   <ui:Style> would also reach this screen's draft cards and restyle them. */
+
+/* caps at ~7 rows; past that the list scrolls and .loadout-more appears */
+.loadout-scroll {
+    flex-grow: 0;
+    flex-shrink: 0;
+    max-height: 224px;
+}
+
+.loadout-list {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* one owned upgrade — a left color-rail keyed to its Order, like the draft cards */
+.loadout-chip {
+    font-size: 12px;
+    color: rgb(217, 207, 184);
+    -unity-text-align: middle-left;
+    white-space: normal;
+    padding: 3px 8px;
+    margin: 2px 0;
+    border-radius: 3px;
+    background-color: rgb(42, 34, 21);
+    border-left-width: 3px;
+    border-left-color: rgb(58, 50, 34);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-top-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
+    transition-property: background-color, color, border-color;
+    transition-duration: 0.12s;
+}
+
+/* gold owns the highlight here too, matching the buttons */
+.loadout-chip:hover,
+.loadout-chip:focus {
+    background-color: rgb(51, 40, 21);
+    color: rgb(255, 248, 230);
+    border-top-color: rgb(212, 162, 74);
+    border-right-color: rgb(212, 162, 74);
+    border-bottom-color: rgb(212, 162, 74);
+}
+
+/* This screen drives the cursor with its own input actions rather than UI
+   Toolkit focus, so the highlight is a class. Same gold as :focus above. */
+.loadout-chip--selected {
+    background-color: rgb(51, 40, 21);
+    color: rgb(255, 248, 230);
+    border-top-color: rgb(212, 162, 74);
+    border-right-color: rgb(212, 162, 74);
+    border-bottom-color: rgb(212, 162, 74);
+}
+
+.loadout-chip.order--serpent { border-left-color: rgb(126, 179, 91); }
+.loadout-chip.order--shadow { border-left-color: rgb(129, 128, 214); }
+.loadout-chip.order--ember { border-left-color: rgb(226, 120, 63); }
+.loadout-chip.order--guardian { border-left-color: rgb(158, 168, 178); }
+.loadout-chip.order--dawn { border-left-color: rgb(240, 200, 170); }
+.loadout-chip.order--frigid { border-left-color: rgb(120, 200, 224); }
+
+/* placeholder when a knight has taken nothing yet */
+.loadout-empty {
+    font-size: 12px;
+    color: rgb(120, 110, 90);
+    -unity-font-style: italic;
+    -unity-text-align: middle-center;
+    padding: 6px 0;
+}
+
+/* "there is more below" nudge; code shows it only while the list can scroll down */
+.loadout-more {
+    font-size: 10px;
+    color: rgb(212, 162, 74);
+    -unity-text-align: middle-center;
+    height: 14px;
+    display: none;
+}
+
+/* thin, chrome-free scrollbar — the list should not look like a form field */
+.loadout-scroll .unity-scroller--vertical {
+    width: 5px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    margin-left: 4px;
+}
+
+.loadout-scroll .unity-scroller__low-button,
+.loadout-scroll .unity-scroller__high-button {
+    display: none;
+}
+
+.loadout-scroll .unity-scroller--vertical .unity-base-slider--vertical {
+    width: 5px;
+    min-width: 5px;
+    margin: 0;
+}
+
+.loadout-scroll .unity-base-slider__tracker {
+    background-color: rgb(42, 34, 21);
+    border-width: 0;
+    border-radius: 3px;
+    margin: 0;
+}
+
+.loadout-scroll .unity-base-slider__dragger {
+    width: 5px;
+    min-width: 5px;
+    left: 0;
+    background-color: rgb(97, 82, 51);
+    border-width: 0;
+    border-radius: 3px;
+}
+
+/* ---- Detail readout: the focused upgrade's own words and numbers ----
+   Deliberately undressed — no border, no fill, ever. It reads as text printed
+   on the scrim beneath its list, not as a second panel. */
+
+.loadout-detail {
+    flex-direction: column;
+    align-items: stretch;
+    flex-grow: 1;
+    overflow: hidden;
+    margin-top: 8px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+
+.detail-name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(236, 228, 211);
+    -unity-text-align: middle-left;
+    white-space: normal;
+    margin-bottom: 4px;
+}
+
+.detail-name.order--serpent { color: rgb(126, 179, 91); }
+.detail-name.order--shadow { color: rgb(129, 128, 214); }
+.detail-name.order--ember { color: rgb(226, 120, 63); }
+.detail-name.order--guardian { color: rgb(158, 168, 178); }
+.detail-name.order--dawn { color: rgb(240, 200, 170); }
+.detail-name.order--frigid { color: rgb(120, 200, 224); }
+
+.detail-desc {
+    font-size: 11px;
+    color: rgb(167, 156, 133);
+    -unity-text-align: upper-left;
+    white-space: normal;
+    margin-bottom: 6px;
+}
+
+.detail-stats {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.detail-stat {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1.5px;
+    -unity-text-align: middle-left;
+    white-space: normal;
+    margin: 1px 0;
+}
+
+.detail-stat--buff { color: rgb(107, 191, 165); }
+.detail-stat--bane { color: rgb(196, 74, 74); }
+
 /* ---------- heading / status line ---------- */
+
+/* The wave count over the knight's name. A caption, not a headline: it is a
+   fact the player wants available, not the thing the screen is about. */
+.wave-number {
+    font-size: 15px;
+    -unity-font-style: bold;
+    letter-spacing: 4px;
+    color: rgb(163, 148, 112);
+    -unity-text-align: middle-center;
+    margin-bottom: 1px;
+}
 
 .selection-status {
     font-size: 25px;
@@ -105,7 +426,7 @@
     -unity-font-style: normal;
     max-width: 100%;
     white-space: normal;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 /* ---------- card column ---------- */
@@ -115,7 +436,7 @@
     width: 100%;
     flex-grow: 1;
     flex-shrink: 1;
-    padding: 1% 2%;
+    padding: 0 2%;
     border-width: 0;
     justify-content: flex-start;
 }
@@ -137,7 +458,7 @@
     transition-property: background-color, border-color, translate, scale, opacity;
     transition-duration: 0.15s;
     transition-timing-function: ease-out;
-    padding: 10px 16px 9px 16px;
+    padding: 8px 16px 7px 16px;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
@@ -149,7 +470,7 @@
     min-width: 0;
     background-color: rgb(33, 26, 16);
     border-color: rgb(58, 50, 34);
-    margin: 6px auto;
+    margin: 4px auto;
 }
 
 /* ---------- card anatomy ---------- */
@@ -177,32 +498,46 @@
     color: rgb(179, 168, 143);
     -unity-font-style: normal;
     -unity-text-align: upper-left;
-    flex-grow: 1;
+    flex-grow: 0;
     white-space: normal;
     margin-bottom: 2px;
 }
 
 /* ---------- stat badges (extracted from upgrade data) ---------- */
 
+/* The stats read as the tail of the description rather than a column beside it:
+   card-body stacks, so the badges wrap along the bottom of the same block of text. */
 .card-body {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* The Order tag leads this row and the stats follow it, so a card reads
+   "what school is this, and what does it do to the numbers" on one line. Both
+   children carry their own top margin rather than the row carrying it: a neutral
+   upgrade with no stats hides both, and a row with a margin of its own would hold
+   five pixels of nothing open under the description. */
+.card-stats-row {
     flex-direction: row;
     align-items: center;
 }
 
 .stat-badges {
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
     flex-shrink: 0;
-    margin-left: 12px;
+    margin-left: 0;
+    margin-top: 5px;
 }
 
 .stat-badge {
     font-size: 11px;
     -unity-font-style: bold;
     letter-spacing: 1.5px;
-    -unity-text-align: middle-right;
-    margin: 1px 0;
+    -unity-text-align: middle-left;
+    margin: 1px 14px 1px 0;
 }
 
 .stat-badge--buff {
@@ -251,6 +586,9 @@
 
 /* ---------- Order identity (class accent; gold still owns interaction) ---------- */
 
+/* The top-right corner of a card. Rarity alone lives here — it is the one thing
+   about a card that is a roll rather than a property of the upgrade, so it is kept
+   away from everything that describes what the upgrade actually is. */
 .card-badges {
     flex-direction: row;
     align-items: center;
@@ -260,8 +598,9 @@
 .order-badge {
     flex-direction: row;
     align-items: center;
-    margin-left: 12px;
     flex-shrink: 0;
+    margin-right: 16px;
+    margin-top: 5px;
 }
 
 .order-diamond {
@@ -291,6 +630,8 @@
 .menu-item.order--ember .order-diamond { background-color: rgb(226, 120, 63); }
 .menu-item.order--dawn .upgrade-order { color: rgb(240, 200, 170); }
 .menu-item.order--dawn .order-diamond { background-color: rgb(240, 200, 170); }
+.menu-item.order--frigid .upgrade-order { color: rgb(120, 200, 224); }
+.menu-item.order--frigid .order-diamond { background-color: rgb(120, 200, 224); }
 
 /* idle cards carry their Order on the left edge; selection (below) overrides to gold */
 .menu-item.upgrade.order--serpent { border-left-color: rgb(126, 179, 91); }
@@ -298,6 +639,7 @@
 .menu-item.upgrade.order--guardian { border-left-color: rgb(158, 168, 178); }
 .menu-item.upgrade.order--ember { border-left-color: rgb(226, 120, 63); }
 .menu-item.upgrade.order--dawn { border-left-color: rgb(240, 200, 170); }
+.menu-item.upgrade.order--frigid { border-left-color: rgb(120, 200, 224); }
 
 /* ---------- chain progress footer ---------- */
 
@@ -305,8 +647,8 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    margin-top: 5px;
-    padding-top: 6px;
+    margin-top: 3px;
+    padding-top: 4px;
     border-top-width: 1px;
     border-top-color: rgb(45, 38, 23);
 }
@@ -354,16 +696,22 @@
 
 .menu-item--chosen { border-color: rgb(240, 205, 120); }
 
+/* the picked card slides left by the same 8px the focused card slides right, so
+   "this is the one I chose" and "this is where my cursor is" never read the same */
 .menu-item.upgrade.menu-item--chosen {
     background-color: rgb(51, 40, 21);
     border-color: rgb(240, 205, 120);
+    translate: -8px 0;
 }
 
 .menu-item.upgrade.menu-item--chosen .upgrade-title { color: rgb(255, 248, 230); }
 
+/* both at once: keep the chosen card's left offset — the brighter border already
+   says where focus is, and re-centring it would hide the pick */
 .menu-item.upgrade.menu-item--chosen.menu-item--selected {
     background-color: rgb(51, 40, 21);
     border-color: rgb(240, 205, 120);
+    translate: -8px 0;
 }
 
 /* ---------- confirm button ---------- */
@@ -372,7 +720,8 @@
     background-color: rgb(212, 162, 74);
     border-color: rgb(212, 162, 74);
     color: rgb(36, 27, 13);
-    margin: 14px auto 8px auto;
+    /* nothing below it but the panel edge, so it pays no bottom margin */
+    margin: 10px auto 0 auto;
 }
 
 .confirm-button {
@@ -406,8 +755,29 @@
     background-color: rgb(72, 56, 27);
 }
 
-/* entrance: cards start here, class removal staggers them into place */
+/* entrance: cards are parked here (below their slot, invisible) with the transition
+   switched off so parking never animates, then .card-enter comes off one card at a
+   time and .card-sliding carries them up over 0.5s */
 .card-enter {
     opacity: 0;
-    translate: 0 16px;
+    translate: 0 56px;
+    transition-duration: 0s;
 }
+
+.card-sliding {
+    transition-duration: 0.5s;
+    transition-timing-function: ease-out;
+}
+
+/* the confirm button travels the same distance in less time, so it catches up */
+.confirm-sliding {
+    transition-duration: 0.32s;
+    transition-timing-function: ease-out;
+}
+
+/* ---------- knight identity ----------
+   Red for the left knight, blue for the right, matching the plume each one wears
+   on the field. Kept in step with KnightNames.cs, which tints the same two names
+   when a label is built in code instead of authored here. */
+.knight--left { color: rgb(209, 83, 63); }
+.knight--right { color: rgb(73, 133, 230); }

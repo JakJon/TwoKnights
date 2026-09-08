@@ -44,7 +44,7 @@ public static class MineQuests
             // The objective never says "wave ten" — the quest is to go and look
             objectives: One("maps.mine.gate_cleared", 1,
                             "Follow the rails to the bottom", hideProgress: true),
-            reward: Reward(crystals: 1),
+            reward: Reward(crystals: 1, unlocksMapId: Keep),
             unlocks: Gate(MineOpen));
 
         yield return new Quest(

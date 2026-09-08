@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
   m_Name: Bat Cauldron 3
   m_EditorClassIdentifier: 
-  waveName: Bat Cauldron 4
+  waveName: Bat Cauldron IV
   weight: 1000
   isUnlocked: 0
   waveDescription: 

@@ -48,3 +48,51 @@ MonoBehaviour:
     interval: 14
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
+  ogres:
+    label: 3 down and up the empty middle
+    count: 2
+    firstAt: 8
+    interval: 7
+    fireEveryNth: 3
+    entries:
+    - label: down the empty middle, left of centre
+      at: {x: -4, y: 8}
+      mark: 1
+    - label: up the empty middle, right of centre
+      at: {x: 4, y: -8}
+      mark: 2
+    - label: up the empty middle, left of centre
+      at: {x: -4, y: -8}
+      mark: 1
+    - label: down the empty middle, right of centre
+      at: {x: 4, y: 8}
+      mark: 2
+    startOnRight: 0
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 55
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.29
+    restAfter: 5
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 55
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.25
+    restAfter: 5
+  projectileWindow: 30
+  rockSpeed: 1.75

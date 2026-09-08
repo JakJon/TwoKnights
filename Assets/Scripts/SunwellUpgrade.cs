@@ -9,7 +9,7 @@ using UnityEngine;
 public class SunwellUpgrade : BaseUpgrade
 {
     [SerializeField] private float orbHealMultiplier = 1.5f;
-    [SerializeField] private int manaOrbMend = 0;   // rank II+: mana orbs mend too
+    [SerializeField] private int manaOrbHeal = 0;   // rank II+: mana orbs heal too
     [SerializeField] private bool slowOrbs = false; // rank III: orbs linger for both knights
 
     public override string ChainName => "Sunwell";
@@ -31,9 +31,9 @@ public class SunwellUpgrade : BaseUpgrade
         }
 
         boost.SetOrbHealMultiplier(orbHealMultiplier);
-        if (manaOrbMend > 0) boost.SetManaOrbMend(manaOrbMend);
+        if (manaOrbHeal > 0) boost.SetManaOrbHeal(manaOrbHeal);
         if (slowOrbs) boost.EnableSlowOrbs();
 
-        Debug.Log($"Applied Sunwell to {targetKnight.name}: orbs x{orbHealMultiplier}, mana mend {manaOrbMend}, slow {slowOrbs}");
+        Debug.Log($"Applied Sunwell to {targetKnight.name}: orbs x{orbHealMultiplier}, mana heal {manaOrbHeal}, slow {slowOrbs}");
     }
 }

@@ -423,11 +423,21 @@
    pane is the only lit one — everything else drops toward the ground value so
    the cursor is unmistakable at a glance across the room. */
 
+/* Edge to edge, unlike the inset overlays around it. Picking where the run
+   happens is the last thing the camp asks, and the panes ARE the screen at that
+   point — there is no title and nothing behind worth leaving a frame of. */
 .map-select-panel {
-    left: 6%;
-    right: 6%;
-    top: 8%;
-    bottom: 8%;
+    padding: 20px 4% 24px 4%;
+}
+
+/* Nothing left in the header but the close button, so it sits on the right on
+   its own and the rule under it goes: a divider under an empty row is a line
+   drawn around nothing, and the panes want the height. */
+.map-select-header {
+    justify-content: flex-end;
+    padding-bottom: 0;
+    margin-bottom: 6px;
+    border-bottom-width: 0;
 }
 
 .map-pane-row {
@@ -438,10 +448,15 @@
     padding: 10px 0;
 }
 
+/* The panes share the row rather than sitting at a fixed width: full screen
+   only reads as full screen if they grow into it, and a fixed 260px left three
+   thin cards marooned in the middle. The 30% cap keeps two maps from becoming
+   billboards, and flex-grow keeps a fourth map fitting without wrapping. */
 .map-pane {
     flex-direction: column;
     align-items: stretch;
-    width: 260px;
+    flex-basis: 0;
+    flex-grow: 1;
     max-width: 30%;
     margin: 0 12px;
     padding: 10px;
@@ -495,6 +510,38 @@
     scale: 1.02;
     opacity: 0.88;
 }
+
+/* ---------- the deep-run star ----------
+   Three bars crossed at sixty degrees. Built rather than typed for the same
+   reason the padlock is: no icon atlas, and no promise that the UI font ships
+   a star glyph on every platform. The halo behind it is what keeps it legible
+   over a bright patch of key art. */
+.map-star {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-star-halo {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    background-color: rgba(12, 10, 6, 0.55);
+}
+
+.map-star-ray {
+    position: absolute;
+    width: 24px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgb(240, 205, 120);
+}
+
 
 .map-pane-scrim {
     position: absolute;
@@ -585,9 +632,10 @@
 }
 
 /* ---------- file select (three horizontal bars, one per save file) ----------
-   Bars, not panes: a save file is a row of facts (name, progress, time, crystals)
-   and a wide row lets those sit on one baseline instead of stacking. The map
-   panes opposite this are tall because a map is an image; a file is a record.
+   Bars, not panes: a save file is a row of facts (name, what it has finished,
+   time, crystals) and a wide row lets those sit on one baseline instead of
+   stacking. The map panes opposite this are tall because a map is an image; a
+   file is a record.
    Selection reads off the same gold as everywhere else, plus a thicker lit left
    edge — a bar this wide cannot use the panes' scale-up without clipping. */
 
@@ -674,6 +722,53 @@
     font-size: 12px;
     color: rgb(141, 130, 102);
     margin-top: 4px;
+}
+
+/* Marks: the second line under a file's name, standing where the wave number and
+   map name used to be written out. Circles for finished maps, squares for slots
+   won past the starting ones — unlabelled on purpose, so the row is something the
+   player comes to read rather than something the screen explains. Sized to the
+   line they replaced, so a bar keeps the same height whichever it carries. */
+
+.file-slot-marks {
+    flex-direction: row;
+    align-items: center;
+    height: 16px;
+    margin-top: 4px;
+}
+
+.file-slot-mark-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.file-slot-mark {
+    width: 11px;
+    height: 11px;
+    margin-right: 7px;
+    /* Slightly darker than the fill so a mark still has an edge against the lit
+       bar behind a selected file */
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.35);
+}
+
+.file-slot-mark-circle {
+    border-radius: 6px;
+}
+
+.file-slot-mark-square {
+    width: 10px;
+    height: 10px;
+    border-radius: 1px;
+}
+
+/* Only drawn when there are marks of both kinds — see FileSelectPanel.BuildMarks */
+.file-slot-mark-divider {
+    width: 1px;
+    height: 12px;
+    margin-right: 10px;
+    margin-left: 3px;
+    background-color: rgb(58, 50, 34);
 }
 
 .file-slot-stats {
@@ -887,13 +982,6 @@
 
 .test-start-row.test-start-row--blocked .test-start-label {
     color: rgb(205, 133, 105);
-}
-
-.test-hint-line {
-    font-size: 11px;
-    color: rgb(141, 130, 102);
-    -unity-text-align: middle-center;
-    margin-top: 8px;
 }
 
 /* ---------- stats overlay body ---------- */

@@ -24,6 +24,10 @@ public static class Feats
     public const string ShurikenVolleyFour = "feats.shuriken_volley_4";
     /// <summary>A swing plus both its phantom echoes all connecting.</summary>
     public const string PhantomFullThree = "feats.phantom_full_3";
+    /// <summary>Four enemies held in ice at the same moment.</summary>
+    public const string FrozenFour = "feats.frozen_4";
+    /// <summary>A wave that drove a knight low and still ended with both at full.</summary>
+    public const string DawnPairPulledBack = "feats.dawn_pair_pulled_back";
 
     /// <summary>Running total of shadow arrows that connected.</summary>
     public const string ShadowArrowHits = "hits.shadowarrow";
@@ -92,5 +96,56 @@ public class ShurikenVolley
             _recorded = true;
             Feats.Record(Feats.ShurikenVolleyFour);
         }
+    }
+}
+
+/// <summary>
+/// Watches one wave for the Dawn Order's signature moment: a knight driven low,
+/// and both of them standing at full when the wave ends.
+///
+/// It is a feat rather than a counter because it is a "can you", not a "how
+/// much" - surviving is common, pulling the pair back from the edge inside the
+/// same wave is a thing you either managed or did not. It also cannot fall out
+/// of any existing tally: nothing else in the game knows what the pair looked
+/// like at the start of a wave and again at the end of it.
+///
+/// Wave-scoped static state, the same discipline RunPurity uses. Spawner opens
+/// and closes the window; PlayerHealth reports the low-water mark as it happens,
+/// because a knight can dip and be healed back inside a single second and no
+/// end-of-wave reading would ever see it.
+/// </summary>
+public static class DawnVigil
+{
+    /// <summary>Fraction of max health that counts as "driven low".</summary>
+    private const float LowWaterFraction = 0.25f;
+
+    private static bool _someoneWentLow;
+
+    /// <summary>Called from Spawner as a wave begins.</summary>
+    public static void BeginWave()
+    {
+        _someoneWentLow = false;
+    }
+
+    /// <summary>Called from PlayerHealth whenever a knight's health changes downward.</summary>
+    public static void NoteHealth(int current, int max)
+    {
+        if (max <= 0 || _someoneWentLow) return;
+        if (current > 0 && current <= max * LowWaterFraction) _someoneWentLow = true;
+    }
+
+    /// <summary>Called from Spawner once the wave's last enemy is down.</summary>
+    public static void EndWave(PlayerHealth left, PlayerHealth right)
+    {
+        if (!_someoneWentLow) return;
+        _someoneWentLow = false;
+
+        // A dead knight ends the run, so "both at full" can only be read off two
+        // living ones. Missing either is not a pass.
+        if (left == null || right == null) return;
+        if (left.CurrentHealth < left.MaxHealth) return;
+        if (right.CurrentHealth < right.MaxHealth) return;
+
+        Feats.Record(Feats.DawnPairPulledBack);
     }
 }

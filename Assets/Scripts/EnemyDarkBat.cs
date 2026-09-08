@@ -70,6 +70,9 @@ public class EnemyDarkBat : EnemyBase
 
     private IEnumerator EnterScreenRoutine()
     {
+        // See EnemyRat: a Lerp onto an absolute position cannot be slowed by
+        // scaling deltas, so cold holds off until the fly-in is done.
+        positionIsScripted = true;
         Vector3 startPos = transform.position;
         float elapsed = 0f;
 
@@ -81,6 +84,7 @@ public class EnemyDarkBat : EnemyBase
         }
 
         transform.position = _initialPosition;
+        positionIsScripted = false;
     }
 
     private void Update()

@@ -90,9 +90,16 @@ public class EnemyWolf : EnemyBase
 
         if (_isChasing && _targetKnight != null)
         {
+            // A BARK, once, on the frame the wolf gives up its path and picks a
+            // knight. This used to be a growl, which is the wrong cue: the growl
+            // reads as ambience the player can let wash past, and this moment is
+            // the one thing about a wolf the player has to answer - it has chosen
+            // a side, and that side's knight has to start turning. Gated on the
+            // aggro flip rather than on spawning, so a pack staggers itself
+            // instead of barking as one wall of noise.
             if (!_hasPlayedChaseSFX && AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlaySFX(AudioManager.Instance.wolfGrowl);
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.wolfBark);
                 _hasPlayedChaseSFX = true;
             }
             ChaseTarget();

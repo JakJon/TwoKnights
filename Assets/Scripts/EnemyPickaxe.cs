@@ -12,7 +12,7 @@ using UnityEngine;
 // One hit point, like the bomb: anything the knights hold knocks it out of the
 // air. Unlike the bomb it has no blast — it either lands on a knight or it does
 // not, so the answer is the shield as much as the bow.
-public class EnemyPickaxe : MonoBehaviour
+public class EnemyPickaxe : MonoBehaviour, IChillable
 {
     [Header("Flight")]
     [Tooltip("Seconds from the throw to arriving on target. Shorter = flatter, meaner.")]
@@ -83,9 +83,28 @@ public class EnemyPickaxe : MonoBehaviour
         BaseWave.UnregisterProjectile(gameObject);
     }
 
+
+    // Glacial Ward II: enemy ammunition crossing a knight's ring of cold loses
+    // half its speed. See IChillable.
+    private float _chillMultiplier = 1f;
+    private float _chillUntil = -1f;
+
+    public void ApplyChill(float speedMultiplier, float seconds)
+    {
+        if (seconds <= 0f) return;
+        _chillMultiplier = Mathf.Clamp(Mathf.Min(_chillMultiplier, speedMultiplier), 0.05f, 1f);
+        _chillUntil = Mathf.Max(_chillUntil, Time.time + seconds);
+    }
+
+    private float ChillScale { get { return Time.time < _chillUntil ? _chillMultiplier : 1f; } }
+
     private void Update()
     {
-        float dt = Time.deltaTime;
+        // The launch velocity was SOLVED for a fixed flight time against a fixed
+        // gravity, so slowing this by scaling the velocity alone would flatten the
+        // arc into something that lands somewhere else. Scaling the clock instead
+        // keeps the throw exactly the throw it was and simply stretches it out.
+        float dt = Time.deltaTime * ChillScale;
 
         _velocity.y -= gravity * dt;
         transform.position += (Vector3)(_velocity * dt);

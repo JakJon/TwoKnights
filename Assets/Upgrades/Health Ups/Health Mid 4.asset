@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
   m_Name: Health Mid 4
   m_EditorClassIdentifier: 
-  upgradeName: Moderate Health Boost
+  upgradeName: Moderate Health Boost IV
   description: A decent boost to your max health.
   weight: 70
   unlockedBy:

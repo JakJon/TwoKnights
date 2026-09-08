@@ -82,6 +82,6 @@ MonoBehaviour:
   - label: red crate unloads, top of the right ascent
     run: 1
     distanceAlong: 13
-  - label: green crate unloads, top of the right ascent
+  - label: green crate unloads, level with the knights
     run: 3
-    distanceAlong: 13
+    distanceAlong: 9

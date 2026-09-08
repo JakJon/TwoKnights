@@ -28,5 +28,5 @@ MonoBehaviour:
     labelText: ORB SPEED
     isPositive: 1
   orbHealMultiplier: 2.5
-  manaOrbMend: 5
+  manaOrbHeal: 5
   slowOrbs: 1

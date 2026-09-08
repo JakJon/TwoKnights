@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab9a3847f3ae2be9d7efe90b68d7754f, type: 3}
   m_Name: Cart Loads 3
   m_EditorClassIdentifier: 
-  waveName: Cart Loads 3
+  waveName: Cart Loads III
   weight: 1000
   isUnlocked: 0
   waveDescription: The flags have moved up. Stop it on the way down or not at all.
@@ -23,10 +23,22 @@ MonoBehaviour:
   crateCarts:
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
   - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
-  outerShaftCrates: 6
-  innerShaftCrates: 6
+  outerShaftCrates: 9
+  innerShaftCrates: 9
   leadIn: 1
   releasePause: 1.4
+  flanks:
+  - label: three from each edge
+    fromTop: 3
+    fromBottom: 3
+    firstAt: 8
+    interval: 1.0
+    ratTypes:
+    - {fileID: 7458023765239434115, guid: 6070b81a7ae0ab44bb9c66a15c3f0166, type: 3}
+    - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  freightWaitsOnTheVermin: 1
   highOrbs:
     healthOrb: 0
     count: 1
@@ -41,3 +53,50 @@ MonoBehaviour:
     interval: 14
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
+  volleys:
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.33
+    restAfter: 3.5
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.3
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.25
+    restAfter: 3.5
+  - label: two up under the right
+    shape: 1
+    rightKnight: 1
+    fromBelow: 1
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.38
+    restAfter: 3.5
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 5
+    salvoSpread: 0.45
+    salvoStagger: 0.37
+    restAfter: 3
+  projectileWindow: 32
+  rockSpeed: 1.75

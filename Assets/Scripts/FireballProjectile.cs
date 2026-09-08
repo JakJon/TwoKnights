@@ -13,6 +13,7 @@ public class FireballProjectile : MonoBehaviour
     public string ownerTag; // "PlayerLeft" / "PlayerRight"
 
     private bool _exploded;
+    private bool _burnedOut;
 
     // Standalone spawn for fireballs that aren't the main shot — Firebrand's sword
     // toss. PlayerShooter configures its own in place, since there the fireball
@@ -48,7 +49,57 @@ public class FireballProjectile : MonoBehaviour
 
         AudioManager.Instance.PlaySFX(AudioManager.Instance.fireballLaunch);
 
-        Destroy(go, lifetime);
+        // Not Destroy(go, lifetime): a timed destroy is indistinguishable from any
+        // other, and OnDestroy below has to be able to tell burning out from
+        // hitting something
+        fireball.StartCoroutine(fireball.BurnOutAfter(lifetime));
+    }
+
+    /// <summary>
+    /// The fireball reached the end of its flight without touching anything. Say
+    /// so before destroying it, or OnDestroy reads the expiry as a hit and bursts
+    /// it wherever it happened to be — which is off-screen, four seconds after
+    /// the shot, as a bang with nothing behind it.
+    /// </summary>
+    public void MarkBurnedOut()
+    {
+        _burnedOut = true;
+    }
+
+    private System.Collections.IEnumerator BurnOutAfter(float lifetime)
+    {
+        yield return new WaitForSeconds(lifetime);
+        MarkBurnedOut();
+        Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Anything that takes a fireball off the board sets it off. A fireball is
+    /// not an arrow — it is a thing carrying a blast, a crater and an ignition,
+    /// and every one of those is owed to the player whether the shot ended on a
+    /// rat, a pickaxe knocked out of the air, a bomb, a slime's ward, or an orb.
+    ///
+    /// It lives in OnDestroy rather than in a collision handler because the
+    /// fireball is almost never the thing that ends the collision: a pickaxe
+    /// destroys the arrow that hit it, a bomb does, a cart does, a sonar wave
+    /// does, and not one of them knows or should know what it just swallowed. The
+    /// only place that can be sure of catching all of them — and the ones nobody
+    /// has written yet — is the moment the object goes.
+    ///
+    /// The direct-hit path in PlayerProjectile still calls Explode() itself, so
+    /// the enemy it landed on is correctly left out of its own blast; this only
+    /// ever fires for the endings nothing else claimed.
+    /// </summary>
+    private void OnDestroy()
+    {
+        if (_exploded || _burnedOut) return;
+
+        // Leaving play, changing scene, or the editor stopping: the whole board is
+        // being torn down, and a blast that spawns a crater and a particle burst
+        // in the middle of it is at best noise and at worst an error per fireball
+        if (!Application.isPlaying || !gameObject.scene.isLoaded) return;
+
+        Explode(null);
     }
 
     // directHit is excluded from the blast: it already ate the direct-hit damage,
@@ -77,10 +128,17 @@ public class FireballProjectile : MonoBehaviour
             enemy.Ignite(ownerTag);
         }
 
-        // The crater: this is the fireball's real contribution to the Order
+        // The crater: this is the fireball's real contribution to the Order. Burning
+        // ground for twice as long as it used to burn, and — since EmberBoost's
+        // GroundFireIgnites went off — ground that lights NOTHING. The blast above
+        // still ignites everything it catches, because that is the fireball itself
+        // landing on them; what the mark it leaves does is deal damage to whatever
+        // stands in it. NextZoneSourceId is what says so, and it says so for every
+        // zone in the game rather than only for this one.
         if (ownerBoost != null)
         {
-            ownerBoost.PlaceZone(center, EmberBoost.CraterRadius, EmberBoost.CraterDuration);
+            ownerBoost.PlaceZone(center, EmberBoost.CraterRadius, EmberBoost.CraterDuration,
+                EmberBoost.NextZoneSourceId());
         }
 
         FireFx.Burst(center, blastRadius);

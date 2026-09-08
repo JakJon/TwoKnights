@@ -17,6 +17,8 @@ MonoBehaviour:
   unlockedByDefault: 1
   previewImage: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
   tagline: Where the vigil began
+  lockedHint: 
+  completionMarkColor: {r: 0.4784314, g: 0.7607843, b: 0.4156863, a: 1}
   waves:
   - {fileID: 11400000, guid: bc25a2b379c5c53448aecc87bd1d5c0e, type: 2}
   - {fileID: 11400000, guid: 89b9ad4b7ed0b1c4cb476e0e90068429, type: 2}
@@ -75,6 +77,8 @@ MonoBehaviour:
   - Assets/Scripts/Waves/Forest/StickySituation
   gateBoss: {fileID: 11400000, guid: 6767c128b721f54cc031ffd692c9971c, type: 2}
   gateBossWaveNumber: 10
+  gateBossRepeats: 1
+  gateBossEndsRun: 1
   trueBoss: {fileID: 11400000, guid: 922e5ba9684734244a1ddbf6f374e186, type: 2}
   trueBossWaveNumber: 20
   strongerEnemiesFromWave: -1
@@ -83,10 +87,12 @@ MonoBehaviour:
     fromWaveNumber: 1
     backdrop: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
     foreground: {fileID: 0}
+    canopy: {fileID: 11400000, guid: f73b2e192fccc124ca9c551777a1b6e5, type: 2}
     ventureLine: 
   - label: Deep Forest
     fromWaveNumber: 11
     backdrop: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
     foreground: {fileID: 0}
+    canopy: {fileID: 11400000, guid: e4103d4c9b6fb954b91a127ff4ede75a, type: 2}
     ventureLine: The knights venture deeper into the forest.
   unlocksMapId: mine

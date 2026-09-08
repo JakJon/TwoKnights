@@ -1,8 +1,8 @@
 using UnityEngine;
 
-// Dawn discipline: the special door. Spending the special also lifts the OTHER
-// knight — whatever the special happens to be. Hooked once in PlayerSpecial
-// rather than inside each special, so Rapid Fire, Field Mending, and anything a
+// Dawn discipline: the special door. Spending the special lifts BOTH knights —
+// whatever the special happens to be. Hooked once in PlayerSpecial
+// rather than inside each special, so Rapid Fire, Field Healing, and anything a
 // later loadout adds all carry the blessing without knowing about Dawn.
 //
 // Rank II deliberately raises the number and adds a shared untouchable beat
@@ -10,7 +10,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "BenedictionUpgrade", menuName = "Upgrades/Benediction")]
 public class BenedictionUpgrade : BaseUpgrade
 {
-    [SerializeField] private int mendAmount = 15;
+    [SerializeField] private int healAmount = 20;
     [SerializeField] private float invulnerableSeconds = 0f; // rank II
 
     public override string ChainName => "Benediction";
@@ -31,8 +31,8 @@ public class BenedictionUpgrade : BaseUpgrade
             boost = targetKnight.AddComponent<DawnBoost>();
         }
 
-        boost.SetBenediction(mendAmount, invulnerableSeconds);
+        boost.SetBenediction(healAmount, invulnerableSeconds);
 
-        Debug.Log($"Applied Benediction to {targetKnight.name}: special mends partner {mendAmount}, {invulnerableSeconds}s shared untouchable");
+        Debug.Log($"Applied Benediction to {targetKnight.name}: special heals both knights {healAmount}, {invulnerableSeconds}s shared untouchable");
     }
 }

@@ -9,12 +9,15 @@ using System.Collections;
 // and side-edge stops summon adds instead. Phases escalate tempo by HP.
 public class EnemyRatKing : EnemyBase
 {
+    // No execute: see EnemyBase.IsBoss
+    public override bool IsBoss => true;
+
     public override EnemyFamily Family => EnemyFamily.Vermin;
 
     [System.Serializable]
     public class Config
     {
-        public float health = 750f;
+        public float health = 1500f;
         public float moveSpeed = 3f;
         public float actionCooldown = 3.5f; // phase-1 seconds between actions
         public float telegraphPause = 0.9f; // glow warning before each attack
@@ -176,10 +179,20 @@ public class EnemyRatKing : EnemyBase
             // A fan stop where the volley would overlap the previous one is
             // skipped outright (no telegraph); the cooldown keeps accruing so
             // the king acts at the next safe stop instead.
+            //
+            // Except in phase three. Enraged, the king is at a fan stop most of
+            // the time, so skipping the unsafe ones was leaving him doing
+            // nothing but throwing — the brood dried up exactly when the fight
+            // was supposed to be at its worst. Now the stop becomes a summon
+            // instead, and the swarm keeps arriving until he is dead.
             bool isFanStop = Mathf.Abs(stopPosition.y) >= FanMinHeight;
-            if (_sinceLastAction >= CurrentActionCooldown() && (!isFanStop || FanIsBlockable(stopPosition)))
+            if (_sinceLastAction >= CurrentActionCooldown())
             {
-                StartCoroutine(ActRoutine(stopPosition));
+                bool fan = isFanStop && FanIsBlockable(stopPosition);
+                if (fan || !isFanStop || Phase >= 3)
+                {
+                    StartCoroutine(ActRoutine(stopPosition, fan));
+                }
             }
         }
     }
@@ -204,7 +217,7 @@ public class EnemyRatKing : EnemyBase
         }
     }
 
-    private IEnumerator ActRoutine(Vector2 stopPosition)
+    private IEnumerator ActRoutine(Vector2 stopPosition, bool fan)
     {
         _acting = true;
         _sinceLastAction = 0f;
@@ -217,9 +230,16 @@ public class EnemyRatKing : EnemyBase
 
         if (!isDead)
         {
-            if (Mathf.Abs(stopPosition.y) >= FanMinHeight)
+            if (fan)
             {
                 FireFan();
+
+                // Enraged, every throw comes with brood. This is the whole point
+                // of the phase-three change: the double volley is what the king
+                // does, not INSTEAD of calling the swarm but on top of it, so
+                // there is never a stretch of the fight with nothing to shoot at
+                // but him. Trimmed, because the fan is already going out.
+                if (Phase >= 3) SummonAdds(trimmed: true);
             }
             else
             {
@@ -271,13 +291,20 @@ public class EnemyRatKing : EnemyBase
         else _rightVolleyClearTime = clearTime;
     }
 
-    private void SummonAdds()
+    /// <param name="trimmed">
+    /// A summon riding alongside a fan rather than instead of one: one bat fewer
+    /// and one rat, so the enraged king can do both at every stop without the
+    /// arena filling faster than two knights can clear it.
+    /// </param>
+    private void SummonAdds(bool trimmed = false)
     {
         if (_spawner == null) return;
 
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.bossSummon);
 
-        int bats = _config.batsPerSummon + (Phase == 3 ? 1 : 0);
+        int bats = trimmed
+            ? Mathf.Max(1, _config.batsPerSummon - 1)
+            : _config.batsPerSummon + (Phase == 3 ? 1 : 0);
         for (int i = 0; i < bats; i++)
         {
             Vector2 pos = (Vector2)transform.position
@@ -285,7 +312,11 @@ public class EnemyRatKing : EnemyBase
             _spawner.SpawnBat(pos, i * 0.35f);
         }
 
-        if (Phase >= 2 && _config.ratsPerSummonLate > 0)
+        int broodSize = trimmed
+            ? Mathf.Min(1, _config.ratsPerSummonLate)
+            : _config.ratsPerSummonLate;
+
+        if (Phase >= 2 && broodSize > 0)
         {
             // Brood is flung at the knight on the king's side of the arena (he only
             // summons from the side edges, so the nearest knight sits roughly
@@ -295,7 +326,7 @@ public class EnemyRatKing : EnemyBase
             Transform knight = NearestKnight();
             if (knight != null)
             {
-                for (int i = 0; i < _config.ratsPerSummonLate; i++)
+                for (int i = 0; i < broodSize; i++)
                 {
                     // Brood bursts out of the king himself (entryPoint) — without it
                     // rats would instead walk in from the nearest screen edge.

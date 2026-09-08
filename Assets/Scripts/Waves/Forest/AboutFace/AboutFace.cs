@@ -52,6 +52,13 @@ public class AboutFace : BaseWave
         // of this wave plays the identical sequence
         _volleyStep = 0;
         float window = flipWindow;
+        // Nothing in this wave may ask for a turn the guard cannot physically
+        // make. The flip is at most a half circle, so the shortest honest answer
+        // is 180 degrees at the shield's own rotation speed, plus a beat for the
+        // player to notice the first shot and start turning. Authored windows
+        // below that floor are raised rather than obeyed: an unblockable flip is
+        // not a hard wave, it is a wave with no answer.
+        window = Mathf.Max(window, MinimumFlipWindow(spawner));
 
         for (int wolf = 0; wolf < wolfEscorts; wolf++)
         {
@@ -78,7 +85,7 @@ public class AboutFace : BaseWave
                 yield return new WaitForSeconds(window + delayBetweenPairs);
             }
 
-            window *= flipWindowRampFactor;
+            window = Mathf.Max(window * flipWindowRampFactor, MinimumFlipWindow(spawner));
 
             if (burst < burstCount - 1)
             {
@@ -106,23 +113,64 @@ public class AboutFace : BaseWave
         flipAngle = Mathf.Clamp(flipAngle, 180f + minAngleFromHorizontal, 360f - minAngleFromHorizontal);
         _volleyStep++;
 
+        // Both legs leave from the SAME distance, not from their own screen exit.
+        // A shallow angle exits the field roughly twice as far out as a steep one,
+        // so spawning each at its own exit made the flip arrive anywhere from the
+        // full window to almost none of it - occasionally before the shot it was
+        // supposed to follow. One radius for the pair means the gap the player
+        // actually experiences is the flip window, which is the number this wave
+        // is tuned on.
+        Vector2 origin = targetPlayer.position;
+        float radius = Mathf.Max(ExitDistance(origin, baseAngle), ExitDistance(origin, flipAngle))
+                       + offscreenPadding;
+
         for (int i = 0; i < projectilesPerVolley; i++)
         {
-            spawner.SpawnProjectile(targetPlayer, OffscreenPoint(targetPlayer.position, baseAngle), i * 0.15f);
-            spawner.SpawnProjectile(targetPlayer, OffscreenPoint(targetPlayer.position, flipAngle), window + i * 0.15f);
+            spawner.SpawnProjectile(targetPlayer, PointAt(origin, baseAngle, radius), i * 0.15f);
+            spawner.SpawnProjectile(targetPlayer, PointAt(origin, flipAngle, radius), window + i * 0.15f);
         }
     }
 
-    private Vector2 OffscreenPoint(Vector2 origin, float angleDegrees)
+    // Where a ray from the knight at this angle leaves the playfield.
+    private float ExitDistance(Vector2 origin, float angleDegrees)
     {
-        Vector2 dir = new Vector2(Mathf.Cos(angleDegrees * Mathf.Deg2Rad), Mathf.Sin(angleDegrees * Mathf.Deg2Rad));
+        Vector2 dir = Direction(angleDegrees);
         float tx = Mathf.Approximately(dir.x, 0f)
             ? float.PositiveInfinity
             : (dir.x > 0f ? (FieldX - origin.x) / dir.x : (-FieldX - origin.x) / dir.x);
         float ty = Mathf.Approximately(dir.y, 0f)
             ? float.PositiveInfinity
             : (dir.y > 0f ? (FieldY - origin.y) / dir.y : (-FieldY - origin.y) / dir.y);
-        float exitDistance = Mathf.Min(tx, ty);
-        return origin + dir * (exitDistance + offscreenPadding);
+        return Mathf.Min(tx, ty);
+    }
+
+    private Vector2 PointAt(Vector2 origin, float angleDegrees, float distance)
+    {
+        return origin + Direction(angleDegrees) * distance;
+    }
+
+    private static Vector2 Direction(float angleDegrees)
+    {
+        return new Vector2(Mathf.Cos(angleDegrees * Mathf.Deg2Rad),
+                           Mathf.Sin(angleDegrees * Mathf.Deg2Rad));
+    }
+
+    // Seconds a player needs to see the first shot land its direction and get
+    // the stick over. Deliberately generous: the wave's difficulty is meant to
+    // come from how OFTEN the flip is asked for, not from whether the turn fits.
+    private const float FlipReactionAllowance = 0.35f;
+    private const float FallbackShieldRotationSpeed = 180f;
+
+    // Half a circle at the guard's own rotation speed, plus the reaction beat.
+    private float MinimumFlipWindow(Spawner spawner)
+    {
+        float rotationSpeed = FallbackShieldRotationSpeed;
+        Transform knight = spawner.LeftPlayer != null ? spawner.LeftPlayer : spawner.RightPlayer;
+        if (knight != null)
+        {
+            ShieldOrbit shield = knight.GetComponentInChildren<ShieldOrbit>();
+            if (shield != null && shield.RotationSpeed > 0f) rotationSpeed = shield.RotationSpeed;
+        }
+        return 180f / rotationSpeed + FlipReactionAllowance;
     }
 }

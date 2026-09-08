@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 077dff7b8252ff32ba4f90dd246d6885, type: 3}
+  m_Name: Canopy_DeepForest
+  m_EditorClassIdentifier: 
+  shader: {fileID: 4800000, guid: 8a05f5fc7f58336fed5f0e95d9a09900, type: 3}
+  groundStrength: 1
+  actorStrength: 0.34
+  shadeColor: {r: 0.018, g: 0.03, b: 0.034, a: 1}
+  shadeStrength: 0.34
+  topShade: 0.05
+  breathAmount: 0
+  breathPeriod: 11
+  gladeCenter: {x: 0, y: -0.2}
+  gladeRadius: {x: 6.5, y: 3.7}
+  gladeSoftness: 0.5
+  edgeNoiseScale: 0.26
+  edgeRaggedness: 0.34
+  dappleScale: 1
+  dappleDetail: 0.45
+  leafCoverage: 0.5
+  leafShadowDepth: 0.13
+  sunColor: {r: 0.92, g: 0.94, b: 0.72, a: 1}
+  sunThroughGaps: 0.003
+  shaftAngle: -1.05
+  shaftScale: 0.35
+  shaftSharpness: 0.72
+  shaftStrength: 0.0015
+  windAngle: -0.2
+  windSpeed: 0.1
+  ditherLevels: 40

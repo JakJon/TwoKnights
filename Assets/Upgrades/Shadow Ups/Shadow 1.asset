@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30f20533f6df10648b22aac557d534e3, type: 3}
   m_Name: Shadow 1
   m_EditorClassIdentifier: 
-  upgradeName: Shadow Arrow
+  upgradeName: Shadow Arrow I
   description: Arrows spawn a shadow copy that deals damage.
   weight: 100
   order: 2

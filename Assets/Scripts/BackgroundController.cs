@@ -78,6 +78,19 @@ public class BackgroundController : MonoBehaviour
             _renderer.sprite = stage.backdrop;
 
         ApplyForeground(stage.foreground);
+        ApplyLighting(stage.canopy);
+    }
+
+    // The stage's light and shade, swapped in lockstep with its backdrop — both
+    // are the same decision about how this stretch of the map looks, and Hold()
+    // has to keep them behind the same curtain.
+    //
+    // The rig builds itself on first use, so a map that never asks for lighting
+    // (the Mine) never gets one made.
+    private void ApplyLighting(CanopyProfile canopy)
+    {
+        if (canopy == null && ArenaLighting.Instance == null) return;
+        ArenaLighting.Ensure().Apply(canopy);
     }
 
     private void ApplyForeground(Sprite sprite)

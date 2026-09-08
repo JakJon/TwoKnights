@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 098a3acf34d3dd5344dd2f5e7905239c, type: 3}
-  m_Name: Field Mending
+  m_Name: Field Healing
   m_EditorClassIdentifier: 
-  id: field_mending
-  displayName: Field Mending
+  id: field_healing
+  displayName: Field Healing
   description: You bind your own wounds, and what is left over goes across the field.
   effect: Heals you 40 and the other knight 20.
   icon: {fileID: -4323617286611481, guid: 98d9b2f1ef7ae104ab4668909770f4f2, type: 3}

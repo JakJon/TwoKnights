@@ -1,0 +1,23 @@
+GIMP Palette
+Name: Pallid Keep - Portal (mirror panes)
+Columns: 2
+# The map's signature object. FOUR twins, because a pane's colour is how the player knows where it comes out: green goes to green, and the pairing has to be readable across the whole arena with no line drawn between them.
+#
+# The four hues are spread as far apart on the wheel as the map allows: green 140,
+# cyan 190, vermilion 15, magenta 315. Two rules constrain the choice —
+#   * nothing amber or yellow-gold, because accent-gold means "pickup" on every map
+#     and a portal must never be mistaken for one. Vermilion is the closest approach
+#     and stays clearly red-orange against gold's muted yellow.
+#   * the ghostlight group gave up cyan to make room for the cyan twin.
+#
+# Each twin is a dark body and a bright glow. The frame pair is shared by all four.
+ 52  48  58	portal-frame-1 34303a
+138 140 154	portal-frame-2 8a8c9a
+ 42 138  82	portal-green-1 2a8a52
+126 240 154	portal-green-2 7ef09a
+ 34 132 148	portal-cyan-1 228494
+122 236 250	portal-cyan-2 7aecfa
+156  56  40	portal-vermilion-1 9c3828
+255 122  84	portal-vermilion-2 ff7a54
+146  46 122	portal-magenta-1 922e7a
+246 130 218	portal-magenta-2 f682da

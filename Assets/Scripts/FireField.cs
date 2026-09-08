@@ -7,12 +7,17 @@ using System.Collections.Generic;
 // firebrands, and the trails ignited enemies drip behind them. A zone deals flat
 // damage to anything standing in it and NOTHING ELSE.
 //
-// THE IGNITION PILLAR, ENFORCED BY CONSTRUCTION: this class holds no reference to
-// EnemyBase and has no way to reach one. Enemies SAMPLE the field (see
-// EnemyBase.LateUpdate) rather than the field damaging enemies, so there is
-// physically no code path from burning ground to Ignite(). Only a fireball or an
-// arrow that rolled ignite can light something. Keep it that way — the whole
-// Order falls apart if fire can start fire (see Docs/Design/ember-order.md).
+// BURNING GROUND DOES NOT IGNITE (owner's call, 2026-09-06) — not a trail, not a
+// placed zone, and not a fireball's crater. It deals its damage and that is the
+// whole of what it does. The machinery for the other behaviour is still here and
+// still correct (every zone carries the id of the fire that laid it, and an enemy
+// can be lit by a given fire only once); it is switched off at EmberBoost's
+// GroundFireIgnites, which is where to put it back.
+//
+// The one-way direction is unchanged and still worth keeping: this class holds no
+// reference to EnemyBase and cannot reach one. Enemies SAMPLE the field and decide
+// for themselves whether to catch (EnemyBase.LateUpdate), rather than the field
+// reaching out to damage or ignite them. Zones stay dumb data.
 //
 // Why one central object instead of PoisonCloud's one-GameObject-per-cloud: Fire
 // Trail drops a zone every 0.35s PER burning enemy. Twenty burning rats would be
@@ -28,6 +33,20 @@ public class FireField : MonoBehaviour
         public string ownerTag;
         public float dps;
         public bool isTrail; // laid by Fire Trail, as opposed to a crater or placed zone
+
+        // Fire spread. igniteSourceId is the fire this zone belongs to, and 0 means
+        // the zone never ignites — either spread is off, or nothing minted it a
+        // source. sourceEnemyId is the body that dripped it, so that body can walk
+        // its own trail without being relit by it. See EmberBoost.FireSpreadEnabled.
+        public int igniteSourceId;
+        public int sourceEnemyId;
+    }
+
+    /// <summary>A fire burning under a point, and the knight who owns the kill.</summary>
+    public struct IgniteSource
+    {
+        public int sourceId;
+        public string ownerTag;
     }
 
     // Scorched Earth makes zones immortal, so the list needs a hard ceiling or a
@@ -88,15 +107,18 @@ public class FireField : MonoBehaviour
     // isTrail only distinguishes Fire Trail drops from craters and zones, for the
     // Ember quest that asks for several burning at once. It changes no behaviour.
     public static void AddZone(Vector2 position, float radius, float duration,
-        string ownerTag, float dps, bool eternal, bool isTrail = false)
+        string ownerTag, float dps, bool eternal, bool isTrail = false,
+        int igniteSourceId = 0, int sourceEnemyId = 0)
     {
         var field = Instance;
         if (field == null) return;
-        field.Add(position, radius, duration, ownerTag, dps, eternal, isTrail);
+        field.Add(position, radius, duration, ownerTag, dps, eternal, isTrail,
+            igniteSourceId, sourceEnemyId);
     }
 
     private void Add(Vector2 position, float radius, float duration,
-        string ownerTag, float dps, bool eternal, bool isTrail)
+        string ownerTag, float dps, bool eternal, bool isTrail,
+        int igniteSourceId, int sourceEnemyId)
     {
         var zone = new Zone
         {
@@ -105,7 +127,9 @@ public class FireField : MonoBehaviour
             expiresAt = eternal ? float.PositiveInfinity : Time.time + duration,
             ownerTag = ownerTag,
             dps = dps,
-            isTrail = isTrail
+            isTrail = isTrail,
+            igniteSourceId = igniteSourceId,
+            sourceEnemyId = sourceEnemyId
         };
 
         _zones.Add(zone);
@@ -188,6 +212,46 @@ public class FireField : MonoBehaviour
         }
 
         return hit;
+    }
+
+    /// <summary>
+    /// Every distinct fire burning under <paramref name="position"/>, skipping zones
+    /// <paramref name="excludeEnemyId"/> dripped itself so a burning body doesn't
+    /// relight off its own trail. Reports what is physically underfoot; the caller
+    /// filters against the fires that have already lit it (the source rule).
+    /// </summary>
+    public static void CollectIgniteSources(Vector2 position, int excludeEnemyId,
+        List<IgniteSource> results)
+    {
+        results.Clear();
+        if (_instance == null) return;
+        _instance.CollectInternal(position, excludeEnemyId, results);
+    }
+
+    private void CollectInternal(Vector2 position, int excludeEnemyId, List<IgniteSource> results)
+    {
+        for (int i = 0; i < _zones.Count; i++)
+        {
+            Zone zone = _zones[i];
+            if (zone.igniteSourceId == 0) continue;
+            if (zone.sourceEnemyId != 0 && zone.sourceEnemyId == excludeEnemyId) continue;
+
+            float dx = zone.position.x - position.x;
+            float dy = zone.position.y - position.y;
+            float hitRadius = zone.radius * HitboxScale;
+            if (dx * dx + dy * dy > hitRadius * hitRadius) continue;
+
+            // Fire Trail lays overlapping zones from one burn, so the same source is
+            // usually underfoot several times over — report it once
+            bool seen = false;
+            for (int j = 0; j < results.Count; j++)
+            {
+                if (results[j].sourceId == zone.igniteSourceId) { seen = true; break; }
+            }
+            if (seen) continue;
+
+            results.Add(new IgniteSource { sourceId = zone.igniteSourceId, ownerTag = zone.ownerTag });
+        }
     }
 
     // ---- Lifetime + rendering ----

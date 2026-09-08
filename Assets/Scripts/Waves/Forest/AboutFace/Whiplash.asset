@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
   m_Name: Whiplash
   m_EditorClassIdentifier: 
-  waveName: Whiplash 2
+  waveName: Whiplash II
   weight: 1000
   isUnlocked: 0
   waveDescription: Opposite volleys arrive faster and slightly off-angle, with bats

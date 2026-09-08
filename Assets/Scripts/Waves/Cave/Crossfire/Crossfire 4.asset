@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc80d3d90b36b44ed4b5ac1c70a9f769, type: 3}
   m_Name: Crossfire 4
   m_EditorClassIdentifier: 
-  waveName: Crossfire 4
-  weight: 1e+12
+  waveName: Crossfire IV
+  weight: 1000
   isUnlocked: 0
   waveDescription: Six to a line and eight bombs turning. Something has to go unshot.
   unlockedAfterXWaves: 12

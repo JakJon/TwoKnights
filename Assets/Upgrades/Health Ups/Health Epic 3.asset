@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b674baa58662bfc49b00cc25734f1391, type: 3}
   m_Name: Health Epic 3
   m_EditorClassIdentifier: 
-  upgradeName: Incredible Health Boost
+  upgradeName: Incredible Health Boost III
   description: A massive addition to your max health.
   weight: 6
   unlockedBy:

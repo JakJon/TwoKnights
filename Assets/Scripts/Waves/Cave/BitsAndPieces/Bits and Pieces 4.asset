@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f63b6399a5b391ce7a68be01483f175, type: 3}
   m_Name: Bits and Pieces 4
   m_EditorClassIdentifier: 
-  waveName: Bits and Pieces 4
+  waveName: Bits and Pieces IV
   weight: 1000
   isUnlocked: 0
   waveDescription: Four shifts into a shaft that never empties.
@@ -58,3 +58,84 @@ MonoBehaviour:
     interval: 14
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
+  ogres:
+    label: 12 down and up the empty middle
+    count: 5
+    firstAt: 5
+    interval: 4.5
+    fireEveryNth: 3
+    entries:
+    - label: up the empty middle, right of centre
+      at: {x: 4, y: -8}
+      mark: 2
+    - label: up the empty middle, left of centre
+      at: {x: -4, y: -8}
+      mark: 1
+    - label: down the empty middle, right of centre
+      at: {x: 4, y: 8}
+      mark: 2
+    - label: down the empty middle, left of centre
+      at: {x: -4, y: 8}
+      mark: 1
+    startOnRight: 1
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: wide spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.14
+    restAfter: 3.2
+  - label: wide spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  - label: both at once
+    shape: 2
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.21
+    restAfter: 3
+  - label: spread up under the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 0.8
+    count: 4
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  projectileWindow: 38
+  rockSpeed: 1.75
