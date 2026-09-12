@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
-  m_Name: Whiplash
+  m_Name: About Face
   m_EditorClassIdentifier: 
-  waveName: Whiplash II
+  waveName: Whiplash
   weight: 1000
   isUnlocked: 0
-  waveDescription: Opposite volleys arrive faster and slightly off-angle, with bats
-    drifting in.
-  unlockedAfterXWaves: 10
-  lockedAfterXWaves: 16
+  waveDescription: Volleys strike from one side, then snap in from the opposite side.
+    Keep that shield turning!
+  unlockedAfterXWaves: 5
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
-  burstCount: 3
-  pairsPerBurst: 4
-  flipWindow: 1.5
-  flipWindowRampFactor: 0.9
+  burstCount: 2
+  pairsPerBurst: 2
+  flipWindow: 2.5
+  flipWindowRampFactor: 1
   delayBetweenPairs: 4
   delayBetweenBursts: 5
   projectilesPerVolley: 1
-  angleJitter: 15
-  offscreenPadding: 2
+  angleJitter: 0
+  offscreenPadding: 4
   minAngleFromHorizontal: 30
-  batsPerBurst: 2
+  batsPerBurst: 0
   wolfEscorts: 0
-  spawnManaOrb: 1
+  spawnManaOrb: 0
