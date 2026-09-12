@@ -73,6 +73,15 @@ public class AudioManager : MonoBehaviour
     // by something invisible. This one is a small wet bubble, and it is the only
     // damage source in the game allowed its own voice — see KnightPoison.
     public SoundEffect knightPoisonTick;
+    // Guardian. Both are deliberately near the noise floor and both are textures
+    // rather than events: a Reflector knight turns rocks around all wave, and a
+    // guided knight locks on with most shots they take. Neither is allowed to
+    // announce itself the way a fireball does — the particles are the loud half of
+    // each tell, and these two just give it a body. The lock chime is additionally
+    // rate-limited across every arrow on the field, in GuidedShot.
+    public SoundEffect guardianReflect;
+    public SoundEffect guardianGuide;
+
     public SoundEffect confusion;
     public SoundEffect batScreech;
     public SoundEffect batFlutter;

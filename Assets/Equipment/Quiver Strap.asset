@@ -32,7 +32,7 @@ MonoBehaviour:
   poisonDeathSpecial: 0
   igniteDpsBonus: 0
   startingIgniteChance: 0
-  fireTrailDurationBonus: 0
+  fireZoneRadiusBonus: 0
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

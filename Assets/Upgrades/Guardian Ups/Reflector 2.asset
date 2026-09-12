@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00c16a6563d0428fa6183b220561d2d3, type: 3}
+  m_Name: Reflector 2
+  m_EditorClassIdentifier: 
+  upgradeName: Reflector II
+  description: Nothing lands on this guard without being returned, and it comes
+    back twice as hard.
+  weight: 16
+  order: 3
+  requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: 0118b743e1db4fc89d4276230cfd6a70, type: 2}
+  requiresAllUnlocks: 0
+  lockedBy: []
+  stats:
+  - valueText: 100%
+    labelText: BLOCKS REFLECT
+    isPositive: 1
+  - valueText: x2
+    labelText: ROCK DAMAGE
+    isPositive: 1
+  rank: 2

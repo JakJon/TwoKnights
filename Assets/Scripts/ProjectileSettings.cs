@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -6,6 +7,10 @@ using UnityEngine;
 /// the moment of the throw by the wave's count, not by what a wave authored.
 /// The prefab therefore carries the art for all three and puts on whichever it
 /// is told to be.
+///
+/// A rock can also change sides. The Guardian Order's Reflector turns one around on
+/// the guard, and from that moment it is the knight's ammunition: it carries its own
+/// payload to whatever it lands on, and it can no longer touch a knight.
 /// </summary>
 public class ProjectileSettings : MonoBehaviour
 {
@@ -41,7 +46,32 @@ public class ProjectileSettings : MonoBehaviour
     [Tooltip("Fraction of the standard projectile bubble rate a poisoned rock emits. The rate is authored for a player's arrow, which is bigger and on screen for less time.")]
     [SerializeField] private float poisonTrailRateScale = 0.3f;
 
+    [Header("Reflected (Guardian Order)")]
+    [Tooltip("Damage per tick a reflected GREEN rock leaves on an enemy. Deliberately the poisoned arrow's own number — the rock is carrying the mine's venom, not the knight's.")]
+    [SerializeField] private int reflectedPoisonDamage = 2;
+
+    [Tooltip("How long that rot runs. Half the poisoned arrow's, because a rock is one blow rather than a chain a Serpent knight is building.")]
+    [SerializeField] private float reflectedPoisonDuration = 15f;
+
+    [Tooltip("Seconds between ticks of a reflected rock's poison.")]
+    [SerializeField] private float reflectedPoisonTickRate = 1f;
+
     public RockVariant Variant { get; private set; } = RockVariant.Plain;
+
+    // ---- Reflector state. All three are written once, at the block. ----
+
+    /// <summary>Whether the guard has turned this rock around. Once true the rock has
+    /// changed sides for good: it cannot hurt a knight, cannot be blocked again, and
+    /// looks only for a body.</summary>
+    public bool Reflected { get; private set; }
+
+    // Which knight is paid for what this rock does now. TakeDamage and the tag-based
+    // AoE doors both want a "PlayerLeft"/"PlayerRight" string.
+    private string _ownerTag;
+
+    // What the rock's authored damage is multiplied by, from the blocking knight's
+    // Reflector rank.
+    private float _damageMultiplier = 1f;
 
     void Start()
     {
@@ -142,15 +172,36 @@ public class ProjectileSettings : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        // A rock the guard sent back belongs to the knight now. It is looking for a
+        // body and nothing else: it cannot hurt a knight it drifts over, and it
+        // cannot be blocked a second time by the other guard.
+        if (Reflected)
+        {
+            EnemyBase struck = other.GetComponent<EnemyBase>();
+            if (struck != null && !struck.IsDead)
+            {
+                StrikeEnemy(struck);
+            }
+            return;
+        }
+
         // Check for shield collision
         if (other.CompareTag("Shield"))
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.projectileShield);
+            PlayerStats.Increment("guardian.blocked");
             PlayerSpecial playerSpecial = other.GetComponentInParent<PlayerSpecial>();
             if (playerSpecial != null)
             {
                 playerSpecial.updateSpecial(1);
             }
+
+            // Reflector (Guardian): the guard turns it around instead of eating it.
+            // After the special charge, deliberately — a block is a block whether or
+            // not the rock came back, and routing the reward through the reflect
+            // would have quietly deleted a charge source on every rebound.
+            if (TryReflect(other)) return;
+
             // A powder rock stopped on the guard still goes off — the guard is
             // what makes it harmless, and the burst is the reward for reading it.
             BurstIfExplosive();
@@ -184,5 +235,128 @@ public class ProjectileSettings : MonoBehaviour
         if (Variant != RockVariant.Explosive) return;
         BombFx.Explode(transform.position, Mathf.Max(0.2f, explosiveBlastRadius));
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.fireballExplode);
+    }
+
+    /// <summary>
+    /// Reflector (Guardian Order): the guard turns the rock around rather than
+    /// stopping it. Returns true if it did, in which case the rock lives on and the
+    /// caller must not destroy it.
+    /// </summary>
+    private bool TryReflect(Collider2D shield)
+    {
+        // Asked before the roll, not after: TryTurn spends the dice and plays the
+        // tell, and a rock with no mover cannot be sent anywhere whatever it says.
+        ProjectileMovement mover = GetComponent<ProjectileMovement>();
+        if (mover == null) return false;
+
+        // The rock's heading IS its rotation - ProjectileMovement translates along
+        // its own local +X - so transform.right is the direction of travel.
+        GuardianReflect.Turn turn = GuardianReflect.TryTurn(shield, transform.right);
+        if (!turn.Happened) return false;
+
+        Reflected = true;
+        _damageMultiplier = turn.DamageMultiplier;
+        _ownerTag = turn.OwnerTag;
+
+        mover.Redirect(turn.Heading, GuardianBoost.ReflectedSpeedMultiplier);
+
+        // NO TELL HERE, deliberately (owner's call, 2026-09-08). The steel is the
+        // HOMING tell and nothing else, so it appears the moment a shot commits to a
+        // target and never before — see GuidedShot.Acquire. A rebound from a knight
+        // without Guided Reflections therefore wears nothing, and is read by its
+        // speed and its heading instead: it leaves at two and a half times the pace
+        // it arrived at, going the other way, which is not a shot anything on the
+        // field could have thrown.
+        //
+        // Guided Reflections: the rebound steers, too. Bodies only — a rock cannot
+        // collect an orb (CollectibleOrb answers to arrows and the blade, never to
+        // this), so letting one chase an orb would be sending the Order's payout
+        // somewhere it cannot land.
+        if (turn.GuideRadius > 0f)
+        {
+            GuidedShot guide = gameObject.AddComponent<GuidedShot>();
+            guide.Configure(turn.GuideRadius, false, _ownerTag);
+        }
+
+        // NOT optional. A wave is not complete while a tracked projectile is alive
+        // (BaseWave.IsWaveComplete), and every rock until now was guaranteed to die
+        // because it always ended on a knight or on a guard. A reflected one can fly
+        // into open sky forever, and without this the wave would never end.
+        Destroy(gameObject, GuardianBoost.ReflectedLifetimeSeconds);
+        return true;
+    }
+
+    /// <summary>What a reflected rock does to the body it finds. The rock keeps the
+    /// payload it was thrown with — a green one rots, a powder one goes off — so the
+    /// mine's own escalation is what makes the Order scale.</summary>
+    private void StrikeEnemy(EnemyBase enemy)
+    {
+        int dealt = EquipmentBoost.ScaleHit(
+            Mathf.Max(1, Mathf.CeilToInt(damage * _damageMultiplier)), enemy, _ownerTag);
+
+        // TakeDamage reads the projectile only for its TAG, to credit a knight, so
+        // this borrows SwordSwing's carrier idiom rather than retagging the rock.
+        // The rock must STAY untagged: EnemyBase destroys anything wearing a
+        // Player*Projectile tag on contact, and its handler racing this one could
+        // eat the rock before the damage landed — and a tagged rock would also start
+        // swallowing health orbs on its way past.
+        GameObject carrier = null;
+        if (!string.IsNullOrEmpty(_ownerTag))
+        {
+            carrier = new GameObject("ReflectedRock");
+            carrier.tag = _ownerTag + "Projectile";
+        }
+
+        enemy.TakeDamage(dealt, carrier);
+        if (carrier != null) Destroy(carrier);
+
+        if (Variant == RockVariant.Poison)
+        {
+            enemy.ApplyPoisonFromTag(
+                reflectedPoisonDamage, reflectedPoisonDuration, reflectedPoisonTickRate, _ownerTag);
+        }
+
+        BurstOnEnemies(enemy);
+        BurstIfExplosive();
+        Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// A reflected powder rock actually goes off. This is the ONE place a rock's blast
+    /// deals damage: the enemy's own powder rock stays cosmetic, because a gnome's
+    /// blast clearing the gnome's own carts off the track would be doing the player's
+    /// work for them (see EnemyBomb.Explode, which makes the same call).
+    /// </summary>
+    private void BurstOnEnemies(EnemyBase directHit)
+    {
+        if (Variant != RockVariant.Explosive) return;
+
+        float radius = Mathf.Max(0.2f, explosiveBlastRadius);
+
+        // Collected first and paid second: an enemy dying inside the loop can recurse
+        // through OnDeath and mutate what the query handed back — the trap EnemyKegCart
+        // documents at its own detonation.
+        var victims = new List<EnemyBase>();
+        foreach (Collider2D col in Physics2D.OverlapCircleAll(transform.position, radius))
+        {
+            EnemyBase other = col != null ? col.GetComponent<EnemyBase>() : null;
+            if (other == null || other == directHit || other.IsDead) continue;
+            if (!victims.Contains(other)) victims.Add(other);
+        }
+
+        // The direct hit already paid; the blast is what the rest of the pack gets.
+        // ApplyBlastDamage self-guards IsDead and ImmuneToAreaDamage, so carts and
+        // kegs shrug it off without anything being written here.
+        int blast = Mathf.Max(1, Mathf.CeilToInt(damage * _damageMultiplier));
+        for (int i = 0; i < victims.Count; i++)
+        {
+            victims[i].ApplyBlastDamage(EquipmentBoost.ScaleHit(blast, victims[i], _ownerTag), _ownerTag);
+        }
+
+        // Scoped to THIS blast rather than to a running tally, the same way one
+        // poison cloud counts its own four: the question is whether a single
+        // returned rock caught three bodies, not whether three were ever hit.
+        // Counts the body it struck directly alongside the ones the burst reached.
+        if (victims.Count + 1 >= 3) Feats.Record(Feats.ReflectThree);
     }
 }

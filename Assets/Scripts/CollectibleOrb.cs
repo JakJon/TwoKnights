@@ -42,9 +42,10 @@ public class CollectibleOrb : MonoBehaviour, IChillable
     // ---- cold (the Frigid Order) ----
     //
     // Frost that is not an arrow slows an orb by the same amount it would slow a
-    // body. Deliberately not arrows: an arrow that reaches an orb COLLECTS it, so
-    // there would be nothing left to slow - which is what makes this a gift from
-    // the ward and the blade rather than something a Frigid knight has to aim for.
+    // body. Deliberately not arrows, and not the blade either: anything of the
+    // knight's that REACHES an orb collects it, so there would be nothing left to
+    // slow - which is what makes this a gift from the ward rather than something a
+    // Frigid knight has to aim for.
     //
     // A slowed orb is a wider window for BOTH knights, exactly as Sunwell III's is.
     private float _chillMultiplier = 1f;
@@ -81,50 +82,63 @@ public class CollectibleOrb : MonoBehaviour, IChillable
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
+        GameObject player = CollectorFor(other);
+        if (player != null)
         {
-            GameObject player = other.CompareTag("PlayerLeftProjectile")
-                ? GameObject.FindWithTag("PlayerLeft")
-                : GameObject.FindWithTag("PlayerRight");
-
             Destroy(gameObject);
 
-            if (player != null)
+            // Sunwell (Dawn) pays off the knight who actually REACHED the orb,
+            // which is the whole point of the chain — it rewards the aim, not the
+            // standing around
+            DawnBoost dawn = player.GetComponent<DawnBoost>();
+
+            if (orbType == OrbType.Health)
             {
-                // Sunwell (Dawn) pays off the knight who actually SHOT the orb,
-                // which is the whole point of the chain — it rewards the aim,
-                // not the standing around
-                DawnBoost dawn = player.GetComponent<DawnBoost>();
-
-                if (orbType == OrbType.Health)
+                PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+                if (playerHealth != null)
                 {
-                    PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
-                    if (playerHealth != null)
-                    {
-                        int amount = dawn != null ? dawn.ScaleOrbHeal(healthRestoreAmount) : healthRestoreAmount;
-                        // Tagged as an orb so the Dawn chime waits out orbCollect
-                        // below instead of firing on the same frame
-                        playerHealth.Heal(amount, true, HealSource.Orb);
-                    }
+                    int amount = dawn != null ? dawn.ScaleOrbHeal(healthRestoreAmount) : healthRestoreAmount;
+                    // Tagged as an orb so the Dawn chime waits out orbCollect
+                    // below instead of firing on the same frame
+                    playerHealth.Heal(amount, true, HealSource.Orb);
                 }
-                else // Mana
+            }
+            else // Mana
+            {
+                PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
+                if (playerSpecial != null)
                 {
-                    PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
-                    if (playerSpecial != null)
-                    {
-                        playerSpecial.AddSpecialFromOrb(manaRestoreAmount);
-                    }
+                    playerSpecial.AddSpecialFromOrb(manaRestoreAmount);
+                }
 
-                    // Sunwell II: even the mana orbs carry a little light
-                    if (dawn != null && dawn.ManaOrbHeal > 0)
-                    {
-                        player.GetComponent<PlayerHealth>()?.Heal(dawn.ManaOrbHeal, true, HealSource.Orb);
-                    }
+                // Sunwell II: even the mana orbs carry a little light
+                if (dawn != null && dawn.ManaOrbHeal > 0)
+                {
+                    player.GetComponent<PlayerHealth>()?.Heal(dawn.ManaOrbHeal, true, HealSource.Orb);
                 }
             }
 
             AudioManager.Instance.PlaySFX(AudioManager.Instance.orbCollect);
-
         }
+    }
+
+    /// <summary>
+    /// Which knight, if any, just took this orb. An arrow answers by its tag — the
+    /// shot carries the tag of the knight who fired it, shurikens and shadow arrows
+    /// included. A SWING answers through the detector the sword grows at swing time,
+    /// because the sword object itself is untagged by design (see SwordSwing).
+    ///
+    /// The blade counts (owner's call): an orb crossing a knight's own reach and
+    /// being ignored because they happened to be mid-swing rather than mid-shot is
+    /// not a decision anyone made, and the sword is already the answer to everything
+    /// else that comes that close.
+    /// </summary>
+    private static GameObject CollectorFor(Collider2D other)
+    {
+        if (other.CompareTag("PlayerLeftProjectile")) return GameObject.FindWithTag("PlayerLeft");
+        if (other.CompareTag("PlayerRightProjectile")) return GameObject.FindWithTag("PlayerRight");
+
+        SwordDamageDetector blade = other.GetComponent<SwordDamageDetector>();
+        return blade != null ? blade.OwningKnight : null;
     }
 }

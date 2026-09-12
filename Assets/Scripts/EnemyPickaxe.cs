@@ -139,6 +139,25 @@ public class EnemyPickaxe : MonoBehaviour, IChillable
         {
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.projectileShield);
             other.GetComponentInParent<PlayerSpecial>()?.updateSpecial(1);
+
+            // Reflector (Guardian): the guard sends it back rather than eating it.
+            // After the special charge, deliberately — a block is a block whether or
+            // not the axe came back, and routing the reward through the reflect would
+            // quietly delete a charge source on every rebound.
+            //
+            // The axe tumbles on the way in, so its rotation is not its heading: the
+            // solved launch velocity is.
+            GuardianReflect.Turn turn = GuardianReflect.TryTurn(other, _velocity);
+            if (turn.Happened)
+            {
+                // Off first. Everything that made this a hazard — the arc, the tumble,
+                // the knight-damage handler — lives on this component, and switching
+                // it off is what makes the axe the knight's rather than the gnome's.
+                enabled = false;
+                ReflectedShot.Attach(gameObject, turn, _velocity.magnitude, knightDamage);
+                return;
+            }
+
             Spend();
             return;
         }

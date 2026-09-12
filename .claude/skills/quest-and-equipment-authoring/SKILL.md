@@ -245,6 +245,22 @@ One `.asset` per item in `Assets/Equipment/`, plus an entry in the catalog.
 Twelve of the sixteen shipped items are `StatEquipment`. What differs between them lives in
 the `.asset`, not in code. **Adding a field to `StatEquipment` beats adding a class.**
 
+### Equipment always stacks (owner's rule, 2026-09-10)
+
+Two items touching the same number BOTH count, and an item stacks on top of drafted
+upgrades rather than acting as a floor under them. Advertised multipliers multiply
+(2x and 2x drafts = 4x; 1.5x and 1.5x damage = 2.25x); flat amounts add. Never write an
+equipment setter with `Mathf.Max` — and never route equipment through an Order's
+monotonic tier setter (`SetEchoFraction`, `SetFrostTip`, ...), because its `Max` swallows
+the item. Give the boost a separate equipment field instead (see
+`DawnBoost.AddEchoFractionFromEquipment`, `FrigidBoost.AddFrostTipFromEquipment`).
+
+**Damage bonuses go through `EquipmentBoost.ScaleHit(damage, enemy, knightTag)`** at
+every place a knight's projectile or blade hurts an enemy — arrows, fireball blasts,
+guard rebounds and their bursts, the sword and Rimeblade. A new knight projectile that
+skips it silently ignores every bane item. Damage-over-time ticks (poison, burn, fire
+ground, Shield Sight beam) deliberately do not use it.
+
 ### The asset
 
 ```yaml

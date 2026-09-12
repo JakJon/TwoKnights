@@ -84,8 +84,8 @@ public static class SerpentQuests
                 "not the end of a job, it is a delivery. Take up the rite and the dead start working " +
                 "the shift after yours.",
             mapId: Camp,
-            objectives: One("upgrades.taken.plaguebringer", 1,
-                            "Acquire Plaguebringer, the Serpent capstone", hideProgress: true),
+            objectives: One("upgrades.taken.acid_dagger", 1,
+                            "Acquire Acid Dagger, the Serpent capstone", hideProgress: true),
             reward: Reward(equipmentId: "hollow_fang"),
             unlocks: Gate(After(Coil1)));
     }

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 444e31b3dc9e50d43b4163afff323fab, type: 3}
-  m_Name: Crimson Twins
+  m_Name: The Crimson Twins
   m_EditorClassIdentifier: 
   waveName: The Crimson Twins
   weight: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
   spawnCorner: {x: 13.5, y: 2.5}
   entranceDelay: 1.5
   config:
-    health: 2000
+    health: 1750
     scale: 6
     approachSpeed: 0.11475
     contactDamage: 9999

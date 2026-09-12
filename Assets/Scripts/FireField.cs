@@ -8,11 +8,37 @@ using System.Collections.Generic;
 // damage to anything standing in it and NOTHING ELSE.
 //
 // BURNING GROUND DOES NOT IGNITE (owner's call, 2026-09-06) — not a trail, not a
-// placed zone, and not a fireball's crater. It deals its damage and that is the
-// whole of what it does. The machinery for the other behaviour is still here and
-// still correct (every zone carries the id of the fire that laid it, and an enemy
-// can be lit by a given fire only once); it is switched off at EmberBoost's
-// GroundFireIgnites, which is where to put it back.
+// placed zone, and not a fireball's crater. Scorched Earth briefly bought the
+// exception and no longer does (owner's call, 2026-09-08): the capstone makes zones
+// eternal and hotter, and that is all. Each zone still carries an "ignites" bit and
+// Sample still reports it, because EmberBoost.GroundFireIgnites can arm it from a
+// debug console — but no upgrade sets it, so in a real run it is always false.
+//
+// Overlapping zones are ONE fire, not many. Sample returns the hottest zone under a
+// point; nothing anywhere counts zones. That is the invariant that keeps a Fire Trail
+// lane — which is dozens of overlapping drops — from billing dozens of times over.
+//
+// Blue embers mark ETERNAL zones, so Scorched Earth's fire looks different from fire
+// that is going to burn out.
+//
+// THE VIEW IS A HARD BOUNDARY FOR GROUND FIRE (owner's call, 2026-09-08). Waves spawn
+// off screen and walk in, and fire the player cannot see must not be hurting things
+// the player cannot see. Three rules, all keyed on IsInsideView:
+//
+//   1. A zone whose CENTRE is off screen is never placed — Add refuses it, so no
+//      call site can forget. That is the "completely ignored" case.
+//   2. A zone that straddles the edge is TRIMMED to it, because Sample refuses any
+//      point off screen. The half of a crater inside the view burns; the half hanging
+//      out of it is inert ground.
+//   3. Nothing is DRAWN off screen either, so a trimmed crater reads as the clipped
+//      shape it actually is rather than as a full circle half of which does nothing.
+//
+// This is the FIELD only. Ignition is untouched: an enemy lit by an arrow or a
+// fireball goes on burning wherever it walks, on screen or off, because that burn
+// rides the body rather than the ground. See EnemyBase's two damage channels.
+//
+// Igniting zones are also the ones that carry BLUE embers among the orange, so the
+// player can read "this ground lights you" off the screen rather than off a tooltip.
 //
 // The one-way direction is unchanged and still worth keeping: this class holds no
 // reference to EnemyBase and cannot reach one. Enemies SAMPLE the field and decide
@@ -34,19 +60,16 @@ public class FireField : MonoBehaviour
         public float dps;
         public bool isTrail; // laid by Fire Trail, as opposed to a crater or placed zone
 
-        // Fire spread. igniteSourceId is the fire this zone belongs to, and 0 means
-        // the zone never ignites — either spread is off, or nothing minted it a
-        // source. sourceEnemyId is the body that dripped it, so that body can walk
-        // its own trail without being relit by it. See EmberBoost.FireSpreadEnabled.
-        public int igniteSourceId;
-        public int sourceEnemyId;
-    }
+        // Whether standing in this zone sets a body alight. False in every real run —
+        // only EmberBoost.GroundFireIgnites arms it, and no upgrade touches that. A
+        // plain bool: it used to be an ignition SOURCE ID, back when catching from the
+        // ground minted a burn per distinct fire underfoot, which is what produced
+        // 40-70 damage a step. See EnemyBase's fire-AoE flag.
+        public bool ignites;
 
-    /// <summary>A fire burning under a point, and the knight who owns the kill.</summary>
-    public struct IgniteSource
-    {
-        public int sourceId;
-        public string ownerTag;
+        // The body that dripped this zone, so it can walk its own trail without the
+        // trail burning it a second time on top of the burn that laid it.
+        public int sourceEnemyId;
     }
 
     // Scorched Earth makes zones immortal, so the list needs a hard ceiling or a
@@ -65,11 +88,23 @@ public class FireField : MonoBehaviour
 
     private static readonly Color FireTint = new Color(1f, 0.48f, 0.16f, 0.75f);
 
+    // Blue embers ride along in ETERNAL zones — Scorched Earth's tell, and the one
+    // thing that tells a lane which is about to go out from one which never will. Kept
+    // at roughly one particle in five and three-quarters the size of an orange one, so
+    // it reads as a colder core inside the same fire rather than as a second effect
+    // competing with it. Deep blue rather than sky blue (owner's call, 2026-09-08):
+    // against an orange fire a pale blue reads as white and washes out, while a dark
+    // one reads as the hole in the middle of a flame.
+    private static readonly Color BlueFireTint = new Color(0.16f, 0.28f, 0.72f, 0.8f);
+    private const float BlueEmberShare = 0.22f;
+    private const float BlueEmberScale = 0.75f;
+
     private static FireField _instance;
     private static bool _quitting;
 
     private readonly List<Zone> _zones = new List<Zone>();
     private ParticleSystem _particles;
+    private ParticleSystem _blueParticles;
     private float _sinceLastEmit;
 
     public static FireField Instance
@@ -102,24 +137,69 @@ public class FireField : MonoBehaviour
         _quitting = true;
     }
 
+    // ---- Where fire is allowed to be ----
+
+    // The playfield the waves are written against, used when there is no orthographic
+    // camera to ask. Same numbers as RailNetwork.GetViewBounds.
+    private static readonly Vector2 FallbackHalfExtents = new Vector2(10f, 5.625f);
+
+    // Camera.main walks the scene, so it is held. A destroyed camera compares equal to
+    // null through Unity's operator, which re-acquires it on the next call — that is
+    // what carries this across a scene load.
+    private static Camera _viewCamera;
+
+    /// <summary>
+    /// Whether a point is inside what the player can actually see.
+    ///
+    /// Waves spawn OFF screen and walk in, so fire laid outside the view is fire
+    /// nobody can see burning things nobody can see. A burning enemy on its way in
+    /// would paint the approach, and the next thing to spawn would arrive already
+    /// hurt — see EnemyBase.DropFireTrail, which is what asks.
+    /// </summary>
+    public static bool IsInsideView(Vector2 point)
+    {
+        if (_viewCamera == null) _viewCamera = Camera.main;
+
+        Vector2 center;
+        Vector2 halfExtents;
+        if (_viewCamera != null && _viewCamera.orthographic)
+        {
+            center = _viewCamera.transform.position;
+            halfExtents = new Vector2(_viewCamera.orthographicSize * _viewCamera.aspect,
+                _viewCamera.orthographicSize);
+        }
+        else
+        {
+            center = Vector2.zero;
+            halfExtents = FallbackHalfExtents;
+        }
+
+        return Mathf.Abs(point.x - center.x) <= halfExtents.x
+            && Mathf.Abs(point.y - center.y) <= halfExtents.y;
+    }
+
     // ---- Placing fire ----
 
     // isTrail only distinguishes Fire Trail drops from craters and zones, for the
     // Ember quest that asks for several burning at once. It changes no behaviour.
     public static void AddZone(Vector2 position, float radius, float duration,
         string ownerTag, float dps, bool eternal, bool isTrail = false,
-        int igniteSourceId = 0, int sourceEnemyId = 0)
+        bool ignites = false, int sourceEnemyId = 0)
     {
         var field = Instance;
         if (field == null) return;
         field.Add(position, radius, duration, ownerTag, dps, eternal, isTrail,
-            igniteSourceId, sourceEnemyId);
+            ignites, sourceEnemyId);
     }
 
     private void Add(Vector2 position, float radius, float duration,
         string ownerTag, float dps, bool eternal, bool isTrail,
-        int igniteSourceId, int sourceEnemyId)
+        bool ignites, int sourceEnemyId)
     {
+        // Rule 1. Refused here rather than at the call sites so a fireball crater, a
+        // Fire Trail drop and anything added later all obey it without being asked.
+        if (!IsInsideView(position)) return;
+
         var zone = new Zone
         {
             position = position,
@@ -128,7 +208,7 @@ public class FireField : MonoBehaviour
             ownerTag = ownerTag,
             dps = dps,
             isTrail = isTrail,
-            igniteSourceId = igniteSourceId,
+            ignites = ignites,
             sourceEnemyId = sourceEnemyId
         };
 
@@ -169,6 +249,10 @@ public class FireField : MonoBehaviour
         {
             _instance._particles.Clear();
         }
+        if (_instance._blueParticles != null)
+        {
+            _instance._blueParticles.Clear();
+        }
     }
 
     public static int ActiveZoneCount
@@ -178,32 +262,59 @@ public class FireField : MonoBehaviour
 
     // ---- Sampling (how enemies take fire damage) ----
 
-    // Returns the HOTTEST overlapping zone, not the sum. Fire Trail lays zones
-    // every 0.35s along a path so they heavily overlap; summing would make a
-    // trail deal many times its stated dps and turn "1 dps" into a lie.
-    public static bool Sample(Vector2 position, out float dps, out string ownerTag)
+    // Returns the HOTTEST overlapping zone, never the sum, and never one result per
+    // zone. Fire Trail lays zones every 0.35s along a path so they heavily overlap;
+    // summing would make a trail deal many times its stated dps and turn "3 dps" into
+    // a lie. This is the ONLY way a body learns what the ground is doing to it —
+    // damage, kill credit and ignition all come out of this one call.
+    //
+    // excludeEnemyId skips zones that body dripped itself. Without it a burning enemy
+    // is billed twice for one fire — its burn, and the lane that burn is laying — and
+    // on any build where ground fire ignites it would keep re-lighting itself off its
+    // own trail and never stop burning.
+    public static bool Sample(Vector2 position, int excludeEnemyId,
+        out float dps, out string ownerTag, out bool ignites)
     {
         dps = 0f;
         ownerTag = null;
+        ignites = false;
         if (_instance == null) return false;
-        return _instance.SampleInternal(position, out dps, out ownerTag);
+
+        // Rule 2, and the whole of what "trimmed at the view edge" means: a zone is a
+        // circle, but the ground it actually burns is that circle intersected with the
+        // screen. Asked of the SAMPLING POINT rather than of the zone, so one test
+        // clips every zone at once and a crater dropped at the boundary burns exactly
+        // the part of itself the player can see.
+        if (!IsInsideView(position)) return false;
+
+        return _instance.SampleInternal(position, excludeEnemyId, out dps, out ownerTag, out ignites);
     }
 
-    private bool SampleInternal(Vector2 position, out float dps, out string ownerTag)
+    private bool SampleInternal(Vector2 position, int excludeEnemyId,
+        out float dps, out string ownerTag, out bool ignites)
     {
         dps = 0f;
         ownerTag = null;
+        ignites = false;
         bool hit = false;
 
         for (int i = 0; i < _zones.Count; i++)
         {
             Zone zone = _zones[i];
+            if (zone.sourceEnemyId != 0 && zone.sourceEnemyId == excludeEnemyId) continue;
+
             float dx = zone.position.x - position.x;
             float dy = zone.position.y - position.y;
             float hitRadius = zone.radius * HitboxScale;
             if (dx * dx + dy * dy > hitRadius * hitRadius) continue;
 
             hit = true;
+
+            // Ignition is a property of the GROUND, not of the hottest patch of it:
+            // one igniting zone underfoot lights you even if a hotter ordinary zone
+            // overlaps it.
+            if (zone.ignites) ignites = true;
+
             if (zone.dps > dps)
             {
                 dps = zone.dps;
@@ -212,46 +323,6 @@ public class FireField : MonoBehaviour
         }
 
         return hit;
-    }
-
-    /// <summary>
-    /// Every distinct fire burning under <paramref name="position"/>, skipping zones
-    /// <paramref name="excludeEnemyId"/> dripped itself so a burning body doesn't
-    /// relight off its own trail. Reports what is physically underfoot; the caller
-    /// filters against the fires that have already lit it (the source rule).
-    /// </summary>
-    public static void CollectIgniteSources(Vector2 position, int excludeEnemyId,
-        List<IgniteSource> results)
-    {
-        results.Clear();
-        if (_instance == null) return;
-        _instance.CollectInternal(position, excludeEnemyId, results);
-    }
-
-    private void CollectInternal(Vector2 position, int excludeEnemyId, List<IgniteSource> results)
-    {
-        for (int i = 0; i < _zones.Count; i++)
-        {
-            Zone zone = _zones[i];
-            if (zone.igniteSourceId == 0) continue;
-            if (zone.sourceEnemyId != 0 && zone.sourceEnemyId == excludeEnemyId) continue;
-
-            float dx = zone.position.x - position.x;
-            float dy = zone.position.y - position.y;
-            float hitRadius = zone.radius * HitboxScale;
-            if (dx * dx + dy * dy > hitRadius * hitRadius) continue;
-
-            // Fire Trail lays overlapping zones from one burn, so the same source is
-            // usually underfoot several times over — report it once
-            bool seen = false;
-            for (int j = 0; j < results.Count; j++)
-            {
-                if (results[j].sourceId == zone.igniteSourceId) { seen = true; break; }
-            }
-            if (seen) continue;
-
-            results.Add(new IgniteSource { sourceId = zone.igniteSourceId, ownerTag = zone.ownerTag });
-        }
     }
 
     // ---- Lifetime + rendering ----
@@ -276,7 +347,9 @@ public class FireField : MonoBehaviour
         }
     }
 
-    // One pooled system emitting into every zone, rather than a system per zone
+    // One pooled system emitting into every zone, rather than a system per zone.
+    // Two systems now — orange, and a blue one that only igniting zones draw from, so
+    // the tell costs nothing on a field of ordinary fire.
     private void EmitIntoZones()
     {
         if (_particles == null || _zones.Count == 0) return;
@@ -291,54 +364,52 @@ public class FireField : MonoBehaviour
         {
             Zone zone = _zones[Random.Range(0, _zones.Count)];
 
+            // Blue rides in the same budget rather than adding to it: an eternal
+            // zone is not denser than an ordinary one, some of its embers are just
+            // the wrong colour for a fire, which is the whole read.
+            bool blue = float.IsPositiveInfinity(zone.expiresAt)
+                && _blueParticles != null
+                && Random.value < BlueEmberShare;
+
             Vector2 offset = Random.insideUnitCircle * zone.radius * 0.85f;
-            emitParams.position = new Vector3(
-                zone.position.x + offset.x,
-                zone.position.y + offset.y,
-                0f);
+            Vector2 spot = zone.position + offset;
+
+            // Rule 3. Ground that cannot burn must not look like it can, so the part of
+            // a straddling zone hanging past the edge is simply not drawn. Costs the
+            // occasional emission from the budget, which is the right trade: the
+            // alternative is a crater that looks whole and only bites on one side.
+            if (!IsInsideView(spot)) continue;
+
+            emitParams.position = new Vector3(spot.x, spot.y, 0f);
             emitParams.applyShapeToPosition = false;
             emitParams.startSize = Random.Range(0.18f, 0.34f) * Mathf.Clamp(zone.radius, 0.5f, 2f);
+            if (blue) emitParams.startSize *= BlueEmberScale;
             emitParams.startLifetime = ParticleLifetime * Random.Range(0.7f, 1.1f);
 
-            _particles.Emit(emitParams, 1);
+            if (blue) _blueParticles.Emit(emitParams, 1);
+            else _particles.Emit(emitParams, 1);
         }
     }
 
     // Code-built, matching PoisonCloud's approach: sprite texture on the default
-    // sprite shader, world space, shrink + fade over lifetime
+    // sprite shader, world space, shrink + fade over lifetime.
+    //
+    // Two systems, because Unity allows one ParticleSystem per GameObject and the
+    // blue embers need their own colour ramp — tinting the orange gradient by a blue
+    // start colour multiplies down to mud rather than reading as blue flame. The
+    // second lives on a child and is otherwise identical.
     private void BuildParticles()
     {
-        _particles = gameObject.AddComponent<ParticleSystem>();
+        _particles = BuildSystem(gameObject, FireTint, OrangeGradient());
 
-        var main = _particles.main;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.startColor = FireTint;
-        main.maxParticles = MaxParticles;
-        main.playOnAwake = false;
-        main.startSpeed = 0f;
-        main.startLifetime = ParticleLifetime;
+        var blueHost = new GameObject("BlueEmbers");
+        blueHost.transform.SetParent(transform, false);
+        _blueParticles = BuildSystem(blueHost, BlueFireTint, BlueGradient());
+    }
 
-        var emission = _particles.emission;
-        emission.rateOverTime = 0f; // everything is emitted manually
-
-        var sizeOverLifetime = _particles.sizeOverLifetime;
-        sizeOverLifetime.enabled = true;
-        var sizeCurve = new AnimationCurve();
-        sizeCurve.AddKey(0f, 1f);
-        sizeCurve.AddKey(1f, 0.25f);
-        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
-
-        // Embers rise as they fade
-        var velocity = _particles.velocityOverLifetime;
-        velocity.enabled = true;
-        velocity.space = ParticleSystemSimulationSpace.World;
-        velocity.x = new ParticleSystem.MinMaxCurve(-0.2f, 0.2f);
-        velocity.y = new ParticleSystem.MinMaxCurve(0.35f, 0.9f);
-        velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
-
-        // Hot core to cooling ash
-        var colorOverLifetime = _particles.colorOverLifetime;
-        colorOverLifetime.enabled = true;
+    // Hot core to cooling ash
+    private static Gradient OrangeGradient()
+    {
         var gradient = new Gradient();
         gradient.SetKeys(
             new[]
@@ -354,9 +425,68 @@ public class FireField : MonoBehaviour
                 new GradientAlphaKey(0f, 1f)
             }
         );
-        colorOverLifetime.color = gradient;
+        return gradient;
+    }
 
-        var renderer = _particles.GetComponent<ParticleSystemRenderer>();
+    // The same shape several bands colder and much darker: no white core at all, a
+    // deep cobalt body, and near-black navy ash. Alpha runs under the orange ramp so
+    // blue sits INSIDE the fire rather than on top of it — noticeable, not the thing
+    // you look at first.
+    private static Gradient BlueGradient()
+    {
+        var gradient = new Gradient();
+        gradient.SetKeys(
+            new[]
+            {
+                new GradientColorKey(new Color(0.30f, 0.48f, 0.90f), 0f),
+                new GradientColorKey(new Color(0.10f, 0.20f, 0.66f), 0.45f),
+                new GradientColorKey(new Color(0.02f, 0.03f, 0.20f), 1f)
+            },
+            new[]
+            {
+                new GradientAlphaKey(0.85f, 0f),
+                new GradientAlphaKey(0.6f, 0.5f),
+                new GradientAlphaKey(0f, 1f)
+            }
+        );
+        return gradient;
+    }
+
+    private ParticleSystem BuildSystem(GameObject host, Color tint, Gradient ramp)
+    {
+        var system = host.AddComponent<ParticleSystem>();
+
+        var main = system.main;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.startColor = tint;
+        main.maxParticles = MaxParticles;
+        main.playOnAwake = false;
+        main.startSpeed = 0f;
+        main.startLifetime = ParticleLifetime;
+
+        var emission = system.emission;
+        emission.rateOverTime = 0f; // everything is emitted manually
+
+        var sizeOverLifetime = system.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        var sizeCurve = new AnimationCurve();
+        sizeCurve.AddKey(0f, 1f);
+        sizeCurve.AddKey(1f, 0.25f);
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
+
+        // Embers rise as they fade
+        var velocity = system.velocityOverLifetime;
+        velocity.enabled = true;
+        velocity.space = ParticleSystemSimulationSpace.World;
+        velocity.x = new ParticleSystem.MinMaxCurve(-0.2f, 0.2f);
+        velocity.y = new ParticleSystem.MinMaxCurve(0.35f, 0.9f);
+        velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+
+        var colorOverLifetime = system.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+        colorOverLifetime.color = ramp;
+
+        var renderer = system.GetComponent<ParticleSystemRenderer>();
         if (renderer != null)
         {
             var material = new Material(Shader.Find("Sprites/Default"));
@@ -377,6 +507,7 @@ public class FireField : MonoBehaviour
             renderer.sortingLayerName = "Default";
         }
 
-        _particles.Play();
+        system.Play();
+        return system;
     }
 }

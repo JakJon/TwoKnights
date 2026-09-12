@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: afcfc136fb0be834cbde2a57f87a10e2, type: 3}
-  m_Name: Rat Mischief 1
+  m_Name: Rat Mischief II
   m_EditorClassIdentifier: 
   waveName: Rat Mischief II
   weight: 1000

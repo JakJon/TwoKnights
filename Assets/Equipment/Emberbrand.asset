@@ -15,7 +15,7 @@ MonoBehaviour:
   id: emberbrand
   displayName: Emberbrand
   description: Iron kept in the coals so long it forgot how to be cold.
-  effect: +1.5 fire damage per second.
+  effect: +1 fire damage per second.
   icon: {fileID: -352027116096805123, guid: f52c1caf3833762409156211766a4ef2, type: 3}
   crystalCost: 0
   stats:
@@ -30,9 +30,16 @@ MonoBehaviour:
   poisonTickBonus: 0
   startingPoisonChance: 0
   poisonDeathSpecial: 0
-  igniteDpsBonus: 1.5
+  igniteDpsBonus: 1
   startingIgniteChance: 0
-  fireTrailDurationBonus: 0
+  fireZoneRadiusBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 0
+  reflectDamageMultiplier: 1
+  startingLongSword: 0
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

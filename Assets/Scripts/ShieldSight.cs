@@ -208,10 +208,20 @@ public class ShieldSight : MonoBehaviour
 
             // Fire Sight, before the tick. Lighting anything in the beam that is not
             // already alight — rather than on entering it — is what makes the capstone
-            // read as "the beam burns": an enemy held in it stays lit as stacks expire,
-            // and one that wanders in is lit the moment it crosses. IsIgnited is the
-            // guard that keeps this from adding a burn stack every single frame.
-            if (_ignites && !enemy.IsIgnited) enemy.Ignite(DamageSourceTag());
+            // read as "the beam burns": an enemy held in it stays lit as its burn
+            // expires, and one that wanders in is lit the moment it crosses.
+            //
+            // FIRE SIGHT NEVER STACKS. The beam runs every frame, so without a guard it
+            // would pile a burn on every frame an enemy spent in it — the guard is not
+            // an optimisation, it is the rule.
+            //
+            // It asks IsOnFire rather than IsIgnited because "alight" and "carries a
+            // burn stack" are not the same question: a body alight from the ground has
+            // no stack. Nothing sets a body alight that way today (ground fire does not
+            // ignite), so the two read the same — but the beam should refuse to light
+            // anything that is visibly already burning, whatever lit it, and IsOnFire
+            // is the one that asks that.
+            if (_ignites && !enemy.IsOnFire) enemy.Ignite(DamageSourceTag());
 
             _contact.TryGetValue(enemy, out float held);
             held += Time.deltaTime;

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc80d3d90b36b44ed4b5ac1c70a9f769, type: 3}
-  m_Name: Crossfire 2
+  m_Name: Crossfire II
   m_EditorClassIdentifier: 
   waveName: Crossfire II
   weight: 1000

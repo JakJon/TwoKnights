@@ -78,6 +78,14 @@ public class EnemyRatKing : EnemyBase
     // the bat cadence: a wave plays out identically every time it is fought.
     private int _broodThrowCount;
 
+    // Enraged, the king reaches a stop far more often than he did at full health,
+    // and every one of those stops used to call the swarm. Every third phase-three
+    // stop now goes by without a summon, so the brood arrives at roughly two thirds
+    // the rate it did (owner's call). Counted rather than rolled, for the same
+    // reason the throw alternates: the fight has to play out identically every time.
+    private const int EnragedSummonSkipEvery = 3;
+    private int _enragedStopCount;
+
     private Spawner _spawner;
     private Config _config;
     private float _maxHealth;
@@ -184,14 +192,20 @@ public class EnemyRatKing : EnemyBase
             // the time, so skipping the unsafe ones was leaving him doing
             // nothing but throwing — the brood dried up exactly when the fight
             // was supposed to be at its worst. Now the stop becomes a summon
-            // instead, and the swarm keeps arriving until he is dead.
+            // instead, and the swarm keeps arriving until he is dead — thinned
+            // by BroodIsDueThisStop, which lets every third one go by empty.
             bool isFanStop = Mathf.Abs(stopPosition.y) >= FanMinHeight;
             if (_sinceLastAction >= CurrentActionCooldown())
             {
                 bool fan = isFanStop && FanIsBlockable(stopPosition);
                 if (fan || !isFanStop || Phase >= 3)
                 {
-                    StartCoroutine(ActRoutine(stopPosition, fan));
+                    // Asked here rather than inside the routine so a stop with
+                    // nothing left to do is skipped outright, the way an unsafe
+                    // fan stop is. Telegraphing a rear-up and then doing nothing
+                    // would read as the king glitching.
+                    bool brood = BroodIsDueThisStop();
+                    if (fan || brood) StartCoroutine(ActRoutine(stopPosition, fan, brood));
                 }
             }
         }
@@ -217,7 +231,7 @@ public class EnemyRatKing : EnemyBase
         }
     }
 
-    private IEnumerator ActRoutine(Vector2 stopPosition, bool fan)
+    private IEnumerator ActRoutine(Vector2 stopPosition, bool fan, bool brood)
     {
         _acting = true;
         _sinceLastAction = 0f;
@@ -234,14 +248,14 @@ public class EnemyRatKing : EnemyBase
             {
                 FireFan();
 
-                // Enraged, every throw comes with brood. This is the whole point
+                // Enraged, a throw comes with brood. This is the whole point
                 // of the phase-three change: the double volley is what the king
                 // does, not INSTEAD of calling the swarm but on top of it, so
                 // there is never a stretch of the fight with nothing to shoot at
                 // but him. Trimmed, because the fan is already going out.
-                if (Phase >= 3) SummonAdds(trimmed: true);
+                if (Phase >= 3 && brood) SummonAdds(trimmed: true);
             }
-            else
+            else if (brood)
             {
                 SummonAdds();
             }
@@ -249,6 +263,20 @@ public class EnemyRatKing : EnemyBase
 
         yield return new WaitForSeconds(0.4f);
         _acting = false;
+    }
+
+    /// <summary>
+    /// Whether this stop calls the swarm. Always true before the king is enraged —
+    /// the earlier phases act rarely enough that the brood was never the problem.
+    /// In phase three every third stop is skipped, which is the only brake on a
+    /// king who now acts at every stop he reaches.
+    /// </summary>
+    private bool BroodIsDueThisStop()
+    {
+        if (Phase < 3) return true;
+
+        _enragedStopCount++;
+        return _enragedStopCount % EnragedSummonSkipEvery != 0;
     }
 
     // True when a fan fired from this stop would finish arriving cleanly after
@@ -383,9 +411,23 @@ public class EnemyRatKing : EnemyBase
     // The king can't be popped by shield or body contact like a regular mob —
     // arrows (handled by PlayerProjectile) are the only way through. His rail
     // never reaches the knights, so no contact damage is dealt either.
+    // Like the Crimson Twins, the King is not popped by contact — this override
+    // exists to eat arrows and nothing else. Bulwark is the one thing the guard can
+    // do to him, added 2026-09-08; before that this branch did not exist and the
+    // capstone silently did nothing to either boss.
     protected override void OnTriggerEnter2D(Collider2D other)
     {
         if (isDead) return;
+
+        if (other.CompareTag("Shield"))
+        {
+            if (TryBulwarkShove(other) && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
+            }
+            return;
+        }
+
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
             // Damage was applied by PlayerProjectile; just consume the arrow

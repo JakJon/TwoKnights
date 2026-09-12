@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Virulence 2
   m_EditorClassIdentifier: 
   upgradeName: Virulence II
-  description: Poison ticks apply more frequently.
+  description: Poison ticks deal more damage and apply more frequently.
   weight: 40
   order: 1
   requiresOrderCount: 0
@@ -21,8 +21,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a62723b3a90741b4d16c1ed3e42657c1, type: 2}
   lockedBy: []
   stats:
+  - valueText: +1
+    labelText: DAMAGE
+    isPositive: 1
   - valueText: '40%'
     labelText: TICK RATE
     isPositive: 1
-  tickDamageBonus: 0
+  tickDamageBonus: 1
   tickRateMultiplier: 0.6

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 999e9a662a0db23592693dce4d246088, type: 3}
-  m_Name: Run of the Mine 4
+  m_Name: Run of the Mine IV
   m_EditorClassIdentifier:
   waveName: Run of the Mine IV
   weight: 1000

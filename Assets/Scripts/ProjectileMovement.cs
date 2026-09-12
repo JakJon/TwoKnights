@@ -46,6 +46,28 @@ public class ProjectileMovement : MonoBehaviour, IChillable
 
     private float ChillScale => Time.time < _chillUntil ? _chillMultiplier : 1f;
 
+    /// <summary>
+    /// Send this rock somewhere else, faster. Used by the Guardian Order's Reflector
+    /// when a guard turns a rock around.
+    ///
+    /// Heading is a ROTATION write and nothing else, because Update translates along
+    /// this transform's own local +X — there is no velocity to reverse. Same reason
+    /// MirrorPane.WriteFlight sets the rotation for this family and only touches a
+    /// Rigidbody2D when the projectile actually has one.
+    ///
+    /// The chill is deliberately left alone: a rock slowed by a Glacial Ward on its
+    /// way in is still a slowed rock on its way out, and one Order does not get to
+    /// quietly cancel another's effect on the way past.
+    /// </summary>
+    public void Redirect(Vector2 direction, float speedMultiplier)
+    {
+        if (direction.sqrMagnitude < 1e-6f) return;
+
+        float degrees = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.AngleAxis(degrees, Vector3.forward);
+        _speed *= Mathf.Max(0.01f, speedMultiplier);
+    }
+
     void Update()
     {
         // Move in a straight line toward the initial target direction

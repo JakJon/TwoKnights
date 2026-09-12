@@ -15,7 +15,7 @@ MonoBehaviour:
   upgradeName: Bowsight I
   description: A red beam reads your line of fire, and burns what it rests on.
   weight: 16
-  order: 0
+  order: 3
   requiresOrderCount: 0
   unlockedBy: []
   lockedBy: []

@@ -21,8 +21,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 960e78131f3642b5bc71f2a480f8d0e8, type: 2}
   lockedBy: []
   stats:
-  - valueText: +0.5
+  - valueText: +0.25
     labelText: FIRE DAMAGE
+    isPositive: 1
+  - valueText: +0.25
+    labelText: TRAIL SIZE
     isPositive: 1
   - valueText: +75%
     labelText: TRAIL DURATION

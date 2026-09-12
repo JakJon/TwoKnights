@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Shuriken Fan 1
   m_EditorClassIdentifier: 
   upgradeName: Shuriken Fan I
-  description: Your shot splits into shurikens that fan out.
+  description: Your shot splits into shurikens that fan out. Flammable, poisonable.
   weight: 60
   order: 2
   requiresOrderCount: 0

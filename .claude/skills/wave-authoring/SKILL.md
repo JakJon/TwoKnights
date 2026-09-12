@@ -89,10 +89,20 @@ action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
 
 9. **Tier names carry Roman numerals; the first tier carries nothing** (owner,
    2026-09-06). "Choo Choo", then "Choo Choo II", "Choo Choo III", "Choo Choo IV".
-   This is `waveName` on the asset — the file name keeps its arabic digit. Waves
-   whose tiers all shared one name (Neighbours, Run of the Mine, Up the Middle)
-   were the reason: three assets called "Neighbours" told the player nothing about
-   which one had just started.
+   Waves whose tiers all shared one name (Neighbours, Run of the Mine, Up the
+   Middle) were the reason: three assets called "Neighbours" told the player
+   nothing about which one had just started.
+
+   **THE FILE NAME IS THE IN-GAME NAME, CHARACTER FOR CHARACTER** (owner,
+   2026-09-09; this replaces the old "the file name keeps its arabic digit"). So
+   `Bat Cauldron.asset`, `Bat Cauldron II.asset`, `Delivery!.asset`, `The Crimson
+   Twins.asset`, `A Sticky Situation.asset`. No arabic digits and no zero-indexed
+   files — the whole tree was swept onto this on 2026-09-09 and `m_Name` was
+   brought along with it. Two consequences worth knowing before you rename
+   anything: guids live in the `.meta`, so moving the pair keeps every reference
+   intact; but `WaveExploration` slugs its per-wave stat key off the ASSET NAME
+   (`waves.seen.<map>.<slug>`), so a rename makes an already-seen wave count as
+   new and inflates `waves.distinct.<map>` in an existing save.
 
 10. **No randomness inside a wave (owner's design pillar, stated 2026-07-19).**
    Given a wave, its content must play out identically every run — players

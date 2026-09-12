@@ -40,28 +40,6 @@ public class PlayerProjectile : MonoBehaviour
         }
     }
 
-    // The owning knight's equipment sheet, resolved on first hit and cached.
-    // Lazy rather than pushed in at spawn like ownerNinjaBoost, because every
-    // spawn path (main arrow, shadow arrows, shurikens) would otherwise need
-    // the same extra line — and most arrows never hit anything.
-    private EquipmentBoost _ownerEquipment;
-    private bool _ownerEquipmentResolved;
-
-    private EquipmentBoost OwnerEquipment
-    {
-        get
-        {
-            if (!_ownerEquipmentResolved)
-            {
-                _ownerEquipmentResolved = true;
-                string tag = OwnerTag;
-                GameObject owner = string.IsNullOrEmpty(tag) ? null : GameObject.FindWithTag(tag);
-                _ownerEquipment = owner != null ? owner.GetComponent<EquipmentBoost>() : null;
-            }
-            return _ownerEquipment;
-        }
-    }
-
     // Field pickup: the arrow gains fire/poison from any zone or cloud it passes
     // through, so it lands as an ignited/poisoned arrow. Polls the same fields
     // enemies sample — clouds and fire zones have no colliders to trigger on.
@@ -76,7 +54,9 @@ public class PlayerProjectile : MonoBehaviour
         {
             float dps;
             string zoneOwner;
-            if (FireField.Sample(pos, out dps, out zoneOwner))
+            bool zoneIgnites;
+            // excludeEnemyId 0: an arrow has no drippings of its own to skip
+            if (FireField.Sample(pos, 0, out dps, out zoneOwner, out zoneIgnites))
             {
                 ignitesOnHit = true;
                 FireFx.AttachArrowTrail(gameObject);
@@ -103,20 +83,10 @@ public class PlayerProjectile : MonoBehaviour
         EnemyBase enemy = other.GetComponent<EnemyBase>();
         if (enemy != null)
         {
-            int damageToDeal = damage;
-
             // Equipment that bites one kinship group harder (The Gnawed Crown,
             // Wolfsbane Pendant). Before Killing Blow, so an execute still lands
             // as exactly lethal instead of an inflated number.
-            EquipmentBoost equipment = OwnerEquipment;
-            if (equipment != null)
-            {
-                float baneMultiplier = equipment.DamageMultiplierFor(enemy.Family);
-                if (baneMultiplier > 1f)
-                {
-                    damageToDeal = Mathf.CeilToInt(damageToDeal * baneMultiplier);
-                }
-            }
+            int damageToDeal = EquipmentBoost.ScaleHit(damage, enemy, OwnerTag);
 
             // Killing Blow (Shadow Order): finish weakened enemies outright.
             // Never fires on bosses — skipping a fraction of a boss bar would
@@ -133,26 +103,24 @@ public class PlayerProjectile : MonoBehaviour
                 PlayerStats.Increment("kills.executed");
             }
 
-            // Shatter (Frigid Order): a blow landed on a body held in ice.
-            //
-            // Asked BEFORE the damage lands, because landing it is what breaks the
-            // ice - EnemyBase.TakeDamage ends any freeze a real hit connects with,
-            // whether or not the knight owns Shatter. This is the Order's only
-            // damage, and it is damage the player aimed.
-            bool shattered = false;
-            if (ownerFrigidBoost != null && enemy.IsFrozen)
+            // Shatter (Frigid Order): every blow landed on a body held in ice is
+            // multiplied. Asked BEFORE the damage lands, because landing it is what
+            // wears the ice down - EnemyBase.TakeDamage counts every hit against the
+            // ice, whether or not the knight owns Shatter.
+            bool wasFrozen = enemy.IsFrozen;
+            bool shatterOwned = ownerFrigidBoost != null && ownerFrigidBoost.ShatterMultiplier > 1f;
+            if (wasFrozen && shatterOwned)
             {
-                float shatterMultiplier = ownerFrigidBoost.ShatterMultiplier;
-                if (shatterMultiplier > 1f)
-                {
-                    damageToDeal = Mathf.CeilToInt(damageToDeal * shatterMultiplier);
-                    shattered = true;
-                }
+                damageToDeal = Mathf.CeilToInt(damageToDeal * ownerFrigidBoost.ShatterMultiplier);
             }
 
             // Apply normal damage
             enemy.TakeDamage(damageToDeal, gameObject);
 
+            // The burst, sound, splinters and tally belong to the hit that actually
+            // BREAKS the ice. With Deep Freeze the ice can take several hits, and a
+            // shatter effect on a body still standing in ice would read as a bug.
+            bool shattered = shatterOwned && wasFrozen && !enemy.IsFrozen;
             if (shattered)
             {
                 Vector2 breakPoint = enemy.transform.position;
@@ -209,10 +177,10 @@ public class PlayerProjectile : MonoBehaviour
             }
 
             // Frigid, last: the damage above has already broken any ice this shot
-            // landed on, and it broke it without earning the body a reprieve. So a
-            // frost arrow into a statue shatters it and leaves it chilled again in
-            // the same instant, ready for the next arrow to stop it - which is the
-            // loop the whole Order is built to run.
+            // landed on, and a thawed body carries nothing away with it. So a frost
+            // arrow into a statue shatters it and leaves it chilled again in the
+            // same instant, ready for the next arrow to stop it - which is the loop
+            // the whole Order is built to run.
             //
             // isBlow: true. This is a hit the knight aimed and landed, so it is one
             // of the two things in the game allowed to freeze.

@@ -7,7 +7,7 @@
 Serpent poisons a body and walks away. Shadow kills faster. **Ember sets the field on
 fire, and enemies are just how the fire gets around.**
 
-An ignited enemy is on fire: it takes the **standardized fire dps** directly (base 2.0/s,
+An ignited enemy is on fire: it takes the **standardized fire dps** directly (base 3.0/s,
 scaling with Ember investment — see below), it drips fire onto the ground behind it as it
 moves, and it panics. So a lone Ignited-Tips hit deals damage on its own; the trails and
 craters then add *more* fire the enemy — and everything behind it — has to stand in.
@@ -30,6 +30,15 @@ Ember is terrain — plus the torch that draws it.
 ignite.** Nothing else. An *enemy* walking through fire does *not* ignite; it takes flat
 fire damage and nothing more.
 
+**There are no exceptions.** Scorched Earth briefly bought one — the capstone opened a
+third door and let burning ground light what walked into it — and it was taken back out
+the same day (owner's call, 2026-09-08). Burning ground *cooks* what stands in it and a
+burning body *cooks* what it touches; neither lights anything. The pillar holds
+everywhere, for every upgrade.
+
+The plumbing for the other behaviour survives behind `EmberBoost.GroundFireIgnites`, off,
+reachable from a debug console. No upgrade sets it.
+
 An **arrow** flying through fire is the one nuance: it *becomes* an ignited arrow (and an
 arrow through a poison cloud becomes a poisoned arrow), picking up that carrier state just
 as if it had rolled it — so it's still one of the two sanctioned sources doing the
@@ -40,7 +49,9 @@ up this way — only a knight's main arrow does.
 This is the rule the whole Order is built on, and it must not be relaxed anywhere:
 
 - It kills the runaway loop. Without it, fire ignites enemy → enemy lays trail → trail
-  ignites next enemy → the arena self-immolates and the player stops mattering.
+  ignites next enemy → the arena self-immolates and the player stops mattering. Selling
+  that loop as a capstone was tried and rejected: even at the top of the Order, a board
+  that lights itself is a board the player has stopped playing.
 - It keeps ignition **scarce and authored**. Every burning enemy on the field is one the
   player chose to light. Trails become terrain *you* drew, not weather.
 - It gives fire zones one honest job: flat damage over an area. No status, no bookkeeping,
@@ -48,26 +59,46 @@ This is the rule the whole Order is built on, and it must not be relaxed anywher
 
 ### Fire zones
 
-The single primitive: a circle of burning ground dealing **2 damage/second** to anything
+The single primitive: a circle of burning ground dealing **3 damage/second** to anything
 inside (tuning value — its damage hitbox reaches ~1.15× the drawn flame radius so the edge
-isn't a dead zone). Zones never ignite.
+isn't a dead zone). Zones never ignite until Scorched Earth.
 
 Placed by fireball craters, and by ignited enemies as they run.
+
+**Eternal zones look different.** `FireField` mixes deep-blue embers (~1 particle in 5,
+three-quarters the size of an orange one) into any zone that never expires, so a lane
+about to burn out and one that never will are two different-looking fires. The tell is
+free: before Scorched Earth no zone draws them.
 
 ### Zone damage scaling
 
 Bellows is gone, so the dps knob rides on the other upgrades instead of a dedicated
-multiplier chain:
+multiplier chain. Retuned down twice on 2026-09-08 (ceiling 7.5 → 6.0 → **4.5**):
 
 | | dps |
 |---|---|
-| Base | 2.0 |
-| Fire Trail I / II | +0.5 each |
-| Searing Panic I / II | +0.5 each |
-| **Full Ember build** | **4.0** |
+| Base | 3.00 |
+| Fire Trail I | **+0.00** |
+| Fire Trail II | +0.25 |
+| Searing Panic I | +0.25 |
+| Searing Panic II | +0.50 |
+| Scorched Earth | +0.50 |
+| **Full Ember build** | **4.50** |
+
+**Two thirds of the ceiling is the base.** Ember's upgrades buy reach — wider lanes, more
+of them, fire that stays — and only trim the rate. That is what keeps a fully-built field
+from deleting anything that touches it.
+
+Fire Trail I is the one pick in the Order worth no dps at all. It buys the lane, which is
+the whole of what it is for.
+
+Searing Panic is the only chain whose two ranks are worth different amounts. It is the
+pick that reads as a downside, so rank I has to pay something the frame it lands — the
+frame the enemies get faster — and rank II is where it actually gets paid.
 
 This is the dps of a single zone *and* of a single burn stack. Two ignited arrows from a
-full build burn a body at 8.0/s combined until their timers stagger out.
+full build burn a body at 12.0/s combined until their timers stagger out — and if that
+body is also standing in fire, the field channel bills another 6.0 on its own clock.
 
 ## The roster (13 upgrades)
 
@@ -148,31 +179,180 @@ Serpent doesn't care when — **Ember wants them to live a while burning**, beca
 that runs four seconds on fire paints an entire lane. Igniting something far away and
 early becomes correct play.
 
-- **I** — a 0.5u zone every 0.35s of movement, each lasting 2s.
-- **II** — 0.75u zones lasting 3.5s.
+- **I** — a 0.5u zone every 0.35s of movement, each lasting 4s. Worth no dps: the lane
+  *is* the pick.
+- **II** — 0.75u zones lasting 7s, and +0.25 dps.
+
+### The view is a hard boundary for ground fire
+
+Waves spawn off screen and walk in, and fire the player cannot see must not be hurting
+things the player cannot see. Three rules (2026-09-08), all keyed on
+`FireField.IsInsideView` — the camera's world rect, falling back to the playfield rect the
+waves are written against when there is no orthographic camera:
+
+1. **A zone whose centre is off screen is never placed.** `FireField.Add` refuses it, so
+   no call site can forget — Fire Trail drops, fireball craters and anything added later
+   all obey it. This is the "completely ignored" case.
+2. **A zone straddling the edge is trimmed to it.** `Sample` refuses any point off screen,
+   so the half of a crater inside the view burns and the half hanging out of it is inert
+   ground. The test is on the *sampling point*, not the zone, which is what lets one check
+   clip every zone at once.
+3. **Nothing is drawn off screen either**, so a trimmed crater reads as the clipped shape
+   it actually is rather than as a full circle half of which does nothing.
+
+A trail drop refused this way is *skipped, not banked*: the cadence has already reset, so a
+body crossing the edge mid-interval starts painting on the normal beat rather than dumping
+a held zone the instant it becomes visible.
+
+**This is the field channel only.** Ignition is untouched — an enemy lit by an arrow or a
+fireball goes on burning wherever it walks, on screen or off, because that fire rides the
+body rather than the ground. Off screen you can be *set alight*; you cannot be *stood in
+fire*.
+
+Searing Panic and Scorched Earth widen these further (see the ladder below), so lane size
+is the sum of four separate picks rather than Fire Trail's own.
 
 It also solves Ember's boss problem for free. The Rat King circles the arena on a waypoint
 rail — light him and he lays a burning racetrack he then has to keep lapping.
 
 ### Searing Panic I–II — the interesting one
 
-**Ignited enemies move faster** (+35%, then +60%), and each rank adds **+0.5 dps** to
-your fire zones.
+**Ignited enemies move faster** (+35%, then +60%). Rank I adds **+0.25 dps**, rank II adds
+**+0.5**, and each rank adds **+0.25u** of lane.
 
 It reads as a downside — you are making the things running at you run faster — and that
-tension is the point. With Fire Trail it's a large gain: a panicking wolf covers more
-ground while burning, paints more field, and reaches its own trail sooner. Gated behind
-Fire Trail I, because without trails it is purely a drawback.
+tension is the point. With Fire Trail it's a large gain three times over: a panicking wolf
+covers more ground while burning, each drop it leaves is wider, and every zone on the
+field hits harder. Gated behind Fire Trail I, because without trails the speed is purely a
+drawback.
+
+### The lane-width ladder
+
+Four picks widen a trail. Retuned down twice on 2026-09-08 (ceiling 2.25u → 1.75u →
+**1.5u**):
+
+| pick | width |
+|---|---|
+| Fire Trail I | 0.50u — the base lane |
+| Fire Trail II | +0.25u |
+| Searing Panic I | +0.25u |
+| Searing Panic II | +0.25u |
+| Scorched Earth | +0.25u |
+| **Top of the Order** | **1.50u** |
+
+By combination (add **+0.25u** to any cell for Scorched Earth):
+
+| | Panic 0 | Panic I | Panic II |
+|---|---|---|---|
+| Fire Trail I | 0.50u | 0.75u | 1.00u |
+| Fire Trail II | 0.75u | 1.00u | 1.25u |
+
+Every step is a quarter, so the ladder is the base lane plus four equal rungs. **Fire Trail
+I owns two thirds of the ceiling by itself** — the lane is the pick, and everything after
+it is a trim.
+
+Additive rather than multiplied so a step is worth the same wherever it is bought, and so
+the table above *is* the implementation.
+
+> **Known rough edge.** `FireField` spreads a fixed particle budget across the whole
+> field, so lanes this size draw noticeably thinner than small ones. The damage is
+> unaffected — the hitbox is the radius — but the fire looks sparser than it bites.
 
 ### Scorched Earth — capstone (requires 4 Ember picks)
 
-**The fire does not go out.** Your fire zones stop expiring — every zone you place burns
-for the rest of the wave.
+Three things (2026-09-08):
+
+1. **The fire does not go out.** Your fire zones stop expiring — every zone you place
+   burns for the rest of the wave.
+2. **+0.25u to every Fire Trail lane**, on top of Fire Trail's and Searing Panic's own —
+   the last rung of the width ladder.
+3. **+0.5 zone dps** — joint-biggest single damage step, level with Searing Panic II, and
+   still only an eighth of a fully-built field's rate. The capstone is bought for
+   permanence; the number is a garnish.
 
 Ember stops being a hazard you re-apply and becomes a map you are drawing. A knight who
 has been laying trail all wave ends it standing behind an impassable field, and the last
 enemies of the wave have to cross everything the first ones painted. It is the literal end
 state of "you burn the arena," which is why it beat the alternatives.
+
+**It does not ignite.** For one day it did, gated behind four Ember picks and a Legendary
+roll, on the theory that a runaway board is a reward rather than a bug when it costs that
+much. It isn't. The capstone keeps the eternal zones and the damage and gives up the
+ignition — burning ground lights nothing, however long it burns and whoever laid it.
+
+The two things eternal zones still demand of `FireField` are unchanged: a hard zone cap
+with oldest-first retirement, and the wave-end clear.
+
+### The fire-AoE flag — standing in fire is a flag, not an ignition
+
+**Ground fire never adds a burn stack.** It sets one flag on the body, and while that flag
+holds the body burns at the rate of the ground under it — the zone dps, once — and counts
+as on fire for the flame, the trail and Searing Panic.
+
+This is the single most important rule in the Order's damage model, and it exists because
+the first version of Scorched Earth got it wrong. Catching from the ground minted one burn
+stack per *distinct fire* underfoot, and burn stacks sum. A Fire Trail lane is dozens of
+overlapping drops from many different burns, so one step into a painted patch handed a
+body five or six stacks at once: **40–70 damage on the next flush**, from a build whose
+stated zone dps was 11. The damage a body took depended on how many fires happened to meet
+under its feet, which is not a number anyone can reason about.
+
+The two halves are split by how *scarce* the fire is:
+
+| | stacks? | why |
+|---|---|---|
+| Arrow that rolled ignite, fireball | **yes** | aimed *and spent* — a shot each, so stacking is the reward for landing several |
+| Fire Sight (the beam) | **no** | aimed but not spent — the beam runs every frame, so it lights only what is not already on fire |
+| Burning ground | **no** | one flag; overlap cannot multiply a flag |
+| A burning body in contact | **no** | a rate with an expiry, hottest-wins |
+
+**Fire Sight is a one-time ignition per crossing.** It lights a body that is not alight
+and then leaves it alone, however long it is held in the light. The test is `IsOnFire`
+rather than `IsIgnited`, because "alight" and "carries a burn stack" are different
+questions: a body alight from the ground has no stack. Nothing lights a body that way
+today, so the two read the same — but the beam should refuse anything visibly already
+burning, whatever lit it.
+
+### Two channels, two ticks, two numbers
+
+Fire bills a body from **two independent sources**, each accruing and flushing on its own
+clock:
+
+| channel | what feeds it | how it combines | colour |
+|---|---|---|---|
+| **Ignition** | burn stacks from arrows and fireballs (and one from Fire Sight) | **summed** — every live stack | ember orange |
+| **Field** | the ground under it, or a burning body in contact | **hottest-wins** — one zone's worth | gold |
+
+These are **additive against each other**. An enemy carrying your arrow's burn *and*
+standing in your burning ground pays for both, which roughly doubles what a full Ember
+build does to a body that is both lit and in a lane. That is the intended shape — Ember's
+pitch is that the two halves compose — and it is why the numbers land as two separate
+figures rather than one.
+
+Hottest-wins survives only *inside* the field channel, where it is doing real work:
+overlapping zones are one fire, and a zone next to a burning neighbour is still one fire.
+
+The flushes run **half a second out of phase** so the two figures alternate on screen
+instead of landing on top of each other, and they are different colours so you can read
+which half of your build is doing the work.
+
+An ignited enemy walking its *own* trail is still not billed twice for one fire — but that
+is `FireField.Sample`'s doing (it skips zones that body dripped), not the damage model's.
+Standing in somebody else's fire is genuinely a second fire and costs a second fire.
+
+**The flag lingers 2 seconds after the body leaves the fire — but the linger does not
+bill.** Damage is charged only for the beats a body is actually standing in fire; the
+linger exists so the *state* does not chatter on and off as a body clips the edge of a
+lane.
+
+> Charging the linger was a bug, fixed 2026-09-08. A dark bat (30 HP) that grazed a lane
+> for a fifth of a second was billed for 2.2 seconds — 13 damage, 44% of its health, most
+> of it while flying nowhere near the fire. Anything fast enough to cross a lane paid
+> almost as much as something that stopped in it, which is the opposite of what a burning
+> floor should do. The same graze now costs 0.9.
+
+A body cannot refresh its flag from its own drippings (`FireField.Sample` skips zones that
+body laid), so it cannot burn off its own trail.
 
 Two things it demands from the implementation:
 
@@ -223,8 +403,12 @@ Also in this phase: the `ignited` carrier state on `EnemyBase` (much simpler tha
 poison block — no stacking, no per-source accounting, just a flag + expiry + owner tag),
 the trail-emission hook, and the Searing Panic speed modifier.
 
-The ignition pillar is enforced structurally, not by convention: `FireField` has **no
-code path that calls `Ignite`**. Only `PlayerProjectile` and the fireball can.
+The ignition pillar is still enforced structurally, not by convention: `FireField` has
+**no code path that calls `Ignite`**. Zones are dumb data that report what is burning
+underfoot; the *enemy* polls the field and decides for itself whether to catch
+(`EnemyBase.CatchFireFromGround`). Scorched Earth changes what a zone reports, not who is
+allowed to call `Ignite` — which is why the exception could be added without touching the
+one-way direction that makes the pillar hold.
 
 Scorched Earth's two requirements land here as well, since both are `FireField`'s job: the
 hard zone cap with oldest-first retirement, and a wave-end clear hooked to the same signal

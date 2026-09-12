@@ -302,9 +302,35 @@ public class EnemyGiantSlime : EnemyBase
     // A boss can't be popped by contact the way a mob can (see EnemyRatKing): the
     // shield gets no purchase on it, and reaching a knight kills the KNIGHT — the
     // slime walks on through.
+    //
+    // Bulwark is the one exception, added 2026-09-08. Until then this override had
+    // no Shield branch at all and the capstone silently did nothing to the Twins.
+    //
+    // IT IS DELIBERATELY NOT WEAKENED FOR A BOSS (owner's call): the full two units,
+    // no extra cooldown. Know what that buys — approachSpeed is 0.58 u/s and the
+    // config calls that walk THE FIGHT TIMER, so every contact rewinds the clock by
+    // about three and a half seconds, and the guard orbits between the knight and
+    // the slime. A player holding the shield toward a slime can keep it off more or
+    // less indefinitely.
+    //
+    // That is intended, and it is not a defect waiting on a nerf. A player who has
+    // drafted the Guardian capstone and worked out that the guard can hold a boss
+    // off for the whole fight has found something, and finding it is the point. The
+    // lever is here rather than in Shove, if it is ever genuinely wanted lower.
     protected override void OnTriggerEnter2D(Collider2D other)
     {
         if (isDead) return;
+
+        if (other.CompareTag("Shield"))
+        {
+            // Sound only when it actually lands, so a knight without the capstone
+            // hears nothing new — the slime is still walking through the guard.
+            if (TryBulwarkShove(other) && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
+            }
+            return;
+        }
 
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {

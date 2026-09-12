@@ -134,7 +134,8 @@ static yourself: `TestRunConfig.Map = MapCatalog.Instance.Find("mine")`.
   `Reload 1-4`, `Health Minor/Mid/Major/Epic 1-4` (13 assets, DAG-linked),
   `Shadow 1-5`, `Killing Blow 1-2`, `Phantom Blade 1-2`, `Shuriken Fan 1-2`,
   `Thousand Cuts`, `Venom Tip 1-3`, `Virulence 1-2`, `Miasma 1-2`,
-  `Serpents Breath 1-3`, `Plaguebringer`. Enumerate live from
+  `Serpents Breath 1-3`, `Vial Throw 1-3`, `Acid Dagger` (Serpent capstone),
+  `Plaguebringer` (Serpent + Guardian combo). Enumerate live from
   `Resources.Load<UpgradeManager>("UpgradeManager").AllUpgrades` rather than
   trusting this list.
 

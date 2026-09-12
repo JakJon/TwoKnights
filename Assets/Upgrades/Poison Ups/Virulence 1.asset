@@ -21,8 +21,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 46f6a57d562150fdeb38380b67b6e7a9, type: 2}
   lockedBy: []
   stats:
-  - valueText: +2
+  - valueText: +1
     labelText: DAMAGE
     isPositive: 1
-  tickDamageBonus: 2
+  tickDamageBonus: 1
   tickRateMultiplier: 1

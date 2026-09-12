@@ -286,5 +286,6 @@ session** — it reads as two shells more than as a locket.
 - **Duo upgrades** (`orders-and-the-full-run.md` §1) now have their best
   candidate pair available: Dawn + Guardian, where the shield's blocks mend the
   other knight.
-- **Guardian is still the incomplete Order** — 6 upgrades, no capstone
-  (*Unbreakable*), and *Thorned Aegis* / *Stalwart* unbuilt.
+- **Guardian was the last incomplete Order** and was finished on 2026-09-08 —
+  see `guardian-order.md`. The capstone is *Bulwark*, not the *Unbreakable* named
+  here; *Thorned Aegis* shipped as **Reflector** and *Stalwart* was cut.

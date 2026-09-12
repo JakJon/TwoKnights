@@ -83,6 +83,18 @@ public class DawnBoost : MonoBehaviour
         orbHealMultiplier = Mathf.Max(orbHealMultiplier, multiplier);
     }
 
+    // Equipment (Oathbound Locket) multiplies on top of whatever Sunwell tier the
+    // knight holds, rather than going through the monotonic setter above, which
+    // would swallow it the moment Sunwell matched it. Items always stack.
+    private float equipmentOrbHealMultiplier = 1f;
+
+    public void MultiplyOrbHealFromEquipment(float multiplier)
+    {
+        equipmentOrbHealMultiplier *= Mathf.Max(1f, multiplier);
+    }
+
+    private float TotalOrbHealMultiplier => orbHealMultiplier * equipmentOrbHealMultiplier;
+
     public void SetManaOrbHeal(int amount)
     {
         manaOrbHeal = Mathf.Max(manaOrbHeal, amount);
@@ -100,8 +112,9 @@ public class DawnBoost : MonoBehaviour
     // a stingy orb
     public int ScaleOrbHeal(int baseAmount)
     {
-        if (orbHealMultiplier <= 1f) return baseAmount;
-        return Mathf.CeilToInt(baseAmount * orbHealMultiplier);
+        float multiplier = TotalOrbHealMultiplier;
+        if (multiplier <= 1f) return baseAmount;
+        return Mathf.CeilToInt(baseAmount * multiplier);
     }
 
     /// <summary>
@@ -134,7 +147,16 @@ public class DawnBoost : MonoBehaviour
         routesOverheal = true;
     }
 
-    public float EchoFraction => echoFraction;
+    // Equipment (Warm Lantern, Dawnbreak Crown) adds its share on top of Shared
+    // Light's, for the same reason the orb multiplier above is kept apart.
+    private float equipmentEchoFraction = 0f;
+
+    public void AddEchoFractionFromEquipment(float fraction)
+    {
+        equipmentEchoFraction += Mathf.Max(0f, fraction);
+    }
+
+    public float EchoFraction => Mathf.Clamp01(echoFraction + equipmentEchoFraction);
     public bool RoutesOverheal => routesOverheal;
 
     // ---- Lifebloom ----

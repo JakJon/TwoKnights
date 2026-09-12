@@ -215,7 +215,7 @@ public class WaveManager : ScriptableObject
             return null;
 
         // Calculate total weight for all playable waves
-        float totalWeight = playableWaves.Sum(w => w.Weight);
+        float totalWeight = playableWaves.Sum(w => EffectiveWeight(w));
 
         // Random selection based on weights
         float random = Random.Range(0f, totalWeight);
@@ -223,7 +223,7 @@ public class WaveManager : ScriptableObject
 
         foreach (var wave in playableWaves)
         {
-            current += wave.Weight;
+            current += EffectiveWeight(wave);
             if (random <= current)
             {
                 currentWave = wave;
@@ -236,6 +236,24 @@ public class WaveManager : ScriptableObject
         currentWave = playableWaves[Random.Range(0, playableWaves.Count)];
         _remainingWaves.Remove(currentWave);
         return currentWave;
+    }
+
+    // A wave the player has already met (in any run — the save remembers) draws
+    // at a quarter of its authored weight, so waves they have never seen come up
+    // more often. The map's bosses keep full weight: Millstone is the Mine's gate
+    // AND a pool entry once the gate is down, and should keep turning up as often
+    // as it was authored to.
+    private const float SeenWeightMultiplier = 0.25f;
+
+    public float EffectiveWeight(BaseWave wave)
+    {
+        var map = CurrentMap;
+        if (map == null) return wave.Weight;
+        if (wave == map.GateBoss || wave == map.TrueBoss) return wave.Weight;
+
+        return WaveExploration.HasSeen(wave, map.MapId)
+            ? wave.Weight * SeenWeightMultiplier
+            : wave.Weight;
     }
 
     public void WaveCompleted()

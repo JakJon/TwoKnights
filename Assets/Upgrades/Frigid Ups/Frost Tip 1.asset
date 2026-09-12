@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Frost Tip 1
   m_EditorClassIdentifier: 
   upgradeName: Frost Tip I
-  description: Your arrows carry cold. What they hit slows down.
+  description: Your arrows carry cold. What they hit slows down, and a second hit
+    freezes it for as long as the chill had left.
   weight: 110
   order: 6
   requiresOrderCount: 0

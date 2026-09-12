@@ -15,12 +15,12 @@ MonoBehaviour:
   id: cinder_crown
   displayName: Cinder Crown
   description: Ash for a circlet. The ground remembers you passing.
-  effect: Fire trails burn 3 seconds longer.
+  effect: All your fire zones are 0.5u wider.
   icon: {fileID: -6461287188764917925, guid: d165ead73d5c69743b6758e4a241e52f, type: 3}
   crystalCost: 0
   stats:
-  - valueText: +3s
-    labelText: FIRE LINGERS
+  - valueText: +0.5u
+    labelText: FIRE ZONE SIZE
     isPositive: 1
   maxHealthBonus: 0
   fireCooldownMultiplier: 1
@@ -32,7 +32,7 @@ MonoBehaviour:
   poisonDeathSpecial: 0
   igniteDpsBonus: 0
   startingIgniteChance: 0
-  fireTrailDurationBonus: 3
+  fireZoneRadiusBonus: 0.5
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

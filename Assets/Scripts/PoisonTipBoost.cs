@@ -14,7 +14,14 @@ public class PoisonTipBoost : MonoBehaviour
     private int tickDamageBonus = 0; // Virulence: added to each poison tick
     private float tickRateMultiplier = 1f; // Virulence: <1 = faster ticks
     private int miasmaLevel = 0; // Miasma: 0 = off, 1-2 = death-cloud size/duration
-    private bool plaguebringer = false; // Capstone: poisoned deaths burst onto neighbors
+    private bool plaguebringer = false; // Serpent + Guardian combo: this knight's poison clouds hunt mobs (see PoisonCloud)
+
+    // Acid Dagger (Serpent capstone): a jab follows every sword swing. The damage and
+    // the sprite come off the upgrade asset; the timing and reach live in SwordSwing,
+    // which is what throws it.
+    private bool acidDagger = false;
+    private int acidDaggerDamage = 0;
+    private Sprite acidDaggerSprite;
 
     // Serpent's Breath: sword swings can exhale a venom cloud along the shield facing
     private float swordCloudChance = 0f; // Percentage chance (0-100) per swing
@@ -74,6 +81,13 @@ public class PoisonTipBoost : MonoBehaviour
         plaguebringer = true;
     }
 
+    public void EnableAcidDagger(int damage, Sprite sprite)
+    {
+        acidDagger = true;
+        acidDaggerDamage = Mathf.Max(acidDaggerDamage, damage);
+        if (sprite != null) acidDaggerSprite = sprite;
+    }
+
     // Each Serpent's Breath tier sets absolute values (33/3s -> 50/5s -> 100/15s+large)
     public void SetSwordCloud(float chance, float duration, bool large)
     {
@@ -91,6 +105,9 @@ public class PoisonTipBoost : MonoBehaviour
     public float TickRateMultiplier => tickRateMultiplier;
     public int MiasmaLevel => miasmaLevel;
     public bool Plaguebringer => plaguebringer;
+    public bool AcidDagger => acidDagger;
+    public int AcidDaggerDamage => acidDaggerDamage;
+    public Sprite AcidDaggerSprite => acidDaggerSprite;
     public float SwordCloudChance => swordCloudChance;
     public float SwordCloudDuration => swordCloudDuration;
     public bool SwordCloudLarge => swordCloudLarge;

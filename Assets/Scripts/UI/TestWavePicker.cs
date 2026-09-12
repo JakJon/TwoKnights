@@ -135,11 +135,15 @@ public class TestWavePicker : MonoBehaviour
             AddEntry(scheduledBoss, $"{scheduledBoss.WaveName}", "scheduled boss");
         }
 
+        // The real draw's weights (already-seen waves count for a quarter)
+        var manager = WaveManager.ActiveInstance;
+        System.Func<BaseWave, float> weightOf = w => manager != null ? manager.EffectiveWeight(w) : w.Weight;
+
         float totalWeight = 0f;
-        foreach (var wave in pool) totalWeight += wave.Weight;
+        foreach (var wave in pool) totalWeight += weightOf(wave);
         foreach (var wave in pool)
         {
-            string odds = totalWeight > 0f ? $"{wave.Weight / totalWeight * 100f:0}%" : "";
+            string odds = totalWeight > 0f ? $"{weightOf(wave) / totalWeight * 100f:0}%" : "";
             // Asset name in brackets — display names repeat across difficulty tiers
             AddEntry(wave, $"{wave.WaveName}  <color=#8D8266>[{wave.name}]</color>", odds);
         }

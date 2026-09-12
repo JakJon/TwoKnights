@@ -95,39 +95,108 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // knight's zone dps) on its own 8s timer. Total on-body dps is the sum of live
     // stacks, so re-igniting a burning enemy piles heat on; as each timer runs out the
     // dps steps back down, like a real fire dying in stages.
+    //
+    // ONLY AIMED IGNITIONS STACK, and only the two you spend a shot on — an arrow that
+    // rolled ignite, and a fireball. Ground fire sets a flag instead and never adds a
+    // stack, because a Fire Trail lane is dozens of overlapping drops and stacking them
+    // multiplied a body's damage by however many happened to meet under its feet (see
+    // the fire-AoE flag below). Fire Sight is the third door and never stacks either: the
+    // beam runs every frame, so it only ever lights something that is not already on
+    // fire — see ShieldSight.
     private struct BurnStack
     {
         public float expiresAt;
         public float dps;
         public string ownerTag;
         public EmberBoost ownerBoost; // drives that stack's trail/panic if it's dominant
-        public int sourceId; // identity for fire spread — see EmberBoost.FireSpreadEnabled
     }
 
     private readonly List<BurnStack> _burnStacks = new List<BurnStack>();
     private ParticleSystem _emberFlame; // on-body flame while burning
 
-    // THE SOURCE RULE: every fire that has ever lit this enemy, so none of them can
-    // light it twice. This is the whole reason spreading fire terminates — a trail
-    // sweeps a body once and is then spent on it, however long it stands there.
-    // Re-igniting mints a new source, so fire between two neighbours still climbs.
-    private readonly HashSet<int> _consumedIgniteSources = new HashSet<int>();
-
     private float _sinceSpreadCheck;
 
-    // Shared scratch: spread is evaluated one enemy at a time on the main thread,
-    // and this would otherwise allocate a list per enemy per beat
-    private static readonly List<FireField.IgniteSource> _spreadScratch =
-        new List<FireField.IgniteSource>();
+    // ---- The fire-AoE flag ----
+    //
+    // STANDING IN FIRE IS A FLAG, NOT AN IGNITION (owner's call, 2026-09-08). This is
+    // the fix for the worst bug the Order has had: catching from the ground used to
+    // add one burn STACK per distinct fire underfoot, and burn stacks SUM. A Fire
+    // Trail lane is dozens of overlapping drops from many different burns, so one step
+    // into a painted patch handed a body five or six stacks at once and it took 40-70
+    // damage on the next flush — a full build's zone dps multiplied by however many
+    // fires happened to overlap where it put its foot down.
+    //
+    // Now the ground sets ONE flag. While it holds, the body burns at the rate of the
+    // ground under it — the specified zone dps, once, never a sum and never once per
+    // zone — and counts as on fire for the flame, the trail and the panic. Overlap
+    // cannot multiply a flag.
+    //
+    // THE LINGER DOES NOT BILL (owner's report, 2026-09-08). The flag outlives the
+    // fire by EmberBoost.FireAoeLinger so the STATE does not chatter on and off as a
+    // body clips the edge of a lane — but damage is charged only for the beats a body
+    // is actually standing in fire.
+    //
+    // Charging the linger was a bug and a bad one: a bat that grazed a lane for a fifth
+    // of a second was billed for 2.2 seconds, 44% of its health, most of it while
+    // flying nowhere near the fire. Anything fast enough to cross a lane paid almost
+    // the same as something that stopped in it, which is the opposite of what a
+    // burning floor should do.
+    private float _fireAoeUntil;
+
+    // Whether the last sample actually found ground fire underfoot. This, not the
+    // lingering flag, is what the field damage channel bills against.
+    private bool _standingInFire;
+    private float _fireAoeDps;
+    private string _fireAoeOwnerTag;
+    private EmberBoost _fireAoeBoost;
+    // Ground DAMAGE runs off the flag unconditionally; this second bit is whether that
+    // ground also sets the body alight, and it is false in every real run — only
+    // EmberBoost.GroundFireIgnites can raise it, and no upgrade touches that.
+    private bool _fireAoeIgnites;
+
+    /// <summary>Burning because of the ground it is standing on (or just left).</summary>
+    public bool IsBurningFromGround { get { return _fireAoeIgnites && Time.time < _fireAoeUntil; } }
+
+    /// <summary>On fire by any route: an arrow/fireball burn, or the ground.</summary>
+    public bool IsOnFire { get { return IsIgnited || IsBurningFromGround; } }
 
     private const float FireTickInterval = 0.25f; // how often the fields are sampled
     private const float FireFlushInterval = 1f;   // how often accrued damage lands as a number
     private const float MinTrailMoveSqr = 0.0004f; // ~0.02u — don't stack zones on a standing enemy
 
-    private float _pendingFireDamage; // fractional dps accumulator
+    // ---- Fire's TWO damage channels (owner's call, 2026-09-08) ----
+    //
+    // Ember bills a body twice, from two independent sources, each accruing and
+    // flushing on its own clock:
+    //
+    //   1. IGNITION — the burn stacks an arrow or a fireball put on the body. Aimed
+    //      and spent, so several of them stack and sum. (Fire Sight lights a body that
+    //      is not alight and never adds a second stack — it is a beam, not a shot.)
+    //   2. THE FIELD — the ground it is standing on, or a burning body pressed
+    //      against it. One zone's worth, hottest-wins, never a sum.
+    //
+    // These used to be hottest-wins against EACH OTHER, so an ignited enemy standing
+    // in fire paid for one fire. They are now additive: standing in your own Order's
+    // burning ground while carrying your arrow's burn is worth both, which roughly
+    // doubles what a full Ember build does to a body that is both lit and standing in
+    // a lane. That is the intended shape — Ember's whole pitch is that the two halves
+    // compose — and it is why the numbers land as two separate figures.
+    //
+    // The two flushes run half a second out of phase so the figures alternate on
+    // screen instead of landing on top of each other, and they are different colours:
+    // ember orange for the burn riding the body, gold for the ground under it.
+    private static readonly Color IgniteDamageColor = new Color(1f, 0.55f, 0.2f);
+    private static readonly Color FieldDamageColor = new Color(1f, 0.8f, 0.3f);
+
     private float _sinceFireTick;
-    private float _sinceFireFlush;
-    private string _lastFireOwnerTag; // owner credited at the next flush
+
+    private float _pendingIgniteDamage; // fractional dps accumulator, ignition channel
+    private float _sinceIgniteFlush;
+    private string _lastIgniteOwnerTag; // owner credited at the next flush
+
+    private float _pendingFieldDamage; // fractional dps accumulator, field channel
+    private float _sinceFieldFlush = FireFlushInterval * 0.5f; // half a beat out of phase
+    private string _lastFieldOwnerTag;
 
     // Heat handed over by a burning body in contact — a rate, not an ignition.
     // See ReceiveContactFire / BurnNeighboursByContact.
@@ -138,6 +207,24 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     private Vector3 _lastTrailPosition;
     private Vector3 _previousPosition;
     private bool _emberTrackingStarted;
+
+    // The way this body last moved under its own power — what a Miasma cloud left
+    // by its death drifts along. Zero until it has moved at all.
+    private Vector2 _lastMoveHeading;
+
+    // How fast this body is really travelling, in world units per second: the whole
+    // frame's movement (its own walking plus chill, panic and shove), smoothed so a
+    // hopper reads as its average pace rather than flickering between 0 and a leap.
+    // A Plaguebringer cloud chases at this plus a little (see PoisonCloud). Measured
+    // rather than read from a field because every mob type keeps its speed its own way.
+    private float _measuredSpeed;
+    private const float MeasuredSpeedSmoothing = 0.25f; // seconds to cover ~63% of a change
+
+    // A single-frame jump longer than this is a teleport or a snap, not walking,
+    // and is left out rather than read as a burst of speed
+    private const float MeasuredSpeedMaxStep = 1f;
+
+    public float MeasuredSpeed => _measuredSpeed;
 
     public bool IsIgnited => _burnStacks.Count > 0;
 
@@ -280,7 +367,10 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     private float _chillUntil = -1f;
     private float _chillMultiplier = 1f;
     private float _frozenUntil = -1f;
-    private float _coldReprieveUntil = -1f;
+    // How much damage the current ice takes before it breaks, and how much it has
+    // taken so far. Set by the knight who froze it (5, plus 10 per Deep Freeze rank).
+    private int _iceBreakDamage = FrigidBoost.FreezeBreakDamage;
+    private int _iceDamageTaken;
     private Vector3 _frozenAnchor;
     private ParticleSystem _frostMotes;
     private bool _frostTinted;
@@ -322,11 +412,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// </summary>
     protected bool positionIsScripted;
 
-    // Permafrost is expressed as a very long deadline rather than as a second code
-    // path, so nothing downstream — the pin, the cart holds, the tells, the
-    // wave-end clear — needs to learn about the capstone at all. The wave clear is
-    // what actually ends these; see PurgeFrost and Spawner.BeginWave.
-    private const float PermafrostSeconds = 9999f;
+    // ---- Frost Bite (Frigid capstone) ----
+
+    // Whether a knight who owns the capstone is the one whose cold is on this body,
+    // and which knight that is. Both are cleared by PurgeFrost with everything else,
+    // so cold that ends stops billing.
+    private bool _frostBiteActive;
+    private string _frostBiteOwnerTag;
+    private float _pendingFrostDamage;
+    private float _sinceFrostFlush;
 
     // How many bodies are in ice right now, across the whole field. Kept by hand
     // on both sides of the hold; OnDeath and the wave clear both route through
@@ -339,29 +433,50 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// <summary>
     /// Cold, from any source. THE one door, so every source spends the same rules.
     ///
-    /// <paramref name="freezeSeconds"/> is zero unless the caller is a blow the
-    /// knight landed and that knight owns Deep Freeze — pillar 2 of the Order made
-    /// structural rather than left to convention. Fields and auras pass zero and
+    /// <paramref name="freezes"/> is false unless the caller is a blow the knight
+    /// landed and that knight can freeze (Frost Tip) — pillar 2 of the Order made
+    /// structural rather than left to convention. Fields and auras pass false and
     /// physically cannot stop anything.
+    ///
+    /// A freeze lasts however long the chill had left, plus
+    /// <paramref name="freezeBonusSeconds"/> (Deep Freeze, Heart of Ice), and
+    /// breaks once it has taken <paramref name="iceBreakDamage"/> damage in total.
     /// </summary>
     /// <returns>True if this touch was the one that froze it.</returns>
-    public bool ApplyCold(float speedMultiplier, float chillSeconds, float freezeSeconds, bool permafrost)
+    public bool ApplyCold(float speedMultiplier, float chillSeconds, bool freezes,
+                          float freezeBonusSeconds = 0f, int iceBreakDamage = FrigidBoost.FreezeBreakDamage,
+                          string ownerTag = null, bool frostBite = false)
     {
         if (isDead) return false;
+
+        // Frost Bite (Frigid capstone): remember WHO put the cold on, so the tick
+        // this body is about to start taking can be credited when it kills. Recorded
+        // even on a touch that neither chills nor freezes below — the latest toucher
+        // owns the cold, the same way the latest burn owns a fire.
+        if (frostBite)
+        {
+            _frostBiteOwnerTag = ownerTag;
+            _frostBiteActive = true;
+        }
 
         // Already stopped. A blow landing on a statue is a SHATTER, which is the
         // caller's business and happens through TakeDamage — not more cold.
         if (IsFrozen) return false;
 
-        // A body that thawed on its own shrugs the cold off for a moment. This is
-        // the governor that stops one knight with two chains locking a single
-        // target down forever, and it is why Permafrost is worth a capstone slot:
-        // ice that never expires never earns the reprieve.
-        if (Time.time < _coldReprieveUntil) return false;
+        // NO REPRIEVE (owner's call, 2026-09-08). A body that thaws is cold-able
+        // again the same instant — there used to be two seconds of resistance here
+        // to stop a knight locking one target down forever, and it was removed on
+        // purpose: pillar 2 already charges for that. Freezing takes a BLOW, so a
+        // knight who wants a body held permanently has to keep landing arrows on
+        // it, which is an arrow a second not being spent on the rest of the wave.
+        // The cost is the aiming, not an arbitrary cooldown.
 
-        if (IsChilled && freezeSeconds > 0f)
+        // The freeze turns whatever chill was left into ice (owner's call,
+        // 2026-09-11). Read BEFORE this touch refreshes the chill, so it is the time
+        // the body had left, not a fresh full chill.
+        if (IsChilled && freezes)
         {
-            Freeze(freezeSeconds, permafrost);
+            Freeze((_chillUntil - Time.time) + freezeBonusSeconds, iceBreakDamage);
             return true;
         }
 
@@ -387,11 +502,22 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// could redefine it is a subclass that can get it wrong or forget it — which
     /// is how the sleeping dart came to do nothing to a boss.
     /// </summary>
-    public void Freeze(float seconds, bool permafrost)
+    public void Freeze(float seconds, int breakDamage = FrigidBoost.FreezeBreakDamage)
     {
         if (isDead || seconds <= 0f) return;
 
-        float hold = permafrost ? PermafrostSeconds : seconds;
+        // A boss is held for half as long as anything else (owner's call,
+        // 2026-09-08). Applied HERE rather than at the knight's end so it covers
+        // every source of cold there will ever be, and so no future upgrade can
+        // forget it — the same argument that keeps this method non-virtual.
+        //
+        // Frigid's hold is the one effect in the game that removes a fight rather
+        // than shortening it: a stopped boss is not fighting, and at rank three
+        // that is fifteen seconds of a duel simply not happening. Halving it keeps
+        // the Order strong against a crowd, which is what it is for, without
+        // letting it switch off the encounters the run is built around.
+        float hold = IsBoss ? seconds * FrigidBoost.BossFreezeMultiplier : seconds;
+
         bool wasFree = !IsFrozen;
         _frozenUntil = Mathf.Max(_frozenUntil, Time.time + hold);
 
@@ -403,6 +529,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
         if (wasFree)
         {
+            _iceBreakDamage = Mathf.Max(1, breakDamage);
+            _iceDamageTaken = 0;
             _frozenAnchor = transform.position;
             FrostFx.ShowIce(gameObject);
             PlayerStats.Increment("frigid.frozen");
@@ -437,42 +565,56 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     }
 
     /// <summary>
-    /// Break the ice early.
+    /// Break the ice, whether a blow ended it or it simply ran out.
     ///
-    /// <paramref name="earnedReprieve"/> is false when a BLOW ended it — a shatter,
-    /// or any hit big enough to count. That is deliberate: a frost arrow that
-    /// breaks a statue is meant to be able to chill it again in the same instant,
-    /// so the player can keep a body cycling between slowed and stopped for as long
-    /// as they keep paying an arrow a time. A freeze that simply ran out earns the
-    /// reprieve instead.
+    /// A thawed body carries nothing away with it: it can be chilled on the next
+    /// touch and frozen on the touch after that, immediately. This used to hand out
+    /// two seconds of cold resistance when a freeze expired on its own; that was
+    /// removed on 2026-09-08 (owner's call) so the cycle never stalls, and pillar 2
+    /// is what keeps it honest — only a BLOW can freeze, so holding one body forever
+    /// costs an arrow a time that the rest of the wave does not get.
     /// </summary>
-    public void Thaw(bool earnedReprieve)
+    public void Thaw()
     {
         if (_frozenUntil < 0f) return;
 
         _frozenUntil = -1f;
+        _iceDamageTaken = 0;
         _liveFrozenCount = Mathf.Max(0, _liveFrozenCount - 1);
-        _coldReprieveUntil = earnedReprieve ? Time.time + FrigidBoost.ThawReprieveSeconds : -1f;
         FrostFx.HideIce(gameObject);
         SleepFreeze.Release(this);
     }
 
     /// <summary>The freeze-break rule, in one place so every damage path can spend
-    /// it — including the two that deliberately bypass TakeDamage.</summary>
+    /// it — including the two that deliberately bypass TakeDamage. Damage adds up
+    /// across hits; the ice breaks once the total reaches what the freezing knight's
+    /// Deep Freeze set (5, 15, 25 or 35).</summary>
     protected void BreakFreezeIfHardEnough(int damage)
     {
-        if (damage >= FrigidBoost.FreezeBreakDamage && IsFrozen) Thaw(false);
+        if (!IsFrozen || damage <= 0) return;
+        _iceDamageTaken += damage;
+        if (_iceDamageTaken >= _iceBreakDamage) Thaw();
     }
 
     /// <summary>Takes every trace of cold back off. Called by the cleanse and by
-    /// the wave clear, which is what stops a Permafrost statue surviving into the
-    /// wave after the one it was made in.</summary>
+    /// the wave clear, which is what stops a statue made late in one wave from
+    /// still standing in the next — a rank three hold runs fifteen seconds and
+    /// will happily straddle a wave boundary.</summary>
     public void PurgeFrost()
     {
         _chillUntil = -1f;
         _chillMultiplier = 1f;
-        _coldReprieveUntil = -1f;
-        Thaw(false);
+
+        // The capstone's billing goes with the cold. Cleared here rather than left
+        // to TickFrostBite's own "no cold, no charge" early-out, because this is the
+        // wave boundary: whatever the last wave's knights had bought, the next wave
+        // starts everything on the field owing nothing.
+        _frostBiteActive = false;
+        _frostBiteOwnerTag = null;
+        _pendingFrostDamage = 0f;
+        _sinceFrostFlush = 0f;
+
+        Thaw();
         UpdateFrostTells();
     }
 
@@ -584,14 +726,13 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Extension point for post-damage effects
         OnAfterDamageApplied(damage, projectile);
 
-        // Any blow of real size ends a freeze, whether or not the knight who threw
-        // it owns Shatter. A statue you can hit for twenty and watch stand there
-        // reads as a bug, not as a mechanic. Chip damage stays under the bar
-        // deliberately, so a burning body still burns through the whole hold —
-        // and the poison and fire ticks bypass this method entirely in any case.
+        // Hits wear the ice down, whether or not the knight who threw them owns
+        // Shatter; it breaks once they add up to the freezing knight's break
+        // damage (5 with no Deep Freeze, +10 per rank). Poison and fire ticks
+        // bypass this method entirely, so a burning body burns through the hold.
         //
-        // No reprieve: the ice was broken rather than outlasted, so a frost arrow
-        // can shatter a body and chill it again in the same hit.
+        // Whatever broke it, the body walks away carrying nothing: it can be
+        // chilled on the next touch and frozen on the one after, immediately.
         BreakFreezeIfHardEnough(damage);
 
 
@@ -906,17 +1047,17 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
     }
 
-    // Serpent Order death effects (Miasma clouds, Plaguebringer bursts). Called from
-    // both death sites (arrow and poison tick) right after isDead flips, so subclass
-    // OnDeath overrides can't skip it.
+    // Serpent Order death effects (Miasma clouds). Called from both death sites (arrow
+    // and poison tick) right after isDead flips, so subclass OnDeath overrides can't
+    // skip it. Plaguebringer has no death effect of its own — it makes the owner's
+    // clouds hunt, which PoisonCloud works out from the tag it is given here.
     protected void TriggerPoisonDeathEffects()
     {
         if (!isPoisoned || poisonSources.Count == 0) return;
 
         PlayerStats.Increment("kills.poisoned");
 
-        // One cloud per death, using the strongest contributor's Miasma level;
-        // every Plaguebringer contributor gets their burst credit
+        // One cloud per death, using the strongest contributor's Miasma level
         int bestMiasmaLevel = 0;
         string miasmaOwnerTag = null;
 
@@ -932,54 +1073,28 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 bestMiasmaLevel = boost.MiasmaLevel;
                 miasmaOwnerTag = source.playerTag;
             }
-
-            if (boost.Plaguebringer)
-            {
-                PlagueBurst(source.playerTag);
-            }
         }
 
         if (bestMiasmaLevel > 0)
         {
-            PoisonCloud.Spawn(transform.position, bestMiasmaLevel, miasmaOwnerTag);
+            PoisonCloud.Spawn(transform.position, bestMiasmaLevel, miasmaOwnerTag, _lastMoveHeading);
         }
-    }
-
-    // Plaguebringer: the victim's full poison stacks jump to nearby enemies, and the
-    // owning knight is paid in special. Spread poison carries the owner's tag, so
-    // chain deaths keep bursting.
-    private void PlagueBurst(string ownerTag)
-    {
-        const float burstRadius = 2.25f;
-        const float burstPoisonDuration = 6f;
-        const int burstSpecialBonus = 5;
-
-        int burstDamage = Mathf.Max(poisonDamage, 3);
-
-        foreach (var col in Physics2D.OverlapCircleAll(transform.position, burstRadius))
-        {
-            EnemyBase enemy = col.GetComponent<EnemyBase>();
-            if (enemy != null && enemy != this && !enemy.IsDead)
-            {
-                enemy.ApplyPoisonFromTag(burstDamage, burstPoisonDuration, 1f, ownerTag);
-            }
-        }
-
-        GiveSpecialToPlayer(burstSpecialBonus, ownerTag);
-        PoisonCloud.SpawnBurstEffect(transform.position);
     }
 
     // ================= Ember Order =================
 
     // The player's ignition doors: PlayerProjectile (an arrow that carries ignite),
-    // FireballProjectile, and ShieldSight once Fire Sight is bought. Every one of
-    // these is aimed and spent, so they stay the only way NEW fire enters a wave.
+    // FireballProjectile, and ShieldSight once Fire Sight is bought. Every one of these
+    // is aimed, so they stay the only way NEW fire enters a wave. The first two are
+    // also SPENT — a shot each — which is why they may stack. The beam is neither, so
+    // it lights only what is not already alight and never stacks.
     //
-    // Fire started by fire comes in through IgniteFromFire instead, which nothing
-    // calls while GroundFireIgnites is off — a burning body scorches its neighbours
-    // rather than lighting them. See the fire spread block in EmberBoost. The two
-    // entry points are kept separate on purpose: this one is free, that one has to
-    // pay a source it has not already spent.
+    // Fire started by fire never comes through here at all, and as of 2026-09-08 it
+    // does not happen: burning ground COOKS what stands in it and a burning body COOKS
+    // what it touches, and neither lights anything. Ground fire runs entirely through
+    // the fire-AoE flag — a flag, deliberately, and not a call to Ignite, because
+    // ground fire is not scarce and a stack per overlapping drop is what produced 40-70
+    // damage a step.
     //
     /// <summary>
     /// Takes every status this enemy is carrying back off — the poison debt and
@@ -1016,17 +1131,21 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
         _burnStacks.Clear();
 
-        // Forgetting which fires have spent themselves on this enemy is part of the
-        // cleanse: a purged body walking back into the same lane should catch again,
-        // the way it would have if it had never burned.
-        _consumedIgniteSources.Clear();
+        // The ground's hold on it goes too, tail and all. A purged body standing in a
+        // lane simply catches again on the next beat, the way it would have if it had
+        // never burned — which is the right answer for a cleanse: it undoes the state,
+        // it does not make the floor safe.
+        _fireAoeUntil = 0f;
+        _fireAoeDps = 0f;
+        _fireAoeOwnerTag = null;
+        _fireAoeBoost = null;
+        _fireAoeIgnites = false;
 
         // A cleanse that left it asleep would be the one status the roar could
         // not take off, which is exactly the promise PurgeStatusEffects makes.
         WakeUp();
 
-        // And the same goes for the ice — including a Permafrost hold, which has
-        // no deadline of its own to run out.
+        // And the same goes for the ice, however long it had left to run.
         PurgeFrost();
     }
 
@@ -1034,38 +1153,23 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // another ignited arrow/fireball piles heat on rather than merely refreshing.
     public void Ignite(string playerTag)
     {
-        AddBurn(playerTag, 0);
+        AddBurn(playerTag);
     }
 
-    /// <summary>
-    /// Catch from another fire — ground fire underfoot, or a burning body in contact.
-    /// <paramref name="sourceId"/> is the fire that did it: this enemy remembers it
-    /// and can never be lit by that same fire again. The burn it starts is a NEW
-    /// source, which is what lets fire keep travelling instead of dying where it lands.
-    /// </summary>
-    public void IgniteFromFire(string playerTag, int sourceId)
-    {
-        AddBurn(playerTag, sourceId);
-    }
-
-    /// <summary>Has <paramref name="sourceId"/> already lit this enemy once?</summary>
-    public bool HasBeenLitBy(int sourceId)
-    {
-        return _consumedIgniteSources.Contains(sourceId);
-    }
-
-    // consumedSourceId is the fire being paid for this ignition, or 0 for a player
-    // source, which is always free
-    private void AddBurn(string playerTag, int consumedSourceId)
+    // Burn stacks come from AIMED fire only — an arrow that rolled ignite, or a
+    // fireball. Those are scarce and spent, so stacking them is the reward for landing
+    // several. Ground fire deliberately does NOT come through here: it sets the
+    // fire-AoE flag instead, because ground fire is not scarce and stacking it
+    // multiplies by however many drops happen to overlap.
+    //
+    // Fire Sight comes through here too but can never stack: it is a beam that runs
+    // every frame, so ShieldSight only calls this for a body that is not already on
+    // fire. One ignition per crossing, however long it is held in the light.
+    private void AddBurn(string playerTag)
     {
         // Refused outright rather than merely dealing no damage, so an iron cart
         // never wears a flame it cannot be hurt by
         if (isDead || ImmuneToAreaDamage || string.IsNullOrEmpty(playerTag)) return;
-
-        // The source rule, in one line: Add returns false if this fire already spent
-        // itself on this enemy. Checked after the refusals above so an immune target
-        // never silently burns a source it was going to ignore anyway.
-        if (consumedSourceId != 0 && !_consumedIgniteSources.Add(consumedSourceId)) return;
 
         if (!_countedIgniteApplied)
         {
@@ -1085,8 +1189,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             expiresAt = Time.time + EmberBoost.IgniteDuration,
             dps = stackDps,
             ownerTag = playerTag,
-            ownerBoost = ownerBoost,
-            sourceId = EmberBoost.NextFireSourceId()
+            ownerBoost = ownerBoost
         });
 
         if (!wasIgnited)
@@ -1095,8 +1198,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             _lastTrailPosition = transform.position;
         }
 
-        // Visible flame riding the enemy, so a burning enemy reads as on fire and
-        // not merely tinted. Re-igniting just resumes the existing one.
+        StartEmberFlame(EmberBoost.IgniteDuration);
+    }
+
+    // Visible flame riding the enemy, so a burning enemy reads as on fire and not
+    // merely tinted. Re-igniting just resumes the existing one. Called by the aimed
+    // ignition doors, and by the fire-AoE flag on the rare path where burning ground is
+    // allowed to set a body alight — a body alight by any route has to look alight.
+    private void StartEmberFlame(float glowSeconds)
+    {
         if (_emberFlame == null)
         {
             _emberFlame = FireFx.AttachEnemyFlame(gameObject);
@@ -1110,19 +1220,17 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
         // Ignition owns the glow while it burns — it's much shorter than poison,
         // whose glow resumes on its own next tick if it's still running
-        glowManager?.StartGlow(new Color(1f, 0.45f, 0.12f), EmberBoost.IgniteDuration, 6f, 0.8f);
+        glowManager?.StartGlow(new Color(1f, 0.45f, 0.12f), glowSeconds, 6f, 0.8f);
     }
 
     // Sum of live burn dps (on-body). Also reports the dominant stack's owner/boost —
     // the hottest burn — for kill credit and for driving trail/panic.
-    private float BurnDps(out string dominantTag, out EmberBoost dominantBoost,
-        out int dominantSourceId)
+    private float BurnDps(out string dominantTag, out EmberBoost dominantBoost)
     {
         float total = 0f;
         float best = -1f;
         dominantTag = null;
         dominantBoost = null;
-        dominantSourceId = 0;
         for (int i = 0; i < _burnStacks.Count; i++)
         {
             BurnStack s = _burnStacks[i];
@@ -1132,10 +1240,22 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                 best = s.dps;
                 dominantTag = s.ownerTag;
                 dominantBoost = s.ownerBoost;
-                dominantSourceId = s.sourceId;
             }
         }
         return total;
+    }
+
+    /// <summary>
+    /// The knight whose Ember sheet drives this body's trail and panic. An aimed burn
+    /// wins when there is one — it is the fire the player actually spent — and the
+    /// ground it is standing on fills in otherwise.
+    /// </summary>
+    private EmberBoost DominantFireBoost()
+    {
+        string tag;
+        EmberBoost boost;
+        BurnDps(out tag, out boost);
+        return boost != null ? boost : _fireAoeBoost;
     }
 
     // Drop burns whose timer ran out. Returns true while any remain.
@@ -1185,7 +1305,13 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             _lastTrailPosition = transform.position;
         }
 
-        bool burning = PruneBurnStacks();
+        // Read here, before Searing Panic, chill and shove touch the position, so the
+        // gap since last frame is only the subclass's own walking. A held or idle
+        // frame moves nothing and keeps the heading it had.
+        Vector3 ownMove = transform.position - _previousPosition;
+        if (ownMove.sqrMagnitude > 1e-8f) _lastMoveHeading = ((Vector2)ownMove).normalized;
+
+        bool burning = PruneBurnStacks() || IsBurningFromGround;
         if (!burning && _emberFlame != null && _emberFlame.emission.enabled)
         {
             var em = _emberFlame.emission;
@@ -1193,33 +1319,26 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             _emberFlame.Stop(true, ParticleSystemStopBehavior.StopEmitting);
         }
 
-        // Catching from the field has to run whether or not this enemy is already
-        // burning, for the day GroundFireIgnites goes back on — an unlit body walking
-        // into a lane of trail would be the main way fire travels. Contact runs on the
-        // state AFTER that.
+        // Contact is damage and nothing else: a burning body cooks its neighbours and
+        // never lights them. The GROUND is the only thing that lights anything, and it
+        // does that through the fire-AoE flag in TickFire rather than from here.
         if (EmberBoost.FireSpreadEnabled && !ImmuneToAreaDamage)
         {
             _sinceSpreadCheck += Time.deltaTime;
             if (_sinceSpreadCheck >= EmberBoost.SpreadCheckInterval)
             {
                 _sinceSpreadCheck = 0f;
-                // Both of these are damage and nothing else now: ground fire while
-                // GroundFireIgnites is off, and contact always — see EmberBoost.
-                if (EmberBoost.GroundFireIgnites) CatchFireFromGround();
                 if (IsIgnited) BurnNeighboursByContact();
-                burning = IsIgnited;
             }
         }
 
         if (burning)
         {
-            // The dominant (hottest) burn's knight owns trail + panic this frame
-            string dominantTag;
-            EmberBoost dominantBoost;
-            int dominantSourceId;
-            BurnDps(out dominantTag, out dominantBoost, out dominantSourceId);
+            // One knight's sheet owns trail + panic this frame — the hottest aimed
+            // burn, or the ground if this body is only alight because of it
+            EmberBoost dominantBoost = DominantFireBoost();
             ApplySearingPanic(dominantBoost);
-            DropFireTrail(dominantBoost, dominantSourceId);
+            DropFireTrail(dominantBoost);
         }
 
         // After the panic nudge, deliberately: a body that is both burning and
@@ -1227,17 +1346,40 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // rest, which is the honest composition of the two. Unconditional, unlike
         // the block above — cold is not carried by anything the way a burn is.
         // A freeze that ran OUT rather than being broken. Noticed here rather than
-        // in SleepFreeze because only this side knows what outlasting one is worth:
-        // the body earns its brief reprieve from the cold, which a shattered one
-        // deliberately does not.
-        if (_frozenUntil > 0f && !IsFrozen) Thaw(true);
+        // in SleepFreeze so the tells, the pin and the frozen tally all come off on
+        // the same frame the deadline passes. Outlasting one buys the body nothing:
+        // the next touch of cold can chill it and the one after can stop it again.
+        if (_frozenUntil > 0f && !IsFrozen) Thaw();
 
         ApplyChillSlow();
         UpdateFrostTells();
+        TickFrostBite();
+
+        // Last, and deliberately before _previousPosition is captured: Searing Panic
+        // reads the gap between frames as "movement this body made" and multiplies it,
+        // so a shove paid out any earlier would be amplified by a burn the knight had
+        // nothing to do with.
+        ApplyShove();
+
+        // Every change to the position this frame has landed by now, and
+        // _previousPosition still holds where last frame ended
+        TrackMeasuredSpeed();
 
         _previousPosition = transform.position;
 
         TickFire();
+    }
+
+    private void TrackMeasuredSpeed()
+    {
+        float dt = Time.deltaTime;
+        if (dt <= 0f) return;
+
+        float step = ((Vector2)(transform.position - _previousPosition)).magnitude;
+        if (step > MeasuredSpeedMaxStep) return;
+
+        float blend = 1f - Mathf.Exp(-dt / MeasuredSpeedSmoothing);
+        _measuredSpeed = Mathf.Lerp(_measuredSpeed, step / dt, blend);
     }
 
     // Multiplies whatever movement the subclass just did, along its own heading.
@@ -1259,6 +1401,95 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         if (delta.sqrMagnitude <= 1e-8f) return;
 
         transform.position += delta * (multiplier - 1f);
+    }
+
+    // ---- Bulwark's shove ----
+
+    // NO COOLDOWN (owner's call, 2026-09-08). Every contact with the guard throws the
+    // body, however fast they come — a player flicking the shield onto something can
+    // keep shoving it, and that is the intended power level.
+    //
+    // Safe without one for two reasons. The shield carries exactly ONE trigger
+    // (ShieldShape disables the authored capsule precisely so a block cannot fire its
+    // callbacks twice), so a single contact cannot double-report. And Shove REPLACES
+    // the outstanding displacement rather than adding to it, so a body shoved twice
+    // inside one payout window travels two units from wherever it had got to, never
+    // four.
+    private Vector3 _shoveRemaining;
+    private float _shoveSecondsLeft;
+
+    /// <summary>
+    /// Bulwark's answer to a body arriving on the guard, in one place because THREE
+    /// separate trigger handlers need it.
+    ///
+    /// EnemyGiantSlime and EnemyRatKing both override OnTriggerEnter2D wholesale and
+    /// never call base — they were written to say "a boss cannot be popped by
+    /// contact", which predates this capstone by a long way. That is why Bulwark
+    /// silently did nothing to the Crimson Twins until 2026-09-08: not a collider
+    /// problem, just a branch that was never there. Anything that overrides the
+    /// trigger from here on has to call this, or it quietly opts its enemy out.
+    ///
+    /// Returns true if the body was thrown, in which case the caller must not also
+    /// charge the knight or destroy the enemy.
+    /// </summary>
+    protected bool TryBulwarkShove(Collider2D shield)
+    {
+        GuardianBoost guardian = shield.GetComponentInParent<GuardianBoost>();
+        if (guardian == null || !guardian.HasBulwark) return false;
+
+        Transform knight = shield.transform.parent;
+        Vector2 away = knight != null
+            ? (Vector2)(transform.position - knight.position)
+            : (Vector2)shield.transform.right;
+        if (away.sqrMagnitude < 1e-6f) away = shield.transform.right;
+
+        Shove(away, GuardianBoost.BulwarkShoveDistance, GuardianBoost.BulwarkShoveSeconds);
+        GuardianFx.ShoveBurst(shield.bounds.center, away.normalized);
+        PlayerStats.Increment("guardian.shoved");
+        return true;
+    }
+
+    /// <summary>
+    /// Throw this body <paramref name="distance"/> units along <paramref name="direction"/>,
+    /// paid out over <paramref name="seconds"/> rather than all at once — a body that
+    /// jumped two units between frames reads as a glitch rather than as a shield bash.
+    ///
+    /// Works whatever the subclass does to move itself (MoveTowards, Lerp, waypoints),
+    /// for the same reason Searing Panic does: it is applied after their Update, on top
+    /// of whatever they did. Refused for anything whose position is owned by something
+    /// else — a cart on rails cannot be pushed off its track, and trying only puts it a
+    /// frame's-worth out of place before its own Update snaps it back.
+    ///
+    /// Calling it again before the last one has finished paying out REPLACES the
+    /// outstanding displacement; it never stacks.
+    /// </summary>
+    public void Shove(Vector2 direction, float distance, float seconds)
+    {
+        if (isDead || positionIsScripted) return;
+        if (distance <= 0f || direction.sqrMagnitude < 1e-6f) return;
+
+        // Replaces rather than accumulates — see the field comments above.
+        _shoveRemaining = (Vector3)(direction.normalized * distance);
+        _shoveSecondsLeft = Mathf.Max(0.01f, seconds);
+    }
+
+    private void ApplyShove()
+    {
+        if (_shoveSecondsLeft <= 0f) return;
+
+        float step = Mathf.Min(Time.deltaTime, _shoveSecondsLeft);
+        Vector3 delta = _shoveRemaining * (step / _shoveSecondsLeft);
+
+        transform.position += delta;
+
+        // Both pins move with it. Otherwise a body shoved and then frozen or slept
+        // would be dragged back to wherever it was standing when the hold took it,
+        // and the shove the player just watched would silently undo itself.
+        _frozenAnchor += delta;
+        _sleepAnchor += delta;
+
+        _shoveRemaining -= delta;
+        _shoveSecondsLeft -= step;
     }
 
     // Takes back part of whatever movement the subclass just made, along its own
@@ -1343,10 +1574,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     private static readonly Color ChilledTint = new Color(0.62f, 0.82f, 1f);
     private static readonly Color FrozenTint = new Color(0.72f, 0.92f, 1f);
 
-    // sourceSourceId is the burn doing the dripping, so the trail it lays can light
-    // others under the source rule — and carries this enemy's id so it can walk over
-    // its own drippings without catching from them.
-    private void DropFireTrail(EmberBoost boost, int burnSourceId)
+    // The lane carries this enemy's id so it can walk over its own drippings without
+    // being billed for them on top of the burn that laid them.
+    private void DropFireTrail(EmberBoost boost)
     {
         if (boost == null || !boost.HasFireTrail) return;
 
@@ -1357,30 +1587,72 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Only paint where the enemy actually travelled
         if ((transform.position - _lastTrailPosition).sqrMagnitude < MinTrailMoveSqr) return;
 
-        // The burn's own source id only survives while ground fire is allowed to
-        // light things; otherwise the lane is laid as pure damage. Asked through
-        // NextZoneSourceId so there is ONE place that decides it.
+        // A drop outside the camera view is refused by FireField.Add, not by anything
+        // here — waves spawn off screen and walk in, and a burning enemy on its approach
+        // must not paint the corridor every later spawn comes down. The drop is SKIPPED
+        // rather than banked: the cadence above has already reset and _lastTrailPosition
+        // moves below either way, so a body that crosses the edge mid-interval starts
+        // painting on the normal beat instead of dumping a held zone the moment it
+        // becomes visible.
         boost.PlaceTrailZone(transform.position,
             boost.TrailZoneRadius,
             boost.TrailZoneDuration,
-            EmberBoost.NextZoneSourceId() != 0 ? burnSourceId : 0,
             gameObject.GetInstanceID());
         _lastTrailPosition = transform.position;
     }
 
-    // Ground fire lights what stands in it. One burn per distinct fire underfoot —
-    // the field already skips zones this enemy dripped itself, and the source rule
-    // skips any fire that has lit it before, so standing in a lane costs a body one
-    // burn per fire that painted it rather than one per beat.
-    private void CatchFireFromGround()
+    /// <summary>
+    /// Reads the ground once a beat and sets the fire-AoE flag from it. ONE query, ONE
+    /// flag: the hottest zone underfoot supplies the rate and the kill credit, and a
+    /// single bit says whether that ground lights things. Overlapping zones cannot
+    /// multiply either of those, which is the whole point of the flag.
+    ///
+    /// While the body is standing in fire the deadline is pushed forward every beat;
+    /// when it walks out, the last push is what keeps it burning for the linger.
+    /// </summary>
+    private void UpdateFireAoeFlag()
     {
-        FireField.CollectIgniteSources(transform.position, gameObject.GetInstanceID(), _spreadScratch);
-        for (int i = 0; i < _spreadScratch.Count; i++)
+        // The tail has run out: forget the ground entirely, so the next patch this
+        // body steps into starts it cleanly rather than inheriting the last one.
+        if (Time.time >= _fireAoeUntil) _fireAoeIgnites = false;
+
+        bool wasBurningFromGround = IsBurningFromGround;
+
+        float zoneDps;
+        string zoneOwner;
+        bool zoneIgnites;
+        bool inFire = FireField.Sample(transform.position, gameObject.GetInstanceID(),
+            out zoneDps, out zoneOwner, out zoneIgnites);
+
+        // Set every beat, true or false — this is the billing gate, and it has to fall
+        // the moment the body is off the fire rather than when the flag lapses.
+        _standingInFire = inFire;
+
+        if (!inFire) return;
+
+        _fireAoeUntil = Time.time + EmberBoost.FireAoeLinger;
+        _fireAoeDps = zoneDps;
+
+        // Only ever raised here, never lowered, so a body crossing from igniting ground
+        // onto ordinary ground stays alight for the rest of the linger rather than
+        // having the second zone put the first one's fire out.
+        if (zoneIgnites) _fireAoeIgnites = true;
+
+        // Resolving the knight is a tag lookup, so only do it when the owner actually
+        // changes — a body standing in one lane pays for it once, not four times a
+        // second.
+        if (zoneOwner != _fireAoeOwnerTag)
         {
-            FireField.IgniteSource source = _spreadScratch[i];
-            if (_consumedIgniteSources.Contains(source.sourceId)) continue;
-            IgniteFromFire(source.ownerTag, source.sourceId);
+            _fireAoeOwnerTag = zoneOwner;
+            GameObject owner = string.IsNullOrEmpty(zoneOwner) ? null : GameObject.FindWithTag(zoneOwner);
+            _fireAoeBoost = owner != null ? owner.GetComponent<EmberBoost>() : null;
         }
+
+        // The flame only comes on if the ground is the kind that lights things —
+        // ordinary fire burns you where you stand and leaves nothing on you — and only
+        // on the way IN. Restarting the glow four times a second while a body stands
+        // in a lane would be the same picture at four times the cost.
+        if (!wasBurningFromGround && IsBurningFromGround) StartEmberFlame(EmberBoost.FireAoeLinger);
     }
 
     // A burning body SCORCHES what it touches — it does not light it (owner's call,
@@ -1394,8 +1666,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     {
         string dominantTag;
         EmberBoost dominantBoost;
-        int dominantSourceId;
-        float dps = BurnDps(out dominantTag, out dominantBoost, out dominantSourceId);
+        float dps = BurnDps(out dominantTag, out dominantBoost);
         if (dps <= 0f) return;
 
         Collider2D[] neighbours = Physics2D.OverlapCircleAll(transform.position,
@@ -1429,9 +1700,16 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         _contactFireUntil = Time.time + EmberBoost.SpreadCheckInterval * 1.5f;
     }
 
-    // Fire damage has two sources — being ignited (on-body) and standing in a fire
-    // zone (ground) — and an enemy takes the HOTTER of the two, never their sum, so
-    // an ignited enemy walking its own trail isn't billed twice for one fire.
+    // Fire damage has two sources — being ignited (on-body) and the field (ground fire,
+    // or a burning body in contact) — and an enemy pays BOTH, on separate clocks, as
+    // separate numbers. Hottest-wins survives only WITHIN the field channel, where it
+    // is doing real work: overlapping zones are one fire, and a zone next to a burning
+    // neighbour is still one fire.
+    //
+    // An ignited enemy walking its OWN trail still isn't billed twice for one fire, but
+    // that is now FireField.Sample's job rather than this one's — it skips the zones
+    // that body dripped. Standing in somebody else's fire while carrying your own burn
+    // is two fires and costs two fires.
     //
     // Enemies poll the field rather than the field damaging enemies; that one-way
     // direction is what keeps FireField structurally unable to reach Ignite().
@@ -1447,71 +1725,111 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         float elapsed = _sinceFireTick;
         _sinceFireTick = 0f;
 
-        float dps = 0f;
-        string ownerTag = null;
+        // Read the ground once, here, and let the flag carry the answer everywhere
+        // else. This is the only place the field is sampled.
+        UpdateFireAoeFlag();
 
-        // On fire: the SUM of every live burn stack, each sized to its igniting
-        // knight's Ember investment (base 2.0, up to 4.0 per stack). Stacking is what
-        // makes a second ignited arrow pile heat on instead of just refreshing.
+        // ---- Channel 1: ignition ----
+        //
+        // The SUM of every live burn stack, each sized to its igniting knight's Ember
+        // investment. Stacking is what makes a second ignited arrow pile heat on
+        // instead of merely refreshing, and it is confined to AIMED ignitions for
+        // exactly that reason — ground fire never adds a stack.
         if (IsIgnited)
         {
             string dominantTag;
             EmberBoost dominantBoost;
-            int dominantSourceId;
-            dps = BurnDps(out dominantTag, out dominantBoost, out dominantSourceId);
-            ownerTag = dominantTag;
+            float burnDps = BurnDps(out dominantTag, out dominantBoost);
+            if (burnDps > 0f)
+            {
+                _pendingIgniteDamage += burnDps * elapsed;
+                // Survives to the flush even if the burn expires in the meantime
+                _lastIgniteOwnerTag = dominantTag;
+            }
         }
 
-        // Ground fire under this enemy — take it only if it burns hotter
-        float zoneDps;
-        string zoneOwner;
-        if (FireField.Sample(transform.position, out zoneDps, out zoneOwner) && zoneDps > dps)
+        // ---- Channel 2: the field ----
+        //
+        // Ground fire is ONE zone's worth whether the body stands in one lane or in
+        // six overlapping ones. Billed only for the beats the body is ACTUALLY in it —
+        // the flag's 2s linger keeps the state from chattering, it does not keep the
+        // meter running (see _standingInFire). A burning neighbour in contact competes
+        // for the same channel on the same hottest-wins rule: being in a fire zone next
+        // to a burning body bills one field, not two.
+        //
+        // THIS CHANNEL IS OFF SCREEN-GATED and the ignition channel above is not.
+        // FireField.Sample refuses any point outside the camera view, so a body that
+        // has not walked on yet pays nothing for ground it is standing on — while a
+        // body an arrow lit goes on burning wherever it goes, because that fire rides
+        // the body rather than the floor.
+        float fieldDps = 0f;
+        string fieldOwner = null;
+
+        if (_standingInFire)
         {
-            dps = zoneDps;
-            ownerTag = zoneOwner;
+            fieldDps = _fireAoeDps;
+            fieldOwner = _fireAoeOwnerTag;
         }
 
-        // A burning body pressed against this one — same hottest-wins rule, so
-        // being on fire in a fire zone next to a burning neighbour still bills one
-        // fire rather than three.
-        if (Time.time < _contactFireUntil && _contactFireDps > dps)
+        if (Time.time < _contactFireUntil && _contactFireDps > fieldDps)
         {
-            dps = _contactFireDps;
-            ownerTag = _contactFireOwnerTag;
+            fieldDps = _contactFireDps;
+            fieldOwner = _contactFireOwnerTag;
         }
 
-        if (dps > 0f)
+        if (fieldDps > 0f)
         {
-            _pendingFireDamage += dps * elapsed;
-            _lastFireOwnerTag = ownerTag; // survives to the flush even if fire just expired
+            _pendingFieldDamage += fieldDps * elapsed;
+            _lastFieldOwnerTag = fieldOwner;
         }
 
-        // Land accrued damage as ONE number per second, so the figure on screen IS
-        // the dps: a base burn pops "2", a full build "4", stacks bigger. Flushing
-        // on every accumulator crossing instead showed a stream of "1"s that read
-        // as 1 dps no matter the actual rate.
-        _sinceFireFlush += elapsed;
-        if (_sinceFireFlush < FireFlushInterval) return;
-        _sinceFireFlush = 0f;
+        // ---- The flushes ----
+        //
+        // Each channel lands as ONE number per second, so the figure on screen IS that
+        // channel's dps: a base burn pops "3", a full build "7" or "8". Flushing on every
+        // accumulator crossing instead showed a stream of "1"s that read as 1 dps no
+        // matter the actual rate.
+        //
+        // Both timers advance every tick and reset only when they fire, so the half
+        // second they start out of phase is a half second they stay out of phase — the
+        // two figures alternate for as long as the body is paying both.
+        _sinceIgniteFlush += elapsed;
+        if (_sinceIgniteFlush >= FireFlushInterval)
+        {
+            _sinceIgniteFlush = 0f;
+            FlushFireChannel(ref _pendingIgniteDamage, _lastIgniteOwnerTag, IgniteDamageColor);
+        }
 
-        if (_pendingFireDamage < 1f) return;
+        _sinceFieldFlush += elapsed;
+        if (_sinceFieldFlush >= FireFlushInterval)
+        {
+            _sinceFieldFlush = 0f;
+            FlushFireChannel(ref _pendingFieldDamage, _lastFieldOwnerTag, FieldDamageColor);
+        }
+    }
 
-        int whole = Mathf.FloorToInt(_pendingFireDamage);
-        _pendingFireDamage -= whole;
-        ApplyFireDamage(whole, _lastFireOwnerTag);
+    // Fractions are carried, never dropped: a channel running at 3.5 dps pays 3 one
+    // second and 4 the next rather than 3 forever.
+    private void FlushFireChannel(ref float pending, string ownerTag, Color color)
+    {
+        if (pending < 1f) return;
+
+        int whole = Mathf.FloorToInt(pending);
+        pending -= whole;
+        ApplyFireDamage(whole, ownerTag, color);
     }
 
     // Deliberately NOT routed through TakeDamage: that fires StaggerRoutine, and a
     // once-a-second stagger would stun-lock anything standing in fire (subclasses
     // skip movement while staggered), freezing the very movement Fire Trail needs.
     // Mirrors the poison tick's inline damage path instead.
-    protected void ApplyFireDamage(int damage, string ownerTag)
+    protected void ApplyFireDamage(int damage, string ownerTag, Color color)
     {
         if (isDead || ImmuneToAreaDamage || damage <= 0) return;
 
         peakHealth = Mathf.Max(peakHealth, health);
         health -= damage;
-        ShowDamageText(damage, new Color(1f, 0.55f, 0.2f)); // ember orange
+        ShowDamageText(damage, color); // orange for a burn, gold for the ground
 
         if (health > 0)
         {
@@ -1523,6 +1841,85 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // A poisoned enemy finished off by fire still owes Serpent its death effects
         TriggerPoisonDeathEffects();
         PlayerStats.Increment("kills.burned");
+
+        if (!string.IsNullOrEmpty(ownerTag))
+        {
+            GiveSpecialToPlayer(specialOnDeath, ownerTag);
+            RaiseEnemyKilledBy(ownerTag);
+        }
+
+        if (deathSound != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(deathSound);
+        }
+
+        OnDeath();
+    }
+
+    /// <summary>
+    /// Frost Bite (Frigid capstone): cold that kills.
+    ///
+    /// Charged only while this body is actually chilled or frozen AND the knight
+    /// whose cold is on it owns the capstone, so every other build pays nothing for
+    /// this beyond the two field reads below.
+    ///
+    /// The rate is the Order's own cycle priced as damage: a slowed body bills less
+    /// than a stopped one, so "chill it, then stop it" is also the damage upgrade.
+    /// </summary>
+    private void TickFrostBite()
+    {
+        // Not merely zero damage — a cart parked in a ward costs nothing to have on
+        // the track, the same exemption fire makes.
+        if (!_frostBiteActive || ImmuneToAreaDamage) return;
+
+        bool frozen = IsFrozen;
+        if (!frozen && !IsChilled)
+        {
+            // Cold gone: drop the part-charged tick rather than banking it for the
+            // next chill. A body that walked out of a ward has genuinely shrugged it
+            // off, and saving the fraction would let a knight sweep a crowd in and
+            // out of the ring to stack up free damage.
+            _pendingFrostDamage = 0f;
+            _sinceFrostFlush = 0f;
+            return;
+        }
+
+        float dps = frozen ? FrigidBoost.FrostBiteFrozenDps : FrigidBoost.FrostBiteChilledDps;
+        _pendingFrostDamage += dps * Time.deltaTime;
+
+        _sinceFrostFlush += Time.deltaTime;
+        if (_sinceFrostFlush < FrigidBoost.FrostBiteFlushInterval) return;
+        _sinceFrostFlush = 0f;
+
+        if (_pendingFrostDamage < 1f) return;
+
+        int whole = Mathf.FloorToInt(_pendingFrostDamage);
+        _pendingFrostDamage -= whole;
+        ApplyFrostDamage(whole, _frostBiteOwnerTag);
+    }
+
+    /// <summary>
+    /// Damage from Frost Bite. Mirrors ApplyFireDamage, with one difference that
+    /// matters: it NEVER calls BreakFreezeIfHardEnough.
+    ///
+    /// Cold cannot break its own ice. Ice damage adds up across hits, so if these
+    /// ticks counted, the capstone would wear down and break every statue it makes.
+    /// </summary>
+    private void ApplyFrostDamage(int damage, string ownerTag)
+    {
+        if (isDead || ImmuneToAreaDamage || damage <= 0) return;
+
+        peakHealth = Mathf.Max(peakHealth, health);
+        health -= damage;
+        ShowDamageText(damage, new Color(0.55f, 0.85f, 1f)); // pale ice
+
+        if (health > 0) return;
+
+        isDead = true;
+        // A poisoned body finished off by cold still owes Serpent its death effects,
+        // exactly as one finished off by fire does.
+        TriggerPoisonDeathEffects();
+        PlayerStats.Increment("kills.frostbitten");
 
         if (!string.IsNullOrEmpty(ownerTag))
         {
@@ -1609,7 +2006,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Killed mid-ice: give the frozen tally back before isDead makes IsFrozen
         // read false and the body stops being able to account for itself. Shatter
         // kills go through here, so this is not a rare path.
-        Thaw(false);
+        Thaw();
 
         // Killed mid-nap: hand the behaviour back before anything downstream runs
         // on a corpse that is still switched off
@@ -1797,6 +2194,17 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         else if (other.CompareTag("Shield"))
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyShield);
+
+            // Bulwark (Guardian capstone): the guard stops being a trade.
+            //
+            // Every other knight in the game buys this body's removal with their own
+            // health — the branch below deletes the enemy and charges the knight for
+            // it. Bulwark refuses the exchange: nothing is paid, nothing is deleted,
+            // the body is simply thrown off the shield and has to come again. It is
+            // the Order's pillar taken to its end, that being hit is never the thing
+            // that pays out.
+            if (TryBulwarkShove(other)) return;
+
             PlayerHealth playerHealth = other.transform.parent?.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {

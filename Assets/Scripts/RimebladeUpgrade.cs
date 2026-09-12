@@ -10,7 +10,7 @@ using UnityEngine;
 //
 // The burst is centred on the KNIGHT rather than thrown along the facing, because
 // the whole point of the sword in this game is that something is already too
-// close. With Deep Freeze owned, a swing into a body an arrow already chilled
+// close. With Frost Tip owned, a swing into a body an arrow already chilled
 // stops it dead at arm's length.
 [CreateAssetMenu(fileName = "RimebladeUpgrade", menuName = "Upgrades/Rimeblade")]
 public class RimebladeUpgrade : BaseUpgrade

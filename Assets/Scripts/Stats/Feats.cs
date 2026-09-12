@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -28,6 +29,10 @@ public static class Feats
     public const string FrozenFour = "feats.frozen_4";
     /// <summary>A wave that drove a knight low and still ended with both at full.</summary>
     public const string DawnPairPulledBack = "feats.dawn_pair_pulled_back";
+    /// <summary>One reflected powder rock catching three bodies at once.</summary>
+    public const string ReflectThree = "feats.reflect_3";
+    /// <summary>One knight, in one run, two Guardian picks deep and using them.</summary>
+    public const string GuardianAwoken = "feats.guardian_awoken";
 
     /// <summary>Running total of shadow arrows that connected.</summary>
     public const string ShadowArrowHits = "hits.shadowarrow";
@@ -75,6 +80,68 @@ public static class RunPurity
         if (knight == null) return true;
         var boost = knight.GetComponent<EquipmentBoost>();
         return boost == null || !boost.CarriesAnything;
+    }
+}
+
+/// <summary>
+/// The Guardian Order's door, and the one reveal condition in the game that asks
+/// about a RUN rather than a lifetime.
+///
+/// Every other quest gate reads an accumulated stat. This one wants "you took two
+/// Guardian upgrades on one knight and then actually used them, in the same run",
+/// which no counter can express - a player who took a Guardian pick twenty runs ago
+/// and reflected a rock today has not done the thing.
+///
+/// Both halves are tracked PER KNIGHT TAG, so two knights cannot each contribute
+/// half of it. Static, and therefore reset from Spawner.BeginRun every run, the same
+/// discipline RunPurity above needs.
+/// </summary>
+public static class GuardianAwakening
+{
+    private static readonly Dictionary<string, int> Picks = new Dictionary<string, int>();
+    private static readonly HashSet<string> Used = new HashSet<string>();
+    private static bool _recorded;
+
+    /// <summary>How many Guardian picks one knight needs before using them counts.</summary>
+    private const int PicksNeeded = 2;
+
+    /// <summary>Called once from Spawner.Start. See RunPurity.BeginRun.</summary>
+    public static void BeginRun()
+    {
+        Picks.Clear();
+        Used.Clear();
+        _recorded = false;
+    }
+
+    /// <summary>A Guardian upgrade landed on this knight. Called from UpgradeManager,
+    /// which is the one place that knows both the knight and the Order.</summary>
+    public static void NoteUpgrade(string knightTag)
+    {
+        if (string.IsNullOrEmpty(knightTag)) return;
+        Picks.TryGetValue(knightTag, out int count);
+        Picks[knightTag] = count + 1;
+        Check(knightTag);
+    }
+
+    /// <summary>This knight steered a shot or turned a rock around. Called from
+    /// GuidedShot and ProjectileSettings - the two things the Order actually does
+    /// that a player can see happen.</summary>
+    public static void NoteUse(string knightTag)
+    {
+        if (string.IsNullOrEmpty(knightTag)) return;
+        Used.Add(knightTag);
+        Check(knightTag);
+    }
+
+    private static void Check(string knightTag)
+    {
+        if (_recorded) return;
+        if (!Used.Contains(knightTag)) return;
+        Picks.TryGetValue(knightTag, out int count);
+        if (count < PicksNeeded) return;
+
+        _recorded = true;
+        Feats.Record(Feats.GuardianAwoken);
     }
 }
 

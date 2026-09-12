@@ -14,6 +14,7 @@ public static class StatsDatabase
         new StatDefinition("kills.poisoned", "Slain by Venom",  "slain by venom"),
         new StatDefinition("kills.burned",   "Slain by Fire",   "slain by fire"),
         new StatDefinition("kills.blasted",  "Slain by Blast",  "slain by blast"),
+        new StatDefinition("kills.frostbitten", "Slain by Cold", "slain by cold"),
         // Named for the upgrade that does it rather than for the abstraction:
         // "executed" is a word the player never sees anywhere else
         new StatDefinition("kills.executed", "Finished by Killing Blow", "finished by Killing Blow"),
@@ -49,6 +50,14 @@ public static class StatsDatabase
         new StatDefinition("frigid.chilled",   "Enemies Chilled",   "enemies chilled"),
         new StatDefinition("frigid.frozen",    "Enemies Frozen",    "enemies frozen"),
         new StatDefinition("frigid.shattered", "Enemies Shattered", "enemies shattered"),
+
+        // Guardian deeds. Blocked counts every rock the guard stops, reflected only
+        // the ones it sends back, so the pair reads as "how often was the guard in
+        // the right place" against "how much of that was paid for".
+        new StatDefinition("guardian.blocked",   "Rocks Blocked",   "rocks blocked"),
+        new StatDefinition("guardian.reflected", "Rocks Sent Back", "rocks sent back"),
+        new StatDefinition("guardian.guided",    "Shots Guided",    "shots guided"),
+        new StatDefinition("guardian.shoved",    "Bodies Thrown",   "bodies thrown off the guard"),
 
         // Dawn deeds. These were published by DawnBoost and PlayerHealth from the
         // day the Order shipped; nothing had ever named them.

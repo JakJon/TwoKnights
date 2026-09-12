@@ -83,12 +83,12 @@ public static class FrigidQuests
             id: Silence2,
             name: "Nothing Moves",
             description:
-                "The Order's final rite is the admission the whole thing was always heading toward: " +
-                "some ice is not meant to melt. What you stop stays stopped, and the field stops being " +
-                "ground you defend and becomes a row of things waiting their turn.",
+                "The deepest rite of the Order is the admission the whole thing was always heading " +
+                "toward: enough time is the same as winning. Fifteen seconds is long enough that the " +
+                "field stops being ground you defend and becomes a row of things waiting their turn.",
             mapId: Camp,
             objectives: One("upgrades.taken.permafrost", 1,
-                            "Acquire Permafrost, the Frigid capstone", hideProgress: true),
+                            "Acquire Deep Freeze III, the deepest ice", hideProgress: true),
             reward: Reward(equipmentId: "heart_of_ice"),
             unlocks: Gate(After(Silence1)));
     }

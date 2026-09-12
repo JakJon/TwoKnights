@@ -37,7 +37,7 @@ MonoBehaviour:
   poisonDeathSpecial: 0
   igniteDpsBonus: 0
   startingIgniteChance: 0
-  fireTrailDurationBonus: 0
+  fireZoneRadiusBonus: 0
   startingEchoFraction: 0.25
   startingOrbHealMultiplier: 0
   chillDurationMultiplier: 1

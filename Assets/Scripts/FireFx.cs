@@ -2,8 +2,7 @@ using UnityEngine;
 
 // Code-built Ember visuals that aren't the persistent fire field itself:
 // the fireball detonation pop, and the trailing embers on an ignited arrow.
-// Mirrors ShadowFx / PoisonCloud.SpawnBurstEffect — no prefab, no art beyond the
-// shared white ember mote.
+// Mirrors ShadowFx — no prefab, no art beyond the shared white ember mote.
 public static class FireFx
 {
     private static Sprite MoteSprite

@@ -39,6 +39,15 @@ public abstract class BaseUpgrade : ScriptableObject
     [SerializeField] protected UpgradeOrder secondOrder = UpgradeOrder.Neutral;
     [SerializeField] protected int requiresSecondOrderCount = 0;
     [SerializeField] protected List<BaseUpgrade> unlockedBy = new List<BaseUpgrade>();
+
+    // unlockedBy is ANY-of by default, which is what every chain wants: rank II opens
+    // off rank I and there is only ever one entry. Set this and the SAME list becomes
+    // ALL-of instead, for the handful of upgrades that sit where two chains meet and
+    // are meaningless without both halves - Guided Reflections needs a knight who can
+    // turn a rock around AND one whose shots steer, because it is the two of them
+    // welded together. Defaults false, so nothing already authored changes.
+    [SerializeField] protected bool requiresAllUnlocks = false;
+
     [SerializeField] protected List<BaseUpgrade> lockedBy = new List<BaseUpgrade>();
     [SerializeField] protected List<UpgradeStat> stats = new List<UpgradeStat>();
 
@@ -50,6 +59,7 @@ public abstract class BaseUpgrade : ScriptableObject
     public UpgradeOrder SecondOrder => secondOrder;
     public int RequiresSecondOrderCount => requiresSecondOrderCount;
     public IReadOnlyList<BaseUpgrade> UnlockedBy => unlockedBy;
+    public bool RequiresAllUnlocks => requiresAllUnlocks;
     public IReadOnlyList<BaseUpgrade> LockedBy => lockedBy;
     public IReadOnlyList<UpgradeStat> Stats => stats;
 

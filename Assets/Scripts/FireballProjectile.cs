@@ -124,21 +124,19 @@ public class FireballProjectile : MonoBehaviour
             // shot, and the direct hit above is exempt from this check
             if (enemy.ImmuneToAreaDamage) continue;
 
-            enemy.TakeDamage(blastDamage, gameObject);
+            enemy.TakeDamage(EquipmentBoost.ScaleHit(blastDamage, enemy, ownerTag), gameObject);
             enemy.Ignite(ownerTag);
         }
 
         // The crater: this is the fireball's real contribution to the Order. Burning
-        // ground for twice as long as it used to burn, and — since EmberBoost's
-        // GroundFireIgnites went off — ground that lights NOTHING. The blast above
-        // still ignites everything it catches, because that is the fireball itself
-        // landing on them; what the mark it leaves does is deal damage to whatever
-        // stands in it. NextZoneSourceId is what says so, and it says so for every
-        // zone in the game rather than only for this one.
+        // ground for twice as long as it used to burn, and ground that lights NOTHING.
+        // The blast above still ignites everything it catches, because that is the
+        // fireball itself landing on them; what the mark it leaves does is deal damage
+        // to whatever stands in it, for twelve seconds, or forever under Scorched
+        // Earth.
         if (ownerBoost != null)
         {
-            ownerBoost.PlaceZone(center, EmberBoost.CraterRadius, EmberBoost.CraterDuration,
-                EmberBoost.NextZoneSourceId());
+            ownerBoost.PlaceZone(center, EmberBoost.CraterRadius, EmberBoost.CraterDuration);
         }
 
         FireFx.Burst(center, blastRadius);

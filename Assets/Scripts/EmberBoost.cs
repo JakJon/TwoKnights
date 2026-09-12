@@ -5,10 +5,11 @@ using UnityEngine;
 // cadence), SwordSwing reads it per swing (Firebrand), and EnemyBase reads the
 // igniting knight's sheet while an enemy burns (trail size, panic speed).
 //
-// THE IGNITION PILLAR: an enemy can only be ignited by a fireball or an arrow
-// that rolled ignite. Fire zones deal flat damage and NEVER ignite. Every
-// ignition on the field is one the player chose to grant — see
-// Docs/Design/ember-order.md. Nothing here or in FireField may relax that.
+// THE IGNITION PILLAR: an enemy can only be ignited by a fireball, an arrow that
+// rolled ignite, or the Fire Sight beam. Nothing on the ground lights anything, and
+// body-to-body contact does not either: burning ground and a burning body both COOK
+// what they touch and nothing more. Every ignition on the field is one the player
+// aimed. See Docs/Design/ember-order.md.
 public class EmberBoost : MonoBehaviour
 {
     // --- Ignited Tips: the arrow door ---
@@ -37,63 +38,115 @@ public class EmberBoost : MonoBehaviour
     // trailing off after. Poison is the one that outlives its target.
     public const float IgniteDuration = 8f;
 
-    // Zone damage: base 3.0, +0.5 per Fire Trail rank, +0.5 per Searing Panic
-    // rank, so a full Ember build burns at 5.0 dps. Tuning knob #1. This is also
-    // the dps ONE burn stack contributes to an ignited enemy — each extra ignite
-    // adds another stack of this size (see EnemyBase burn stacks).
+    // Zone damage, and the whole of the Order's dps ladder (retuned down again
+    // 2026-09-08, ceiling 6.0 -> 4.5):
+    //
+    //   Base                3.00
+    //   Fire Trail I       +0.00   (buys the lane, not the number)
+    //   Fire Trail II      +0.25
+    //   Searing Panic I    +0.25
+    //   Searing Panic II   +0.50
+    //   Scorched Earth     +0.50
+    //   Full build          4.50
+    //
+    // Two thirds of the ceiling is now the BASE. Ember's upgrades buy reach — wider
+    // lanes, more of them, fire that stays — and only trim the rate, which is what
+    // keeps a fully-built field from deleting anything that touches it.
+    //
+    // Fire Trail I is the one pick in the Order worth no dps at all. It buys the lane
+    // itself, which is the whole of what it is for.
+    //
+    // Tuning knob #1. This is also the dps ONE burn stack contributes to an ignited
+    // enemy — each extra ignite adds another stack of this size (see EnemyBase burn
+    // stacks) — and, separately, what the field channel bills for standing in it.
+    //
+    // Searing Panic is the only chain whose two ranks are worth different amounts. It
+    // is the pick that reads as a downside, so rank I has to pay something the frame
+    // it lands, and rank II is where it actually gets paid.
     //
     // Sits ABOVE poison's per-tick rate on purpose. The two are meant to feel
     // different rather than balanced tick-for-tick: fire kills a 20 HP rat 1.7s
     // sooner after the same arrow, poison carries far more total damage it can only
     // collect from something that lives long enough.
     public const float BaseZoneDps = 3f;
-    private const float DpsPerRank = 0.5f;
+    private const float DpsFireTrail2 = 0.25f; // rank I is worth no dps at all
+    private const float DpsPanicRank1 = 0.25f;
+    private const float DpsPanicRank2 = 0.5f;
+    private const float ScorchedEarthDps = 0.5f;
 
     // ---- Fire spread ----
     //
-    // NOTHING CATCHES FIRE FROM FIRE any more (owner's call, 2026-09-07). Fire spread
-    // is now purely a DAMAGE rule: a burning body cooks the bodies pressed against it
-    // at its own dps, and that is all it does to them. They never light, so they never
-    // cook their own neighbours in turn.
+    // NO BODY CATCHES FIRE FROM ANOTHER BODY (owner's call, 2026-09-07, reaffirmed
+    // 2026-09-08). Contact spread is purely a DAMAGE rule: a burning body cooks the
+    // bodies pressed against it at its own dps, and that is all it does to them. An
+    // ignited mob never ignites an unignited one.
     //
     // It used to hand over a burn, kept finite by a source rule — every burn had an id
     // and could light a given enemy only once. Finite is not the same as controlled:
     // one ignited arrow into a packed lane still lit the lane, and each newly-lit body
     // lit the ones behind it, so the fire on the board stopped being anything the
-    // player had chosen to grant. The ignition doors are back to arrow and fireball,
-    // for the field (see GroundFireIgnites) and for bodies alike.
+    // player had chosen to grant.
     //
-    // The source rule and its ids survive because ground fire still uses them if
-    // GroundFireIgnites is ever turned back on. Turn THIS off and a burning body stops
-    // touching its neighbours at all; the dps and duration numbers above stand alone.
-    // A static rather than a const so it can be flipped mid-run from a debug console.
+    // Ground fire was briefly bought back by Scorched Earth and is shut again
+    // (owner's call, 2026-09-08). Both halves of fire-from-fire are now off: neither
+    // the floor nor a neighbouring body can light anything, whatever the player has
+    // bought. The capstone keeps its eternal zones and its damage and gives up the
+    // ignition.
+    //
+    // Turn THIS off and a burning body stops touching its neighbours at all, and zones
+    // stop lighting anything whatever the capstone says; the dps and duration numbers
+    // above stand alone. A static rather than a const so it can be flipped mid-run from
+    // a debug console.
     public static bool FireSpreadEnabled = true;
 
-    // GROUND FIRE DOES NOT LIGHT ANYTHING (owner's call, 2026-09-06). Burning
-    // ground deals its damage and nothing else, whatever laid it down - a Fire
-    // Trail lane, a placed zone, and A FIREBALL'S CRATER included. The crater was
-    // the specific one worth naming: it was the one zone that always minted itself
-    // a fresh ignition source, so a fireball into a crowd used to light everything
-    // that walked over the mark for the next six seconds, and the fire on the board
-    // stopped being anything the player had chosen to grant.
+    // GROUND FIRE DOES NOT LIGHT ANYTHING BY DEFAULT (owner's call, 2026-09-06).
+    // Burning ground deals its damage and nothing else, whatever laid it down - a
+    // Fire Trail lane, a placed zone, and A FIREBALL'S CRATER included. The crater
+    // was the specific one worth naming: it was the one zone that always minted
+    // itself a fresh ignition source, so a fireball into a crowd used to light
+    // everything that walked over the mark for the next six seconds, and the fire on
+    // the board stopped being anything the player had chosen to grant.
     //
-    // This is the arrow-and-fireball ignition pillar back in force
-    // (Docs/Design/ember-order.md): the only things that ignite an enemy are an
-    // arrow that rolled ignite and a fireball landing on it. Body-to-body contact
-    // was the last exception and it went the same way a day later - see the fire
-    // spread block above.
+    // SCORCHED EARTH BUYS THE EXCEPTION (owner's call, 2026-09-08). The capstone
+    // turns the knight's own fire back into an ignition door: their zones are
+    // eternal AND they light what stands in them. That is the whole shape of the
+    // pick - the player stops aiming ignitions and starts painting a floor that
+    // grants them. It stays bounded by the source rule (a given fire lights a given
+    // body at most once), by the zone cap, and by the wave-end clear.
+    //
+    // Body-to-body contact is NOT part of that and does not come back: an ignited mob
+    // cooks its neighbours, it does not light them - see the fire spread block above.
+    // A mob reaches another mob only the long way round, by dripping a trail that mob
+    // later walks into, which is ground fire doing it and is the point of the pick.
+    //
+    // This static is the ONLY thing that opens the ground-ignition door, and it is
+    // off. No upgrade turns it on — it exists so the behaviour can be tried from a
+    // debug console without restoring the machinery by hand. The plumbing behind it
+    // (the zone's ignites bit, EnemyBase's fire-AoE flag) is live and correct; it
+    // simply never fires.
     public static bool GroundFireIgnites = false;
 
     /// <summary>
-    /// The source id a zone should carry. 0 means "this zone never ignites", which
-    /// is what every zone gets while <see cref="GroundFireIgnites"/> is off - so
-    /// the rule holds at the point zones are CREATED as well as where they are
-    /// sampled, and a zone laid under the old rule cannot outlive the change.
+    /// Whether THIS knight's zones light what stands in them — the global override and
+    /// nothing else. Read where zones are CREATED as well as where they are sampled,
+    /// so flipping the toggle mid-run cannot retroactively arm fire already on the
+    /// floor.
     /// </summary>
-    public static int NextZoneSourceId()
+    public bool ZonesIgnite
     {
-        return (FireSpreadEnabled && GroundFireIgnites) ? NextFireSourceId() : 0;
+        get { return FireSpreadEnabled && GroundFireIgnites; }
     }
+
+    // How long the fire-AoE STATE outlives the fire that set it. Anti-chatter only:
+    // it stops the flag flipping on and off as a body clips the edge of a lane. It does
+    // NOT extend damage — EnemyBase bills the field channel for the beats a body is
+    // actually standing in fire and no longer (owner's report, 2026-09-08; charging the
+    // linger meant a graze cost as much as stopping in the fire).
+    //
+    // With ground ignition off, the state this debounces has no consumer, so the
+    // constant is dormant. It is kept because the moment anything reads "is this body
+    // alight from the floor" it will need exactly this debounce.
+    public const float FireAoeLinger = 2f;
 
     // How close a burning body has to be to scorch another one
     public const float ContactSpreadRadius = 0.6f;
@@ -101,16 +154,6 @@ public class EmberBoost : MonoBehaviour
     // How often spread is evaluated, matching the fire damage tick so a burning enemy
     // costs one overlap query per beat rather than one per frame.
     public const float SpreadCheckInterval = 0.25f;
-
-    // Identity for the source rule. Every burn and every igniting crater draws one,
-    // so "has this fire already lit that enemy" is a set lookup and never a guess.
-    // Minted here rather than in EnemyBase because craters have no burn to belong to.
-    private static int _nextFireSourceId = 1;
-
-    public static int NextFireSourceId()
-    {
-        return _nextFireSourceId++;
-    }
 
     // Fireball crater. Twelve seconds rather than six (owner's call, 2026-09-06):
     // now that the crater cannot light anything, the only thing it contributes
@@ -122,23 +165,46 @@ public class EmberBoost : MonoBehaviour
 
     // Equipment (Emberbrand, Cinder Crown) adds on top of what the Order earned.
     // Separate fields rather than inflating fireTrailLevel, which also controls
-    // trail radius and whether trails drop at all.
+    // trail radius and whether trails drop at all. Two items both add.
     private float zoneDpsBonus;
-    private float trailDurationBonus;
+    private float zoneRadiusBonus;
 
     public void AddZoneDpsBonus(float amount)
     {
-        zoneDpsBonus = Mathf.Max(zoneDpsBonus, amount);
+        zoneDpsBonus += Mathf.Max(0f, amount);
     }
 
-    public void AddTrailDurationBonus(float seconds)
+    // Widens EVERY fire zone this knight lays down — trail drops and fireball
+    // craters alike. Added where the zone is placed rather than folded into
+    // TrailZoneRadius, so the crater gets it too and the trail ladder below stays
+    // the Order's own numbers.
+    public void AddZoneRadiusBonus(float units)
     {
-        trailDurationBonus = Mathf.Max(trailDurationBonus, seconds);
+        zoneRadiusBonus += Mathf.Max(0f, units);
     }
 
     public float ZoneDps
     {
-        get { return BaseZoneDps + DpsPerRank * (fireTrailLevel + searingPanicLevel) + zoneDpsBonus; }
+        get
+        {
+            return BaseZoneDps
+                + (fireTrailLevel >= 2 ? DpsFireTrail2 : 0f)
+                + PanicZoneDps
+                + (scorchedEarth ? ScorchedEarthDps : 0f)
+                + zoneDpsBonus;
+        }
+    }
+
+    // Not a per-rank multiple: rank II is worth twice rank I, so the ranks are added
+    // up rather than scaled. Cumulative — buying II keeps what I gave.
+    private float PanicZoneDps
+    {
+        get
+        {
+            if (searingPanicLevel >= 2) return DpsPanicRank1 + DpsPanicRank2;
+            if (searingPanicLevel >= 1) return DpsPanicRank1;
+            return 0f;
+        }
     }
 
     // ---- Ignited Tips ----
@@ -149,12 +215,23 @@ public class EmberBoost : MonoBehaviour
         igniteChance = Mathf.Clamp(Mathf.Max(igniteChance, chance), 0f, 100f);
     }
 
-    public bool ShouldIgnite()
+    // Equipment's ignite chance adds on top of the Ignited Tips tier, rather than
+    // going through the monotonic setter above, which would swallow it the moment
+    // a tier matched it. Items always stack.
+    private float equipmentIgniteChance;
+
+    public void AddIgniteChanceFromEquipment(float chance)
     {
-        return igniteChance > 0f && Random.Range(0f, 100f) < igniteChance;
+        equipmentIgniteChance += Mathf.Max(0f, chance);
     }
 
-    public float IgniteChance { get { return igniteChance; } }
+    public bool ShouldIgnite()
+    {
+        float chance = IgniteChance;
+        return chance > 0f && Random.Range(0f, 100f) < chance;
+    }
+
+    public float IgniteChance { get { return Mathf.Clamp(igniteChance + equipmentIgniteChance, 0f, 100f); } }
 
     // ---- Fireball ----
 
@@ -234,8 +311,55 @@ public class EmberBoost : MonoBehaviour
     // Seconds between trail drops while an ignited enemy is moving
     public const float TrailDropInterval = 0.35f;
 
-    public float TrailZoneRadius { get { return fireTrailLevel >= 2 ? 0.75f : 0.5f; } }
-    public float TrailZoneDuration { get { return (fireTrailLevel >= 2 ? 7f : 4f) + trailDurationBonus; } }
+    // The lane-width ladder (retuned down 2026-09-08, ceiling 2.25u -> 1.75u). Four
+    // picks widen a trail, each by its own amount rather than by a shared per-rank
+    // step:
+    //
+    //   Fire Trail I     0.50   (the base lane)
+    //   Fire Trail II   +0.25
+    //   Searing Panic I +0.25
+    //   Searing Panic II+0.25
+    //   Scorched Earth  +0.25
+    //   Top of the Order 1.50
+    //
+    // Every step is a quarter now, so the ladder is the base lane plus four equal
+    // rungs. Fire Trail I still owns two thirds of the ceiling by itself: the lane is
+    // the pick, and everything after it is a trim.
+    //
+    // Additive rather than multiplied so a step is worth the same wherever it is
+    // bought, and so the table above IS the implementation.
+    //
+    // NOTE: FireField spreads a fixed particle budget over the whole field, so zones
+    // this size draw somewhat thinner than small ones. The damage is unaffected — the
+    // hitbox is the radius — but the fire looks sparser than it bites.
+    private const float TrailRadiusBase = 0.5f;
+    private const float TrailRadiusFireTrail2 = 0.25f;
+    private const float TrailRadiusPanic1 = 0.25f;
+    private const float TrailRadiusPanic2 = 0.25f;
+    private const float TrailRadiusScorchedEarth = 0.25f;
+
+    public float TrailZoneRadius
+    {
+        get
+        {
+            return TrailRadiusBase
+                + (fireTrailLevel >= 2 ? TrailRadiusFireTrail2 : 0f)
+                + PanicTrailRadius
+                + (scorchedEarth ? TrailRadiusScorchedEarth : 0f);
+        }
+    }
+
+    // Cumulative, and uneven between the ranks — buying II keeps what I gave
+    private float PanicTrailRadius
+    {
+        get
+        {
+            if (searingPanicLevel >= 2) return TrailRadiusPanic1 + TrailRadiusPanic2;
+            if (searingPanicLevel >= 1) return TrailRadiusPanic1;
+            return 0f;
+        }
+    }
+    public float TrailZoneDuration { get { return fireTrailLevel >= 2 ? 7f : 4f; } }
 
     // ---- Searing Panic ----
 
@@ -267,15 +391,16 @@ public class EmberBoost : MonoBehaviour
 
     public bool ScorchedEarth { get { return scorchedEarth; } }
 
-    // Convenience for every zone-placing site: one call, correct dps and persistence.
-    // igniteSourceId is the fire this zone belongs to (0 = it never ignites), and
-    // sourceEnemyId the body that dripped it, so that body can walk its own trail
-    // without relighting itself. See the fire spread block above.
+    // Convenience for every zone-placing site: one call, correct dps, persistence and
+    // ignition. Whether the zone lights things is THIS knight's business and is baked
+    // in here rather than asked of every caller — sourceEnemyId is the only thing a
+    // caller supplies, being the body that dripped it, so that body can walk its own
+    // trail without paying for it twice.
     public void PlaceZone(Vector2 position, float radius, float duration,
-        int igniteSourceId = 0, int sourceEnemyId = 0)
+        int sourceEnemyId = 0)
     {
-        FireField.AddZone(position, radius, duration, gameObject.tag, ZoneDps, scorchedEarth,
-            false, igniteSourceId, sourceEnemyId);
+        FireField.AddZone(position, radius + zoneRadiusBonus, duration, gameObject.tag,
+            ZoneDps, scorchedEarth, false, ZonesIgnite, sourceEnemyId);
     }
 
     /// <summary>
@@ -283,9 +408,9 @@ public class EmberBoost : MonoBehaviour
     /// ask for several burning at once without counting craters.
     /// </summary>
     public void PlaceTrailZone(Vector2 position, float radius, float duration,
-        int igniteSourceId = 0, int sourceEnemyId = 0)
+        int sourceEnemyId = 0)
     {
-        FireField.AddZone(position, radius, duration, gameObject.tag, ZoneDps, scorchedEarth,
-            true, igniteSourceId, sourceEnemyId);
+        FireField.AddZone(position, radius + zoneRadiusBonus, duration, gameObject.tag,
+            ZoneDps, scorchedEarth, true, ZonesIgnite, sourceEnemyId);
     }
 }

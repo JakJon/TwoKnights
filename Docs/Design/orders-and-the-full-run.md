@@ -39,10 +39,19 @@ darts). The run's story becomes *the pair*.
 ## 2. Class roster
 
 - **Serpent (Poison)** — patient, inevitable death; swarm/tank killer, weak burst.
-  Disciplines: Venom Tip I–III (chance 30/60/100%), Virulence I–II (stronger/faster
-  ticks), Miasma I–II (death-clouds spread poison), capstone **Plaguebringer**
-  (requires 4 Serpent picks: poisoned deaths burst onto neighbors and feed the special
-  bar). Poison inverts the arrow economy — a poisoned wolf dies eventually even
+  Disciplines: Venom Tip I–III (chance 30/60/100%), Virulence I–II (+1 tick damage
+  each, rank II also ticks faster — cut from +2 on 2026-09-10, poison ran too
+  strong), Miasma I–II (death-clouds spread poison), capstone **Acid Dagger**
+  (requires 4 Serpent picks: half a second after every sword swing, a small dagger
+  jabs straight out along the shield facing to two thirds of the sword's reach —
+  50 damage and a Venom Tip arrow's poison, one short narrow box, no arc). The
+  **Plaguebringer** combo (Serpent + Guardian, 2 of each, plus a cloud source —
+  Miasma, Serpent's Breath or Vial Throw) makes every venom cloud the knight makes
+  hunt the nearest on-screen mob within 3u that it has not poisoned yet, at that
+  mob's own speed +0.5u/s, with about one puff in five golden-white — Guided Shot
+  for clouds. Both 2026-09-10: Plaguebringer was the capstone (a death-burst), was
+  reworked into the hunting clouds, then moved to the combo slot when Acid Dagger
+  took the capstone. Poison inverts the arrow economy — a poisoned wolf dies eventually even
   unattended, so Serpent knights can afford to switch targets; big-count waves are the
   Serpent showcase.
 - **Shadow (Ninja)** — action economy: Serpent wins by patience, Shadow wins by
@@ -55,10 +64,19 @@ darts). The run's story becomes *the pair*.
   erases the firing cooldown for 2s; reuses RapidFire tech). Starting picks:
   Shadow Arrows I + Phantom Blade I; Shuriken/Killing Blow unlock off Shadow
   Arrows I. New `NinjaBoost` knight stat sheet mirrors `PoisonTipBoost`.
-- **Guardian (Tank)** — the shield is the weapon: Greatshield I–III (each tier both
-  lengthens the span and bows the bar around the knight; the bow never costs span)
-  *(shipped)*, Thorned Aegis (reflect blocks), Stalwart (blocks charge special),
-  capstone *Unbreakable* (the damage streak-reset is suppressed once per wave).
+- **Guardian (Tank)** — the shield is the weapon, and the Order buys the LANDING
+  rather than a bigger number *(shipped 2026-09-08, 18 upgrades — see
+  `guardian-order.md`)*: Greatshield I–III (each tier both lengthens the span and
+  bows the bar around the knight; the bow never costs span), Long Sword I–III,
+  Bowsight I–II, Reflector I–II (50% then 100% of blocks send it back — rock,
+  pickaxe, fireball or bomb alike — keeping whatever it was carrying),
+  Guided Shot I–III (the main arrow bends onto a mob or
+  an orb within 0.5/1.0/1.6u), Guided Reflections I–III (the rebound steers too —
+  the one upgrade in the game that needs BOTH prerequisites), capstone **Bulwark**
+  (a body reaching the guard is thrown two units off it and the knight pays
+  nothing). Pillar: Guardian never asks the knight to aim better, and nothing in
+  it rewards being hit — *Stalwart* (blocks charge the special) was designed
+  alongside Bulwark and cut for contradicting the second half.
 - **Ember (Fire)** — burst + area denial: Ignited Tips (short/hot DoT vs poison's
   long/slow), Fireburst (kill explosions), Scorched Ground, capstone *Immolation*
   (special = firestorm).
@@ -124,5 +142,5 @@ per Order, lit when unlocked.
 | **A** | Orders framework + full Serpent class + card styling + particles |
 | **B** | `MapDefinition`, gate-boss/true-boss flow, Rat King, victory screen, stall fixed, map unlocks |
 | **C** | Map 2 "The Mine": camp level select + rail system + Choo Choo *(done)*; carts, mine mobs, ~15 waves, gate boss *(open)* |
-| **D** | Ember *(done)*, Dawn *(done)*; Guardian partial — 6 upgrades, capstone + Thorned Aegis + Stalwart still open; duo upgrades *(open)* |
+| **D** | Ember *(done)*, Dawn *(done)*, Guardian *(done — 18 upgrades, capstone Bulwark)*; duo upgrades *(open)* |
 | **E** | Camp skill tree, class/map quest lines, gold sinks |

@@ -1370,6 +1370,15 @@ public class UpgradeMenu : MonoBehaviour
             Place();
         }
 
+        // How far above the panel's middle the ring rides.
+        //
+        // The aura layer is 104x84 with the 64px knight standing on its floor, so
+        // `top: 50%` puts the orbit at 42px up — around his chest, where it read as a
+        // belt he was wearing. Lifting it 26 puts the centre at 68, and since the
+        // flattened ring only reaches about 9px above and below that, the whole thing
+        // sits just clear of his head at 64 and stays inside the layer.
+        private const float LiftY = 26f;
+
         private void Place()
         {
             float depth = Depth;
@@ -1382,8 +1391,8 @@ public class UpgradeMenu : MonoBehaviour
                 float theta = Mathf.Deg2Rad * _angle + (Mathf.PI * 2f * i) / _shields.Count;
                 float x = Mathf.Cos(theta) * radius;
                 // Flattened, so the ring lies around the knight instead of spinning flat
-                // against the panel.
-                float y = Mathf.Sin(theta) * radius * 0.34f;
+                // against the panel. Negative moves UP in UI Toolkit — see LiftY.
+                float y = Mathf.Sin(theta) * radius * 0.34f - LiftY;
 
                 // sin(theta) > 0 is the far half of the orbit: smaller, dimmer, behind.
                 float near = (1f - Mathf.Sin(theta)) * 0.5f;
@@ -1544,7 +1553,10 @@ public class UpgradeMenu : MonoBehaviour
         {
             float depth = Depth;
             float size = 1.5f + (float)Rng.NextDouble() * 2.4f;
-            float radius = 22f + 13f * depth;
+            // Half again as wide as it first shipped: at the old radius the rim sat
+            // close enough to the knight to read as an outline on him rather than as
+            // a ring of cold standing off him, which is what the ward actually is.
+            float radius = 33f + 19.5f * depth;
             float angle = (float)Rng.NextDouble() * Mathf.PI * 2f;
 
             float left = CenterX + Mathf.Cos(angle) * radius;

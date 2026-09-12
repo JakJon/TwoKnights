@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
-  m_Name: Vertigo
+  m_Name: Whiplash III
   m_EditorClassIdentifier: 
   waveName: Whiplash III
   weight: 1000

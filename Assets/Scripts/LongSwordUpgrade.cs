@@ -7,7 +7,7 @@ using UnityEngine;
 public class LongSwordUpgrade : BaseUpgrade
 {
     [Tooltip("Blade length and swing reach are multiplied by this. Compounds with any rank already owned.")]
-    [SerializeField] private float lengthMultiplier = 1.33f;
+    [SerializeField] private float lengthMultiplier = 2.129f;
 
     [Tooltip("Swing arc duration is multiplied by this. Above 1 is slower. Compounds.")]
     [SerializeField] private float slowMultiplier = 1.25f;

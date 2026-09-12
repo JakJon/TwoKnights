@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ca87ab27606c334a9896c3f2a802b31, type: 3}
-  m_Name: Chaotic Corners 2
+  m_Name: Chaotic Corners III
   m_EditorClassIdentifier: 
   waveName: Chaotic Corners III
   weight: 1000

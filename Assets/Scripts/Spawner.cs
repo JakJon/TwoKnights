@@ -109,6 +109,9 @@ public class Spawner : MonoBehaviour
         // Static state survives scene reloads, so this must run every run
         RunPurity.BeginRun(_leftPlayer.gameObject, _rightPlayer.gameObject);
 
+        // Static and therefore survives a scene reload, exactly like RunPurity above
+        GuardianAwakening.BeginRun();
+
 
         // Setup upgrade menu callback
         if (upgradeMenu != null)
@@ -423,8 +426,8 @@ public class Spawner : MonoBehaviour
         // the last one's inferno and the difficulty curve would invert.
         FireField.ClearAll();
 
-        // And the ice with it. A Permafrost hold has no deadline of its own to run
-        // out, so a statue made in wave eleven would still be standing in wave
+        // And the ice with it. A rank three hold runs fifteen seconds, so a statue
+        // made at the end of wave eleven would still be standing well into wave
         // twelve - the same inverted difficulty curve, in blue.
         FrigidBoost.ClearFieldFrost();
 

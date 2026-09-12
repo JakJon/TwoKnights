@@ -23,7 +23,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 94b5e096190a49e88ae8df34bf174252, type: 2}
   lockedBy: []
   stats:
-  - valueText: +33%
+  - valueText: +16%
     labelText: REACH
     isPositive: 1
   - valueText: 20
@@ -32,6 +32,6 @@ MonoBehaviour:
   - valueText: -20%
     labelText: SWING SPEED
     isPositive: 0
-  lengthMultiplier: 1.33
+  lengthMultiplier: 1.268
   slowMultiplier: 1.25
   baseDamage: 20

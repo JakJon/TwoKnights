@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Searing Panic 2
   m_EditorClassIdentifier: 
   upgradeName: Searing Panic II
-  description: Panic drives them harder and the fire bites deeper.
+  description: Panic drives them harder and the lanes spread wider still.
   weight: 22
   order: 4
   requiresOrderCount: 0
@@ -23,6 +23,9 @@ MonoBehaviour:
   stats:
   - valueText: +0.5
     labelText: FIRE DAMAGE
+    isPositive: 1
+  - valueText: +0.25
+    labelText: TRAIL SIZE
     isPositive: 1
   - valueText: +60%
     labelText: ENEMY SPEED

@@ -5,10 +5,16 @@ using UnityEngine;
 // sword attack is spawned by ShieldOrbit and would lose the upgrade every time
 // it was rebuilt.
 //
-// Length and slowness COMPOUND across ranks - rank two is a third longer again
-// than rank one, and a quarter slower again - while base damage is set outright.
-// That is what makes the second rank read as the same trade taken twice rather
-// than as a different upgrade.
+// Length and slowness COMPOUND across ranks - each rank multiplies what the one
+// before it left - while base damage is set outright. That is what makes the
+// second rank read as the same trade taken twice rather than as a different
+// upgrade.
+//
+// The per-rank length figures are NOT round numbers, and that is deliberate. Only
+// the blade scales: SwordSwing pins the hilt at a fixed arc radius of 1 and grows
+// the sprite outward from there, so tip distance is 1 + 0.75 * LengthMultiplier.
+// The multipliers are solved backwards from that so each rank puts the tip 30%
+// further out than the rank before would have - see SwordSwing.AnimateSwingArc.
 public class LongSwordBoost : MonoBehaviour
 {
     private float _lengthMultiplier = 1f;

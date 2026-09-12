@@ -253,6 +253,25 @@ public class EnemyFireball : MonoBehaviour, IChillable
             AudioManager.Instance?.PlaySFX(AudioManager.Instance.projectileShield);
             PlayerSpecial playerSpecial = other.GetComponentInParent<PlayerSpecial>();
             playerSpecial?.updateSpecial(1);
+
+            // Reflector (Guardian): the guard turns the slime's own fire around.
+            // A WARD is exempt and always pops: it is the boss's guard rather than a
+            // shot at anybody, and popping it is what opens the damage window — a
+            // reflected ward would be the Order quietly deleting the fight's one rule.
+            if (_mode != Mode.Ward)
+            {
+                GuardianReflect.Turn turn = GuardianReflect.TryTurn(other, HeadingVector());
+                if (turn.Happened)
+                {
+                    // Off first: the arc, the homing and the knight-damage handler all
+                    // live on this component, and switching it off is what makes the
+                    // fireball the knight's rather than the slime's.
+                    enabled = false;
+                    ReflectedShot.Attach(gameObject, turn, _speed, _damage);
+                    return;
+                }
+            }
+
             Pop();
             return;
         }

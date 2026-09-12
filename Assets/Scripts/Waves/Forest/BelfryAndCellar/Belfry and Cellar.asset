@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0fde099df052a934f8c8706301342ce2, type: 3}
-  m_Name: Belfry And Cellar 0
+  m_Name: Belfry and Cellar
   m_EditorClassIdentifier: 
   waveName: Belfry and Cellar
   weight: 100

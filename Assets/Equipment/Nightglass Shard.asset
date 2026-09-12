@@ -15,7 +15,7 @@ MonoBehaviour:
   id: nightglass_shard
   displayName: Nightglass Shard
   description: A splinter of something never meant to hold light.
-  effect: +15% shadow arrow damage.
+  effect: +15% shadow arrow and shuriken damage.
   icon: {fileID: 4196818611406544406, guid: 1f4197bb79bafe843bea89927727651e, type: 3}
   crystalCost: 0
   stats:
@@ -32,7 +32,7 @@ MonoBehaviour:
   poisonDeathSpecial: 0
   igniteDpsBonus: 0
   startingIgniteChance: 0
-  fireTrailDurationBonus: 0
+  fireZoneRadiusBonus: 0
   shadowArrowDamageBonus: 0.15
   phantomEchoBonus: 0
   startingShadowArrows: 0

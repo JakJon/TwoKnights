@@ -13,10 +13,19 @@ MonoBehaviour:
   m_Name: Scorched Earth
   m_EditorClassIdentifier: 
   upgradeName: Scorched Earth
-  description: Your fires no longer go out.
+  description: Your fires never go out, and they burn bigger and hotter.
   weight: 10
   order: 4
   requiresOrderCount: 4
   unlockedBy: []
   lockedBy: []
-  stats: []
+  stats:
+  - valueText: +0.5
+    labelText: FIRE DAMAGE
+    isPositive: 1
+  - valueText: +0.25
+    labelText: TRAIL SIZE
+    isPositive: 1
+  - valueText: FOREVER
+    labelText: FIRE LASTS
+    isPositive: 1

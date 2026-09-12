@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
-  m_Name: Bat Cauldron 1
+  m_Name: Bat Cauldron II
   m_EditorClassIdentifier: 
   waveName: Bat Cauldron II
   weight: 1000
@@ -20,7 +20,7 @@ MonoBehaviour:
   lockedAfterXWaves: 8
   useEnemyTracking: 1
   batsPerRing: 5
-  numberOfRings: 2
+  numberOfRings: 3
   delayBetweenRings: 12
   ringRadius: 12
   projectileAmount: 4

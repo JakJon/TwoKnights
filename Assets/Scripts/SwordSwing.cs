@@ -26,6 +26,12 @@ public class SwordSwing : MonoBehaviour
     private ShieldOrbit shield;
     private GameObject owningKnight;
 
+    /// <summary>The knight this blade belongs to. Exposed because things the sword
+    /// touches sometimes have to pay that knight rather than damage what they hit —
+    /// an orb the blade sweeps through is collected for them, exactly as an arrow
+    /// that reaches it is. Null until the first swing wires the shield up.</summary>
+    public GameObject OwningKnight => owningKnight;
+
     // Long Sword lives on the knight, so it is looked up per swing rather than
     // cached in Awake: the upgrade can land between one swing and the next.
     private LongSwordBoost LongSword =>
@@ -88,6 +94,7 @@ public class SwordSwing : MonoBehaviour
         TryExhaleSerpentsBreath();
         TryHurlFirebrand();
         TryReleaseRimeblade();
+        TryQueueAcidDagger();
         if (swordSpriteTransform == null || slashSpriteTransform == null)
         {
             canSwing = true;
@@ -277,13 +284,15 @@ public class SwordSwing : MonoBehaviour
             // one swing stop a body and then break its own ice on the next line.
             // This way a swing shatters what was already frozen and leaves it
             // chilled again, or stops what was already chilled. Never both.
-            int blow = damage;
-            if (enemy.IsFrozen && boost.ShatterMultiplier > 1f)
+            int blow = EquipmentBoost.ScaleHit(damage, enemy, owningKnight.tag);
+            bool shatterHit = enemy.IsFrozen && boost.ShatterMultiplier > 1f;
+            if (shatterHit)
             {
                 blow = Mathf.CeilToInt(blow * boost.ShatterMultiplier);
-                PlayerStats.Increment("frigid.shattered");
             }
             enemy.TakeDamage(blow, carrier);
+            // Counted only when this blow actually broke the ice.
+            if (shatterHit && !enemy.IsFrozen) PlayerStats.Increment("frigid.shattered");
 
             // isBlow: true. This is a hit the knight swung for, so it is one of
             // the two things in the game allowed to freeze.
@@ -291,6 +300,195 @@ public class SwordSwing : MonoBehaviour
         }
 
         Destroy(carrier);
+    }
+
+    // Acid Dagger (Serpent capstone): half a second after the swing starts, a small
+    // dagger jabs straight out along wherever the shield points at that moment — out,
+    // a beat held, back. No arc and no sweep: one short, narrow box that only hurts on
+    // the way out and while held, so it reads as a stab rather than a second swing.
+    // Its point stops at two thirds of the sword's reach (Long Sword included),
+    // measured off the sword's own sprite so the two can never drift apart.
+    //
+    // Its own coroutine rather than a step in PerformSwordSwing, because Phantom
+    // Blade's echoes are still arcing at the half-second mark and the jab must neither
+    // wait for them nor share their sprites.
+    private const float AcidDaggerDelay = 0.5f;
+    private const float AcidDaggerReachFraction = 0.66f;
+    private const float AcidDaggerStartFraction = 0.3f; // point starts tucked in by the knight
+    private const float AcidDaggerOutSeconds = 0.06f;
+    private const float AcidDaggerHoldSeconds = 0.06f;
+    private const float AcidDaggerBackSeconds = 0.06f;
+
+    // The poison it leaves is a Venom Tip arrow's (see PoisonProjectile), bent by
+    // Virulence the same way
+    private const int AcidDaggerPoisonDamage = 2;
+    private const float AcidDaggerPoisonSeconds = 30f;
+    private const float AcidDaggerPoisonTickRate = 1f;
+
+    // The blade's box in the dagger's own space, measured off acid_dagger.aseprite
+    // (9x17 at 32 PPU, centre pivot): the ten rows above the guard, five pixels
+    // across. The guard and grip never hurt anything.
+    private static readonly Vector2 AcidDaggerBladeSize = new Vector2(5f / 32f, 10f / 32f);
+    private static readonly Vector2 AcidDaggerBladeCenter = new Vector2(0f, 3.5f / 32f);
+    private const float AcidDaggerTipOffset = 8.5f / 32f; // pivot to the point
+
+    // The stock sword's point, for when its sprite cannot be measured
+    private const float FallbackSwordTipReach = 1.375f;
+
+    // Enemy colliders are triggers, so the filter has to ask for them (as ShieldSight does)
+    private static readonly Collider2D[] DaggerHits = new Collider2D[32];
+    private static readonly ContactFilter2D DaggerFilter = new ContactFilter2D { useTriggers = true };
+    private Transform _daggerTransform;
+    private SpriteRenderer _daggerRenderer;
+
+    private void TryQueueAcidDagger()
+    {
+        if (owningKnight == null || shield == null) return;
+
+        PoisonTipBoost boost = owningKnight.GetComponent<PoisonTipBoost>();
+        if (boost == null || !boost.AcidDagger) return;
+
+        StartCoroutine(AcidDaggerJab(boost));
+    }
+
+    private IEnumerator AcidDaggerJab(PoisonTipBoost boost)
+    {
+        yield return new WaitForSeconds(AcidDaggerDelay);
+        if (shield == null || owningKnight == null) yield break;
+
+        EnsureDagger(boost);
+
+        // Locked at the moment it leaves — a jab is a straight line, so it does not
+        // follow the shield round while it is out
+        float angle = shield.CurrentAngle;
+        float radians = angle * Mathf.Deg2Rad;
+        Vector3 facing = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f);
+
+        float swordTip = SwordTipReach();
+        float tipOffset = AcidDaggerTipOffset * _daggerTransform.localScale.y;
+        float from = swordTip * AcidDaggerStartFraction - tipOffset;
+        float to = swordTip * AcidDaggerReachFraction - tipOffset;
+
+        _daggerTransform.localRotation = Quaternion.Euler(0f, 0f, angle - 90f);
+        _daggerTransform.localPosition = facing * from + rotationOffset;
+        _daggerTransform.gameObject.SetActive(true);
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(AudioManager.Instance.swordSwing);
+
+        var struck = new HashSet<EnemyBase>();
+        int damage = boost.AcidDaggerDamage;
+
+        // Out fast and settling at the end of the reach
+        float elapsed = 0f;
+        while (elapsed < AcidDaggerOutSeconds)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / AcidDaggerOutSeconds);
+            float eased = 1f - (1f - progress) * (1f - progress);
+            _daggerTransform.localPosition = facing * Mathf.Lerp(from, to, eased) + rotationOffset;
+            StrikeWithDagger(boost, damage, struck);
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < AcidDaggerHoldSeconds)
+        {
+            elapsed += Time.deltaTime;
+            StrikeWithDagger(boost, damage, struck);
+            yield return null;
+        }
+
+        // Drawn back harmlessly
+        elapsed = 0f;
+        while (elapsed < AcidDaggerBackSeconds)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / AcidDaggerBackSeconds);
+            _daggerTransform.localPosition = facing * Mathf.Lerp(to, from, progress) + rotationOffset;
+            yield return null;
+        }
+
+        _daggerTransform.gameObject.SetActive(false);
+    }
+
+    // Built once, beside the blade, and drawn like it: same sorting, same material so
+    // the same lights fall on it, and the same scale so its pixels are the sword's size
+    private void EnsureDagger(PoisonTipBoost boost)
+    {
+        if (_daggerTransform == null)
+        {
+            var dagger = new GameObject("AcidDagger");
+            dagger.SetActive(false);
+            _daggerTransform = dagger.transform;
+            _daggerTransform.SetParent(transform, false);
+            _daggerRenderer = dagger.AddComponent<SpriteRenderer>();
+
+            var swordRenderer = swordSpriteTransform != null
+                ? swordSpriteTransform.GetComponent<SpriteRenderer>()
+                : null;
+            if (swordRenderer != null)
+            {
+                _daggerRenderer.sharedMaterial = swordRenderer.sharedMaterial;
+                _daggerRenderer.sortingLayerID = swordRenderer.sortingLayerID;
+                _daggerRenderer.sortingOrder = swordRenderer.sortingOrder;
+            }
+        }
+
+        _daggerTransform.localScale = _bladeBaseScale;
+        _daggerRenderer.sprite = boost.AcidDaggerSprite;
+    }
+
+    // How far from the swing's centre the sword's point reaches: the arc radius plus
+    // the blade above its pivot, both stretched by Long Sword exactly as
+    // AnimateSwingArc stretches them
+    private float SwordTipReach()
+    {
+        var swordRenderer = swordSpriteTransform != null
+            ? swordSpriteTransform.GetComponent<SpriteRenderer>()
+            : null;
+        if (swordRenderer == null || swordRenderer.sprite == null)
+        {
+            return FallbackSwordTipReach * BladeReach;
+        }
+        return BladeReach * (1f + swordRenderer.sprite.bounds.max.y * _bladeBaseScale.y);
+    }
+
+    private void StrikeWithDagger(PoisonTipBoost boost, int damage, HashSet<EnemyBase> struck)
+    {
+        Vector2 center = _daggerTransform.TransformPoint(AcidDaggerBladeCenter);
+        Vector3 scale = _daggerTransform.lossyScale;
+        Vector2 size = new Vector2(AcidDaggerBladeSize.x * Mathf.Abs(scale.x),
+                                   AcidDaggerBladeSize.y * Mathf.Abs(scale.y));
+
+        int count = Physics2D.OverlapBox(center, size, _daggerTransform.eulerAngles.z, DaggerFilter, DaggerHits);
+        for (int i = 0; i < count; i++)
+        {
+            EnemyBase enemy = DaggerHits[i] != null ? DaggerHits[i].GetComponent<EnemyBase>() : null;
+            if (enemy == null || enemy.IsDead || !struck.Add(enemy)) continue;
+            LandDagger(enemy, boost, damage);
+        }
+    }
+
+    private void LandDagger(EnemyBase enemy, PoisonTipBoost boost, int damage)
+    {
+        string knightTag = owningKnight.tag;
+
+        // Credited like the blade: the sword objects are untagged, so the carrier
+        // wears the knight's projectile tag for the length of the hit
+        GameObject carrier = new GameObject("AcidDaggerHit");
+        carrier.tag = knightTag + "Projectile";
+        enemy.TakeDamage(EquipmentBoost.ScaleHit(damage, enemy, knightTag), carrier);
+        Destroy(carrier);
+
+        // Damage first, venom second — the order an arrow uses — so a jab that kills
+        // leaves nothing on the body and is not counted as a venom kill
+        if (!enemy.IsDead)
+        {
+            enemy.ApplyPoisonFromTag(
+                AcidDaggerPoisonDamage + boost.TickDamageBonus,
+                AcidDaggerPoisonSeconds,
+                Mathf.Max(0.2f, AcidDaggerPoisonTickRate * boost.TickRateMultiplier),
+                knightTag);
+        }
     }
 
     private void TryHurlFirebrand()
@@ -372,28 +570,36 @@ public class SwordSwing : MonoBehaviour
 
             // Equipment banes apply to the sword too — an item that says vermin
             // take more damage would read as broken if only arrows honoured it
-            int swingDamage = currentSwingDamage;
-            EquipmentBoost equipment = owningKnight != null ? owningKnight.GetComponent<EquipmentBoost>() : null;
-            if (equipment != null)
-            {
-                float baneMultiplier = equipment.DamageMultiplierFor(enemyBase.Family);
-                if (baneMultiplier > 1f) swingDamage = Mathf.CeilToInt(swingDamage * baneMultiplier);
-            }
+            int swingDamage = EquipmentBoost.ScaleHit(currentSwingDamage, enemyBase,
+                                                      owningKnight != null ? owningKnight.tag : null);
 
             if (frigidShatter)
             {
                 swingDamage = Mathf.CeilToInt(swingDamage * frigid.ShatterMultiplier);
-                FrostFx.Burst(enemyBase.transform.position, FrigidBoost.SplinterRadius);
-                PlayerStats.Increment("frigid.shattered");
             }
 
             int enemyId = enemy.GetInstanceID();
+            Vector3 hitPoint = enemyBase.transform.position;
             enemyBase.TakeDamage(swingDamage, tempProjectile);
+
+            // The burst and tally belong to the blow that actually broke the ice.
+            if (frigidShatter && !enemyBase.IsFrozen)
+            {
+                FrostFx.Burst(hitPoint, FrigidBoost.SplinterRadius);
+                PlayerStats.Increment("frigid.shattered");
+            }
             OnSwordLanded?.Invoke(enemyId, enemyBase.IsDead);
             Destroy(tempProjectile);
             damagedEnemies.Add(enemy);
             _phaseLanded = true;
         }
+    }
+
+    void OnDisable()
+    {
+        // A jab cut off mid-thrust stops its coroutine with it, and would otherwise
+        // come back standing in the air the next time this is enabled
+        if (_daggerTransform != null) _daggerTransform.gameObject.SetActive(false);
     }
 
     void OnDestroy()

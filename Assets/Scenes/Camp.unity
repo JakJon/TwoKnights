@@ -974,6 +974,12 @@ MonoBehaviour:
   knightPoisonTick:
     clip: {fileID: 0}
     volume: 1
+  guardianReflect:
+    clip: {fileID: 8300000, guid: 488a0666c1b0441c848dcccd0b9c9a3c, type: 3}
+    volume: 0.18
+  guardianGuide:
+    clip: {fileID: 8300000, guid: 987e14b169d1415c9f958ac5fa2d4863, type: 3}
+    volume: 0.3
   confusion:
     clip: {fileID: 8300000, guid: 1b6612899d114b64eaa0ef985af9cae4, type: 3}
     volume: 0.279

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Shadow 1
   m_EditorClassIdentifier: 
   upgradeName: Shadow Arrow I
-  description: Arrows spawn a shadow copy that deals damage.
+  description: Arrows spawn a shadow copy that deals damage. Flammable, poisonable.
   weight: 100
   order: 2
   unlockedBy: []

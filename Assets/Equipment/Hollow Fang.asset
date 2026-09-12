@@ -15,7 +15,7 @@ MonoBehaviour:
   id: hollow_fang
   displayName: Hollow Fang
   description: What the venom takes, it hands quietly back to you.
-  effect: +8 special charge when an enemy dies of your venom.
+  effect: +10 special charge when an enemy dies of your venom.
   icon: {fileID: -4110025640566609133, guid: 2f64be4c1e92d864fa8e8740d5b9367b, type: 3}
   crystalCost: 0
   stats:
@@ -29,10 +29,17 @@ MonoBehaviour:
   favouredOrderMultiplier: 1
   poisonTickBonus: 0
   startingPoisonChance: 0
-  poisonDeathSpecial: 8
+  poisonDeathSpecial: 10
   igniteDpsBonus: 0
   startingIgniteChance: 0
-  fireTrailDurationBonus: 0
+  fireZoneRadiusBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 0
+  reflectDamageMultiplier: 1
+  startingLongSword: 0
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

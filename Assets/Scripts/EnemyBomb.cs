@@ -139,9 +139,25 @@ public class EnemyBomb : MonoBehaviour, IChillable
             return;
         }
 
-        if (other.CompareTag("Shield")
-            || other.CompareTag("PlayerLeft")
-            || other.CompareTag("PlayerRight"))
+        if (other.CompareTag("Shield"))
+        {
+            // Reflector (Guardian): the guard bats it away instead of setting it off
+            // in the one place its blast can reach. It travels straight up or straight
+            // down, so that is the heading the mirror works from — and once it is the
+            // knight's, the powder finally hurts the gnomes who packed it.
+            GuardianReflect.Turn turn = GuardianReflect.TryTurn(other, Vector2.up * _travel);
+            if (turn.Happened)
+            {
+                enabled = false;
+                ReflectedShot.Attach(gameObject, turn, travelSpeed, knightDamage, blastRadius);
+                return;
+            }
+
+            Explode();
+            return;
+        }
+
+        if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
         {
             Explode();
         }

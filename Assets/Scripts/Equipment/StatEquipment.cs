@@ -37,26 +37,33 @@ public class StatEquipment : EquipmentDefinition
 
     [Header("Ember")]
     [SerializeField] private float igniteDpsBonus = 0f;
-    [Tooltip("Ignite chance the knight starts the run with, before any Ignited Tips.")]
+    [Tooltip("Ignite chance added on top of any Ignited Tips.")]
     [SerializeField] private float startingIgniteChance = 0f;
-    [SerializeField] private float fireTrailDurationBonus = 0f;
+    [Tooltip("Units added to the radius of every fire zone the knight lays down - trails and fireball craters alike.")]
+    [SerializeField] private float fireZoneRadiusBonus = 0f;
 
     [Header("Dawn")]
-    [Tooltip("Fraction of every heal echoed to the other knight from wave one, before any Shared Light. 0.25 = a quarter.")]
+    [Tooltip("Fraction of every heal echoed to the other knight from wave one, added on top of any Shared Light. 0.25 = a quarter.")]
     [SerializeField] private float startingEchoFraction = 0f;
-    [Tooltip("Multiplies what health orbs heal, from wave one. 1.5 = half again.")]
+    [Tooltip("Multiplies what health orbs heal, from wave one, on top of any Sunwell. 1.5 = half again.")]
     [SerializeField] private float startingOrbHealMultiplier = 0f;
 
     [Header("Frigid")]
     [Tooltip("Multiplies how long this knight's chill lingers. 2 = twice as long, at every rank.")]
     [SerializeField] private float chillDurationMultiplier = 1f;
-    [Tooltip("Seconds added to how long a freeze holds. Does nothing without Deep Freeze - the knight still has to be able to freeze at all.")]
+    [Tooltip("Seconds added to how long a freeze holds. Does nothing without Frost Tip - the knight still has to be able to freeze at all.")]
     [SerializeField] private float freezeDurationBonus = 0f;
-    [Tooltip("Grants Frost Tip at this rank from wave one, before any draft.")]
+    [Tooltip("Grants this many Frost Tip ranks from wave one, stacked on top of any drafted Frost Tip. Cold depth still tops out at rank III.")]
     [SerializeField] private int startingFrostTip = 0;
 
+    [Header("Guardian")]
+    [Tooltip("Multiplies what a rock sent back off the guard hits for. 2 = twice as hard. Does nothing without Reflector - the guard still has to be able to send one back at all.")]
+    [SerializeField] private float reflectDamageMultiplier = 1f;
+    [Tooltip("Grants the Long Sword at this rank from wave one, before any draft. Ranks COMPOUND, so an item granting rank one plus a drafted Long Sword I lands roughly where rank two would.")]
+    [SerializeField] private int startingLongSword = 0;
+
     [Header("Shadow")]
-    [Tooltip("Added to the shadow arrow damage multiplier. 0.15 = arrows land noticeably harder.")]
+    [Tooltip("Added to the shadow arrow AND shuriken damage multipliers. 0.15 = both land noticeably harder.")]
     [SerializeField] private float shadowArrowDamageBonus = 0f;
     [Tooltip("Extra sword echoes, on top of whatever Phantom Blade granted.")]
     [SerializeField] private int phantomEchoBonus = 0;
@@ -103,24 +110,23 @@ public class StatEquipment : EquipmentDefinition
         if (poisonDeathSpecial > 0) equipment.AddPoisonDeathSpecial(poisonDeathSpecial);
 
         // --- Ember ---
-        if (igniteDpsBonus > 0f || startingIgniteChance > 0f || fireTrailDurationBonus > 0f)
+        if (igniteDpsBonus > 0f || startingIgniteChance > 0f || fireZoneRadiusBonus > 0f)
         {
             var ember = knight.GetComponent<EmberBoost>() ?? knight.AddComponent<EmberBoost>();
             if (igniteDpsBonus > 0f) ember.AddZoneDpsBonus(igniteDpsBonus);
-            if (fireTrailDurationBonus > 0f) ember.AddTrailDurationBonus(fireTrailDurationBonus);
-            // SetIgniteChance keeps the larger value, so this can only ever be a
-            // floor under whatever Ignited Tips goes on to grant
-            if (startingIgniteChance > 0f) ember.SetIgniteChance(startingIgniteChance);
+            if (fireZoneRadiusBonus > 0f) ember.AddZoneRadiusBonus(fireZoneRadiusBonus);
+            // Added on top of whatever Ignited Tips goes on to grant, not a floor
+            // under it — equipment always stacks
+            if (startingIgniteChance > 0f) ember.AddIgniteChanceFromEquipment(startingIgniteChance);
         }
 
         // --- Dawn: routed through the Order's own sheet, never a parallel path.
-        //     Both setters keep the larger value, so an item can only ever be a
-        //     floor under what the draft goes on to grant.
+        //     Both land on top of what Shared Light and Sunwell go on to grant.
         if (startingEchoFraction > 0f || startingOrbHealMultiplier > 0f)
         {
             var dawn = knight.GetComponent<DawnBoost>() ?? knight.AddComponent<DawnBoost>();
-            if (startingEchoFraction > 0f) dawn.SetEchoFraction(startingEchoFraction);
-            if (startingOrbHealMultiplier > 0f) dawn.SetOrbHealMultiplier(startingOrbHealMultiplier);
+            if (startingEchoFraction > 0f) dawn.AddEchoFractionFromEquipment(startingEchoFraction);
+            if (startingOrbHealMultiplier > 0f) dawn.MultiplyOrbHealFromEquipment(startingOrbHealMultiplier);
         }
 
         // --- Frigid: routed through the Order's own sheet, never a parallel path ---
@@ -129,9 +135,23 @@ public class StatEquipment : EquipmentDefinition
             var frigid = knight.GetComponent<FrigidBoost>() ?? knight.AddComponent<FrigidBoost>();
             if (chillDurationMultiplier > 1f) frigid.MultiplyChillDuration(chillDurationMultiplier);
             if (freezeDurationBonus > 0f) frigid.AddFreezeDurationBonus(freezeDurationBonus);
-            // SetFrostTip keeps the larger rank, so this is only ever a floor
-            // under whatever the draft goes on to hand the knight.
-            if (startingFrostTip > 0) frigid.SetFrostTip(startingFrostTip);
+            // Ranks on top of whatever the draft goes on to hand the knight
+            if (startingFrostTip > 0) frigid.AddFrostTipFromEquipment(startingFrostTip);
+        }
+
+        // --- Guardian ---
+        if (reflectDamageMultiplier > 1f)
+        {
+            var guardian = knight.GetComponent<GuardianBoost>() ?? knight.AddComponent<GuardianBoost>();
+            guardian.MultiplyReflectDamage(reflectDamageMultiplier);
+        }
+        if (startingLongSword > 0)
+        {
+            // The same numbers Long Sword I is authored with. AddRank compounds by
+            // design, so this is a floor the draft builds on rather than a rank the
+            // draft has to beat - see LongSwordBoost.
+            var blade = knight.GetComponent<LongSwordBoost>() ?? knight.AddComponent<LongSwordBoost>();
+            for (int i = 0; i < startingLongSword; i++) blade.AddRank(1.33f, 1.25f, 15);
         }
 
         // --- Shadow ---

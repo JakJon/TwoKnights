@@ -28,14 +28,25 @@ more arrow does to it. Blue means slow. Ice means stopped. No arithmetic.
 
 ## THE PILLAR: three parts, none of them negotiable
 
-**1. Frost has no damage of its own.** Every number in the Order is a second, a
-percentage of speed, or a multiplier on a blow *you* land. Frigid never ticks.
-Serpent and Ember already own damage-over-time between them, and a third one would
-be a re-skin wearing a new colour.
+**1. Frost deals no damage until the capstone, and then it deals all of it.**
+Every other number in the Order is a second, a percentage of speed, or a multiplier
+on a blow *you* land — and the whole roster is priced against that, so a Frigid
+knight without **Frost Bite** is still buying time and nothing else.
 
-The exceptions prove it rather than breaking it. **Shatter** is damage the player
-aimed and landed on a body they chose to freeze. **Rimeblade** deals the sword's
-own damage in a wider circle. Neither is a timer paying out.
+**Shatter** and **Rimeblade** are not exceptions to this: both are damage the
+player aimed and landed, not a timer paying out.
+
+*This half was rewritten on 2026-09-08 (owner's call).* It used to read "frost has
+no damage of its own, Frigid never ticks", and Frost Bite is exactly the tick it
+forbade. The revision was deliberate: the Order had no way to convert all that held
+time into dead bodies, and the old rule's real job — keeping Frigid from being a
+blue re-skin of Serpent — is now done by the shape instead of by the absence.
+Poison is bought per-arrow and rides one target; Frost Bite is bought once and
+bills every chilled body on the field at a rate the player raises by freezing.
+
+**Nothing below the capstone may grow a tick of its own.** That is the part of the
+old rule still standing, and it is what keeps the roster legible: everything Frigid
+does is time, and there is exactly one place that time turns into damage.
 
 **2. Only a blow can freeze.** Fields, auras and splinters *chill*. They never stop
 anything. Freezing takes a hit you landed — an arrow, or the blade. This is the
@@ -55,14 +66,16 @@ hit. The second touch has to be a second blow.
 
 - **Chill wears off** (3s at rank I). Without decay everything on screen is
   permanently chilled after one volley and the second state stops being earned.
-- **A thaw buys a reprieve — but only a thaw.** For 2s after a freeze *runs out*,
-  that body cannot be chilled again. A freeze that was *broken* earns nothing,
-  which is what lets a frost arrow shatter a statue and re-chill it in the same
-  instant. That asymmetry is the engine of the Order's whole loop.
-- **Any blow of 5 or more ends a freeze**, whether or not the knight owns Shatter.
-  A statue you can hit for twenty and watch stand there reads as a bug. Chip damage
-  stays under the bar on purpose, so a burning body burns through the whole hold —
-  and the poison and fire ticks bypass `TakeDamage` entirely in any case.
+- **A thaw buys nothing.** However the ice ended — outlasted, shattered, or broken
+  by a stray hit — the body can be chilled on the very next touch and stopped on the
+  one after. There used to be a 2s reprieve after a freeze *ran out*; it was removed
+  on 2026-09-08 (owner's call) so the cycle never stalls. Pillar 2 is the only brake
+  on holding one body forever, and it is enough: freezing takes a **blow**, so a
+  knight who wants an ogre permanently stopped is spending an arrow a time that the
+  rest of the wave does not get.
+- **Ice breaks after 5 damage in total** (more with Deep Freeze — see below), whether
+  or not the knight owns Shatter. Damage adds up across hits. Poison, fire and
+  Frost Bite ticks never count, so a burning body burns through the whole hold.
 - **Frozen is not asleep.** Frigid's ice and the Sleeping Dart's nap share the hold
   machinery (`EnemyBase.IsHeld`) but are separate states, so they do not cancel each
   other and the tells differ.
@@ -95,14 +108,15 @@ Legendary).
 | Frost Tip III | 30 | Epic | Frost Tip II |
 | Glacial Ward I | 100 | Common | — (starting pick) |
 | Glacial Ward II | 50 | Rare | Glacial Ward I |
-| Deep Freeze I | 55 | Rare | Frost Tip I *or* Glacial Ward I |
+| Deep Freeze I | 55 | Rare | Frost Tip I |
 | Deep Freeze II | 26 | Epic | Deep Freeze I |
-| Shatter I | 55 | Rare | Deep Freeze I |
+| Shatter I | 55 | Rare | Frost Tip I |
 | Shatter II | 24 | Epic | Shatter I |
 | Rimeblade I | 55 | Rare | Frost Tip I *or* Glacial Ward I |
 | Rimeblade II | 26 | Epic | Rimeblade I |
 | Rimeblade III | 14 | Legendary | Rimeblade II |
-| Permafrost | 10 | Legendary | `requiresOrderCount: 4` |
+| Deep Freeze III | 12 | Legendary | Deep Freeze II |
+| Frost Bite | 12 | Legendary | `requiresOrderCount: 4` |
 
 Two Common doors, as Ember has: one that rewards aim, one that does not.
 
@@ -118,12 +132,29 @@ are colder".
 | I | −30% | 3.0s |
 | II | −50% | 6.0s |
 | III | −70% | 10.0s |
+| IV | −85% | 10.0s |
 
-**Deliberately short of stopping anything.** The Order already has a way to stop a
-body and it costs a second blow. If rank III left a wolf crawling, Deep Freeze would
-be buying almost nothing and the two-state reading would collapse back into "cold is
-a slow that gets slower". The gap between rank III and frozen is what Deep Freeze is
-paid for.
+**Frost Tip freezes on its own** (owner's call, 2026-09-11). A Frost Tip arrow that
+lands on a body that is already chilled freezes it for **however long the chill had
+left** (read before the arrow refreshes the chill). So higher Frost Tip ranks, with
+their longer chills, also make longer freezes. Deep Freeze no longer unlocks
+freezing; it adds time and makes the ice harder to break. This applies to any Frost
+Tip rank, including the one Winter's Tooth gives, and to the knight's other blows
+(the sword, Rimeblade) too, because `CanFreeze` is a property of the knight.
+
+A body chilled only by Glacial Ward has about 0.6s of chill left at any moment, so
+an arrow freezes it for about 0.6s plus the Deep Freeze bonus.
+
+**The slow is deliberately short of stopping anything.** The Order already has a
+way to stop a body and it costs a second blow. If rank III left a wolf crawling, the
+freeze would be buying almost nothing and the two-state reading would collapse back
+into "cold is a slow that gets slower".
+
+**Rank IV is the exception, and the draft cannot reach it** (owner's call,
+2026-09-10). Equipment stacks on top of drafted ranks, so Winter's Tooth + Frost Tip
+III lands at IV. It exists so that the last Frost Tip pick is never wasted for a
+knight wearing the Tooth. It deepens the slow and leaves the duration at III's ten
+seconds.
 
 Rank I on its own is a real upgrade that is not yet a build — the rule Firebrand's
 code comment states, that an entry tier strong enough to define a build leaves the
@@ -150,26 +181,31 @@ the only currency Frigid deals in.
 
 **The radius is tight, and tighter than it first shipped.** At 2.5u/3.5u the ring
 covered so much of the approach that everything arrived pre-chilled and every arrow
-landing anywhere near a knight froze — which quietly made Deep Freeze automatic
+landing anywhere near a knight froze — which quietly made freezing automatic
 rather than something to aim. The ward is a *last line*: the cold a body walks into
 once it is already close enough to be a problem.
 
 The ward never freezes. See pillar 2.
 
-### Deep Freeze I–II — the second state
+### Deep Freeze I–III — longer, tougher ice
 
-Cold landing on an already chilled body **freezes** it. Held where it stands.
+Frost Tip already freezes a chilled body for the chill it had left. Each Deep Freeze
+rank adds **3 seconds** to that and **10** to the damage the ice takes before it
+breaks:
 
-- **I** — 3s.
-- **II** — 6s.
+| | Freeze time | Damage to break |
+|---|---|---|
+| Frost Tip only | chill left | 5 |
+| I | chill left + 3s | 15 |
+| II | chill left + 6s | 25 |
+| III | chill left + 9s | 35 |
 
-This is the pick that turns the Order on. Everything before it is a slow; everything
-after it is a stop. Gating it behind a Rare means jamming the mine's carts is a
-deliberate build choice rather than something that happens to a player who took one
-Common.
+Break damage adds up across hits (`EnemyBase.BreakFreezeIfHardEnough`), and it is
+set by the knight who froze the body. Constants: `FrigidBoost.FreezeSecondsPerDeepFreeze`
+and `FreezeBreakDamagePerDeepFreeze`.
 
-It opens off **either** door, so a ward-first build can still reach the stop —
-`unlockedBy` is any-of, which is exactly what that needs.
+*Changed 2026-09-11 (owner's call).* Deep Freeze used to be the pick that unlocked
+freezing at all, with flat holds of 3s / 6s / 15s and a 5-damage single-hit break.
 
 **The carts are the showcase.** A held cart anchors `MineCart`'s spacing sweep, so
 the run behind it stacks up against it: one arrow turns the mine's signature hazard
@@ -179,11 +215,16 @@ racetrack Fire Trail draws around the Rat King, and it needed almost no new code
 
 ### Shatter I–II — the only damage in the Order
 
-A blow landed on a body held in ice breaks it, hard.
+Blows landed on a body held in ice hit harder.
 
-- **I** — the landing blow deals ×2.
-- **II** — ×3, and the breaking ice throws splinters that **chill** everything
-  nearby.
+- **I** — every blow on a frozen body deals ×2.
+- **II** — ×3, and the ice throws splinters that **chill** everything nearby when
+  it breaks.
+
+With Deep Freeze the ice can take several hits, and **every one of them is
+multiplied** — Deep Freeze III + Shatter II means a stack of ×3 hits before the
+statue breaks. The burst, sound, splinters and the `frigid.shattered` tally only
+happen on the hit that actually breaks the ice (or kills the body).
 
 **The tension is the whole point**, and it is present on every frozen body on the
 field: break it for the damage, or leave it standing as a statue and keep the time.
@@ -211,53 +252,156 @@ distance.
 
 The burst is centred on the **knight**, not thrown along the facing, because the
 whole point of the sword in this game is that something is already too close. With
-Deep Freeze owned, a swing into a body an arrow chilled on the way in stops it dead
+Frost Tip owned, a swing into a body an arrow chilled on the way in stops it dead
 at arm's length — the strongest single moment in the Order, and it costs two picks
 from different chains to reach.
 
 Damage lands **before** the cold, the same order an arrow uses. Chilling first would
 let one swing freeze a body and then break its own ice on the very next line.
 
-### Permafrost — capstone (requires 4 Frigid picks)
+### Deep Freeze III — the top of the chain (requires Deep Freeze II)
 
-**Frozen things do not thaw.** A freeze lasts until something breaks it.
+**Chill left + 9 seconds, and 35 damage to break.** With Frost Tip III's 10s chill
+that is up to 19 seconds.
 
-The board fills with statues and the knights take them apart in whatever order they
-like. It is the literal end state of "you take the enemy's time", the way Scorched
-Earth is the end state of "you burn the arena". It also makes Shatter the whole
-endgame, since breaking the ice becomes the only way a statue ever moves again.
+Long enough that the board fills with statues and the knights take them apart in
+whatever order they like. It is the end state of "you take the enemy's time", the way
+Scorched Earth is the end state of "you burn the arena", and it makes Shatter the
+endgame — breaking the ice early is the only way a statue moves again before its
+deadline.
 
-**It buys safety, not speed.** Frigid deals no damage of its own, so the arrows
-still have to do all the killing and the wave takes exactly as long. A Permafrost
-knight is not faster, just untouched.
+**On its own the hold buys safety, not speed.** It does no damage; the arrows still
+have to do all the killing and the wave takes exactly as long. A knight with rank
+three and no Frost Bite is not faster, just untouched.
 
-Two things it demands, both paid:
+**With Frost Bite it stops being that**, and that pairing is the Order's whole top
+end — a body held nineteen seconds while the cold bills it is a body that dies without
+being shot. See the capstone's balance-watch note below.
 
-- **The hold is a very long deadline, not a second code path**
-  (`EnemyBase.PermafrostSeconds`), so nothing downstream — the pin, the cart holds,
-  the tells — has to learn the capstone exists.
-- **The ice dies with the WAVE, not the run.** `FrigidBoost.ClearFieldFrost()` is
-  called from `Spawner.BeginWave` beside `FireField.ClearAll()`. Without that
-  second half, wave twelve begins inside wave eleven's statues and the difficulty
-  curve inverts.
+#### It began as a separate capstone called Permafrost
 
-**Balance watch:** this is the upgrade most likely to make late waves easier than
-mid waves. If it over-performs the lever is the thaw reprieve or the freeze
-duration, never the mechanic — the field of statues is the fantasy worth protecting.
+It was folded into this chain and then given a real duration on 2026-09-08 (owner's
+call). Both halves of that were fixes:
 
-### Unlock DAG
+- As a parallel capstone it **silently voided Deep Freeze II.** `Freeze()` took
+  `permafrost ? PermafrostSeconds : seconds`, so the eternal hold overrode the 3s/6s
+  outright and rank two's only selling point stopped existing the moment it landed.
+  As rank *three of the same chain* that is simply correct — a tier obsoleting the
+  tier below it is what a tier chain is.
+- It could be drafted **completely dead.** Gated only on `requiresOrderCount: 4` with
+  no prerequisites, a knight with no Deep Freeze could take it and get literally
+  nothing: `CanFreeze` was false, `TouchWithCold` passed `freezeFor = 0`, `ApplyCold`
+  never reached `Freeze()`, and the flag was never read.
+- **A deadline made the hold something the player has to renew.** Ice that never
+  expires is a body removed from the game; a deadline is a body the knight has
+  to keep choosing to stop.
 
-Starting picks: **Frost Tip I, Glacial Ward I**.
+The asset keeps the filename `Permafrost.asset` even though the card now reads "Deep
+Freeze III": stat slugs are minted from the filename (`UpgradeManager.StatSlug`) and
+the Frigid quest line spends `upgrades.taken.permafrost`. Same trick Greatshield
+plays to read "Dawn Shield".
 
-```
-Frost Tip I ──► Frost Tip II ──► Frost Tip III
-Glacial Ward I ──► Glacial Ward II
+**The ice still dies with the WAVE, not the run.** `FrigidBoost.ClearFieldFrost()` is
+called from `Spawner.BeginWave` beside `FireField.ClearAll()`. A long freeze
+straddles a wave boundary happily, so without it wave twelve can begin inside wave
+eleven's statues and the difficulty curve inverts.
 
-(Frost Tip I OR Glacial Ward I) ──► Deep Freeze I ──► Deep Freeze II
-                                          └────────► Shatter I ──► Shatter II
+### Bosses: every freeze is halved
+
+`FrigidBoost.BossFreezeMultiplier = 0.5f` (owner's call, 2026-09-08), applied in
+`EnemyBase.Freeze` rather than at the knight's end so it covers every source of cold
+there will ever be and no future upgrade can forget it — the same argument that keeps
+`Freeze` non-virtual.
+
+The reason it is needed: **Frigid's hold is the one effect in the game that removes a
+fight rather than shortening it.** A stopped boss is not fighting, and at full rank
+that would be up to nineteen seconds of a duel simply not happening. Halved, the Order stays
+strong against a crowd — which is what it is for — without switching off the
+encounters the run is built around.
+
+### Frost Bite — capstone (requires 4 Frigid picks)
+
+**Chilled bodies lose 2 a second. Frozen bodies lose 3.**
+
+This is the Order's only damage on a timer, and adding it **rewrote pillar 1**,
+which used to read "frost has no damage of its own, Frigid never ticks". That was
+a deliberate revision, not a leak — the rule was protecting against Frigid being a
+blue re-skin of Serpent, and that protection is now carried by the *shape* rather
+than by the absence: poison is bought per-arrow and rides one target, while Frost
+Bite is bought once and bills every chilled body on the field at a rate the player
+raises by freezing.
+
+The rate is the Order's own cycle priced as damage. Slow it and it bleeds; stop it
+and it bleeds faster — so "chill, then freeze" is also the damage upgrade, and the
+player is paid for landing the second blow rather than for standing near things.
+
+**Not gated on Deep Freeze**, deliberately. A knight who only ever chills — the
+Glacial Ward build, which needs no aim and is the Order's no-skill door — still
+gets the chilled rate. Gating it on the freeze chain would have made that whole
+half of the roster a dead end. That matters MORE since 2026-09-09, not less: Deep
+Freeze no longer opens off Glacial Ward at all (owner's call — the ward door was
+removed from `unlockedBy`, leaving Frost Tip I as the only way in), so Frost Bite
+and Rimeblade are now the whole of what the ward build has to grow into.
+
+The reason the door closed is that it usually led nowhere. Only a BLOW can freeze
+(pillar 2), and arrows carry cold only while `ArrowsChill` — which is Frost Tip. A
+knight who drafted Glacial Ward and then Deep Freeze straight off the back of it
+had bought a card that could not fire at all: the ward chills, the ward cannot
+freeze, and nothing else they owned was cold. The one build where it did work was
+Glacial Ward → Rimeblade → Deep Freeze, because the blade's burst is a blow. That
+route is gone too, and that is the cost of the change, taken knowingly: a ward
+knight who wants to stop a body now has to buy Frost Tip I first, which is one
+Common. Rimeblade itself still opens off the ward, so the no-aim door still leads
+somewhere — it just leads to damage rather than to a hold.
+
+**The ceiling, and it is deliberate.** The longest drafted freeze is Frost Tip III's
+10s chill + Deep Freeze III's 9s = **19s** (when the freezing arrow lands right
+after the chilling one). Frost Bite bills it 3 a second and its ticks never wear the
+ice down, so a full-rank freeze is **57 damage that cannot interrupt itself**.
+
+Against the actual roster that is a real number without being a solved one:
+
+| Body | HP | One full 19s hold |
+|---|---|---|
+| Bat | 15 | dead in 5s |
+| Rat (brown/grey) | 20 | dead in ~7s |
+| Rat (black), Dark bat | 30 | dead in 10s |
+| Wolf (brown) | 30 | dead in 10s |
+| Wolf (grey) | 45 | dead in 15s |
+| Wolf (black) | 60 | **survives on 3 HP** — needs a second freeze |
+| Ogre | 80 | **survives** |
+| Bosses | 1500–2500 | held 9.5s, takes ~28. Nothing. |
+
+Hoarfrost Band doubles the chill, so the same freeze becomes 29s and 87 damage — an
+ogre dies inside one freeze. Heart of Ice adds 2s more.
+
+Note the wolves: `EnemyWolf.Awake` overwrites the prefab's stale `health: 10` with
+30/45/60 at runtime, so the prefab YAML lies about the toughest ordinary mob in the
+game. Read wolf health from the script, never the prefab.
+
+A second freeze is always available, because the thaw reprieve was removed — so the
+tough half of the roster dies to a *chain* of freezes rather than to one. What keeps
+that from being free is pillar 2: only a blow can freeze, so a knight holding one
+ogre down is spending an arrow a time the rest of the wave does not get.
+
+**None of this is a defect, and it should not be quietly sanded off.** A player who
+builds all the way to Deep Freeze III plus Frost Bite has spent most of a run's picks
+on one idea, and watching the board stop moving is the payoff for that — finding the
+combination is the fun. The numbers are written down here so the shape is *known*,
+not so someone tunes it back down. If it is ever genuinely wanted lower, the one
+number is `FrigidBoost.FrostBiteFrozenDps`.
+
+Cold cannot break its own ice: `ApplyFrostDamage` never calls
+`BreakFreezeIfHardEnough`. Ice damage adds up across hits, so if the ticks counted
+the capstone would wear down and break every statue it creates.
+
+Frost Tip I ──────────────────────► Deep Freeze I ──► Deep Freeze II
+      └────────────────────────────► Shatter I ──► Shatter II
 (Frost Tip I OR Glacial Ward I) ──► Rimeblade I ──► Rimeblade II ──► Rimeblade III
 
-Permafrost: requiresOrderCount 4, no prerequisites
+Deep Freeze I ──► Deep Freeze II ──► Deep Freeze III
+
+Frost Bite: requiresOrderCount 4, no prerequisites
 ```
 
 Cross-family parents gate availability but correctly do **not** extend pip counts —
@@ -268,7 +412,7 @@ Cross-family parents gate availability but correctly do **not** extend pip count
 **New** (`Assets/Scripts/`): `FrigidBoost.cs` (the stat sheet and every tuning
 const), `FrostFx.cs`, `GlacialWard.cs`, `IChillable.cs`, plus `FrostTipUpgrade`,
 `GlacialWardUpgrade`, `DeepFreezeUpgrade`, `ShatterUpgrade`, `RimebladeUpgrade`,
-`PermafrostUpgrade`. One class per *discipline*; tiers are assets, because
+`FrostBiteUpgrade`. One class per *discipline*; tiers are assets, because
 `UpgradeManager` keys per-draft uniqueness and chain grouping off `GetType()`.
 
 **Assets**: 13 SOs in `Assets/Upgrades/Frigid Ups/`, all `order: 6`, all registered
@@ -350,7 +494,7 @@ is a setup. The line lets you finish both, but it makes you notice you chose.
 | Take Their Evening | 200 frozen | **Hoarfrost Band** |
 | The Standing Field | hold four in ice at once | **Winter's Tooth** |
 | Brittle Things | 100 shattered | 1 crystal |
-| Nothing Moves | acquire Permafrost | **Heart of Ice** |
+| Nothing Moves | acquire Deep Freeze III | **Heart of Ice** |
 
 `upgrades.order.frigid` and `upgrades.taken.<slug>` come free from
 `UpgradeManager.ApplyUpgrade`; `frigid.chilled`, `frigid.frozen` and
@@ -371,22 +515,25 @@ All three bend the Frigid draft ×2, the way Everburning Coal does for Ember —
 Order's items should make that Order easier to keep building.
 
 - **Hoarfrost Band** — chill lasts **twice as long**.
-- **Winter's Tooth** — Frost Tip I from wave one.
+- **Winter's Tooth** — one Frost Tip rank from wave one, stacked on top of drafted
+  ranks, so the full chain with the Tooth reaches rank IV.
 - **Heart of Ice** — freezes hold +2s.
 
 Chill is **scaled** rather than topped up, and freeze is topped up. That asymmetry
 is deliberate. The Frost Tip chain's whole shape is in how long the cold lasts —
 3s to 6s to 10s — so a flat "+2 seconds" would be most of rank one and almost
 nothing by rank three, which quietly makes the Band a beginner's trinket you stop
-carrying. Doubling is worth the same at every rank: 3→6, 6→12, 10→20. Freeze has no
-such spread (3s or 6s), so seconds are honest there.
+carrying. Doubling is worth the same at every rank: 3→6, 6→12, 10→20. Since
+2026-09-11 a freeze lasts as long as the chill had left, so the Band lengthens
+freezes too.
 
 Both ride separate fields on `FrigidBoost` rather than inflating a rank, because
 rank also drives chill *depth* and whether the knight can freeze at all — a band
 that "gives you Frost Tip II" to buy duration would quietly hand over the slow as
 well. Same reason Ember keeps its zone dps bonus off its level counter.
-`Heart of Ice` does nothing without Deep Freeze, by design: a knight who cannot
-freeze is not handed a freeze by an item.
+`Heart of Ice` does nothing without Frost Tip, by design: a knight who cannot
+freeze is not handed a freeze by an item. (Before 2026-09-11 it needed Deep Freeze,
+which used to be what enabled freezing.)
 
 ## Open / next
 
@@ -401,7 +548,7 @@ freeze is not handed a freeze by an item.
   mote density, how cyan reads against the Mine's dark purple, and whether Chilled
   and Frozen are actually distinguishable in a swarm are all guesses.
 - **Tuning is expected.** Frost Tip and the ward radius were both already pulled
-  back once. The next thing to watch is Glacial Ward II plus Deep Freeze: the ward
+  back once. The next thing to watch is Glacial Ward II plus Frost Tip: the ward
   keeps everything in the ring chilled, so every arrow that lands there freezes.
   That is the intended synergy, but it is the combination most likely to overshoot.
 - **A Frigid duo upgrade** is the natural next slot — duos are named as an unbuilt

@@ -22,7 +22,7 @@ MonoBehaviour:
   unlockedBy: []
   lockedBy: []
   stats:
-  - valueText: +33%
+  - valueText: +48%
     labelText: REACH
     isPositive: 1
   - valueText: 15
@@ -31,6 +31,6 @@ MonoBehaviour:
   - valueText: -20%
     labelText: SWING SPEED
     isPositive: 0
-  lengthMultiplier: 1.33
+  lengthMultiplier: 2.129
   slowMultiplier: 1.25
   baseDamage: 15

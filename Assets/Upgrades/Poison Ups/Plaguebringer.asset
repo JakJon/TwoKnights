@@ -13,9 +13,14 @@ MonoBehaviour:
   m_Name: Plaguebringer
   m_EditorClassIdentifier: 
   upgradeName: Plaguebringer
-  description: Poisoned deaths burst, spreading venom and feeding your special.
-  weight: 10
+  description: Your venom clouds hunt down nearby enemies.
+  weight: 55
   order: 1
-  requiresOrderCount: 4
-  unlockedBy: []
+  requiresOrderCount: 2
+  secondOrder: 3
+  requiresSecondOrderCount: 2
+  unlockedBy:
+  - {fileID: 11400000, guid: 8e2c2b13dd2774030db3c3e9fd2820f7, type: 2}
+  - {fileID: 11400000, guid: 1a5202610e413aa37024e4b37e4899ec, type: 2}
+  - {fileID: 11400000, guid: 34f62b4ab4ff82c48808cb3ad10b14f3, type: 2}
   lockedBy: []

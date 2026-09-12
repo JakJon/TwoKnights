@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4ce1b3bbcef4f79b213bc6819bc7ca5, type: 3}
+  m_Name: Acid Dagger
+  m_EditorClassIdentifier: 
+  upgradeName: Acid Dagger
+  description: A swift dagger jab follows up the swing of your sword, deals lethal
+    damage.
+  weight: 10
+  order: 1
+  requiresOrderCount: 4
+  secondOrder: 0
+  requiresSecondOrderCount: 0
+  unlockedBy: []
+  requiresAllUnlocks: 0
+  lockedBy: []
+  stats:
+  - valueText: +50
+    labelText: DAMAGE
+    isPositive: 1
+  daggerDamage: 50
+  daggerSprite: {fileID: 5482483620798162717, guid: 291089210c0c438bad4cfad4bcd96a8d, type: 3}

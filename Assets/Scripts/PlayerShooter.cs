@@ -192,6 +192,20 @@ public class PlayerShooter : MonoBehaviour
                       .Configure(sleepBoost.SleepSeconds, sleepBoost.DartSprite);
         }
 
+        // Guided Shot (Guardian): the MAIN shot bends onto what it passes close to.
+        // Shadow arrows and shurikens deliberately fly straight — the same line
+        // absorbsFieldEffects draws, and for the same reason: the knight's own shot is
+        // the one the Order is paying to land, and a steered shuriken fan would clear
+        // a screen without anybody aiming at anything.
+        //
+        // Added only when the knight owns the chain, so a run with no Guardian picks
+        // never puts a per-frame search on an arrow.
+        GuardianBoost guardianBoost = GetComponent<GuardianBoost>();
+        if (guardianBoost != null && guardianBoost.GuidedShotRadius > 0f)
+        {
+            projectile.AddComponent<GuidedShot>().Configure(guardianBoost.GuidedShotRadius, true, gameObject.tag);
+        }
+
         // Check if this projectile should be poisoned
         PoisonTipBoost poisonTipBoost = GetComponent<PoisonTipBoost>();
         if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
@@ -401,7 +415,11 @@ public class PlayerShooter : MonoBehaviour
     // its own poison chance so Serpent/Shadow cross-builds keep their bite
     private void SpawnShurikens(NinjaBoost ninjaBoost, Vector2 spawnPosition, int mainDamage, PoisonTipBoost poisonTipBoost, EmberBoost emberBoost)
     {
-        int shurikenDamage = Mathf.Max(1, Mathf.RoundToInt(mainDamage * 0.35f));
+        // Nightglass Shard adds to the multiplier here too, the same way it does
+        // for shadow arrows: 0.35 + 0.15 = half the main arrow
+        var equipment = GetComponent<EquipmentBoost>();
+        float shurikenMultiplier = 0.35f + (equipment != null ? equipment.ShadowArrowDamageBonus : 0f);
+        int shurikenDamage = Mathf.Max(1, Mathf.RoundToInt(mainDamage * shurikenMultiplier));
 
         // One swish per volley, not per shuriken
         AudioManager.Instance.PlaySFX(AudioManager.Instance.shurikenThrow);

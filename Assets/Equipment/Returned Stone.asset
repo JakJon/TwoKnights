@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01ae97c2f984c50f2508057b43996e79, type: 3}
+  m_Name: Returned Stone
+  m_EditorClassIdentifier: 
+  id: returned_stone
+  displayName: Returned Stone
+  description: A stone that has been thrown at you, caught, and thrown back so many
+    times that the quartermaster has stopped writing it down as lost.
+  effect: Rocks you send back hit twice as hard, and Guardian upgrades appear twice
+    as often in your drafts.
+  icon: {fileID: 879625899251044716, guid: 91a36be66762f51419daa83b6a1fc668, type: 3}
+  crystalCost: 0
+  stats:
+  - valueText: 2x
+    labelText: REBOUND DAMAGE
+    isPositive: 1
+  - valueText: 2x
+    labelText: GUARDIAN DRAFTS
+    isPositive: 1
+  maxHealthBonus: 0
+  fireCooldownMultiplier: 1
+  grantsHeadStart: 0
+  favouredOrder: 3
+  favouredOrderMultiplier: 2
+  poisonTickBonus: 0
+  startingPoisonChance: 0
+  poisonDeathSpecial: 0
+  igniteDpsBonus: 0
+  startingIgniteChance: 0
+  fireZoneRadiusBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 0
+  reflectDamageMultiplier: 2
+  startingLongSword: 0
+  shadowArrowDamageBonus: 0
+  phantomEchoBonus: 0
+  startingShadowArrows: 0
+  shadowArrowPrefab: {fileID: 0}
+  confusionDurationMultiplier: 1

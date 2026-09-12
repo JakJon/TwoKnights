@@ -3,8 +3,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-// One-shot repair for the four upgrades authored while the editor was closed
-// (Sleeping Dart I/II, Long Sword I/II). Their .asset files and the guid lines
+// One-shot repair for upgrades authored while the editor was closed (Sleeping
+// Dart I/II, Long Sword I/II, Acid Dagger). Their .asset files and the guid lines
 // in UpgradeManager.asset were both written by hand, which is fine on disk but
 // is silently undone if Unity already had UpgradeManager loaded and rewrites it
 // from memory. This checks the registry on the next refresh and puts back only
@@ -17,6 +17,7 @@ public static class NewUpgradeRegistration
         "Assets/Upgrades/Shadow Ups/Sleeping Dart 2.asset",
         "Assets/Upgrades/Sword Ups/Long Sword 1.asset",
         "Assets/Upgrades/Sword Ups/Long Sword 2.asset",
+        AcidDaggerAssetPath,
     };
 
     [InitializeOnLoadMethod]
@@ -77,7 +78,7 @@ public static class NewUpgradeRegistration
 
         if (added.Count == 0)
         {
-            if (verbose) Debug.Log("[NewUpgradeRegistration] All four already registered - nothing to do.");
+            if (verbose) Debug.Log("[NewUpgradeRegistration] All already registered - nothing to do.");
             return;
         }
 
@@ -91,6 +92,8 @@ public static class NewUpgradeRegistration
 
     private const string DartSpritePath = "Assets/Graphics/sleeping_dart.aseprite";
     private const string ZSpritePath = "Assets/Graphics/sleep_z.aseprite";
+    private const string AcidDaggerAssetPath = "Assets/Upgrades/Poison Ups/Acid Dagger.asset";
+    private const string AcidDaggerSpritePath = "Assets/Graphics/acid_dagger.aseprite";
 
     // An .aseprite's sprite sub-asset id is minted per import, so the reference
     // cannot be written into the .asset YAML from outside the editor - it has to
@@ -98,6 +101,8 @@ public static class NewUpgradeRegistration
     // neither depends on the other having been taken.
     private static void WireSprites(bool verbose)
     {
+        WireAcidDagger();
+
         Sprite dart = AssetDatabase.LoadAssetAtPath<Sprite>(DartSpritePath);
         Sprite z = AssetDatabase.LoadAssetAtPath<Sprite>(ZSpritePath);
 
@@ -139,6 +144,39 @@ public static class NewUpgradeRegistration
 
         AssetDatabase.SaveAssets();
         if (verbose) Debug.Log("[NewUpgradeRegistration] Sprite wiring pass complete.");
+    }
+
+    // Its own pass so a missing dart sprite cannot hold up the dagger, or the
+    // other way round. SwordSwing measures the blade's hitbox off this 9x17
+    // canvas, so the full-rect assert matters here more than anywhere.
+    private static void WireAcidDagger()
+    {
+        Sprite dagger = AssetDatabase.LoadAssetAtPath<Sprite>(AcidDaggerSpritePath);
+        if (dagger == null)
+        {
+            Debug.LogWarning($"[NewUpgradeRegistration] {AcidDaggerSpritePath} has no sprite yet - " +
+                             "the importer may not have run.");
+            return;
+        }
+
+        AssertFullRect(dagger, AcidDaggerSpritePath, 9, 17);
+
+        // Loaded again in case the assert had to reimport it
+        dagger = AssetDatabase.LoadAssetAtPath<Sprite>(AcidDaggerSpritePath);
+        if (dagger == null) return;
+
+        var upgrade = AssetDatabase.LoadAssetAtPath<BaseUpgrade>(AcidDaggerAssetPath);
+        if (upgrade == null) return;
+
+        var so = new SerializedObject(upgrade);
+        SerializedProperty prop = so.FindProperty("daggerSprite");
+        if (prop == null || prop.objectReferenceValue == dagger) return;
+
+        prop.objectReferenceValue = dagger;
+        so.ApplyModifiedProperties();
+        EditorUtility.SetDirty(upgrade);
+        AssetDatabase.SaveAssets();
+        Debug.Log($"[NewUpgradeRegistration] Wired {dagger.name} onto {upgrade.name}.");
     }
 
     private static void AssertFullRect(Sprite sprite, string path, int width, int height)

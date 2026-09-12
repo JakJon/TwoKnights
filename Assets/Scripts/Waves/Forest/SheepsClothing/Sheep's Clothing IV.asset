@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d5dbd19163e995478b12dcc4ef6d9fd, type: 3}
-  m_Name: Sheeps Clothing 3
+  m_Name: Sheep's Clothing IV
   m_EditorClassIdentifier: 
   waveName: Sheep's Clothing IV
   weight: 1000

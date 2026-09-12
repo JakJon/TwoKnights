@@ -15,7 +15,7 @@ MonoBehaviour:
   upgradeName: Bowsight II
   description: The beam runs clean off the screen, and bites twice as hard.
   weight: 14
-  order: 0
+  order: 3
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 89042badb83f44ceb696d480de302e32, type: 2}

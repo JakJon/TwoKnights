@@ -28,7 +28,49 @@ public class PoisonCloud : MonoBehaviour
     private float radius;
     private float duration;
     private string ownerTag;
-    private Vector2 velocity = Vector2.zero; // Serpent's Breath clouds drift
+    private Vector2 velocity = Vector2.zero; // zero = stays where it was made
+
+    // Miasma clouds carry on the way the dying enemy was walking, at the same
+    // speed a Serpent's Breath cloud drifts
+    private const float MiasmaDriftSpeed = 1.5f;
+
+    // Plaguebringer: every cloud made by a knight who owns it hunts. It moves onto the
+    // nearest mob within HomingRadius that it has not poisoned yet, and once that mob
+    // is poisoned it goes after the next one — so one cloud walks the venom down a
+    // line of enemies instead of waiting for them to walk into it. Mobs outside the
+    // camera view are never chosen, so a cloud does not wander off the edge after
+    // something still walking in.
+    //
+    // Like Guided Shot the target is sticky: the cloud keeps its mob until that mob is
+    // poisoned, dies, or leaves the view, rather than re-picking the nearest every
+    // search and drifting between two of them.
+    private const float HomingRadius = 3f;
+    // The chase runs at the target's own measured pace plus this, so a cloud always
+    // gains on whatever it is after — slowly on a wolf, and it closes on a sleeping
+    // or frozen mob at just this speed
+    private const float HomingSpeedMargin = 0.5f;
+    private const float HomingAcceleration = 8f;     // units/s² — how quickly it turns onto a new mob
+    private const float HomingArriveDistance = 0.5f; // eases off inside this, so it settles over the mob instead of circling it
+    private const float HomingSearchInterval = 0.1f;
+
+    // The puff sprite is white and tinted here. A Plaguebringer cloud is the same
+    // green with Guardian gold flecked through it: about one puff in five comes out
+    // golden-white, so a hunting cloud reads as the Serpent + Guardian thing it is.
+    // Which puffs are gold is random, which is fine — it is colour only, and changes
+    // nothing about what the cloud does.
+    private static readonly Color VenomTint = new Color(0.5f, 0.8f, 0.35f, 0.55f);
+    private static readonly Color PlagueFleckTint = new Color(1f, 0.93f, 0.7f, 0.7f);
+    private const float PlagueFleckShare = 0.2f;
+
+    // Shared by every homing cloud's search, rather than allocated per sweep. Enemy
+    // colliders are triggers, so the filter has to ask for them (as ShieldSight does).
+    private static readonly Collider2D[] HomingHits = new Collider2D[64];
+    private static readonly ContactFilter2D HomingFilter = new ContactFilter2D { useTriggers = true };
+
+    private bool homing;
+    private EnemyBase homingTarget;
+    private Collider2D homingBody;
+    private float nextHomingSearch;
 
     private float elapsed;
     private float sinceLastCheck;
@@ -36,8 +78,11 @@ public class PoisonCloud : MonoBehaviour
     private ParticleSystem particles;
     private readonly HashSet<EnemyBase> alreadyPoisoned = new HashSet<EnemyBase>();
 
-    // level 1: small, brief puff; level 2: wider cloud that lingers
-    public static PoisonCloud Spawn(Vector2 position, int level, string ownerTag)
+    // level 1: small, brief puff; level 2: wider cloud that lingers.
+    // `heading` is the way the dying enemy was walking; the cloud drifts along it at
+    // MiasmaDriftSpeed. Zero (an enemy that never moved) leaves it where it was made.
+    public static PoisonCloud Spawn(Vector2 position, int level, string ownerTag,
+        Vector2 heading = default)
     {
         var cloudObject = new GameObject("PoisonCloud");
         cloudObject.transform.position = position;
@@ -45,7 +90,8 @@ public class PoisonCloud : MonoBehaviour
         cloud.radius = level >= 2 ? 2.0f : 1.4f;
         cloud.duration = level >= 2 ? 10f : 3f;
         cloud.ownerTag = ownerTag;
-        cloud.BuildCloudParticles();
+        cloud.velocity = heading.normalized * MiasmaDriftSpeed;
+        cloud.Begin();
         return cloud;
     }
 
@@ -61,7 +107,7 @@ public class PoisonCloud : MonoBehaviour
         cloud.duration = duration;
         cloud.ownerTag = ownerTag;
         cloud.velocity = direction.normalized * speed;
-        cloud.BuildCloudParticles();
+        cloud.Begin();
         return cloud;
     }
 
@@ -84,34 +130,25 @@ public class PoisonCloud : MonoBehaviour
         cloud.duration = Mathf.Max(0.2f, duration);
         cloud.ownerTag = ownerTag;
         cloud.velocity = drift;
-        cloud.BuildCloudParticles();
+        cloud.Begin();
         return cloud;
     }
 
-    // One-shot radial pop for Plaguebringer bursts; cleans itself up
-    public static void SpawnBurstEffect(Vector2 position)
+    // The last step of every Spawn method, once ownerTag is set. Whether the cloud
+    // hunts has to be known before the particles are built, because a hunting cloud
+    // is drawn in the Plaguebringer tint from its very first puff.
+    private void Begin()
     {
-        AudioManager.Instance.PlaySFX(AudioManager.Instance.poisonBurst);
+        homing = OwnerHasPlaguebringer(ownerTag);
+        BuildCloudParticles();
+    }
 
-        var burstObject = new GameObject("PlagueBurst");
-        burstObject.transform.position = position;
-        var burst = CreateParticleSystem(burstObject, new Color(0.55f, 0.85f, 0.35f, 0.9f));
-
-        var main = burst.main;
-        main.startLifetime = 0.5f;
-        main.startSpeed = new ParticleSystem.MinMaxCurve(2.5f, 4f);
-        main.startSize = new ParticleSystem.MinMaxCurve(0.15f, 0.3f);
-
-        var emission = burst.emission;
-        emission.rateOverTime = 0f;
-
-        var shape = burst.shape;
-        shape.shapeType = ParticleSystemShapeType.Circle;
-        shape.radius = 0.15f;
-
-        burst.Play();
-        burst.Emit(28);
-        Destroy(burstObject, 1.5f);
+    private static bool OwnerHasPlaguebringer(string tag)
+    {
+        if (string.IsNullOrEmpty(tag)) return false;
+        GameObject knight = GameObject.FindWithTag(tag);
+        PoisonTipBoost boost = knight != null ? knight.GetComponent<PoisonTipBoost>() : null;
+        return boost != null && boost.Plaguebringer;
     }
 
     private void OnEnable()
@@ -146,6 +183,11 @@ public class PoisonCloud : MonoBehaviour
         elapsed += Time.deltaTime;
         sinceLastCheck += Time.deltaTime;
 
+        if (homing && !emissionStopped)
+        {
+            Home();
+        }
+
         if (velocity != Vector2.zero && !emissionStopped)
         {
             transform.position += (Vector3)(velocity * Time.deltaTime);
@@ -169,6 +211,65 @@ public class PoisonCloud : MonoBehaviour
                 emission.enabled = false;
             }
             Destroy(gameObject, ParticleLifetime + 0.5f);
+        }
+    }
+
+    // Steers `velocity` toward the current mob. With no mob in reach the cloud keeps
+    // whatever velocity it has, so it carries on exactly as a plain cloud would.
+    private void Home()
+    {
+        if (!IsWorthChasing(homingTarget, homingBody))
+        {
+            homingTarget = null;
+            homingBody = null;
+            FindHomingTarget();
+        }
+
+        if (homingTarget == null) return;
+
+        // The body's middle, not its transform — enemy pivots sit at the feet
+        Vector2 toTarget = (Vector2)homingBody.bounds.center - (Vector2)transform.position;
+        float distance = toTarget.magnitude;
+        float chaseSpeed = homingTarget.MeasuredSpeed + HomingSpeedMargin;
+        Vector2 desired = distance > 1e-4f
+            ? toTarget / distance * (chaseSpeed * Mathf.Clamp01(distance / HomingArriveDistance))
+            : Vector2.zero;
+        velocity = Vector2.MoveTowards(velocity, desired, HomingAcceleration * Time.deltaTime);
+    }
+
+    // A mob this cloud has already poisoned is not worth chasing — it would only ever
+    // be poisoned once by this cloud anyway — so that is what moves it on to the next
+    private bool IsWorthChasing(EnemyBase enemy, Collider2D body)
+    {
+        return enemy != null && !enemy.IsDead
+            && body != null && body.enabled
+            && !alreadyPoisoned.Contains(enemy)
+            && FireField.IsInsideView(body.bounds.center);
+    }
+
+    private void FindHomingTarget()
+    {
+        if (Time.time < nextHomingSearch) return;
+        nextHomingSearch = Time.time + HomingSearchInterval;
+
+        Vector2 here = transform.position;
+        int count = Physics2D.OverlapCircle(here, HomingRadius, HomingFilter, HomingHits);
+
+        float bestDistance = float.MaxValue;
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D hit = HomingHits[i];
+            if (hit == null) continue;
+
+            EnemyBase enemy = hit.GetComponent<EnemyBase>();
+            if (!IsWorthChasing(enemy, hit)) continue;
+
+            float distance = ((Vector2)hit.bounds.center - here).sqrMagnitude;
+            if (distance >= bestDistance) continue;
+
+            bestDistance = distance;
+            homingTarget = enemy;
+            homingBody = hit;
         }
     }
 
@@ -196,7 +297,8 @@ public class PoisonCloud : MonoBehaviour
 
     private void BuildCloudParticles()
     {
-        particles = CreateParticleSystem(gameObject, new Color(0.5f, 0.8f, 0.35f, 0.55f));
+        particles = CreateParticleSystem(gameObject,
+            homing ? PlagueFleckedTint() : new ParticleSystem.MinMaxGradient(VenomTint));
 
         var main = particles.main;
         main.startLifetime = ParticleLifetime;
@@ -224,9 +326,36 @@ public class PoisonCloud : MonoBehaviour
         particles.Emit(Mathf.RoundToInt(6f * radius)); // visible immediately
     }
 
+    // Each puff picks its colour at random from this gradient. It is a step, not a
+    // blend (GradientMode.Fixed), so a puff is either plainly green or plainly gold —
+    // never a muddy in-between. The green and gold keys are doubled up either side of
+    // the split so the share comes out the same whichever side of a key Unity's
+    // Fixed mode reads a colour from.
+    private static ParticleSystem.MinMaxGradient PlagueFleckedTint()
+    {
+        float split = 1f - PlagueFleckShare;
+        var gradient = new Gradient { mode = GradientMode.Fixed };
+        gradient.SetKeys(
+            new[]
+            {
+                new GradientColorKey(VenomTint, 0f),
+                new GradientColorKey(VenomTint, split),
+                new GradientColorKey(PlagueFleckTint, split + 0.001f),
+                new GradientColorKey(PlagueFleckTint, 1f),
+            },
+            new[]
+            {
+                new GradientAlphaKey(VenomTint.a, 0f),
+                new GradientAlphaKey(VenomTint.a, split),
+                new GradientAlphaKey(PlagueFleckTint.a, split + 0.001f),
+                new GradientAlphaKey(PlagueFleckTint.a, 1f),
+            });
+        return new ParticleSystem.MinMaxGradient(gradient) { mode = ParticleSystemGradientMode.RandomColor };
+    }
+
     // Shared builder matching PoisonBubbleEffect's approach: sprite texture on the
     // default sprite shader, world space, shrink + fade over lifetime
-    private static ParticleSystem CreateParticleSystem(GameObject host, Color tint)
+    private static ParticleSystem CreateParticleSystem(GameObject host, ParticleSystem.MinMaxGradient tint)
     {
         var system = host.AddComponent<ParticleSystem>();
 

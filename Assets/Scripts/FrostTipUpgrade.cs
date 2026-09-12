@@ -7,9 +7,11 @@ using UnityEngine;
 // cold touches, the ward and the blade included. Frost Tip is not "your arrows
 // are colder", it is "you are colder".
 //
-// Rank one on its own is a real upgrade that is not yet a build: things arrive
-// slower and you get more shots into them, and nothing freezes. Deep Freeze is
-// the pick that turns the Order on.
+// Rank one already freezes (owner's call, 2026-09-11): the first arrow chills,
+// and a second arrow into a chilled body freezes it for however long the chill
+// had left. That makes the chain's longer chills longer freezes too. Deep Freeze
+// adds time and toughness to the ice. Shatter unlocks off rank one for the same
+// reason - there is something to break now.
 [CreateAssetMenu(fileName = "FrostTipUpgrade", menuName = "Upgrades/Frost Tip")]
 public class FrostTipUpgrade : BaseUpgrade
 {
@@ -36,6 +38,6 @@ public class FrostTipUpgrade : BaseUpgrade
 
         boost.SetFrostTip(tipLevel);
 
-        Debug.Log($"Applied Frost Tip {tipLevel} to {targetKnight.name}: chilled bodies move at x{boost.ChillSpeedMultiplier} for {boost.ChillSeconds}s");
+        Debug.Log($"Applied Frost Tip {tipLevel} to {targetKnight.name}: chilled bodies move at x{boost.ChillSpeedMultiplier} for {boost.ChillSeconds}s, and can now freeze");
     }
 }

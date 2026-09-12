@@ -9,7 +9,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "FireTrailUpgrade", menuName = "Upgrades/Fire Trail")]
 public class FireTrailUpgrade : BaseUpgrade
 {
-    [SerializeField] private int trailLevel = 1; // 1 = 0.5u/2s, 2 = 0.75u/3.5s
+    [SerializeField] private int trailLevel = 1; // 1 = 0.5u/4s, 2 = 0.75u/7s (before Panic and the capstone widen them)
 
     public override string ChainName => "Fire Trail";
 
@@ -29,10 +29,12 @@ public class FireTrailUpgrade : BaseUpgrade
             boost = targetKnight.AddComponent<EmberBoost>();
         }
 
-        // Each rank also raises every fire zone's damage (EmberBoost.ZoneDps reads
-        // the rank counts) — Bellows was cut, so the dps knob rides here instead
+        // Rank I is worth NO zone dps — the only pick in the Order that isn't. It
+        // buys the lane, which is the whole of what Fire Trail is for. Rank II adds
+        // +0.25 dps and +0.25u on top.
         boost.SetFireTrailLevel(trailLevel);
 
-        Debug.Log($"Applied Fire Trail {trailLevel} to {targetKnight.name}: zones now {boost.ZoneDps} dps");
+        Debug.Log($"Applied Fire Trail {trailLevel} to {targetKnight.name}: " +
+            $"zones now {boost.ZoneDps} dps, trails {boost.TrailZoneRadius}u");
     }
 }

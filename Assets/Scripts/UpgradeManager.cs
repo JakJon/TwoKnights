@@ -186,8 +186,13 @@ public class UpgradeManager : ScriptableObject
             // Starting upgrades: no prerequisites -> in pool
             bool isStarting = up.UnlockedBy == null || up.UnlockedBy.Count == 0;
 
-            // Any-of unlock: available if starting OR owns any prerequisite OR conflict says unlocked
-            bool unlocked = isStarting || (up.UnlockedBy != null && up.UnlockedBy.Any(owned.Contains)) || conflict;
+            // Any-of unlock: available if starting OR owns any prerequisite OR conflict says unlocked.
+            // An upgrade that sets RequiresAllUnlocks reads the same list as ALL-of instead —
+            // see BaseUpgrade.requiresAllUnlocks for why that door exists.
+            bool prerequisitesMet = up.UnlockedBy != null && (up.RequiresAllUnlocks
+                ? up.UnlockedBy.All(owned.Contains)
+                : up.UnlockedBy.Any(owned.Contains));
+            bool unlocked = isStarting || prerequisitesMet || conflict;
 
             // Any-of lock: unavailable if owns any in lockedBy, unless conflict forces unlock
             bool locked = !conflict && up.LockedBy != null && up.LockedBy.Any(owned.Contains);
@@ -225,6 +230,14 @@ public class UpgradeManager : ScriptableObject
             // Shadow upgrades"). Cumulative across runs, never reset.
             PlayerStats.Increment($"upgrades.taken.{StatSlug(upgrade.name)}");
             PlayerStats.Increment($"upgrades.order.{upgrade.Order.ToString().ToLowerInvariant()}");
+
+            // The Guardian Order's door asks about THIS RUN rather than a lifetime,
+            // so it needs the one moment that knows both the knight and the Order.
+            // See GuardianAwakening.
+            if (upgrade.Order == UpgradeOrder.Guardian)
+            {
+                GuardianAwakening.NoteUpgrade(knight.tag);
+            }
 
             // Flip turn to the other knight for next selection
             _nextTarget = targetKnight == KnightTarget.LeftKnight ? KnightTarget.RightKnight : KnightTarget.LeftKnight;

@@ -10,6 +10,12 @@ public class SwordDamageDetector : MonoBehaviour
         this.swordSwing = swordSwing;
         this.damage = damage;
     }
+
+    /// <summary>The knight swinging this blade. The detector is the only handle
+    /// anything else has on a swing — the sword object itself is untagged by
+    /// design — so anything that needs to know whose swing it was reads it here.
+    /// See CollectibleOrb.</summary>
+    public GameObject OwningKnight => swordSwing != null ? swordSwing.OwningKnight : null;
     
     private void OnTriggerEnter2D(Collider2D other)
     {
