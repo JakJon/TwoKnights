@@ -13,20 +13,35 @@ public class ShieldShapeUpgrade : BaseUpgrade
     [SerializeField] private float lengthMultiplier = 1.5f;  // target span vs the authored shield
     [SerializeField] private float curveRadius = 2.6f;       // shield-local units; smaller is a tighter bow
 
+    // Max health, which used to be thirteen classless cards worth up to +625 between
+    // them. It lives on this chain now: a bigger guard and a bigger body are the same
+    // sentence, and it gives the one Guardian chain that was purely geometric a reason
+    // to be picked by somebody who is not already committed to the Order.
+    [SerializeField] private int healthIncrease = 25;
+
     // Display only — the assets stay named Greatshield 1-3 on disk, because the
-    // filename is what upgrades.taken.greatshield_N is slugged from.
-    public override string ChainName => "Dawn Shield";
+    // filename is what upgrades.taken.greatshield_N is slugged from. It was called
+    // "Dawn Shield", which collided head-on with the Order named Dawn.
+    public override string ChainName => "Holy Shield";
 
     private void OnEnable()
     {
         if (string.IsNullOrEmpty(upgradeName))
-            upgradeName = "Dawn Shield";
+            upgradeName = "Holy Shield";
         if (weight == 0f)
             weight = 16f; // Legendary
     }
 
     public override void ApplyUpgrade(GameObject targetKnight)
     {
+        // Paid first, deliberately: the shield lookup below can bail out, and a
+        // knight who somehow has no ShieldOrbit must still get the health they
+        // were shown on the card.
+        if (healthIncrease > 0)
+        {
+            targetKnight.GetComponent<PlayerHealth>()?.IncreaseMaxHealth(healthIncrease);
+        }
+
         ShieldOrbit shield = targetKnight.GetComponentInChildren<ShieldOrbit>();
         if (shield == null)
         {
@@ -43,6 +58,6 @@ public class ShieldShapeUpgrade : BaseUpgrade
         shape.SetShape(lengthMultiplier, curveRadius);
 
         Debug.Log($"Applied {upgradeName} to {targetKnight.name}: span x{lengthMultiplier}, " +
-                  $"curve radius {curveRadius}, arc {shape.ArcDegrees:0}°");
+                  $"curve radius {curveRadius}, arc {shape.ArcDegrees:0}°, +{healthIncrease} max health");
     }
 }

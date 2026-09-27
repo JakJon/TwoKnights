@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // Code-built Dawn visuals: the holy light. Mirrors FireFx / ShadowFx — no
 // prefab and no new art, just the shared white ember mote tinted to the Order's
@@ -10,6 +10,9 @@ using UnityEngine;
 //   Aura      — a sustained halo for as long as a knight is untouchable.
 //   OrbGlow   — a slowed orb emanating light, so Sunwell III is visible on the
 //               object it changed rather than only in the numbers.
+//   HolyOrb   — a single steady orb riding behind a shot carrying holy damage.
+//               The one surface here that is a SPRITE rather than motes; see
+//               AttachArrowTrail for why.
 //
 // Everything rises. Fire licks up and dies dark (FireFx cools to ash); Dawn
 // rises and dies BRIGHT, fading to white rather than to soot. That contrast is
@@ -22,6 +25,107 @@ public static class DawnFx
 
     private const string AuraChildName = "DawnAura";
     private const string OrbGlowChildName = "DawnOrbGlow";
+    private const string HolyOrbChildName = "HolyOrb";
+
+    // Finished diameter in WORLD units, so the orb is the same size behind a
+    // full-scale shadow arrow and a half-scale arrow.
+    //
+    // The orb used to ride 0.31 world units BEHIND the shot as well, which is what
+    // made it read as a trail dragging along after the arrow instead of as light
+    // coming off it. It sits on the sprite's own centre now (see AttachArrowTrail),
+    // and at twice the old diameter, because a glow the size of the arrowhead reads
+    // as a second object next to the arrow rather than as the arrow glowing.
+    //
+    // This pair is the ONE-PICK glow — the arrow of a knight who has dipped a
+    // single toe into the Order. It is the baseline the growth below builds on.
+    private const float HolyOrbWorldDiameter = 0.8f;
+
+    // Peak opacity at the very centre. Everything outside that is thinner again by
+    // the falloff below, so the orb never presents an edge.
+    //
+    // A THIRD of the 0.38 this used to be (owner's call). That number was set when
+    // the glow only ever meant "this arrow carries holy" and had one setting; as
+    // the floor of a ramp it was far too loud, because a single Dawn pick is +2 on
+    // the arrow and was lighting the shot up as if the knight had bought the Order.
+    // The first pick should be a hint that something is on the arrow, and the last
+    // one should be the arrow burning.
+    private const float HolyOrbAlpha = 0.127f;
+
+    // ---- how the light grows ----
+    //
+    // Holy damage is +2 an arrow for EVERY Dawn pick (see DawnBoost.HolyDamage), so
+    // by the end of the Order the arrow is carrying twenty-odd points of light it
+    // was carrying two of at the start — and it looked identical the whole way. The
+    // glow says how far down the Order the knight has gone, which is the one Dawn
+    // number the player has no other way to read off the screen.
+    //
+    // Both ends grow, because either alone reads wrong: alpha alone turns a soft
+    // glow into a hard white pill, and size alone into a bigger patch of the same
+    // faint haze. Together they read as the light getting STRONGER.
+    //
+    // The alpha spans nearly six to one now that the floor has come down to a
+    // third, which is the point: the difference between one Dawn card and thirteen
+    // should be obvious across a crowded board without anyone counting anything.
+    private const int HolyOrbFullPicks = 13;        // the whole Order, per DawnBoost
+    private const float HolyOrbFullAlpha = 0.72f;
+    private const float HolyOrbFullDiameter = 1.35f;
+
+    // How fast the glow thins from centre to rim. Above 1 the light collapses
+    // toward the middle, which is what makes it read as a glow rather than a disc.
+    private const float HolyOrbFalloff = 2.4f;
+
+    private const int HolyOrbTextureSize = 64;
+
+    // The orb's own sprite, generated once and kept.
+    //
+    // It deliberately does NOT use the shared ember mote the rest of DawnFx draws
+    // with. That sprite is a 16x16 blob with a near-solid five-pixel core, which is
+    // right for a particle seen for a third of a second and wrong for something
+    // that sits on screen for a whole flight — blown up to this size it reads as a
+    // hard disc with a fuzzy rim. A radial falloff computed here has no edge at any
+    // size, which is the whole requirement.
+    private static Sprite _holyOrbSprite;
+
+    private static Sprite HolyOrbSprite
+    {
+        get
+        {
+            if (_holyOrbSprite != null) return _holyOrbSprite;
+
+            const int size = HolyOrbTextureSize;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
+            float centre = (size - 1) * 0.5f;
+            var pixels = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x - centre) / centre;
+                    float dy = (y - centre) / centre;
+                    float radius = Mathf.Sqrt(dx * dx + dy * dy);
+                    float alpha = Mathf.Pow(Mathf.Clamp01(1f - radius), HolyOrbFalloff);
+                    pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+
+            // Pixels-per-unit equal to the texture size, so the sprite is exactly
+            // one world unit across at scale 1 and the sizing in AttachArrowTrail
+            // stays arithmetic anyone can follow.
+            _holyOrbSprite = Sprite.Create(texture, new Rect(0f, 0f, size, size),
+                                           new Vector2(0.5f, 0.5f), size);
+            _holyOrbSprite.hideFlags = HideFlags.HideAndDontSave;
+            return _holyOrbSprite;
+        }
+    }
 
     private static Sprite MoteSprite
     {
@@ -176,6 +280,77 @@ public static class DawnFx
         velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
 
         system.Play();
+    }
+
+    /// <summary>
+    /// The tell for holy damage: a single glowing orb riding directly behind the
+    /// shot. Deliberately NOT a particle trail — Dawn's other surfaces all throw
+    /// motes, and a bow firing three times a second turned the screen into drifting
+    /// bubbles. One steady orb reads as a shot that is carrying something.
+    ///
+    /// A sprite rather than a ParticleSystem, because the whole point is that it
+    /// does not move relative to the arrow: parented, offset along local -X (the
+    /// arrow sprite is drawn pointing along +X), and it turns with the shot for
+    /// free when Guided Shot steers it.
+    /// </summary>
+    /// <param name="dawnPicks">How many Dawn upgrades the firing knight owns. One
+    /// (or anything less) draws the baseline glow; every pick past that brightens
+    /// and widens it toward the full-Order light. Callers pass DawnBoost.DawnPicks.</param>
+    public static GameObject AttachArrowTrail(GameObject arrow, int dawnPicks = 1)
+    {
+        if (arrow == null) return null;
+
+        Sprite orb = HolyOrbSprite;
+        if (orb == null) return null;
+
+        // Linear between the one-pick baseline and the full-Order light. Linear
+        // rather than curved because the thing being reported is linear: each pick
+        // is worth the same +2, so each pick should look like the same step.
+        float growth = Mathf.Clamp01((dawnPicks - 1f) / (HolyOrbFullPicks - 1f));
+        float alpha = Mathf.Lerp(HolyOrbAlpha, HolyOrbFullAlpha, growth);
+        float diameter = Mathf.Lerp(HolyOrbWorldDiameter, HolyOrbFullDiameter, growth);
+
+        ClearChild(arrow, HolyOrbChildName);
+
+        // Read BEFORE the orb exists. GetComponentInChildren searches the object
+        // itself first, but on a prefab whose renderer sits on a CHILD it walks the
+        // children in order — and the orb, once parented, is one of them.
+        var arrowRenderer = arrow.GetComponentInChildren<SpriteRenderer>();
+
+        var host = new GameObject(HolyOrbChildName);
+        host.transform.SetParent(arrow.transform, false);
+
+        // Dead centre of the SPRITE, which is not the same point as the transform
+        // origin: the arrow prefabs are pivoted at the tail so they rotate about
+        // the nock, so parking the orb at localPosition zero would still hang it
+        // off one end. Set in world space off the renderer's own bounds and left
+        // to the parenting to hold, which lands it on the middle of the art for
+        // an arrow, a shuriken and a fireball alike whatever each is pivoted on.
+        float parentScale = Mathf.Max(0.01f, Mathf.Abs(arrow.transform.lossyScale.x));
+        if (arrowRenderer != null) host.transform.position = arrowRenderer.bounds.center;
+        else host.transform.localPosition = Vector3.zero;
+        host.transform.localRotation = Quaternion.identity;
+
+        var renderer = host.AddComponent<SpriteRenderer>();
+        renderer.sprite = orb;
+        renderer.color = new Color(Gold.r, Gold.g, Gold.b, alpha);
+
+        // Sit just under the arrow so the shot itself stays the readable thing,
+        // and share its layer so the orb can never end up on the wrong side of
+        // the scenery the arrow is flying over
+        if (arrowRenderer != null)
+        {
+            renderer.sortingLayerID = arrowRenderer.sortingLayerID;
+            renderer.sortingOrder = arrowRenderer.sortingOrder - 1;
+        }
+
+        // Sized in WORLD units against the parent's scale, because the arrow
+        // prefab is authored at 0.5 and a child would otherwise inherit it
+        float spriteWorld = Mathf.Max(0.01f, orb.bounds.size.x);
+        float scale = diameter / (spriteWorld * parentScale);
+        host.transform.localScale = new Vector3(scale, scale, 1f);
+
+        return host;
     }
 
     // ---- shared ----

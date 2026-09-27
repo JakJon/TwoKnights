@@ -106,6 +106,17 @@ objectives: One("maps.camp_fields.gate_cleared", 1,
 
 That quest is "beat wave 10" and must never say so.
 
+`countAfter: true` is for a label that is a whole sentence with the target already in
+it. The log prints the count after the label instead of in front of it, and the offer
+and completion cards show the label alone:
+
+```csharp
+objectives: One(TargetRange.PatternsStat, 5,
+                "Complete all 5 different target range patterns successfully.",
+                lifetime: true, countAfter: true),
+// quest log: "Complete all 5 different target range patterns successfully. 2 / 5"
+```
+
 ### Unlock gating
 
 `Gate(...)` takes conditions; default is **all** must hold. `unlockMode: UnlockMode.Any`
@@ -145,12 +156,20 @@ Order lines are not chains. A light trigger reveals **only** the initiation; the
 initiation admits you and opens **both branches at once**, which then run in parallel.
 
 ```
-poison 20 enemies ──► INITIATION (2-3 objectives)
+poison 20 enemies ──► INITIATION (passed by its Order trial)
                             │
                     ┌───────┴───────┐
                  BRANCH A        BRANCH B
                 (2 quests)      (2 quests)
 ```
+
+**Initiations are passed by Order trials, not counters** (owner, 2026-09-23). Each
+initiation has ONE objective reading `trials.<order>` (3 phases, or 1 for the
+Paladin's bouts), and the trial itself plays between waves — see
+`Docs/Design/order-trials.md` and `Assets/Scripts/Trials/`. The trigger gate is
+still a light stat threshold. The offer text is where the NPC explains the trial,
+because fire, ice and venom trials arrive unannounced. Don't put stat counters
+back on an initiation.
 
 Map lines are ordinary chains. Explorer lines are **per map** (`waves.distinct.<mapId>`),
 one in the forest and one in the mine — there is no global explorer line.

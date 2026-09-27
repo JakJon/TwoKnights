@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sleeping Dart 1
   m_EditorClassIdentifier: 
   upgradeName: Sleeping Dart I
-  description: Every tenth arrow leaves as a dart. What it hits stands still for
+  description: Every fifth arrow leaves as a dart. What it hits stands still for
     five seconds.
   weight: 55
   order: 2
@@ -23,13 +23,13 @@ MonoBehaviour:
   unlockedBy: []
   lockedBy: []
   stats:
-  - valueText: 1 in 10
+  - valueText: 1 in 5
     labelText: SHOTS
     isPositive: 1
   - valueText: 5s
     labelText: SLEEP
     isPositive: 1
-  shotsPerDart: 10
+  shotsPerDart: 5
   sleepSeconds: 5
   dartSprite: {fileID: 8094535273449727746, guid: 2a9a520617b7f8a4faf26b61b0ce9134, type: 3}
   sleepZSprite: {fileID: 8094535273449727746, guid: 1027628d00e54d879bc3f3fd563a12b6, type: 3}

@@ -59,12 +59,24 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // Poison system
     protected bool isPoisoned = false;
     protected float poisonTimer = 0f;
-    protected int poisonDamage = 0;
+    protected float poisonDamage = 0f;
     protected float poisonTickRate = 1f;
     protected float lastPoisonTick = 0f;
+    // Doses on this body since the poison last wore off. The Nth dose adds 1/N
+    // of its damage, never less than a quarter (see ApplyPoisonFromTag).
+    protected int poisonStacks = 0;
+    private const int PoisonStackFloor = 4;
+    private float _pendingPoisonDamage; // the fraction a tick couldn't pay yet
     protected Coroutine poisonCoroutine = null;
     protected PoisonBubbleEffect poisonBubbles = null; // Poison bubble effect
-    
+
+    // Airborne Virus: seconds this body has been poisoned, when it last breathed
+    // beads out, and when to look again. All three restart with each new
+    // poisoning (PoisonRoutine), so re-poisoning does not reset the clock.
+    private float _airborneClock;
+    private float _airborneLastRelease;
+    private float _airborneNextCheck;
+
     // Track poison sources and their contributions
     protected List<PoisonSource> poisonSources = new List<PoisonSource>();
     
@@ -183,10 +195,12 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // compose — and it is why the numbers land as two separate figures.
     //
     // The two flushes run half a second out of phase so the figures alternate on
-    // screen instead of landing on top of each other, and they are different colours:
-    // ember orange for the burn riding the body, gold for the ground under it.
-    private static readonly Color IgniteDamageColor = new Color(1f, 0.55f, 0.2f);
-    private static readonly Color FieldDamageColor = new Color(1f, 0.8f, 0.3f);
+    // screen instead of landing on top of each other. They print in the SAME colour
+    // though: fire is fire, and a player reading a burning body does not need to be
+    // told which half of the Ember build a given tick came from — they need to know
+    // it is burning. The channels stay separate where it matters, in the maths and
+    // in the two figures; the palette says one thing instead of two.
+    private static readonly Color FireDamageColor = new Color(1f, 0.55f, 0.2f);
 
     private float _sinceFireTick;
 
@@ -367,6 +381,15 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     private float _chillUntil = -1f;
     private float _chillMultiplier = 1f;
     private float _frozenUntil = -1f;
+    // When this body's current freeze began, so Thaw can bank what it was worth.
+    // The quest counts SECONDS TAKEN, and a freeze that is extended, broken early
+    // by Shatter, or ended by death are all worth different amounts — only the
+    // moment it ends knows which happened.
+    private float _frozenSince = -1f;
+
+    // Running total of fire damage taken while continuously alight. Zeroed
+    // wherever the burn ends; see ApplyFireDamage.
+    private int _uninterruptedBurn;
     // How much damage the current ice takes before it breaks, and how much it has
     // taken so far. Set by the knight who froze it (5, plus 10 per Deep Freeze rank).
     private int _iceBreakDamage = FrigidBoost.FreezeBreakDamage;
@@ -429,6 +452,16 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     private static int _liveFrozenCount;
     public static int LiveFrozenCount { get { return _liveFrozenCount; } }
     public static void ResetLiveFrozenCount() { _liveFrozenCount = 0; }
+
+    // Bodies carrying venom right now. Same shape and same reason as the frozen
+    // count above: the Serpent quest wants "eleven at once", and sweeping the
+    // field on every application would be a cost a poison build can feel.
+    //
+    // Incremented where the routine starts and decremented on BOTH ways out —
+    // the poison running its course, and the body dying with it still on.
+    private static int _livePoisonedCount;
+    public static int LivePoisonedCount { get { return _livePoisonedCount; } }
+    public static void ResetLivePoisonedCount() { _livePoisonedCount = 0; }
 
     /// <summary>
     /// Cold, from any source. THE one door, so every source spends the same rules.
@@ -519,6 +552,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         float hold = IsBoss ? seconds * FrigidBoost.BossFreezeMultiplier : seconds;
 
         bool wasFree = !IsFrozen;
+        if (_frozenUntil < 0f) _frozenSince = Time.time;
         _frozenUntil = Mathf.Max(_frozenUntil, Time.time + hold);
 
         // Freezing spends the chill. A body coming out of the ice comes out clean,
@@ -578,6 +612,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     {
         if (_frozenUntil < 0f) return;
 
+        if (_frozenSince >= 0f)
+        {
+            // Whole seconds only, and never negative — a freeze broken on the
+            // frame it landed is worth nothing, not a fraction that rounds up.
+            QuestTally.Total(OrderStats.FrozenSecondsTotal,
+                             Mathf.FloorToInt(Mathf.Max(0f, Time.time - _frozenSince)));
+            _frozenSince = -1f;
+        }
         _frozenUntil = -1f;
         _iceDamageTaken = 0;
         _liveFrozenCount = Mathf.Max(0, _liveFrozenCount - 1);
@@ -616,6 +658,77 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
 
         Thaw();
         UpdateFrostTells();
+    }
+
+    /// <summary>
+    /// This body's sprite colour with any frost tint taken back off — what a body
+    /// CLONED from it should be wearing. Public so the splitting slime can read it
+    /// off the parent before the halves exist.
+    /// </summary>
+    public Color UntintedSpriteColor
+    {
+        get
+        {
+            if (_frostTinted) return _frostUntintedColor;
+            return spriteRenderer != null ? spriteRenderer.color : Color.white;
+        }
+    }
+
+    /// <summary>
+    /// Takes the PARENT's cold off a body that was just cloned from it. The
+    /// splitting slime is the only thing in the game that clones a live enemy.
+    ///
+    /// PurgeFrost alone is not enough, because Instantiate splits the frost state
+    /// down the middle: everything Unity serializes comes across — the `enabled`
+    /// flag SleepFreeze switched off, the blue on the sprite, the ice shell and the
+    /// mote emitter hanging under the transform — while every private field that
+    /// knows how to UNDO one of those does not. So the clone wakes up wearing the
+    /// ice with nothing left that remembers putting it on, and each of those has to
+    /// be taken off by hand.
+    /// </summary>
+    /// <param name="untintedColor">The parent's colour before the frost tint, from
+    /// its own <see cref="UntintedSpriteColor"/>.</param>
+    public void PurgeFrostFromClone(Color untintedColor)
+    {
+        // Dropped outright rather than THAWED. Whatever ice this body inherited is
+        // ice it never stood in, so running it back out through Thaw would bill the
+        // Order's "seconds held" quest for time this half never spent frozen and
+        // hand back a place in the live frozen count it never took.
+        _frozenUntil = -1f;
+        _frozenSince = -1f;
+        _iceDamageTaken = 0;
+        _chillUntil = -1f;
+        _chillMultiplier = 1f;
+        _countedChillApplied = false;
+
+        PurgeFrost();
+
+        // The behaviour the parent's freeze switched off. Without this the halves
+        // have no Update and no Start, and stand exactly where they were cut for
+        // the rest of the wave.
+        SleepFreeze.ClearOnClone(this);
+
+        if (spriteRenderer != null)
+        {
+            _frostTinted = false;
+            _frostUntintedColor = untintedColor;
+            spriteRenderer.color = untintedColor;
+        }
+
+        // The shell and the motes are CHILD objects, so Instantiate copied them.
+        // FrostFx tracks the originals in a table keyed by the body they were made
+        // for, so HideIce cannot find these and the mote handle below is null on a
+        // clone — neither would ever be cleaned up. Destroy them outright and let
+        // UpdateFrostTells build fresh ones if this half is chilled again.
+        _frostMotes = null;
+        DestroyClonedFrostChild("FrostShell");
+        DestroyClonedFrostChild("FrostChill");
+    }
+
+    private void DestroyClonedFrostChild(string childName)
+    {
+        Transform child = transform.Find(childName);
+        if (child != null) Destroy(child.gameObject);
     }
 
     // ---- the two doors SleepFreeze keeps open while this enemy is switched off ----
@@ -708,7 +821,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
     }
 
-    public virtual void TakeDamage(int damage, GameObject projectile)
+    /// <param name="holyPortion">
+    /// How much of <paramref name="damage"/> was Dawn's holy light. DISPLAY ONLY:
+    /// it is already inside the total and is never added to it. Given, the number
+    /// over the body is printed as two — the red the shot did, and the white the
+    /// light did — so a Dawn knight can see what the Order is actually paying them
+    /// on a hit instead of one red number that silently got bigger.
+    /// </param>
+    public virtual void TakeDamage(int damage, GameObject projectile, int holyPortion = 0)
     {
         // Ignore any damage once death has been triggered
         if (isDead) return;
@@ -719,7 +839,22 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         OnBeforeDamageApplied(damage, projectile);
         
         glowManager?.StartGlow(Color.red, 0.3f);
-        ShowDamageText(damage);
+
+        // Two numbers rather than one, when the light did some of the work. The
+        // red is printed FIRST so the second call's stacking push lifts it and the
+        // white lands underneath it, which puts them in the order they are spoken:
+        // the hit, and then what the Order added to it.
+        int holy = Mathf.Clamp(holyPortion, 0, damage);
+        if (holy > 0)
+        {
+            int physical = damage - holy;
+            if (physical > 0) ShowDamageText(physical);
+            ShowDamageText(holy, HolyDamageText);
+        }
+        else
+        {
+            ShowDamageText(damage);
+        }
         
         health -= damage;
         
@@ -848,11 +983,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             }
         }
 
-        // Stack poison damage and reset timer
-        poisonDamage += damage;
+        // Each dose adds less than the one before it: the first in full, the second
+        // at 1/2, the third at 1/3, and every dose from the fourth on at 1/4. The
+        // tick clock is deliberately left alone, so doses landing faster than the
+        // tick rate no longer hold the ticks back.
+        poisonStacks++;
+        poisonDamage += (float)damage / Mathf.Min(poisonStacks, PoisonStackFloor);
         poisonTimer = duration; // Reset timer to new duration
         poisonTickRate = tickRate; // Use latest tick rate
-        lastPoisonTick = 0f;
 
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.poisoned);
         
@@ -896,14 +1034,23 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Start poison coroutine if not already running
         if (poisonCoroutine == null)
         {
+            lastPoisonTick = 0f;
             poisonCoroutine = StartCoroutine(PoisonRoutine());
         }
     }
 
     protected virtual IEnumerator PoisonRoutine()
     {
+        if (!isPoisoned)
+        {
+            _livePoisonedCount++;
+            QuestTally.Peak(OrderStats.PoisonSimultaneousMax, _livePoisonedCount);
+        }
         isPoisoned = true;
-        
+        _airborneClock = 0f;
+        _airborneLastRelease = 0f;
+        _airborneNextCheck = 0f;
+
         yield return new WaitForSeconds(0.4f); // Wait for red dmg glow to end
         
         float remainingDuration = poisonTimer - 0.4f;
@@ -919,8 +1066,18 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             if (lastPoisonTick >= poisonTickRate)
             {
-                health -= poisonDamage;
-                ShowDamageText(poisonDamage, new Color(0.7f, 0.9f, 0.5f)); // Pale green text
+                // Fractions are carried, never dropped, the same as fire: a pile of
+                // 4.5 pays 4 one tick and 5 the next.
+                _pendingPoisonDamage += poisonDamage;
+                int tickDamage = Mathf.FloorToInt(_pendingPoisonDamage);
+                _pendingPoisonDamage -= tickDamage;
+
+                health -= tickDamage;
+                // The biggest single dose the venom has ever delivered. A record,
+                // not a total: the quest is about stacking one enemy, not about
+                // poisoning many.
+                QuestTally.Peak(OrderStats.PoisonTickMax, tickDamage);
+                ShowDamageText(tickDamage, new Color(0.7f, 0.9f, 0.5f)); // Pale green text
                 
                 // Don't give special points for poison ticks - only for kills
                 
@@ -975,7 +1132,10 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             // Update timers
             lastPoisonTick += Time.deltaTime;
             poisonTimer -= Time.deltaTime;
-            
+
+            _airborneClock += Time.deltaTime;
+            if (!isDead && _airborneClock >= _airborneNextCheck) TickAirborneVirus();
+
             yield return null;
         }
         
@@ -983,10 +1143,52 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         poisonBubbles?.StopBubblesAndDetach();
         
         // Poison effect ended - clear all data
+        if (isPoisoned) _livePoisonedCount = Mathf.Max(0, _livePoisonedCount - 1);
         isPoisoned = false;
         poisonCoroutine = null;
         poisonSources.Clear();
-        poisonDamage = 0;
+        poisonDamage = 0f;
+        poisonStacks = 0;
+        _pendingPoisonDamage = 0f;
+    }
+
+    /// <summary>
+    /// Dawn's holy, as a number. The one white on the field — near enough to the
+    /// Order's own light (see DawnFx.HolyWhite) to read as coming from it, and now
+    /// the only thing printing pale at all, since a blast went back to red.
+    /// </summary>
+    protected static readonly Color HolyDamageText = new Color(1f, 0.98f, 0.90f);
+
+    /// <summary>
+    /// Mends this body, and says so in gold over its head — the same number in the
+    /// same stack a hit prints in red.
+    ///
+    /// Nothing in the game heals a mob yet. This is the funnel for the first thing
+    /// that does, so it cannot be written without the number: healing that happens
+    /// silently is indistinguishable from damage that failed to land, and an enemy
+    /// whose bar creeps back up with no explanation reads as a bug.
+    /// </summary>
+    public virtual void Heal(int amount)
+    {
+        if (isDead || amount <= 0) return;
+
+        // peakHealth is the honest ceiling: `health` is mutated in place, and some
+        // enemies raise theirs after Awake (slime sizes, boss init).
+        peakHealth = Mathf.Max(peakHealth, health);
+        float missing = peakHealth - health;
+        if (missing <= 0f) return;
+
+        float mended = Mathf.Min(amount, missing);
+        health += mended;
+
+        int shown = Mathf.RoundToInt(mended);
+        if (shown > 0) ShowHealText(shown);
+    }
+
+    /// <summary>The gold counterpart to ShowDamageText, out of the same prefab.</summary>
+    protected virtual void ShowHealText(int amount)
+    {
+        SpawnFloatingNumber(amount, DamageText.HealGold, heal: true);
     }
 
     protected virtual void ShowDamageText(int damage, Color textColor = default)
@@ -996,6 +1198,11 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         {
             textColor = Color.red;
         }
+        SpawnFloatingNumber(damage, textColor, heal: false);
+    }
+
+    private void SpawnFloatingNumber(int damage, Color textColor, bool heal)
+    {
         if (damageTextPrefab != null)
         {
             // Calculate position based on sprite height
@@ -1023,7 +1230,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             var damageText = damageTextObj.GetComponent<DamageText>();
             if (damageText != null)
             {
-                damageText.Initialize(damage, textColor);
+                if (heal) damageText.InitializeHeal(damage, textColor);
+                else damageText.Initialize(damage, textColor);
             }
             else
             {
@@ -1081,6 +1289,73 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
     }
 
+    // Airborne Virus (Serpent): a poisoned body breathes venom beads out around
+    // itself on the best contributor's clock - 2 beads every 6s at rank I, up to
+    // 10 every 2s at rank IV (see PoisonTipBoost.SetAirborneTier). The first
+    // release comes one full interval after the poisoning, not on it.
+    //
+    // The beads carry a Serpent's Breath bead's venom, credited to the knight
+    // whose rank is doing the breathing, and they travel for 5 seconds.
+    private const int AirbornePoisonDamage = 2;
+    private const float AirbornePoisonSeconds = 30f;
+    private const float AirbornePoisonTickRate = 1f;
+    private const float AirborneBubbleSpeed = 1f;   // Serpent's Breath's bead pace
+    private const float AirborneBubbleSeconds = 5f; // owner, 2026-09-25
+
+    // With nobody's rank behind the venom yet, look again this often. Finding the
+    // knights is a tag lookup per source, so this is not done every frame.
+    private const float AirborneRecheckSeconds = 0.5f;
+
+    private void TickAirborneVirus()
+    {
+        PoisonTipBoost best = null;
+        foreach (var source in poisonSources)
+        {
+            if (string.IsNullOrEmpty(source.playerTag)) continue;
+            GameObject player = GameObject.FindWithTag(source.playerTag);
+            PoisonTipBoost boost = player != null ? player.GetComponent<PoisonTipBoost>() : null;
+            if (boost == null || boost.AirborneBubbleCount <= 0) continue;
+            if (best == null || boost.AirborneTier > best.AirborneTier) best = boost;
+        }
+
+        if (best == null)
+        {
+            _airborneNextCheck = _airborneClock + AirborneRecheckSeconds;
+            return;
+        }
+
+        float dueAt = _airborneLastRelease + best.AirborneIntervalSeconds;
+        if (_airborneClock < dueAt)
+        {
+            _airborneNextCheck = dueAt;
+            return;
+        }
+
+        ReleaseAirborneVirus(best);
+        _airborneLastRelease = _airborneClock;
+        _airborneNextCheck = _airborneClock + best.AirborneIntervalSeconds;
+    }
+
+    // Evenly spaced round the body, the first bead at the rank's start angle, so
+    // rank I is left-and-right and rank II a pentagon with its point up
+    private void ReleaseAirborneVirus(PoisonTipBoost owner)
+    {
+        int count = owner.AirborneBubbleCount;
+        float step = 360f / count;
+        Vector2 origin = transform.position;
+        string ownerTag = owner.gameObject.tag;
+
+        for (int i = 0; i < count; i++)
+        {
+            Vector2 direction = Quaternion.Euler(0f, 0f, owner.AirborneStartDegrees + step * i) * Vector2.right;
+            PoisonTrailBubble.Release(origin, direction, AirborneBubbleSpeed, AirborneBubbleSeconds,
+                AirbornePoisonDamage + owner.TickDamageBonus,
+                AirbornePoisonSeconds,
+                AirbornePoisonTickRate,
+                ownerTag, this);
+        }
+    }
+
     // ================= Ember Order =================
 
     // The player's ignition doors: PlayerProjectile (an arrow that carries ignite),
@@ -1119,7 +1394,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         }
         isPoisoned = false;
         poisonTimer = 0f;
-        poisonDamage = 0;
+        poisonDamage = 0f;
+        poisonStacks = 0;
+        _pendingPoisonDamage = 0f;
         lastPoisonTick = 0f;
         poisonSources.Clear();
 
@@ -1312,6 +1589,9 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         if (ownMove.sqrMagnitude > 1e-8f) _lastMoveHeading = ((Vector2)ownMove).normalized;
 
         bool burning = PruneBurnStacks() || IsBurningFromGround;
+        // The moment it stops being alight the attempt is over. This is the whole
+        // test — a boss that is relit has to start the tally again.
+        if (!burning) _uninterruptedBurn = 0;
         if (!burning && _emberFlame != null && _emberFlame.emission.enabled)
         {
             var em = _emberFlame.emission;
@@ -1797,14 +2077,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         if (_sinceIgniteFlush >= FireFlushInterval)
         {
             _sinceIgniteFlush = 0f;
-            FlushFireChannel(ref _pendingIgniteDamage, _lastIgniteOwnerTag, IgniteDamageColor);
+            FlushFireChannel(ref _pendingIgniteDamage, _lastIgniteOwnerTag, FireDamageColor);
         }
 
         _sinceFieldFlush += elapsed;
         if (_sinceFieldFlush >= FireFlushInterval)
         {
             _sinceFieldFlush = 0f;
-            FlushFireChannel(ref _pendingFieldDamage, _lastFieldOwnerTag, FieldDamageColor);
+            FlushFireChannel(ref _pendingFieldDamage, _lastFieldOwnerTag, FireDamageColor);
         }
     }
 
@@ -1827,9 +2107,19 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     {
         if (isDead || ImmuneToAreaDamage || damage <= 0) return;
 
+        // The Order's hardest ask: damage burned into ONE boss without the fire
+        // ever going out. Tracked on the body rather than globally, because the
+        // question is about this target staying alight — and reset by
+        // ClearBurn/OnDeath, which are the two ways it can lapse.
+        if (IsBoss)
+        {
+            _uninterruptedBurn += damage;
+            QuestTally.Peak(OrderStats.BossBurnUninterruptedMax, _uninterruptedBurn);
+        }
+
         peakHealth = Mathf.Max(peakHealth, health);
         health -= damage;
-        ShowDamageText(damage, color); // orange for a burn, gold for the ground
+        ShowDamageText(damage, color); // ember orange, burn and burning ground alike
 
         if (health > 0)
         {
@@ -1898,6 +2188,23 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         ApplyFrostDamage(whole, _frostBiteOwnerTag);
     }
 
+    /// <summary>True while this body refuses hits outright — the Overseer's roar.
+    /// Overridden where a TakeDamage override already refuses them, so damage that
+    /// does not come through TakeDamage can ask the same question.</summary>
+    protected virtual bool RefusesHits => false;
+
+    /// <summary>
+    /// Frost damage from a blow the knight landed rather than from a chill ticking —
+    /// Rimeblade's burst. Drawn and dealt exactly like a Frost Bite tick (pale ice,
+    /// never wears the ice down), but refused while the body refuses hits, because it
+    /// lands on the same frame as the sword hit that carries it.
+    /// </summary>
+    public void TakeFrostDamage(int damage, string ownerTag)
+    {
+        if (RefusesHits) return;
+        ApplyFrostDamage(damage, ownerTag);
+    }
+
     /// <summary>
     /// Damage from Frost Bite. Mirrors ApplyFireDamage, with one difference that
     /// matters: it NEVER calls BreakFreezeIfHardEnough.
@@ -1961,9 +2268,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // A blast — a powder keg going up. Like poison and fire it sidesteps
     // TakeDamage, because the stagger that comes with a normal hit would freeze
     // whatever the blast caught for a moment at exactly the point the player is
-    // trying to read the chaos. It gets its own colour for the same reason those
-    // do: on screen, white numbers mean "something detonated near this", which is
-    // information the player cannot otherwise get from a crowd of red.
+    // trying to read the chaos.
+    //
+    // It prints in ORDINARY RED, unlike poison and fire. Those two are colours
+    // because they are conditions — a body that will keep taking damage after you
+    // look away. A blast is not a condition, it is a hit that happened to arrive as
+    // an explosion, and it is over. It spent a while printing in white to mark
+    // itself out, which only taught the player that white meant something without
+    // ever being worth the lesson.
     //
     // ownerTag credits the knight who set it off, so blowing a keg over a pack
     // pays them the special for everything it kills.
@@ -1979,7 +2291,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         peakHealth = Mathf.Max(peakHealth, health);
         health -= damage;
         BreakFreezeIfHardEnough(damage);
-        ShowDamageText(damage, Color.white);
+        ShowDamageText(damage);
 
         if (health > 0) return;
 
@@ -2011,6 +2323,16 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // Killed mid-nap: hand the behaviour back before anything downstream runs
         // on a corpse that is still switched off
         SleepFreeze.Release(this);
+
+        // Killed mid-poison: give the venom tally back too. A poisoned body that
+        // dies never reaches the end of PoisonRoutine, so without this every kill
+        // by venom would leak a count and "eleven at once" would eventually be
+        // true of an empty field.
+        if (isPoisoned)
+        {
+            isPoisoned = false;
+            _livePoisonedCount = Mathf.Max(0, _livePoisonedCount - 1);
+        }
 
         if (goldOnDeath > 0)
         {
@@ -2084,6 +2406,17 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             return;
         }
 
+        // Echoes pay nothing. A shadow volley and a shuriken fan are extra bodies
+        // on the board from ONE press of the trigger, and paying each of them a
+        // full arrow's special turned the Shadow Order into the fastest way in the
+        // game to fill the bar — several times over, on the same shot everyone else
+        // gets one payment for. The meter counts shots the player took, so it is
+        // the knight's own arrow that pays and the copies of it that do not.
+        //
+        // Both the hit and the kill are covered: a wave finished off by a shuriken
+        // must not be worth more bar than the same wave finished by the arrow.
+        PlayerProjectile shot = projectile.GetComponent<PlayerProjectile>();
+        if (shot != null && shot.IsEcho) return;
 
         GameObject player = projectile.CompareTag("PlayerLeftProjectile")
             ? GameObject.FindWithTag("PlayerLeft")

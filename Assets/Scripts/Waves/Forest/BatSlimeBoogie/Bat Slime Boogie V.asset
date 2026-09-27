@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1a15d43fcb295e4a83c917fe3dab7a3, type: 3}
+  m_Name: Bat Slime Boogie V
+  m_EditorClassIdentifier: 
+  waveName: Bat Slime Boogie V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 20
+  lockedAfterXWaves: 25
+  useEnemyTracking: 1
+  waveOccurences: 6
+  minimumSlimeSize: 2
+  batDelay: 0.9
+  projectileDelay: 1.75
+  projectileCount: 7
+  volleys:
+  - label: both sides at once
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 2
+    salvoSpread: 0.45
+    salvoStagger: 0.3
+    restAfter: 2.5
+  - label: crossings, left
+    shape: 7
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.2
+    count: 5
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2
+  - label: both sides, from under
+    shape: 5
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 2
+    salvoSpread: 0.45
+    salvoStagger: 0.3
+    restAfter: 2.5
+  - label: crossings, right
+    shape: 7
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.2
+    count: 5
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2
+  projectileWindow: 79
+  rockSpeed: 0

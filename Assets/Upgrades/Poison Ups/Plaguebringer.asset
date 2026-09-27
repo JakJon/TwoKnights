@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Plaguebringer
   m_EditorClassIdentifier: 
   upgradeName: Plaguebringer
-  description: Your venom clouds hunt down nearby enemies.
+  description: Your venom clouds and bubbles hunt down nearby enemies.
   weight: 55
   order: 1
   requiresOrderCount: 2

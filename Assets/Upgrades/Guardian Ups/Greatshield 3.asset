@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31a82f926086438c85d55f0248083db4, type: 3}
   m_Name: Greatshield 3
   m_EditorClassIdentifier: 
-  upgradeName: Dawn Shield III
-  description: A curved wall you can carry.
-  weight: 12
+  upgradeName: Holy Shield III
+  description: A curved wall you can carry, and the frame to carry it. +50 max health.
+  weight: 16
   order: 3
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 5471bbcff7194b9c84f1b4cc14f87330, type: 2}
   lockedBy: []
   stats:
+  - valueText: +50
+    labelText: MAX HEALTH
+    isPositive: 1
   - valueText: +80%
     labelText: SHIELD LENGTH
     isPositive: 1
@@ -29,3 +32,4 @@ MonoBehaviour:
     isPositive: 1
   lengthMultiplier: 2.16
   curveRadius: 1.4
+  healthIncrease: 50

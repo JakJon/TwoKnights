@@ -11,14 +11,23 @@ public static class QuestBuild
     /// <summary>Quests that belong to no map — Order lines, camp business.</summary>
     public const string Camp = "";
 
-    public static QuestObjective Obj(string statKey, int target, string label = null, bool hideProgress = false)
+    /// <summary>
+    /// <paramref name="lifetime"/> measures against the player's whole history
+    /// instead of from the moment the quest opened. Almost nothing wants it — see
+    /// QuestObjective.Lifetime.
+    /// </summary>
+    public static QuestObjective Obj(string statKey, int target, string label = null,
+                                     bool hideProgress = false, bool lifetime = false,
+                                     bool countAfter = false)
     {
-        return new QuestObjective(statKey, target, label, hideProgress);
+        return new QuestObjective(statKey, target, label, hideProgress, lifetime, countAfter);
     }
 
-    public static QuestObjective[] One(string statKey, int target, string label = null, bool hideProgress = false)
+    public static QuestObjective[] One(string statKey, int target, string label = null,
+                                       bool hideProgress = false, bool lifetime = false,
+                                       bool countAfter = false)
     {
-        return new[] { new QuestObjective(statKey, target, label, hideProgress) };
+        return new[] { new QuestObjective(statKey, target, label, hideProgress, lifetime, countAfter) };
     }
 
     /// <summary>Gate on another quest being finished — the standard link in a chain.</summary>
@@ -39,7 +48,7 @@ public static class QuestBuild
 
     public static QuestReward Reward(int crystals = 0, string equipmentId = null,
                                      bool extraSlot = false, bool extraSpecialSlot = false,
-                                     string unlocksMapId = null)
+                                     string unlocksMapId = null, string upgradeSlug = null)
     {
         return new QuestReward
         {
@@ -48,6 +57,33 @@ public static class QuestBuild
             ExtraEquipmentSlot = extraSlot,
             ExtraSpecialSlot = extraSpecialSlot,
             UnlocksMapId = unlocksMapId,
+            UpgradeSlug = upgradeSlug,
         };
     }
+
+    /// <summary>
+    /// A threshold counted FROM the moment another quest finished, rather than
+    /// from the start of the file. "Three more Rat Kings, after the Crimson Twins."
+    /// </summary>
+    public static UnlockCondition Since(string questId, string statKey, int atLeast)
+    {
+        return new UnlockCondition(statKey, atLeast, questId);
+    }
+
+    // ---- who turns up ----
+
+    public static QuestCast Cast(NpcId npc, UpgradeOrder accent = UpgradeOrder.Neutral)
+    {
+        return new QuestCast(npc, accent);
+    }
+
+    /// <summary>Both Orders attend — the combination quests, and only those.</summary>
+    public static QuestCast Pair(NpcId first, UpgradeOrder firstAccent,
+                                 NpcId second, UpgradeOrder secondAccent)
+    {
+        return new QuestCast(first, firstAccent, second, secondAccent);
+    }
+
+    public static readonly QuestCast King = Cast(NpcId.King);
+    public static readonly QuestCast Mapmaker = Cast(NpcId.Cartographer);
 }

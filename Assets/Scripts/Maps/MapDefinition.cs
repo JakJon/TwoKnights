@@ -43,6 +43,28 @@ public class MapDefinition : ScriptableObject
         [TextArea] public string ventureLine;
     }
 
+    // Which rats this map sends out, and in what order, from fromWaveNumber on.
+    // Deliberately shaped like MapStage above and read the same way
+    // (RatCadenceForWave mirrors StageForWave): the highest fromWaveNumber at or
+    // below the current wave wins.
+    //
+    // This exists because every wave script used to pick its own rat prefab by
+    // hand, and the old strength gate then quietly downgraded most of those picks
+    // to grey — so black rats were reachable from exactly two assets in the
+    // whole forest, and a player who had not beaten the rat king had never seen
+    // one. Which rat walks on is a fact about how deep the run is. That is the
+    // map's business, so the map says it, once, here.
+    [System.Serializable]
+    public class RatPhase
+    {
+        public string label;
+        [Min(1)] public int fromWaveNumber = 1;
+        [Tooltip("Rat types in order. Every SpawnRat that does not name a type outright takes " +
+                 "the next one from here, cycling. The counter resets each wave, so a given wave " +
+                 "always produces the same rats in the same order.")]
+        public List<RatType> cadence = new List<RatType>();
+    }
+
     [SerializeField] private string mapId = "camp_fields";
     [SerializeField] private string displayName = "The Camp Fields";
     [SerializeField] private bool unlockedByDefault = false;
@@ -50,11 +72,13 @@ public class MapDefinition : ScriptableObject
     [Header("Level select")]
     [Tooltip("Pane artwork. Currently the map's own backdrop sprite; swap for dedicated key art when it exists.")]
     [SerializeField] private Sprite previewImage;
-    [Tooltip("One-line flavour under the map name on the level select pane")]
-    [SerializeField] private string tagline = "";
-    [Tooltip("Shown in place of the tagline while this map is locked, e.g. 'Defeat the Rat King'. " +
-             "Empty = derived from whichever map's gate boss opens this one.")]
-    [SerializeField] private string lockedHint = "";
+    [Tooltip("The blurb on the map's card in the level select — a sentence or two about the place.")]
+    [TextArea] [SerializeField] private string description = "";
+    [Tooltip("How many waves deep this map goes. The level select counts the deepest wave reached " +
+             "against this, and earns the map's first star when the player gets there. It is NOT the " +
+             "same as the true boss's wave number: the Camp Fields keeps playing past its Twins, and " +
+             "this is the number that says how far past.")]
+    [Min(1)] [SerializeField] private int finalWaveNumber = 30;
     [Tooltip("Colour of this map's mark on the file select — the small circle that appears on a file " +
              "once this map's TRUE boss has fallen. The file bar says nothing else about progress, so " +
              "the colour is the only thing identifying which map was finished; keep them far apart.")]
@@ -89,15 +113,42 @@ public class MapDefinition : ScriptableObject
     [SerializeField] private BaseWave trueBoss;
     [SerializeField] private int trueBossWaveNumber = 20;
 
+    [Tooltip("Does beating the true boss END the run in victory? Yes is the ordinary rule and " +
+             "the default. The Camp Fields turns it off: the Twins are the deepest thing the " +
+             "forest has NAMED, not the deepest thing it has, and the run carries on past them " +
+             "into the moonlit waves until the knights fall. The kill still records the true " +
+             "clear and still pays out whatever that unlocks either way.")]
+    [SerializeField] private bool trueBossEndsRun = true;
+
     [Header("Roster")]
-    [Tooltip("First wave the stronger enemies may spawn on — dark bats, black wolves, brown and " +
-             "black rats. -1 derives it from the gate boss, which is the Camp Fields rule: they are " +
-             "staggered in behind the rat king. A map where they are ordinary residents sets 1.")]
+    [Tooltip("First wave the stronger enemies may spawn on — dark bats and black wolves. " +
+             "-1 derives it from the gate boss, which is the Camp Fields rule: they are " +
+             "staggered in behind the rat king. A map where they are ordinary residents sets 1. " +
+             "Rats are NOT gated here any more — they follow ratPhases instead.")]
     [SerializeField] private int strongerEnemiesFromWave = -1;
+
+    [Tooltip("Rat cadences by depth. Empty = grey rats only. The highest fromWaveNumber at " +
+             "or below the current wave wins, exactly like the stage list.")]
+    [SerializeField] private List<RatPhase> ratPhases = new List<RatPhase>();
+
+    [Tooltip("First wave this map's DEEP roster replaces the ordinary one: the Camp Fields' " +
+             "Moonlit bats and slimes, and grey wolves coming out black. -1 = this map has no " +
+             "deep roster. Rats are NOT part of this — they have their own schedule in ratPhases.")]
+    [SerializeField] private int deepRosterFromWave = -1;
 
     [Header("Stages — deeper into the map")]
     [Tooltip("Backdrop phases keyed by the 1-based wave number they start on")]
     [SerializeField] private List<MapStage> stages = new List<MapStage>();
+
+    [Header("Music")]
+    [Tooltip("Plays from wave 1 until the map goes deep. Empty = silence, which is the honest default for a map whose score has not been chosen yet.")]
+    [SerializeField] private AudioClip explorationMusic;
+    [Tooltip("Takes over once the map goes deep. Point this at the same clip as the exploration track for a map that should not change gear.")]
+    [SerializeField] private AudioClip intenseMusic;
+    [Tooltip("First wave the intense track plays on. Match this to the deep STAGE'S fromWaveNumber — the backdrop darkening and the music changing gear are one moment, and splitting them reads as a bug in whichever one lands second.")]
+    [Min(1)] [SerializeField] private int intenseMusicFromWave = 11;
+    [Tooltip("Plays on the gate boss and the true boss. Empty = the boss fights under whatever the depth track is.")]
+    [SerializeField] private AudioClip bossMusic;
 
     [Header("Progression")]
     [Tooltip("mapId unlocked when this map's gate boss first falls (empty = none)")]
@@ -107,11 +158,50 @@ public class MapDefinition : ScriptableObject
     public string DisplayName => displayName;
     public bool UnlockedByDefault => unlockedByDefault;
     public Sprite PreviewImage => previewImage;
-    public string Tagline => tagline;
-    public string LockedHint => lockedHint;
+
+    /// <summary>The map card's blurb on the level select.</summary>
+    public string Description => description;
+
+    /// <summary>
+    /// The deepest wave this map has, which the level select shows the player's
+    /// furthest run against. See the field's tooltip for why this is authored
+    /// rather than read off the true boss.
+    /// </summary>
+    public int FinalWaveNumber => finalWaveNumber;
 
     /// <summary>Colour of this map's completion circle on the file select. See the field's tooltip.</summary>
     public Color CompletionMarkColor => completionMarkColor;
+    public AudioClip ExplorationMusic => explorationMusic;
+    public AudioClip IntenseMusic => intenseMusic;
+    public int IntenseMusicFromWave => intenseMusicFromWave;
+    public AudioClip BossMusic => bossMusic;
+
+    /// <summary>
+    /// Is this one of the map's two named fights? Asked with the wave the run is
+    /// about to play rather than with a wave NUMBER, because the scheduler — not
+    /// the number — decides when a boss is on: a gate that has already fallen this
+    /// run does not come back on its wave number, and Test Mode can put a boss
+    /// anywhere at all.
+    /// </summary>
+    public bool IsBossWave(BaseWave wave)
+    {
+        if (wave == null) return false;
+        return wave == gateBoss || wave == trueBoss;
+    }
+
+    /// <summary>
+    /// What should be playing for this wave. Bosses win over depth, and depth wins
+    /// over the opening track. Falls back rather than returning null when a slot is
+    /// empty, so a map with only an exploration track keeps playing it through a
+    /// boss instead of dropping to silence at the loudest moment of the run.
+    /// </summary>
+    public AudioClip MusicForWave(int waveNumber, bool isBossWave)
+    {
+        if (isBossWave && bossMusic != null) return bossMusic;
+        if (waveNumber >= intenseMusicFromWave && intenseMusic != null) return intenseMusic;
+        return explorationMusic != null ? explorationMusic : intenseMusic;
+    }
+
     public IReadOnlyList<BaseWave> Waves => waves;
     public BaseWave GateBoss => gateBoss;
     public int GateBossWaveNumber => gateBossWaveNumber;
@@ -134,6 +224,12 @@ public class MapDefinition : ScriptableObject
     public int TrueBossWaveNumber => trueBossWaveNumber;
 
     /// <summary>
+    /// Does the true boss falling end the run? See the field's tooltip — false makes it
+    /// the deepest NAMED fight rather than the last one, and the run plays on past it.
+    /// </summary>
+    public bool TrueBossEndsRun => trueBossEndsRun;
+
+    /// <summary>
     /// First wave number the stronger enemies are allowed to spawn on. Kept as
     /// its own number rather than read off the gate boss: tying the two together
     /// made "hold the stronger enemies back" a rule of the GAME, when it is only
@@ -142,6 +238,34 @@ public class MapDefinition : ScriptableObject
     /// </summary>
     public int StrongerEnemiesFromWave =>
         strongerEnemiesFromWave >= 0 ? strongerEnemiesFromWave : gateBossWaveNumber + 1;
+
+    /// <summary>
+    /// First wave this map's deep roster is live on: Moonlit bats and slimes, and
+    /// grey wolves coming out black. -1 (the default) means the map has none, and
+    /// nothing is ever substituted. Rats are deliberately NOT here — they run on
+    /// ratPhases, which turns over on its own schedule and on both maps.
+    /// </summary>
+    public int DeepRosterFromWave => deepRosterFromWave;
+
+    /// <summary>
+    /// The rat cadence in force at the given 1-based wave number: the phase with
+    /// the highest fromWaveNumber at or below it. Same shape as StageForWave.
+    /// Returns null when the map declares no phases, or when every phase starts
+    /// later — callers fall back to a plain grey rat.
+    /// </summary>
+    public IReadOnlyList<RatType> RatCadenceForWave(int waveNumber)
+    {
+        RatPhase best = null;
+        for (int i = 0; i < ratPhases.Count; i++)
+        {
+            RatPhase phase = ratPhases[i];
+            if (phase == null || phase.fromWaveNumber > waveNumber) continue;
+            if (phase.cadence == null || phase.cadence.Count == 0) continue;
+            if (best == null || phase.fromWaveNumber > best.fromWaveNumber)
+                best = phase;
+        }
+        return best != null ? best.cadence : null;
+    }
     public string UnlocksMapId => unlocksMapId;
     public IReadOnlyList<MapStage> Stages => stages;
 

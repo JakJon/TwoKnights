@@ -20,8 +20,30 @@ public static class FireFx
         }
     }
 
-    // One-shot radial detonation for fireball impacts
-    public static void Burst(Vector2 position, float radius)
+    // A radius-marking burst's lifetime. Fixed rather than a range, because
+    // travel has to equal speed * lifetime for the arithmetic below to hold —
+    // the same trick BombFx.SpawnFlash uses, for the same reason. Twice the bomb
+    // flash's 0.2s, so fire still reads slower and warmer than powder does.
+    private const float MarkedLifetime = 0.4f;
+
+    // The mouth the burst is born from, as a fraction of the radius. Subtracted
+    // back out of the speed on the marked path so the head start does not become
+    // overshoot.
+    private const float MouthFraction = 0.2f;
+
+    /// <summary>
+    /// One-shot radial detonation for fireball impacts. Returns the system so a
+    /// caller running under a frozen timeScale can put it on unscaled time; every
+    /// gameplay caller ignores it.
+    ///
+    /// <paramref name="markRadius"/> is what separates a real explosion from a
+    /// flourish. Set, the burst is bounded to <paramref name="radius"/> and a
+    /// BlastRing is drawn on it, so the fire and the boundary agree: this is for
+    /// anything that claims a blast radius. Left alone, the burst keeps its old
+    /// loose spray and draws no ring — which is what the wizard's vanishing
+    /// sparks want, since there is no radius there to be honest about.
+    /// </summary>
+    public static ParticleSystem Burst(Vector2 position, float radius, bool markRadius = false)
     {
         var host = new GameObject("FireBurst");
         host.transform.position = position;
@@ -29,17 +51,40 @@ public static class FireFx
         var burst = Build(host, 0.55f);
 
         var main = burst.main;
-        main.startLifetime = new ParticleSystem.MinMaxCurve(0.25f, 0.55f);
-        main.startSpeed = new ParticleSystem.MinMaxCurve(radius * 2.2f, radius * 4f);
         main.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.42f);
 
         var shape = burst.shape;
         shape.shapeType = ParticleSystemShapeType.Circle;
-        shape.radius = radius * 0.2f;
+        shape.radius = radius * MouthFraction;
+
+        if (markRadius)
+        {
+            // Solved against the fixed lifetime and measured from the mouth, so
+            // the fastest mote lands exactly on the ring and none of them cross
+            // it. Without this the fire flew to well over twice the radius and
+            // the ring would read as an inner core rather than as the edge.
+            float reach = radius * (1f - MouthFraction) / MarkedLifetime;
+            main.startLifetime = MarkedLifetime;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(reach * 0.35f, reach);
+            // Every mote off the same little circle, fired straight out — an
+            // off-centre birth inside the mouth would carry its offset to the rim
+            shape.radiusThickness = 0f;
+
+            // Its own object, not a child of the burst host: the fire hangs
+            // around for a second and a half and the ring is done in under half
+            // of one, and neither should be waiting on the other
+            BlastRing.Spawn(position, radius);
+        }
+        else
+        {
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.25f, 0.55f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(radius * 2.2f, radius * 4f);
+        }
 
         burst.Play();
         burst.Emit(Mathf.RoundToInt(18f + radius * 10f));
         Object.Destroy(host, 1.5f);
+        return burst;
     }
 
     // Ember trail on an arrow that rolled ignite, so the player can read which

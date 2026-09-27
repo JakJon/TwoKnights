@@ -23,13 +23,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0b118be0f64348329b54b589506d9864, type: 2}
   lockedBy: []
   stats:
-  - valueText: 1 in 8
+  - valueText: 1 in 4
     labelText: SHOTS
     isPositive: 1
-  - valueText: 8s
+  - valueText: 10s
     labelText: SLEEP
     isPositive: 1
-  shotsPerDart: 8
-  sleepSeconds: 8
+  shotsPerDart: 4
+  sleepSeconds: 10
   dartSprite: {fileID: 8094535273449727746, guid: 2a9a520617b7f8a4faf26b61b0ce9134, type: 3}
   sleepZSprite: {fileID: 8094535273449727746, guid: 1027628d00e54d879bc3f3fd563a12b6, type: 3}

@@ -19,16 +19,38 @@ Each upgrade belongs to one knightly **Order** (or the Neutral pool). An Order =
 color + icon, 2–3 named disciplines (chains, via the existing `unlockedBy` DAG + pips
 UI), and one **capstone** gated on owning N upgrades of that Order.
 
+**THE NEUTRAL POOL IS GONE** (2026-09-15). All 23 classless stat cards — Damage 1–4,
+Reload 1–4, Fire Speed 1–2, Health ×13 — were deleted and their stats rehoused inside
+Orders that had a reason to want them:
+
+| Stat | Was | Now |
+|---|---|---|
+| Arrow damage | Damage 1–4, +27 to anyone | **Dawn**: +2 per Dawn upgrade owned ("holy damage") |
+| Reload | Reload 1–4, ×0.306 to anyone | **Shadow**: −10% per Shadow Arrow tier, ×0.9⁵ |
+| Projectile speed | Fire Speed 1–2, ×3.75 to anyone | **Guardian**: the Reflector rank, ×1.5 / ×2.5 |
+| Max health | 13 cards, up to +625 | **Guardian**: Holy Shield I–III, +25 / +25 / +50 |
+
+The pool was a crutch: it was the fastest DPS in the game (damage × reload alone was
+~21× baseline), it cost no commitment, and it made every build converge on the same
+opening. Pulling it means the *first* draft is already a question about who this knight
+is going to be. `UpgradeOrder.Neutral` stays as the enum's "no Order" sentinel — nothing
+is tagged with it any more.
+
+The stat ceiling is deliberately much lower than it was, and the enemy HP curve past
+wave 15 has **not** been re-tuned for that yet. That pass is owed.
+
 **Draft mechanics (organic specialization):**
 - **Affinity:** effective weight = base weight × (1 + 0.75 × knight's owned count in
-  that Order). Neutral never gets affinity — it's the reliable filler, like VS passives.
+  that Order). Neutral would never get affinity — it was the reliable filler, like VS
+  passives — but with the pool gone every card in a draft is now affinity-scaled, so
+  specialization snowballs harder and earlier than it used to.
 - **Variety guarantee:** max 2 of the 3 cards per draft from one Order; one slot always
   draws class-blind.
 - **Capstone gating:** capstones require ~4 Order picks; reachable by a committed knight
   around wave 13–15.
 - **Recognizability:** every upgrade has a proper name ("Venom Tip III",
-  "Plaguebringer"); the whole pool stays curated at ~60–65 assets across 5 Orders +
-  Neutral. Cards show Order color/icon at a glance.
+  "Plaguebringer"); the pool stays curated — 89 assets across 6 Orders, no Neutral.
+  Cards show Order color/icon at a glance.
 
 **Duo upgrades (the Two Knights signature, later phase):** offered only when the *left*
 knight is committed to Order A and the *right* to Order B; upgrades both at once.
@@ -39,9 +61,11 @@ darts). The run's story becomes *the pair*.
 ## 2. Class roster
 
 - **Serpent (Poison)** — patient, inevitable death; swarm/tank killer, weak burst.
-  Disciplines: Venom Tip I–III (chance 30/60/100%), Virulence I–II (+1 tick damage
-  each, rank II also ticks faster — cut from +2 on 2026-09-10, poison ran too
-  strong), Miasma I–II (death-clouds spread poison), capstone **Acid Dagger**
+  Disciplines: Venom Tip I–III (chance 30/60/100%), Airborne Virus I–IV (poisoned
+  enemies breathe venom beads out around themselves: 2 every 6s left/right, 5
+  every 5s in a pentagon, 8 every 4s, 10 every 2s; beads travel 5s — replaced
+  Virulence on 2026-09-25, which only raised tick damage), Miasma I–II
+  (death-clouds spread poison), capstone **Acid Dagger**
   (requires 4 Serpent picks: half a second after every sword swing, a small dagger
   jabs straight out along the shield facing to two thirds of the sword's reach —
   50 damage and a Venom Tip arrow's poison, one short narrow box, no arc). The

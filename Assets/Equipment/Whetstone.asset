@@ -17,7 +17,7 @@ MonoBehaviour:
   description: You sharpened before the watch began, the way you were taught.
   effect: Draft one upgrade before the first wave.
   icon: {fileID: -1157192710909720786, guid: 6054a7e89782f5543a11adacb616dc82, type: 3}
-  crystalCost: 5
+  crystalCost: 6
   stats:
   - valueText: 1
     labelText: EARLY DRAFT
@@ -33,6 +33,13 @@ MonoBehaviour:
   igniteDpsBonus: 0
   startingIgniteChance: 0
   fireZoneRadiusBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 0
+  reflectDamageMultiplier: 1
+  startingLongSword: 0
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

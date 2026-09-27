@@ -197,6 +197,10 @@ public class NearAndFar : BaseWave
             // can never read as clear, and the wave would hang on it forever.
             MarkAmbushReleased();
 
+            // Last shift out: if a quick clear beat the orb timer, the orb goes
+            // now, with this shift still on the board. See OrbRun.SendFirstIfWaiting.
+            if (i == ambushes.Count - 1) orbs.SendFirstIfWaiting(spawner);
+
             yield return WaitForAmbushClear();
 
             if (shafts != null) spawner.StopCoroutine(shafts);

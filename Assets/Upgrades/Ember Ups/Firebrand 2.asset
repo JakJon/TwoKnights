@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Firebrand 2
   m_EditorClassIdentifier: 
   upgradeName: Firebrand II
-  description: The blade throws a second fireball with the first.
+  description: The fireball is lobbed three times as far.
   weight: 24
   order: 4
   requiresOrderCount: 0
@@ -21,9 +21,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7cf9696f11624e199520ef5dcce0bda2, type: 2}
   lockedBy: []
   stats:
-  - valueText: 2
-    labelText: FIREBALLS
+  - valueText: 3x
+    labelText: LOB DISTANCE
     isPositive: 1
-  hurlChance: 20
-  fireballCount: 2
+  rank: 2
   fireballPrefab: {fileID: 4271991971420557666, guid: 086b3c5d7a42ae942a4566a3f1caa667, type: 3}

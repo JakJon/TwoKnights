@@ -30,6 +30,11 @@ public static class GuardianReflect
 
         /// <summary>Guided Reflections' steering radius, or zero.</summary>
         public float GuideRadius;
+
+        /// <summary>What the blocking knight's Reflector rank multiplies its PACE by.
+        /// Carried on the turn rather than read from a const, because the rank is
+        /// what sets it and only the blocking knight knows their rank.</summary>
+        public float SpeedMultiplier;
     }
 
     /// <summary>
@@ -70,6 +75,7 @@ public static class GuardianReflect
         turn.DamageMultiplier = boost.ReflectDamageMultiplier;
         turn.OwnerTag = boost.gameObject.tag;
         turn.GuideRadius = boost.GuidedReflectionRadius;
+        turn.SpeedMultiplier = boost.ReflectSpeedMultiplier;
 
         PlayerStats.Increment("guardian.reflected");
         GuardianAwakening.NoteUse(turn.OwnerTag);

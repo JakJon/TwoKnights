@@ -1,0 +1,227 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9f24e166061b1349ad0860924b5ca64, type: 3}
+  m_Name: Delivery! VI
+  m_EditorClassIdentifier:
+  waveName: Delivery! VI
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Nine carts, a fourth pack of vermin, and rock at both knights from opposite sides.
+  unlockedAfterXWaves: 20
+  lockedAfterXWaves: 26
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: 1673876225cc7d6b08f96d4686be0d44, type: 2}
+  cartOrder:
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  entryRun: 0
+  firstCartDelay: 0.4
+  cartInterval: 2
+  volleys:
+  - label: wide spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 75
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: both knights flip at once
+    shape: 6
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.4
+    weaveDegrees: 90
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.15
+    restAfter: 2.08
+    weaveDegrees: 90
+  - label: two up under the right
+    shape: 1
+    rightKnight: 1
+    fromBelow: 1
+    spacing: 0.9
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.11
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: wide spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 75
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: and straight back over him
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.14
+    restAfter: 2.4
+    weaveDegrees: 90
+  - label: both at once, from under (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.15
+    restAfter: 2.08
+    weaveDegrees: 90
+  - label: spread up under the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 0.8
+    count: 4
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.9
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.11
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.15
+    restAfter: 2.08
+    weaveDegrees: 90
+  projectileWindow: 54
+  flanks:
+  - label: first four
+    fromTop: 4
+    fromBottom: 0
+    firstAt: 5
+    interval: 0.7
+    ratTypes:
+    - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  - label: second four
+    fromTop: 4
+    fromBottom: 0
+    firstAt: 15
+    interval: 0.7
+    ratTypes:
+    - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  - label: third four
+    fromTop: 4
+    fromBottom: 0
+    firstAt: 25
+    interval: 0.7
+    ratTypes:
+    - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+    - {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  - label: fourth four
+    fromTop: 4
+    fromBottom: 0
+    firstAt: 35
+    interval: 0.7
+    ratTypes:
+    - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+    - {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  freightWaitsOnTheVermin: 1
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 8
+    interval: 11
+    from: {x: -12, y: -4.5}
+    to: {x: 12, y: -4.5}
+  ogres:
+    label: 12 up off the empty floor and in past the horseshoe
+    count: 7
+    firstAt: 5
+    interval: 4
+    fireEveryNth: 3
+    entries:
+    - label: up through the empty floor, right of the shaft lane
+      at: {x: 6, y: -8}
+      mark: 2
+    - label: in past the head of the left climb
+      at: {x: -11.5, y: 5}
+      mark: 1
+    - label: in past the foot of the right descent
+      at: {x: 11.5, y: -4}
+      mark: 2
+    - label: up through the empty floor, left of the shaft lane
+      at: {x: -6, y: -8}
+      mark: 1
+    startOnRight: 1
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1

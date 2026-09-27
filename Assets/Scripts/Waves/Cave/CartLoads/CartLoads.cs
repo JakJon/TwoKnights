@@ -160,6 +160,11 @@ public class CartLoads : BaseWave
         Coroutine shafts = spawner.StartCoroutine(WorkTheShafts(spawner));
 
         yield return spawner.StartCoroutine(Release(rails, outerLine, innerLine, layDuration));
+
+        // Every crate is out: if the orb timer has not paid yet, it pays now,
+        // with the crates still on the track. See OrbRun.SendFirstIfWaiting.
+        highOrbs.SendFirstIfWaiting(spawner);
+
         yield return vermin;
         yield return shafts;
 

@@ -17,8 +17,8 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Two shifts, black wolves, and a bat that turns your hands against
     you.
-  unlockedAfterXWaves: 12
-  lockedAfterXWaves: 16
+  unlockedAfterXWaves: 13
+  lockedAfterXWaves: 17
   useEnemyTracking: 1
   pinnedKnight: 0
   anchorSequence: 000000000100000002000000

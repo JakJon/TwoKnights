@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: More of them, and one keg fewer to spend on it.
   unlockedAfterXWaves: 4
-  lockedAfterXWaves: 11
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: e1c92390a0694a84b96021c10a38891f, type: 2}
   entryRun: 2
@@ -35,39 +35,33 @@ MonoBehaviour:
   firstCartDelay: 0.5
   packLeadIn: 5
   relays:
-  - label: first relay (three, two thirds of a lap)
+  - label: first relay (two, two thirds of a lap)
     courseRun: 0
-    wolves: 3
+    wolves: 2
     wolfInterval: 0.8
     leadIn: 1.5
     courseDistance: 26
-  - label: second relay (three, two thirds of a lap, from the west)
+  - label: second relay (two, two thirds of a lap, from the west)
     courseRun: 2
-    wolves: 3
+    wolves: 2
     wolfInterval: 0.8
     leadIn: 1.5
     courseDistance: 26
-  - label: third relay (three, two thirds of a lap)
+  - label: third relay (two, two thirds of a lap)
     courseRun: 0
-    wolves: 3
+    wolves: 2
     wolfInterval: 0.8
     leadIn: 1.5
     courseDistance: 26
-  - label: first relay (three, two thirds of a lap) [pass 2]
+  - label: first relay (two, two thirds of a lap) [pass 2]
     courseRun: 2
-    wolves: 3
+    wolves: 2
     wolfInterval: 0.8
     leadIn: 1.5
     courseDistance: 26
-  - label: second relay (three, two thirds of a lap, from the west) [pass 2]
+  - label: second relay (two, two thirds of a lap, from the west) [pass 2]
     courseRun: 0
-    wolves: 3
-    wolfInterval: 0.8
-    leadIn: 1.5
-    courseDistance: 26
-  - label: third relay (three, two thirds of a lap) [pass 2]
-    courseRun: 2
-    wolves: 3
+    wolves: 2
     wolfInterval: 0.8
     leadIn: 1.5
     courseDistance: 26

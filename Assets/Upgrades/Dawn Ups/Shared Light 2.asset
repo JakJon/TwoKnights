@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Shared Light 2
   m_EditorClassIdentifier: 
   upgradeName: Shared Light II
-  description: More is passed on, and healing you cannot use at full health goes across whole rather than being wasted.
+  description: More passes on, and healing wasted at full health goes across whole. Arrows do more holy damage.
   weight: 55
   order: 5
   requiresOrderCount: 0
@@ -26,6 +26,9 @@ MonoBehaviour:
     isPositive: 1
   - valueText: 100%
     labelText: OVERHEAL ROUTED
+    isPositive: 1
+  - valueText: +2
+    labelText: HOLY DAMAGE
     isPositive: 1
   echoFraction: 0.8
   routeOverheal: 1

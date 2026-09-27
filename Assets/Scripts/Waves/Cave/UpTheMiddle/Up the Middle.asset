@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: A shaft opens between you, and the two of you stop being able to help each other.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: cde9e7a124d3c8fdbece04f50a2cb486, type: 2}
   shaftRun: 0
@@ -45,7 +45,6 @@ MonoBehaviour:
   stationHeight: 4.3
   stationLane: 3.2
   stationSpread: 0.8
-  holdStation: 1
   orbs:
     healthOrb: 0
     count: 1

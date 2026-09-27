@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ProjectileMovement : MonoBehaviour, IChillable
+public class ProjectileMovement : MonoBehaviour, IChillable, IIncoming
 {
     private Transform _target;
     [SerializeField] private float _speed = .75f;
@@ -66,6 +66,23 @@ public class ProjectileMovement : MonoBehaviour, IChillable
         float degrees = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.AngleAxis(degrees, Vector3.forward);
         _speed *= Mathf.Max(0.01f, speedMultiplier);
+    }
+
+    // In the IncomingLedger for as long as it flies, so a fire ogre about to throw
+    // can see that this rock is due at a knight and hold its fireball clear of it.
+    void OnEnable() { IncomingLedger.Add(this); }
+    void OnDisable() { IncomingLedger.Remove(this); }
+
+    public Transform IncomingTarget => _target;
+
+    public float SecondsToArrival
+    {
+        get
+        {
+            if (_target == null) return float.PositiveInfinity;
+            Vector2 aim = _target.position + new Vector3(0f, 0.5f, 0f);
+            return IncomingLedger.StraightEta(transform.position, transform.right, aim, _speed * ChillScale);
+        }
     }
 
     void Update()

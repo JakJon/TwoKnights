@@ -18,7 +18,7 @@ MonoBehaviour:
   waveDescription: The flag has moved up the line. Whatever gets past the crossing
     is already home.
   unlockedAfterXWaves: 8
-  lockedAfterXWaves: 15
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 1673876225cc7d6b08f96d4686be0d44, type: 2}
   cartOrder:

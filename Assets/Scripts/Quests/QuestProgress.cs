@@ -50,16 +50,56 @@ public static class QuestProgress
         return quest != null && quest.IsUnlocked;
     }
 
-    /// <summary>Quests the player can see: unlocked, completed or not, in database order.</summary>
+    /// <summary>
+    /// Quests the player actually has: introduced by their NPC, completed or not,
+    /// in database order.
+    ///
+    /// A quest whose gate has opened but whose scene has not played yet is NOT
+    /// here. The cutscene is the moment a quest starts existing — before it, the
+    /// player has not been asked, and a log listing things nobody has mentioned is
+    /// how the old system felt like a spreadsheet.
+    /// </summary>
     public static IEnumerable<Quest> Visible
     {
         get
         {
             foreach (var quest in QuestDatabase.All)
             {
-                if (quest.IsUnlocked) yield return quest;
+                // Completed counts as introduced whatever the record says — an
+                // old save has completions and no announcements at all.
+                if (IsAnnounced(quest.Id) || IsCompleted(quest.Id)) yield return quest;
             }
         }
+    }
+
+    // ---------- announcement ----------
+
+    /// <summary>Has this quest's NPC turned up and introduced it?</summary>
+    public static bool IsAnnounced(string questId)
+    {
+        var list = SaveManager.Data.announcedQuests;
+        return list != null && list.Contains(questId);
+    }
+
+    /// <summary>
+    /// The scene played. From here the quest is in the log, its meters run, and
+    /// anything it reveals may be drafted.
+    ///
+    /// Persisted, because it is the record of a thing that happened. The in-memory
+    /// "already queued" set cannot do this job: a run abandoned before the scene
+    /// played would leave the quest remembered as introduced and it would never get
+    /// its moment.
+    /// </summary>
+    public static void MarkAnnounced(string questId)
+    {
+        if (string.IsNullOrEmpty(questId) || IsAnnounced(questId)) return;
+        var list = SaveManager.Data.announcedQuests ??
+                   (SaveManager.Data.announcedQuests = new List<string>());
+        list.Add(questId);
+        SaveManager.Save();
+        // Opening the log is what the player does next, and the meters that start
+        // now want the database settled around them.
+        Evaluate();
     }
 
     public static IEnumerable<Quest> VisibleForMap(string mapId)
@@ -86,17 +126,25 @@ public static class QuestProgress
     {
         get
         {
-            var seen = SaveManager.Data.seenQuests;
             foreach (var quest in Visible)
             {
-                if (seen == null || !seen.Contains(quest.Id)) return true;
+                if (!IsSeen(quest.Id)) return true;
             }
             return false;
         }
     }
 
+    /// <summary>
+    /// Whether the log still owes the player a look at this quest.
+    ///
+    /// A finished quest is always seen, opened or not. The dot and the sheen exist
+    /// to point at something the player might still act on; pointing at the
+    /// completed shelf is pointing at a receipt, and a dot that only clears by
+    /// unfolding an archive is a chore rather than a notice.
+    /// </summary>
     public static bool IsSeen(string questId)
     {
+        if (IsCompleted(questId)) return true;
         var seen = SaveManager.Data.seenQuests;
         return seen != null && seen.Contains(questId);
     }
@@ -165,6 +213,12 @@ public static class QuestProgress
         // Both now land in the same write.
         PlayerStats.Set(QuestDatabase.CompletionStatKey(quest.Id), 1);
 
+        // Snapshot every counter that some other quest wants measured FROM here.
+        // "Three more Rat Kings after the Crimson Twins" needs to know where the
+        // Rat King tally stood at this instant; a minute later is already wrong.
+        // Written before the save so both land in the same write, same as above.
+        WriteUnlockBaselines(quest.Id);
+
         SaveManager.Save();
         OnQuestCompleted?.Invoke(quest.Id);
         return true;
@@ -173,6 +227,52 @@ public static class QuestProgress
     public static bool CompleteQuest(string questId)
     {
         return CompleteQuest(QuestDatabase.Get(questId));
+    }
+
+    /// <summary>
+    /// Records where each relative unlock condition's stat stood the moment
+    /// <paramref name="questId"/> completed, for every quest gated that way.
+    ///
+    /// Cheap and idempotent: a quest completes once, and Set ignores a write that
+    /// changes nothing. Doing it for all conditions rather than only the ones
+    /// currently reachable means a quest added to the database later still has its
+    /// baseline on an old save, as long as the parent completes after the update.
+    /// </summary>
+    private static void WriteUnlockBaselines(string questId)
+    {
+        foreach (var other in QuestDatabase.All)
+        {
+            if (other.Unlocks == null) continue;
+            for (int i = 0; i < other.Unlocks.Length; i++)
+            {
+                var condition = other.Unlocks[i];
+                if (condition == null || condition.SinceQuestId != questId) continue;
+                PlayerStats.Set(
+                    UnlockCondition.BaselineStatKey(questId, condition.StatKey),
+                    PlayerStats.Get(condition.StatKey));
+            }
+        }
+    }
+
+    /// <summary>
+    /// The tutorial run started or ended, so what counts as unlocked has changed
+    /// wholesale.
+    ///
+    /// Forget only what the gate has CLOSED, and let Evaluate announce whatever it
+    /// has opened. Re-seeding wholesale here was a bug with a very quiet symptom:
+    /// SeedUnlocked files everything currently open as already-known WITHOUT
+    /// announcing it, so the moment the tutorial run ended and the freeze lifted,
+    /// every quest it had opened was marked known and never introduced itself. The
+    /// player found them sitting in the log having met nobody.
+    /// </summary>
+    public static void HandleTutorialGateChanged()
+    {
+        _knownUnlocked.RemoveWhere(id =>
+        {
+            var quest = QuestDatabase.Get(id);
+            return quest == null || !quest.IsUnlocked;
+        });
+        Evaluate();
     }
 
     // ---------- reactive evaluation ----------
@@ -232,8 +332,17 @@ public static class QuestProgress
         }
     }
 
-    // Seed silently: whatever is already open is not "new", and the notification
-    // dot is driven by seenQuests, not by this event
+    /// <summary>
+    /// Rebuilds the "already queued" set from what the save says has been
+    /// introduced — NOT from whose gates happen to be open.
+    ///
+    /// Seeding from the gates was the quiet bug behind "the quest was in my log and
+    /// nobody ever came": every quest whose gate had opened was filed as known
+    /// without anybody announcing it, and it could never announce itself
+    /// afterwards. Seeding from the record instead means a gate that opened while
+    /// no scene could play still owes the player a scene, and gets one at the end
+    /// of the next wave.
+    /// </summary>
     private static void SeedUnlocked()
     {
         _seeding = true;
@@ -244,7 +353,10 @@ public static class QuestProgress
             _knownUnlocked.Clear();
             foreach (var quest in QuestDatabase.All)
             {
-                if (quest.IsUnlocked) _knownUnlocked.Add(quest.Id);
+                // A quest already finished is behind us whatever the record says
+                // about its announcement — an old save has completions and no
+                // announcements at all.
+                if (IsAnnounced(quest.Id) || IsCompleted(quest.Id)) _knownUnlocked.Add(quest.Id);
             }
         }
         finally
@@ -276,6 +388,19 @@ public static class QuestProgress
         }
     }
 
+    /// <summary>
+    /// The save was replaced wholesale — a file switch, or a wipe. Re-derive
+    /// everything rather than trusting a cache built against data that is gone.
+    ///
+    /// Without this a wipe left _knownUnlocked holding every quest the old file had
+    /// opened, so the fresh file's own unlocks never announced themselves: they were
+    /// already "known".
+    /// </summary>
+    public static void ReloadForNewSave()
+    {
+        HandleActiveSlotChanged();
+    }
+
     // This cache is static, so it outlives the scene reload that a file switch
     // performs. Without re-seeding, quests one file had already opened would be
     // remembered as open on the file switched to, and that file's own unlocks
@@ -283,7 +408,9 @@ public static class QuestProgress
     private static void HandleActiveSlotChanged()
     {
         SeedUnlocked();
-        // The newly loaded save may already satisfy quests, exactly as at startup
+        // The newly loaded save may already satisfy quests, exactly as at startup.
+        // Anything whose gate is open but which has never been introduced is still
+        // owed its scene, and will get one at the end of the next wave.
         Evaluate();
     }
 

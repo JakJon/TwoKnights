@@ -48,6 +48,76 @@ Order rolls.
 Second Wind and Last Light are the same idea at a longer scale — once per wave and
 once per map are budgets the player can spend on purpose, not procs they hope for.
 
+## Holy damage: what the Order is worth in a fight
+
+Dawn shipped with no damage at all, which made it a tax on the run rather than a
+way to play it — a knight who went deep on it healed beautifully and could not
+clear a wave. The fix is deliberately **not a chain you buy**.
+
+**Every Dawn upgrade a knight owns is worth +2 damage on their arrow.** Not a
+card, not a tier — the Order itself. Counted in `UpgradeManager.ApplyUpgrade`
+(the one place that knows both the knight and the Order of the card being
+applied), held on `DawnBoost.DawnPicks`, read at fire time by `PlayerShooter`.
+
+Why a count rather than a chain:
+
+* **One Dawn pick is +2 and not worth taking for the damage.** That kills the
+  dip. If holy lived on a card, every build in the game would take that card and
+  leave, and Dawn would go from unplayable to mandatory without ever being
+  *played*.
+* **It pays for depth.** Thirteen Dawn upgrades is +26, which lands within a
+  point of where the old classless Damage chain topped out (+27) — except that
+  ceiling now costs the whole Order instead of four cards anybody could buy.
+* **A new Dawn card gets it for free.** Nothing has to remember to grant it.
+
+The arrow's damage goes 10 → 22 at a realistic six-pick commit, 10 → 36 at the
+full thirteen.
+
+### What holy does NOT do
+
+It is damage and a glow (`DawnFx.AttachArrowTrail`), and that is the whole
+feature. It is not a damage *type*: nothing resists it, nothing is weak to it,
+and no enemy needs to know it exists. The glow is the tell that the shot is worth
+more — the same promise Ember's ignited arrow and Frigid's chilling one make.
+
+The glow is **one steady orb riding behind the shot**, not a particle trail
+(owner, 2026-09-15). It is the only surface in `DawnFx` built from a SpriteRenderer
+rather than motes: Dawn's other three throw particles, and a bow firing three times
+a second turned the screen into drifting bubbles. The orb is parented to the shot
+and offset along local -X, so it turns with the arrow for free when Guided Shot
+steers it, and its offset and size are both in world units so it looks the same
+behind an arrow, a shadow arrow, a shuriken and a fireball.
+
+It draws on a **generated radial-falloff sprite**, not the shared ember mote the
+rest of `DawnFx` uses. The mote is a 16x16 blob with a near-solid five-pixel core —
+right for a particle seen for a third of a second, wrong for something on screen
+for a whole flight, where at this size it read as a hard disc with a fuzzy rim.
+`HolyOrbSprite` builds a 64x64 texture once whose alpha is `(1 - r)^2.4`, so there
+is no edge at any size. 0.4 world units across at 38% peak opacity.
+
+### The echoes get a smaller, flat share
+
+A shadow arrow is 20% of an arrow and a shuriken 35%, so scaling the holy down by
+that share too would round it away to nothing. Instead **the echoes scale off the
+arrow WITHOUT its holy, then take +1.5 per Dawn pick flat** — less per projectile
+than the main shot's +2, but far more than a fifth of it.
+
+It is **floored, not rounded** (owner, 2026-09-15). `Mathf.RoundToInt` does
+banker's rounding, so one Dawn pick turned 1.5 into 2 and the first echo got
+exactly what the main shot got — which contradicts the entire reason the echo
+share exists. Flooring keeps every step at or under 1.5: 1, 3, 4, 6, 7, 9 … 19.
+
+`PlayerShooter` therefore carries two numbers at the moment of the shot:
+`echoBaseDamage` (the arrow before holy, what the echoes multiply) and
+`mainProjectileFinalDamage` (holy included, what the fireball and the companion
+dart inherit, because both of those ARE the knight's own shot).
+
+This makes **Dawn + Shadow the biggest damage cross in the game**, on purpose. At
+six Dawn picks with Shadow Arrow V and Shuriken Fan II a single shot totals about
+129 against a baseline of 36 — but it costs two full Order commitments, where the
+old classless stacking reached the same place for free. The ceiling is not new;
+it now has a price.
+
 ## The roster (12 upgrades)
 
 Accent `rgb(240, 200, 170)` (`order--dawn`, already in `UpgradeMenu.uss`).
@@ -60,9 +130,11 @@ the Order.
 
 | | Effect | Weight |
 |---|---|---|
-| I | Orbs heal +50% (20 → 30) | 110 |
-| II | +100% (20 → 40); mana orbs also mend 5 | 70 |
-| III | +150% (20 → 50); orbs travel 35% slower | 40 |
+| I | Orbs heal +50% (20 → 30); mana orbs give +50% (300 → 450) | 110 |
+| II | +100% (20 → 40, mana 300 → 600); mana orbs also mend 5 | 70 |
+| III | +150% (20 → 50, mana 300 → 750); orbs travel 35% slower | 40 |
+
+The mana half was added on 2026-09-25 (owner's call): the chain used to ignore mana orbs for their mana. The multiplier is its own number (`manaOrbMultiplier`) and currently matches the heal one at every rank.
 
 Rank III is the one Dawn effect that lands on the **field** rather than on a
 knight: a slowed orb is a wider window for *both* knights. That is deliberate —

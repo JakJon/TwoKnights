@@ -83,7 +83,11 @@ public class GlacialWard : MonoBehaviour
                 // isBlow: false. The ward is not a hit the knight landed, so it
                 // physically cannot freeze - the boost signs that promise, not a
                 // comment here.
+                bool wasFrozen = enemy.IsFrozen;
                 _boost.TouchWithCold(enemy, false);
+                // Only the ones the ward itself stopped — a body that walked in
+                // already frozen was somebody else's work.
+                if (!wasFrozen && enemy.IsFrozen) QuestTally.Run(OrderStats.WardFrozenRunMax);
                 continue;
             }
 

@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0a3d27b22864fe4d8033656034a34f5, type: 3}
+  m_Name: Bat Cauldron V
+  m_EditorClassIdentifier: 
+  waveName: Bat Cauldron V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 20
+  lockedAfterXWaves: 24
+  useEnemyTracking: 1
+  batsPerRing: 12
+  numberOfRings: 4
+  delayBetweenRings: 11
+  ringRadius: 12
+  projectileAmount: 7
+  projectileDelay: 0.95
+  volleys:
+  - label: both sides at once
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 2
+    salvoSpread: 0.45
+    salvoStagger: 0.3
+    restAfter: 4
+  - label: crossings, left
+    shape: 7
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.3
+    count: 5
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  - label: crossings, right
+    shape: 7
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.3
+    count: 5
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.5
+  projectileWindow: 42
+  rockSpeed: 0

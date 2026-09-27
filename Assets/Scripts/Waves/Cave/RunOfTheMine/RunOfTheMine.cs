@@ -44,9 +44,14 @@ using UnityEngine;
 // needs, and that is the point of an opening tier: there is time to pass a
 // crossing up, watch it go by, and take the next one.
 // A quarter of a lap is not a decision, it is a reflex: the first keg you see is
-// the only keg you get. So the tier ladder is the road getting shorter —
-// fifty-nine, twenty-six, twenty-two, eighteen — and by the last one the pack is
-// barely on the rails before it is on you.
+// the only keg you get. So the first three tiers are the road getting shorter —
+// fifty-nine, twenty-six, twenty-two.
+//
+// From tier IV the road goes back up, to thirty-six, thirty-four, thirty-two and
+// thirty (owner, 2026-09-25: "wolves attack too soon, double their run"). Those
+// tiers carry nine to twelve relays of four or five wolves, and on an eighteen-unit
+// road every relay was on the knights six seconds after it appeared. The late
+// tiers get harder through the size of the pack instead.
 //
 // The arithmetic of the crossing, which is geometry rather than feel:
 //   * A keg reaches 2.8 units (EnemyKegCart) and deals 15.
@@ -239,6 +244,10 @@ public class RunOfTheMine : BaseWave
             // marked released can never read as clear, and the wait below would
             // hang on it forever.
             MarkAmbushReleased();
+
+            // Last relay out: if a quick clear beat the orb timer, the orb goes
+            // now, with this relay still on the board. See OrbRun.SendFirstIfWaiting.
+            if (i == relays.Count - 1) orbs.SendFirstIfWaiting(spawner);
 
             yield return WaitForAmbushClear();
         }

@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Six to a line and eight bombs turning. Something has to go unshot.
   unlockedAfterXWaves: 12
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 18
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: b919f05bc00e21a5772d94a8a0eec42a, type: 2}
   entryRun: 2

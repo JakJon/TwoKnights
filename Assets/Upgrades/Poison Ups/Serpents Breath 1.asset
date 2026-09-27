@@ -13,16 +13,17 @@ MonoBehaviour:
   m_Name: Serpents Breath 1
   m_EditorClassIdentifier: 
   upgradeName: Serpent's Breath I
-  description: Sword swings can exhale a drifting venom cloud.
+  description: Every sword swing exhales a venom bead down the facing.
   weight: 100
   order: 1
   requiresOrderCount: 0
   unlockedBy: []
   lockedBy: []
   stats:
-  - valueText: 33%
-    labelText: CHANCE
+  - valueText: 1 BEAD
+    labelText: EVERY SWING
     isPositive: 1
-  cloudChance: 33
-  cloudDuration: 3
-  largeCloud: 0
+  - valueText: 3s
+    labelText: LINGERS
+    isPositive: 1
+  tier: 1

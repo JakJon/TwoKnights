@@ -195,8 +195,10 @@ public static class FrostFx
     }
 
     /// <summary>Ice going everywhere: a shatter, or the burst a Rimeblade swing
-    /// throws off. One-shot, self-destructing.</summary>
-    public static void Burst(Vector2 position, float radius)
+    /// throws off. One-shot, self-destructing. Returns the system so a caller
+    /// running under a frozen timeScale can put it on unscaled time; every
+    /// gameplay caller ignores it.</summary>
+    public static ParticleSystem Burst(Vector2 position, float radius)
     {
         var host = new GameObject("FrostBurst");
         host.transform.position = position;
@@ -215,6 +217,20 @@ public static class FrostFx
         burst.Play();
         burst.Emit(Mathf.RoundToInt(16f + radius * 9f));
         Object.Destroy(host, 1.5f);
+        return burst;
+    }
+
+    // The ring's far end: Cyan one step colder, so the edge reads plainly blue
+    // against the motes rather than as more of the same pale spray
+    private static readonly Color RingBlue = new Color(0.35f, 0.62f, 1f);
+
+    /// <summary>The edge of a Rimeblade burst, drawn exactly like the circle every
+    /// explosion draws (see BlastRing) but in ice. The motes from Burst fly well
+    /// past the damage radius; this is the line that says where it actually
+    /// stopped. Self-destructing.</summary>
+    public static BlastRing BurstRing(Vector2 position, float radius)
+    {
+        return BlastRing.Spawn(position, radius, PaleIce, RingBlue);
     }
 
     /// <summary>The standing ring of cold around a knight running Glacial Ward.

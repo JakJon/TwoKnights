@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: The pack stops running the whole road and starts turning early.
   unlockedAfterXWaves: 8
-  lockedAfterXWaves: 15
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: dd71bd9bb1b61790228eeb033eb6b897, type: 2}
   eastboundRun: 0

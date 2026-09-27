@@ -61,6 +61,12 @@ public class SaveData
     // unlocked but absent here is what lights the notification dot.
     public List<string> seenQuests = new List<string>();
 
+    // Quest ids whose NPC has actually turned up and introduced them. A quest
+    // whose gate has opened is NOT yet a quest the player has: it stays out of the
+    // log, out of the draft pool and out of the meters until its scene has played.
+    // Separate from seenQuests, which is about the player opening the log.
+    public List<string> announcedQuests = new List<string>();
+
     // --- Camp notices ---
     // The shop stays hidden until the first crystal is earned — a price list is
     // noise to someone with nothing to spend. Latched, not derived from the

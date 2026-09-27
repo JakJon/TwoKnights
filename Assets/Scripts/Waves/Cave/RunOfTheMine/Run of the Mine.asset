@@ -16,8 +16,8 @@ MonoBehaviour:
   weight: 1000
   isUnlocked: 0
   waveDescription: The pack takes the track, and runs it the wrong way.
-  unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  unlockedAfterXWaves: 2
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: e1c92390a0694a84b96021c10a38891f, type: 2}
   entryRun: 2
@@ -35,39 +35,21 @@ MonoBehaviour:
   firstCartDelay: 0.5
   packLeadIn: 6
   relays:
-  - label: first relay (two, a full lap in from the east)
+  - label: first relay (one, a full lap in from the east)
     courseRun: 0
-    wolves: 2
+    wolves: 1
     wolfInterval: 0.8
     leadIn: 1.5
     courseDistance: 59
-  - label: second relay (two, a full lap in from the west)
+  - label: second relay (one, a full lap in from the west)
     courseRun: 2
-    wolves: 2
+    wolves: 1
     wolfInterval: 0.8
     leadIn: 2
     courseDistance: 59
-  - label: third relay (three, a full lap in from the east)
+  - label: third relay (one, a full lap in from the east)
     courseRun: 0
-    wolves: 3
-    wolfInterval: 0.8
-    leadIn: 2
-    courseDistance: 59
-  - label: first relay (two, a full lap in from the east) [pass 2]
-    courseRun: 2
-    wolves: 2
-    wolfInterval: 0.8
-    leadIn: 1.5
-    courseDistance: 59
-  - label: second relay (two, a full lap in from the west) [pass 2]
-    courseRun: 0
-    wolves: 2
-    wolfInterval: 0.8
-    leadIn: 2
-    courseDistance: 59
-  - label: third relay (three, a full lap in from the east) [pass 2]
-    courseRun: 2
-    wolves: 3
+    wolves: 1
     wolfInterval: 0.8
     leadIn: 2
     courseDistance: 59

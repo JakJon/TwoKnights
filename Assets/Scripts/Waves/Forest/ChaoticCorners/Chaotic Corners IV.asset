@@ -17,14 +17,14 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: 
   unlockedAfterXWaves: 12
-  lockedAfterXWaves: 16
+  lockedAfterXWaves: 20
   useEnemyTracking: 1
   delayTime: 2
-  projectilesPerArc: 6
+  projectilesPerArc: 5
   batsPerArc: 12
   kingSlimes: 4
   slimesPerArc: 3
   slimesSize: 2
   arcCount: 10
-  arcDelay: 0.75
+  arcDelay: 1
   delayBetweenProjectiles: 0.1

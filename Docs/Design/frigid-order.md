@@ -34,7 +34,9 @@ on a blow *you* land — and the whole roster is priced against that, so a Frigi
 knight without **Frost Bite** is still buying time and nothing else.
 
 **Shatter** and **Rimeblade** are not exceptions to this: both are damage the
-player aimed and landed, not a timer paying out.
+player aimed and landed, not a timer paying out. (Since 2026-09-25 Rimeblade's burst
+also adds a flat 5 / 10 / 15 frost damage on top of the sword hit — still a blow the
+player landed.)
 
 *This half was rewritten on 2026-09-08 (owner's call).* It used to read "frost has
 no damage of its own, Frigid never ticks", and Frost Bite is exactly the tick it
@@ -236,14 +238,19 @@ cold rather than with a blow.
 
 ### Rimeblade I–III — the sword door
 
-A swing throws off a burst of cold centred on the knight, dealing the sword's own
-damage to everything it catches.
+Every swing throws off a burst of cold centred on the knight, dealing the sword's
+own damage to everything it catches, plus the rank's frost damage on top.
 
-| | Chance | Radius |
-|---|---|---|
-| I | 33% | 1.6u |
-| II | 60% | 2.3u |
-| III | 100% | 2.3u |
+| | Chance | Radius | Frost damage |
+|---|---|---|---|
+| I | 100% | 1.6u | 5 |
+| II | 100% | 2.3u | 10 |
+| III | 100% | 3.0u | 15 |
+
+*Changed 2026-09-25 (owner's call).* The chance used to be 33% / 60% / 100% with no
+frost damage, and III only raised the chance. The frost damage is flat — Shatter
+multiplies the sword hit, not this — and it never wears down ice, the same as a
+Frost Bite tick. It is the one piece of frost damage outside the capstone.
 
 Every Order hangs a discipline off the sword and each does something different with
 it — Serpent exhales a cloud, Shadow echoes the swing, Ember throws ordnance.
@@ -299,7 +306,7 @@ call). Both halves of that were fixes:
 The asset keeps the filename `Permafrost.asset` even though the card now reads "Deep
 Freeze III": stat slugs are minted from the filename (`UpgradeManager.StatSlug`) and
 the Frigid quest line spends `upgrades.taken.permafrost`. Same trick Greatshield
-plays to read "Dawn Shield".
+plays to read "Holy Shield".
 
 **The ice still dies with the WAVE, not the run.** `FrigidBoost.ClearFieldFrost()` is
 called from `Spawner.BeginWave` beside `FireField.ClearAll()`. A long freeze

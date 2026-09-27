@@ -44,14 +44,17 @@ public class PoisonCloud : MonoBehaviour
     // Like Guided Shot the target is sticky: the cloud keeps its mob until that mob is
     // poisoned, dies, or leaves the view, rather than re-picking the nearest every
     // search and drifting between two of them.
-    private const float HomingRadius = 3f;
+    //
+    // The reach, pace and search clock are shared with PoisonTrailBubble, whose
+    // beads hunt by the same rules under Plaguebringer (owner, 2026-09-26).
+    internal const float HomingRadius = 3f;
     // The chase runs at the target's own measured pace plus this, so a cloud always
     // gains on whatever it is after — slowly on a wolf, and it closes on a sleeping
     // or frozen mob at just this speed
-    private const float HomingSpeedMargin = 0.5f;
-    private const float HomingAcceleration = 8f;     // units/s² — how quickly it turns onto a new mob
+    internal const float HomingSpeedMargin = 0.5f;
+    internal const float HomingAcceleration = 8f;     // units/s² — how quickly it turns onto a new mob
     private const float HomingArriveDistance = 0.5f; // eases off inside this, so it settles over the mob instead of circling it
-    private const float HomingSearchInterval = 0.1f;
+    internal const float HomingSearchInterval = 0.1f;
 
     // The puff sprite is white and tinted here. A Plaguebringer cloud is the same
     // green with Guardian gold flecked through it: about one puff in five comes out
@@ -62,10 +65,11 @@ public class PoisonCloud : MonoBehaviour
     private static readonly Color PlagueFleckTint = new Color(1f, 0.93f, 0.7f, 0.7f);
     private const float PlagueFleckShare = 0.2f;
 
-    // Shared by every homing cloud's search, rather than allocated per sweep. Enemy
-    // colliders are triggers, so the filter has to ask for them (as ShieldSight does).
-    private static readonly Collider2D[] HomingHits = new Collider2D[64];
-    private static readonly ContactFilter2D HomingFilter = new ContactFilter2D { useTriggers = true };
+    // Shared by every homing cloud's and bead's search, rather than allocated per
+    // sweep. Enemy colliders are triggers, so the filter has to ask for them (as
+    // ShieldSight does).
+    internal static readonly Collider2D[] HomingHits = new Collider2D[64];
+    internal static readonly ContactFilter2D HomingFilter = new ContactFilter2D { useTriggers = true };
 
     private bool homing;
     private EnemyBase homingTarget;
@@ -143,7 +147,7 @@ public class PoisonCloud : MonoBehaviour
         BuildCloudParticles();
     }
 
-    private static bool OwnerHasPlaguebringer(string tag)
+    internal static bool OwnerHasPlaguebringer(string tag)
     {
         if (string.IsNullOrEmpty(tag)) return false;
         GameObject knight = GameObject.FindWithTag(tag);

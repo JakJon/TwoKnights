@@ -1,6 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 public class GameSceneManager : MonoBehaviour
 {
@@ -11,11 +10,9 @@ public class GameSceneManager : MonoBehaviour
     [SerializeField] private string gameSceneName = "Main";
     
     [Header("Transition Settings")]
-    [SerializeField] private float transitionDelay = 2f; // Delay before scene transition
     [SerializeField] private bool showDeathMessage = true;
 
     [Header("Victory Settings")]
-    [SerializeField] private float victoryDelay = 5f; // Banner time before returning to camp
     [SerializeField] private int gateVictoryGold = 100;
     [SerializeField] private int trueVictoryGold = 250;
 
@@ -93,12 +90,12 @@ public class GameSceneManager : MonoBehaviour
 
         HideUpgradeMenuIfNeeded();
 
-        StartCoroutine(HandlePlayerDeath(knightName, causeOfDeath, waveReached, waveName));
+        HandlePlayerDeath(knightName, causeOfDeath, waveReached, waveName);
     }
 
     /// <summary>
     /// Called when a run ends in victory (first gate clear or true-boss kill):
-    /// banner, gold reward, then back to camp.
+    /// fanfare, gold reward, then straight back to camp.
     /// </summary>
     public void OnVictory(MapDefinition map, bool trueVictory, int wavesCompleted)
     {
@@ -131,32 +128,9 @@ public class GameSceneManager : MonoBehaviour
 
         HideUpgradeMenuIfNeeded();
 
-        string banner;
-        if (trueVictory)
-        {
-            string mapName = map != null ? map.DisplayName : "The map";
-            banner = $"VICTORY!\n{mapName} is cleansed";
-        }
-        else
-        {
-            string bossName = map != null && map.GateBoss != null ? map.GateBoss.WaveName : "The boss";
-            banner = $"VICTORY!\n{bossName} has fallen";
-        }
-
-        StartCoroutine(HandleVictory(banner));
-    }
-
-    private IEnumerator HandleVictory(string banner)
-    {
+        // Straight to the camp: the fanfare plays over the transition, and the
+        // banner that used to need holding time is gone.
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.victoryFanfare);
-        var waveNameDisplay = FindFirstObjectByType<WaveName>(FindObjectsInactive.Include);
-        if (waveNameDisplay != null)
-        {
-            waveNameDisplay.DisplayWaveName(banner);
-        }
-
-        yield return new WaitForSecondsRealtime(victoryDelay);
-
         LoadCampScene();
     }
 
@@ -197,11 +171,11 @@ public class GameSceneManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private IEnumerator HandlePlayerDeath(string knightName, string causeOfDeath, int waveReached, string waveName)
+    // No pause before the screen goes up. The two seconds this used to hold were
+    // meant to let the death land, but the knight is already dead and the arena is
+    // already still — all the wait did was make the player sit through it.
+    private void HandlePlayerDeath(string knightName, string causeOfDeath, int waveReached, string waveName)
     {
-        // Let the death moment land before covering the screen
-        yield return new WaitForSecondsRealtime(transitionDelay);
-
         var deathScreen = showDeathMessage
             ? FindFirstObjectByType<DeathScreen>(FindObjectsInactive.Include)
             : null;
@@ -269,11 +243,45 @@ public class GameSceneManager : MonoBehaviour
         {
             Debug.LogWarning($"Game scene '{gameSceneName}' not found in build settings!");
         }
+
+        // The BOOT scene never comes through OnSceneLoaded — this object is created
+        // as part of that load, so it subscribes after the event it would want. Every
+        // later camp load is the handler's; this first one is ours. PlayMusic no-ops
+        // on a repeat, so the two paths overlapping costs nothing.
+        if (SceneManager.GetActiveScene().name == campSceneName) PlayCampMusic();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         isTransitioningToCamp = false;
+
+        // The camp owns its track from here. The GAME scene deliberately does not
+        // start anything: which track a run opens on depends on the map and the
+        // wave, and only the Spawner knows both — see Spawner.UpdateWaveMusic. It
+        // asks on the first wave, which is the same beat the backdrop comes up on.
+        if (scene.name == campSceneName) PlayCampMusic();
+    }
+
+    /// <summary>
+    /// Called on every camp load, including the return from a run, and again by the
+    /// file select as it closes. PlayMusic no-ops when the track is already on, so
+    /// the walk from camp to camp via the level select never restarts it mid-phrase.
+    /// </summary>
+    public void PlayCampMusic()
+    {
+        var catalog = MapCatalog.Instance;
+        if (catalog == null || AudioManager.Instance == null) return;
+
+        // The file select is silent. Both halves of this matter and they cover
+        // different moments: IsShowing is the reopen from the camp's Exit button,
+        // while ShouldShowAtBoot covers the boot, where the panel may not have run
+        // its Show() yet — Start() order between this object and CampMenuController
+        // is undefined, so asking only whether the panel is visible would win or
+        // lose the race depending on the day. FileSelectPanel.Hide() is what turns
+        // the music on once a file has actually been chosen.
+        if (FileSelectPanel.ShouldShowAtBoot || FileSelectPanel.IsShowing) return;
+
+        AudioManager.Instance.PlayMusic(catalog.CampMusic);
     }
 
     private void OnDestroy()

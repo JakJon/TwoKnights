@@ -11,8 +11,16 @@ using System.Collections.Generic;
 public static class CampNotices
 {
     /// <summary>
-    /// The shop stays hidden until the first crystal is earned — a price list is
-    /// noise to someone with no way to pay.
+    /// Lifetime crystals the player must have earned before the shop opens. Two,
+    /// not one: everything on the shelves costs more than a single crystal, so a
+    /// shop opened at one is a price list the player still cannot shop from.
+    /// </summary>
+    public const int ShopCrystalThreshold = 2;
+
+    /// <summary>
+    /// The shop reads as "???" until the player has earned
+    /// <see cref="ShopCrystalThreshold"/> crystals — a price list is noise to
+    /// someone with no way to pay.
     /// </summary>
     public static bool ShopUnlocked
     {
@@ -20,12 +28,12 @@ public static class CampNotices
         {
             var data = SaveManager.Data;
             if (data == null) return false;
-            // The latch is new; saves written before it exists have it false even
-            // for players who are well past their first crystal. Anyone holding
-            // crystals or owning equipment has plainly earned some, so treat that
-            // as unlocked rather than yanking the shop back from them.
-            return data.everHadCrystals
-                   || data.crystals > 0
+            // The lifetime total never falls, so it is the latch: spending back
+            // down to nothing cannot close the shop again. Anyone already holding
+            // that many, or owning equipment at all, has plainly earned them on a
+            // save written before the total was tracked.
+            return data.totalCrystalsEarned >= ShopCrystalThreshold
+                   || data.crystals >= ShopCrystalThreshold
                    || (data.ownedEquipment != null && data.ownedEquipment.Count > 0);
         }
     }

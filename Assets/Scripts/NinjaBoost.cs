@@ -40,6 +40,9 @@ public class NinjaBoost : MonoBehaviour
         if (!thousandCuts || shooter == null) return;
         if (!gameObject.CompareTag(playerTag)) return;
         shooter.OpenNoCooldownWindow(ThousandCutsWindow, ThousandCutsFloor);
+        // Counted per kill that opens the window, which is what the capstone
+        // actually does — not per shot fired inside it.
+        QuestTally.Total(OrderStats.ThousandCutsActivations);
     }
 
     // Tiers set absolute values; Max keeps late re-picks from downgrading

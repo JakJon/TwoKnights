@@ -54,7 +54,7 @@ public static class OverseerWiring
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         EditorPrefs.SetInt(VersionKey, Version);
-        Debug.Log("[OverseerWiring] Done: prefab, wave asset, and The Mine's true boss at wave 20.");
+        Debug.Log("[OverseerWiring] Done: prefab, wave asset, and The Mine's true boss at wave 25.");
     }
 
     private static GameObject BuildBossPrefab()
@@ -283,11 +283,11 @@ public static class OverseerWiring
 
         var so = new SerializedObject(map);
         SetRef(so, "trueBoss", wave);
-        SetInt(so, "trueBossWaveNumber", 20);
+        SetInt(so, "trueBossWaveNumber", 25);
         so.ApplyModifiedProperties();
         EditorUtility.SetDirty(map);
 
-        Debug.Log("[OverseerWiring] The Mine: trueBoss = The Overseer, trueBossWaveNumber = 20.");
+        Debug.Log("[OverseerWiring] The Mine: trueBoss = The Overseer, trueBossWaveNumber = 25.");
     }
 
     // ---- tiny setters that say so out loud when a field has been renamed ----

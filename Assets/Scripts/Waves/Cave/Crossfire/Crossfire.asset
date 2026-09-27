@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Rock comes in mirrored lines, and a bomb rides the rim.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: b919f05bc00e21a5772d94a8a0eec42a, type: 2}
   entryRun: 2
@@ -32,7 +32,7 @@ MonoBehaviour:
   flightSeconds: 4
   orbs:
     healthOrb: 0
-    count: 0
+    count: 1
     firstAt: 12
     interval: 12
     from: {x: -12, y: 2}

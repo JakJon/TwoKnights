@@ -56,6 +56,7 @@ public class FireField : MonoBehaviour
         public Vector2 position;
         public float radius;
         public float expiresAt; // +infinity for Scorched Earth zones
+        public float bornAt;    // when it was lit, for "one fire that burned a minute"
         public string ownerTag;
         public float dps;
         public bool isTrail; // laid by Fire Trail, as opposed to a crater or placed zone
@@ -205,6 +206,7 @@ public class FireField : MonoBehaviour
             position = position,
             radius = radius,
             expiresAt = eternal ? float.PositiveInfinity : Time.time + duration,
+            bornAt = Time.time,
             ownerTag = ownerTag,
             dps = dps,
             isTrail = isTrail,
@@ -345,6 +347,72 @@ public class FireField : MonoBehaviour
             _sinceLastEmit = 0f;
             EmitIntoZones();
         }
+
+        _sinceLastSurvey += Time.deltaTime;
+        if (_sinceLastSurvey >= SurveyInterval)
+        {
+            _sinceLastSurvey = 0f;
+            SurveyForQuests(now);
+        }
+    }
+
+    // How often the two Ember quest records are measured. Deliberately slow: both
+    // are "the best it ever got" questions, and a quarter-second sampling cannot
+    // miss a fire that was ever big enough or old enough to matter, while a
+    // per-frame grid sweep would be a cost a fire build could feel.
+    private const float SurveyInterval = 0.25f;
+    private float _sinceLastSurvey;
+
+    // Grid resolution for the coverage estimate. The zones overlap constantly —
+    // that is the whole design, "overlapping zones are ONE fire" — so their areas
+    // cannot simply be summed. Sampling answers the union honestly instead.
+    private const int SurveyCols = 40;
+    private const int SurveyRows = 24;
+
+    /// <summary>
+    /// Records the two things the Ember line asks about the field itself: how long
+    /// the oldest single fire has burned, and how much of the arena is alight at
+    /// once.
+    /// </summary>
+    private void SurveyForQuests(float now)
+    {
+        if (_zones.Count == 0) return;
+
+        // Longest-burning single zone. Measured as it burns rather than on expiry,
+        // so a Scorched Earth zone — which never expires — still counts.
+        float oldest = 0f;
+        for (int i = 0; i < _zones.Count; i++)
+        {
+            float age = now - _zones[i].bornAt;
+            if (age > oldest) oldest = age;
+        }
+        QuestTally.Peak(OrderStats.FireFieldSecondsMax, Mathf.FloorToInt(oldest));
+
+        var cam = Camera.main;
+        if (cam == null || !cam.orthographic) return;
+
+        float halfH = cam.orthographicSize;
+        float halfW = halfH * cam.aspect;
+        Vector2 centre = cam.transform.position;
+
+        int lit = 0;
+        for (int row = 0; row < SurveyRows; row++)
+        {
+            float y = centre.y - halfH + (row + 0.5f) * (2f * halfH / SurveyRows);
+            for (int col = 0; col < SurveyCols; col++)
+            {
+                float x = centre.x - halfW + (col + 0.5f) * (2f * halfW / SurveyCols);
+                var point = new Vector2(x, y);
+                for (int i = 0; i < _zones.Count; i++)
+                {
+                    float r = _zones[i].radius * HitboxScale;
+                    if ((point - _zones[i].position).sqrMagnitude <= r * r) { lit++; break; }
+                }
+            }
+        }
+
+        QuestTally.Peak(OrderStats.FireCoveragePercentMax,
+                        Mathf.RoundToInt(100f * lit / (SurveyCols * SurveyRows)));
     }
 
     // One pooled system emitting into every zone, rather than a system per zone.

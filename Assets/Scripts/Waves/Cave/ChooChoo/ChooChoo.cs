@@ -169,6 +169,10 @@ public class ChooChoo : BaseWave
             yield return spawner.StartCoroutine(Release(rails, ambush, layDuration));
             layDuration = 0f; // only the opening group waits out the track
 
+            // Last shift out: if a quick clear beat the orb timer, the orb goes
+            // now, with this shift still on the board. See OrbRun.SendFirstIfWaiting.
+            if (i == ambushes.Count - 1) orbs.SendFirstIfWaiting(spawner);
+
             yield return WaitForAmbushClear();
 
             if (shafts != null) spawner.StopCoroutine(shafts);

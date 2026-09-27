@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: One gap in sixteen. Miss it and the fence is up for another lap.
   unlockedAfterXWaves: 8
-  lockedAfterXWaves: 15
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 9cc32b97993d4e538f6f1c49b5759748, type: 2}
   cartPattern:

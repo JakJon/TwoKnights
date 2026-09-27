@@ -2,6 +2,7 @@
     <!-- Shared with the camp menu; QuestPanel/EquipmentPanel drive both -->
     <ui:Template name="QuestOverlay" src="QuestOverlay.uxml" />
     <ui:Template name="EquipmentOverlay" src="EquipmentOverlay.uxml" />
+    <ui:Template name="SettingsOverlay" src="SettingsOverlay.uxml" />
     <ui:VisualElement name="pause-menu" class="pause-menu-overlay">
         <!-- Landscape container: a knight's loadout down each side, the menu card
              in the middle. The container itself draws nothing — only the centre
@@ -30,6 +31,7 @@
                         <ui:Button text="RESUME" name="resume-button" class="menu-button primary" />
                         <ui:Button text="QUESTS" name="pause-quests-button" class="menu-button" />
                         <ui:Button text="EQUIPMENT" name="pause-equipment-button" class="menu-button" />
+                        <ui:Button text="SETTINGS" name="pause-settings-button" class="menu-button" />
                         <ui:Button text="QUIT" name="quit-button" class="menu-button secondary" />
                     </ui:VisualElement>
                     <ui:VisualElement name="confirm-actions" class="actions-container confirm" style="display: none;">
@@ -64,6 +66,7 @@
             <ui:Style src="CampMenu.uss" />
             <ui:Instance template="QuestOverlay" class="overlay-host" />
             <ui:Instance template="EquipmentOverlay" class="overlay-host" />
+            <ui:Instance template="SettingsOverlay" class="overlay-host" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

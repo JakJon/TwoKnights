@@ -1,8 +1,16 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerProjectile : MonoBehaviour
 {
     public int damage = 10;
+
+    // How much of `damage` above is Dawn's holy light, for DISPLAY only. It is
+    // already counted inside `damage` — this is not a second pool of damage and
+    // adding it anywhere would pay the Order twice. It exists so the number that
+    // prints over the body can be split into the red the shot did and the white
+    // the light did, which is the only way a player can see what Dawn is actually
+    // worth on a hit. See EnemyBase.TakeDamage.
+    public int holyDamage;
     public NinjaBoost ownerNinjaBoost; // Set by PlayerShooter at spawn; drives Killing Blow
 
     // Ember: set at spawn when this shot's ignite roll succeeded. Together with
@@ -28,6 +36,19 @@ public class PlayerProjectile : MonoBehaviour
     public bool isShadowArrow;
     public ShurikenVolley volley;
     private bool _countedHit;
+
+    /// <summary>
+    /// An ECHO of the knight's shot rather than the shot itself — a shadow arrow
+    /// or a shuriken out of the fan.
+    ///
+    /// Echoes pay no special (see EnemyBase.GiveSpecialToPlayer). A fan at rank two
+    /// puts five projectiles on the board for one press of the trigger, and every
+    /// one of them was handing over a full arrow's worth of bar; the knight who
+    /// bought the Shadow Order was filling the meter five times as fast as the one
+    /// who didn't, which made the Order a special-charge upgrade that happened to
+    /// throw shurikens. The bar is meant to count SHOTS the player took.
+    /// </summary>
+    public bool IsEcho => isShadowArrow || volley != null;
 
     // "PlayerLeftProjectile" -> "PlayerLeft"
     private string OwnerTag
@@ -64,7 +85,7 @@ public class PlayerProjectile : MonoBehaviour
         }
 
         // Poison cloud -> poisoned arrow (skip if it already carries poison). It
-        // becomes the poisoned arrow this knight would fire, inheriting Virulence.
+        // becomes the poisoned arrow this knight would fire, inheriting its tick bonus.
         if (PoisonCloud.SampleAt(pos) && GetComponent<PoisonProjectile>() == null)
         {
             PoisonProjectile poison = gameObject.AddComponent<PoisonProjectile>();
@@ -114,8 +135,29 @@ public class PlayerProjectile : MonoBehaviour
                 damageToDeal = Mathf.CeilToInt(damageToDeal * ownerFrigidBoost.ShatterMultiplier);
             }
 
+            // Everything landed into a body held in ice, and the share of it the
+            // Shatter multiplier is responsible for. Two quests, two questions:
+            // one asks how hard you hit the ice, the other how much of that was
+            // the Order's doing.
+            if (wasFrozen)
+            {
+                QuestTally.Total(OrderStats.FrozenTargetDamage, damageToDeal);
+                if (shatterOwned) QuestTally.Wave(OrderStats.ShatterDamageWaveMax, damageToDeal);
+            }
+
+            // The holy share of what is about to land, in the same proportion it
+            // held in the arrow. Taken proportionally rather than passed through
+            // flat because everything above this line scales the WHOLE hit —
+            // Gnawed Crown, Killing Blow, Shatter — and holy that stayed at its
+            // authored 4 while the rest of the number tripled would be a lie about
+            // where the damage came from. Rounding is absorbed by the red half, so
+            // the two numbers always add back up to the hit that was dealt.
+            int holyShare = (holyDamage > 0 && damage > 0)
+                ? Mathf.Clamp(Mathf.RoundToInt(damageToDeal * (float)holyDamage / damage), 0, damageToDeal)
+                : 0;
+
             // Apply normal damage
-            enemy.TakeDamage(damageToDeal, gameObject);
+            enemy.TakeDamage(damageToDeal, gameObject, holyShare);
 
             // The burst, sound, splinters and tally belong to the hit that actually
             // BREAKS the ice. With Deep Freeze the ice can take several hits, and a
@@ -143,8 +185,15 @@ public class PlayerProjectile : MonoBehaviour
             if (!_countedHit)
             {
                 _countedHit = true;
-                if (isShadowArrow) Feats.Record(Feats.ShadowArrowHits);
+                if (isShadowArrow)
+                {
+                    Feats.Record(Feats.ShadowArrowHits);
+                    QuestTally.Wave(OrderStats.ShadowArrowWaveMax);
+                }
                 if (volley != null) volley.NoteHit();
+                // A guided shot that arrived. Resolved when the projectile dies,
+                // not here — this only records that it had something to resolve.
+                GetComponent<GuidedShot>()?.NoteConnected();
             }
             
             // Check if this projectile has poison and apply it
@@ -176,15 +225,26 @@ public class PlayerProjectile : MonoBehaviour
                 fireball.Explode(enemy);
             }
 
-            // Frigid, last: the damage above has already broken any ice this shot
-            // landed on, and a thawed body carries nothing away with it. So a frost
-            // arrow into a statue shatters it and leaves it chilled again in the
-            // same instant, ready for the next arrow to stop it - which is the loop
-            // the whole Order is built to run.
+            // Frigid, last.
+            //
+            // wasFrozen gates it (owner's call, 2026-09-16). An arrow into a body
+            // held in ice ENDS the freeze and leaves it free - it does not also
+            // leave it chilled. The damage above already broke the ice, so without
+            // this check the touch would land on a thawed body and put fresh cold
+            // straight back on, which reads as a shot that shatters and re-chills in
+            // one frame. A frozen target costs an arrow to free; the next arrow is
+            // the one that chills it again.
             //
             // isBlow: true. This is a hit the knight aimed and landed, so it is one
             // of the two things in the game allowed to freeze.
-            if (ownerFrigidBoost != null && ownerFrigidBoost.ArrowsChill)
+            //
+            // Shadow arrows are excluded. Frost Tip chills on every arrow that
+            // lands, and a shadow volley is several arrows landing on the same body
+            // inside a few frames - enough cold to freeze whatever it touched on the
+            // first shot of the fight, every shot of the fight. They still SHATTER
+            // what is already frozen, above; they just do not carry the cold that
+            // froze it.
+            if (!wasFrozen && !isShadowArrow && ownerFrigidBoost != null && ownerFrigidBoost.ArrowsChill)
             {
                 ownerFrigidBoost.TouchWithCold(enemy, true);
             }
@@ -197,8 +257,9 @@ public class PlayerProjectile : MonoBehaviour
     }
 
     // Cold thrown off a body coming apart. Chill only, and never onto the thing
-    // that was shattered - it has just been chilled by the arrow that broke it,
-    // and paying it twice would let one shot do the Order's whole cycle alone.
+    // that was shattered - the arrow that broke its ice deliberately leaves it
+    // free rather than chilled, and splinters landing back on it would undo that
+    // and let one shot do the Order's whole cycle alone.
     private void SpreadSplinters(Vector2 center, EnemyBase shatteredEnemy)
     {
         Collider2D[] caught = Physics2D.OverlapCircleAll(center, FrigidBoost.SplinterRadius);

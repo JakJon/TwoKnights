@@ -55,11 +55,32 @@ a dice game they keep playing.
 Accent `rgb(158, 168, 178)` — steel (`order--guardian`, already in `UpgradeMenu.uss`).
 Weight → rarity via `BaseUpgrade.Rarity`.
 
-### Greatshield I–III — the guard's shape *(pre-existing)*
+### Holy Shield I–III — the guard's shape, and the body behind it
 Each tier lengthens the span and bows the bar around the knight; the bow never costs
 span. Lives on the shield GameObject as `ShieldShape`, which regenerates the sprite and
 its `PolygonCollider2D` from one arc so the shape that stops an arrow is the shape on
-screen. Assets stay named `Greatshield N`; the cards read "Dawn Shield".
+screen. Assets stay named `Greatshield N`; the cards read "Holy Shield".
+
+**It also carries the game's only max health** (2026-09-15). Health used to be thirteen
+classless cards worth up to +625 between them; it is +25 / +25 / +50 on this chain now.
+A bigger guard and a bigger body are the same sentence, and it gives the one Guardian
+chain that was purely geometric a reason to be drafted by somebody not already committed
+to the Order.
+
+| Tier | Max health | Weight |
+|---|---|---|
+| I | +25 | 100 (Common) |
+| II | +25 | 55 (Rare) |
+| III | +50 | 16 (Legendary) |
+
+The re-rarity is the point. At the old 16 / 14 / 12 this was three Legendaries, and as
+the sole source of health that would have meant the typical run ending on the stock 100
+HP. Rank I has to be a card people actually see.
+
+It was called "Dawn Shield", which collided head-on with the Order named Dawn — doubly
+so now that Dawn is the Order that sells damage. The health is applied BEFORE the shield
+lookup in `ShieldShapeUpgrade`, because that lookup can bail out and a knight must still
+get the health the card promised them.
 
 ### Bowsight I–II — the shot's line *(pre-existing, retagged this pass)*
 A laser sight on the shield that reads the line of fire and cooks what it rests on.
@@ -75,10 +96,23 @@ roughly 2.35× the stock reach at nearly half the swing speed — a genuinely he
 which is what a third tier of a two-tier chain has to be to be worth drafting.
 
 ### Reflector I–II — the guard pays out
-| Tier | Chance | Damage | Weight |
-|---|---|---|---|
-| I | 50% | ×1.0 | 60 (Rare) |
-| II | 100% | ×2.0 | 16 (Legendary) |
+| Tier | Chance | Damage | Speed | Weight |
+|---|---|---|---|---|
+| I | 50% | ×1.0 | ×1.5 | 60 (Rare) |
+| II | 100% | ×2.0 | ×2.5 | 16 (Legendary) |
+
+**The speed column is also this knight's own arrows** (2026-09-15). Projectile speed used
+to be a classless chain anybody could buy; it lives here because "things leave your guard
+faster" is one idea, and the card prints one number for both halves of it. The figure
+that sends a rock back is the figure that sends an arrow out — `ReflectSpeedMultiplier`
+on `GuardianBoost`, carried to the rebound on `GuardianReflect.Turn.SpeedMultiplier` and
+to the bow by `PlayerShooter.SetProjectileSpeedMultiplier`, which is **absolute rather
+than compounding** so buying the chain out of order lands on the same speed.
+
+Rank II keeps the ×2.5 the rebound has always left at, so the Order's signature does not
+change feel; rank I is the new, gentler step in front of it. Note it fights Guided Shot
+on purpose — a faster arrow spends less time inside the steering radius, so the two
+Guardian chains pull against each other and a knight has to choose which one they are.
 
 **Two picks, not three** (owner, 2026-09-09). It shipped as 30 / 60 / 100 across three
 tiers and both halves of that were wrong. At thirty percent rank one was a thing that
@@ -102,8 +136,9 @@ the mirror and the credit now live in `GuardianReflect`, and `ReflectedShot` is 
 returned pickaxe or fireball *becomes*: the behaviour that flew it in is switched off,
 which is also what stops it hurting a knight or being blocked a second time, and the
 object keeps its own art so the player reads it by its heading and its pace. The one
-exemption is a giant slime's **ward** fireball, which is the boss's guard rather than a
-shot at anybody — popping it is what opens the damage window, so it always pops.
+exemption is a giant slime's **ward** fireballs, the ring orbiting the boss rather than a
+shot at anybody. A ward has no flight speed of its own to turn around, so it always pops.
+(The ward stopped shielding the twins' bodies on 2026-09-24; it is only a hazard now.)
 
 A reflected bomb is the odd one: its powder normally only ever hurts knights (a gnome's
 blast clearing the gnome's own carts would be doing the player's work), and once the
@@ -135,9 +170,11 @@ carts off the track would be doing the player's work for them — the same call
 ### Guided Shot I–III — the line lands
 | Tier | Radius | Weight |
 |---|---|---|
-| I | 0.5u | 60 (Rare) |
-| II | 1.0u | 30 (Epic) |
-| III | 1.6u | 16 (Legendary) |
+| I | 0.575u | 60 (Rare) |
+| II | 1.1u | 30 (Epic) |
+| III | 1.76u | 16 (Legendary) |
+
+*Widened 2026-09-25 (owner's call)* from 0.5 / 1.0 / 1.6: rank I by 15%, II and III by 10%. Guided Reflections keeps the old radii.
 
 The knight's main arrow bends onto the nearest mob **or orb** within the radius. Orbs
 count because they are collected by shooting them, so bending onto one is the same

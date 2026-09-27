@@ -2,23 +2,17 @@ using System.Collections.Generic;
 using static QuestBuild;
 
 /// <summary>
-/// The Guardian Order. Same shape as the others: a light trigger reveals the
-/// initiation, the initiation admits you, admission opens two branches at once.
-///
-/// The argument is the Order's own pillar turned against itself. Guardian does not
-/// buy a bigger number, it buys the LANDING — and the two halves disagree about
-/// which landing is the one that matters. The Wall says it is what arrives and
-/// gets stopped. The Line says it is what you send and where it ends up. Both are
-/// the same sentence read from opposite ends, which is why the line lets you finish
-/// both and why the last quest in the Line branch cannot be done without the Wall.
+/// The Order of the Guardian. A thing arriving and a thing landing are one problem
+/// looked at from either end — the Wall branch answers the first, the Line branch the
+/// second, and the Order maintains this was always obvious.
 /// </summary>
 public static class GuardianQuests
 {
     public const string Initiation = "guardian_initiation";
-    public const string Wall1 = "guardian_wall_1";
-    public const string Wall2 = "guardian_wall_2";
-    public const string Line1 = "guardian_line_1";
-    public const string Line2 = "guardian_line_2";
+    public const string WhatsYoursIsMine = "whats_yours_is_mine";
+    public const string ShieldSlammer = "shield_slammer";
+    public const string AceShooter = "ace_shooter";
+    public const string SafeDistance = "a_safe_distance";
 
     public static IEnumerable<Quest> All()
     {
@@ -26,79 +20,93 @@ public static class GuardianQuests
             id: Initiation,
             name: "Initiation: The Standing Order",
             description:
-                "The Order keeps no barracks and recruits nobody. Their position is that a thing " +
-                "arriving and a thing landing are one problem looked at from either end, and that " +
-                "anyone who has worked that out has already joined whether or not they were asked. " +
-                "The quartermaster finds them insufferable and has never once been able to say why.",
+                "A paladin of the Guardian Order has noticed our skills. We must utilize their abilities "
+                + "to learn more. When he decides we are ready, he will test each of us in turn with a "
+                + "storm of rocks, and neither of us can be hit even once.",
+            mapId: Camp,
+            objectives: One("trials.guardian", 1, "Pass the Paladin's trial", hideProgress: true),
+            reward: Reward(crystals: 2),
+            unlocks: Gate(Stat(Feats.GuardianAwoken, 1)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Guardian),
+            offer:
+                "Greetings. It seems that you may be interested in the Guardian Order's abilities.\n"
+                + "If you prove your worth then we will be more than willing to teach you the way of the "
+                + "guardian!\n"
+                + "Here, try your hand at these trials before we speak more.",
+            completion:
+                "It seems you may know how to put our abilities to use!\n"
+                + "Let's test you some more.");
+
+        yield return new Quest(
+            id: WhatsYoursIsMine,
+            name: "What's yours is mine",
+            description:
+                "The paladin has offered us a trial, deal damage by reflecting projectiles.",
+            mapId: Camp,
+            objectives: One(OrderStats.ReflectDamageWaveMax, 100, "damage sent back in one wave"),
+            reward: Reward(equipmentId: "returned_stone"),
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Guardian),
+            offer:
+                "",
+            completion:
+                "Nice work. You've shown you understand how to use the enemies projectiles against them!\n"
+                + "You are worthy to learn the true power of the shield you hold.");
+
+        yield return new Quest(
+            id: ShieldSlammer,
+            name: "Shield Slammer",
+            description:
+                "The paladin told us that our shield has more powers than we know. We must learn what "
+                + "they mean by this.",
             mapId: Camp,
             objectives: new[]
             {
-                Obj("guardian.reflected", 60, "rocks sent back"),
-                Obj("guardian.guided", 100, "shots guided"),
-                Obj("upgrades.order.guardian", 5, "guardian upgrades taken"),
+                Obj("upgrades.taken.bulwark", 1, "Take up Bulwark", hideProgress: true),
+                Obj(OrderStats.BulwarkShoves, 15, "thrown back off the guard"),
             },
-            reward: Reward(crystals: 2),
-            // The one reveal in the game that asks about a RUN rather than a
-            // lifetime: two Guardian picks on one knight, and that knight then doing
-            // something with them. See GuardianAwakening.
-            unlocks: Gate(Stat(Feats.GuardianAwoken, 1)));
-
-        // ---- The Wall: what arrives ----
-
-        yield return new Quest(
-            id: Wall1,
-            name: "Nothing Gets Through",
-            description:
-                "The shafts have been throwing the same stone at this camp for as long as anyone " +
-                "has been counting, and the Order's whole answer is that it is a perfectly good " +
-                "stone. Send enough of them back and the argument stops being philosophical. The " +
-                "gnomes have not adjusted their aim, which the Order takes as a compliment.",
-            mapId: Camp,
-            objectives: One("guardian.reflected", 250, "rocks sent back"),
-            reward: Reward(equipmentId: "returned_stone"),
-            unlocks: Gate(After(Initiation)));
+            reward: Reward(crystals: 2, upgradeSlug: "bulwark"),
+            unlocks: Gate(After(WhatsYoursIsMine)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Guardian),
+            offer:
+                "",
+            completion:
+                "Amazing work! You have shown you understand what it means to be a guardian.\n"
+                + "We are honored to have you amongst us.");
 
         yield return new Quest(
-            id: Wall2,
-            name: "The Immovable Watch",
+            id: AceShooter,
+            name: "Ace Shooter",
             description:
-                "Every knight before you bought a body's removal with their own health and called " +
-                "it a fair trade. The Order's last teaching is that it was never a trade at all, " +
-                "and that anything which reaches the guard can simply be told to go back the way " +
-                "it came.",
+                "The paladin has offered us a trial, do not miss a shot with our guided bow's arrows.",
             mapId: Camp,
-            objectives: One("upgrades.taken.bulwark", 1,
-                            "Acquire Bulwark, the Guardian capstone", hideProgress: true),
-            reward: Reward(crystals: 2),
-            unlocks: Gate(After(Wall1)));
-
-        // ---- The Line: what you send ----
-
-        yield return new Quest(
-            id: Line1,
-            name: "It Finds Them",
-            description:
-                "The other half of the Order is less interested in the wall and more interested in " +
-                "the beam, and considers the Wall branch a very elaborate way of standing still. " +
-                "Their position is that an arrow which needed aiming was a badly made arrow. They " +
-                "are difficult to argue with and worse to drink with.",
-            mapId: Camp,
-            objectives: One("guardian.guided", 300, "shots guided"),
-            reward: Reward(crystals: 1),
-            unlocks: Gate(After(Initiation)));
+            objectives: One(OrderStats.GuidedNoMissStreakMax, 100, "guided shots without a miss"),
+            reward: Reward(crystals: 3),
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Guardian),
+            offer:
+                "",
+            completion:
+                "Brilliant shots! You didn't miss once.\n"
+                + "Let's see if you have that same finesse with your sword.");
 
         yield return new Quest(
-            id: Line2,
-            name: "Their Own Powder",
+            id: SafeDistance,
+            name: "A safe distance",
             description:
-                "This is the rite the two branches finally agree on, largely because neither can " +
-                "perform it alone. A powder rock caught on the guard, turned, steered into company " +
-                "and allowed to finish what the mine started. The Order regards it as the plainest " +
-                "possible statement of what they have been saying the whole time.",
+                "The guardian has given us a trial for our blade. Get long distance kills with our long "
+                + "sword in a single wave.",
             mapId: Camp,
-            objectives: One(Feats.ReflectThree, 1,
-                            "Catch three at once with one returned powder rock", hideProgress: true),
+            objectives: One(OrderStats.LongRangeSwordKillsWaveMax, 10,
+                            "felled at the sword's furthest reach in one wave"),
             reward: Reward(equipmentId: "worn_baldric"),
-            unlocks: Gate(After(Line1)));
+            unlocks: Gate(After(AceShooter)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Guardian),
+            offer:
+                "",
+            completion:
+                "You have mastered the guardian equipment and shown yourself honorable.\n"
+                + "You are hereby an exalted guardian!");
+
     }
 }

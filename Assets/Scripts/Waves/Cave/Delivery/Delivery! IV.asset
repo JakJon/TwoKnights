@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Seven of them, nose to tail, and a short run to the flag.
   unlockedAfterXWaves: 12
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 18
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 1673876225cc7d6b08f96d4686be0d44, type: 2}
   cartOrder:

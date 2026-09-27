@@ -230,9 +230,29 @@ public class PlayerShooter : MonoBehaviour
             playerProjectileComponent.ownerNinjaBoost = ninjaBoost;
         }
 
-        // Capture final main projectile damage to drive shadow damage scaling.
-        // Read BEFORE the fireball multiplier so shadow arrows and shurikens keep
-        // scaling off a normal arrow instead of spiking every Nth shot.
+        // Dawn: holy damage, worth +2 for every Dawn upgrade this knight owns. It
+        // is added HERE rather than folded into damageBonus because the echoes are
+        // paid a different share of it, and that needs two numbers to exist at once.
+        DawnBoost dawnBoost = GetComponent<DawnBoost>();
+        int holyDamage = dawnBoost != null ? dawnBoost.HolyDamage : 0;
+        int echoHolyDamage = dawnBoost != null ? dawnBoost.EchoHolyDamage : 0;
+
+        // What the ECHOES scale off: the arrow WITHOUT its holy. A shadow arrow is a
+        // fifth of an arrow, so scaling the holy down by that fifth as well would
+        // round it away to nothing; instead each echo takes its own flat share below.
+        int echoBaseDamage = playerProjectileComponent != null ? playerProjectileComponent.damage : 0;
+
+        if (playerProjectileComponent != null && holyDamage > 0)
+        {
+            playerProjectileComponent.damage += holyDamage;
+            playerProjectileComponent.holyDamage = holyDamage;
+            DawnFx.AttachArrowTrail(projectile, dawnBoost.DawnPicks);
+        }
+
+        // Capture final main projectile damage — holy included, because a fireball
+        // and the companion dart are both the knight's own shot. Read BEFORE the
+        // fireball multiplier so the dart keeps an arrow's damage instead of
+        // spiking every Nth shot.
         int mainProjectileFinalDamage = playerProjectileComponent != null ? playerProjectileComponent.damage : 0;
 
         // Frigid: every shot a Frigid knight fires carries the sheet. There is no
@@ -261,23 +281,28 @@ public class PlayerShooter : MonoBehaviour
 
             if (isFireball)
             {
-                ConfigureFireball(projectile, playerProjectileComponent, emberBoost, mainProjectileFinalDamage);
+                ConfigureFireball(projectile, playerProjectileComponent, emberBoost,
+                                  mainProjectileFinalDamage, holyDamage);
                 AudioManager.Instance.PlaySFX(AudioManager.Instance.fireballLaunch);
             }
         }
 
+        // Echo shots — shurikens and shadow arrows — are held while an orb trial is
+        // on the board (owner's call): there the knight's own arrow is the test.
+        bool echoesHeld = TrialRunner.EchoShotsHeld;
+
         // Shuriken Fan (Shadow Order): the main shot splits into angled copies
-        if (ninjaBoost != null && ninjaBoost.ShurikenLevel > 0)
+        if (!echoesHeld && ninjaBoost != null && ninjaBoost.ShurikenLevel > 0)
         {
-            SpawnShurikens(ninjaBoost, spawnPosition, mainProjectileFinalDamage, poisonTipBoost, emberBoost);
+            SpawnShurikens(ninjaBoost, spawnPosition, echoBaseDamage, echoHolyDamage, poisonTipBoost, emberBoost);
         }
 
         // Check if shadow arrow(s) should be spawned
         ShadowArrowBoost shadowArrowBoost = GetComponent<ShadowArrowBoost>();
-        if (shadowArrowBoost != null && shadowArrowBoost.GetShadowArrowPrefab() != null)
+        if (!echoesHeld && shadowArrowBoost != null && shadowArrowBoost.GetShadowArrowPrefab() != null)
         {
             // Spawn chain asynchronously with small delay between spawns so they don't all appear at once
-            StartCoroutine(SpawnShadowArrows(shadowArrowBoost, projectile, shield.Direction, spawnRotation, gameObject.tag + "Projectile", poisonTipBoost, mainProjectileFinalDamage, emberBoost));
+            StartCoroutine(SpawnShadowArrows(shadowArrowBoost, projectile, shield.Direction, spawnRotation, gameObject.tag + "Projectile", poisonTipBoost, echoBaseDamage, echoHolyDamage, emberBoost));
         }
 
         // The dart riding alongside a fireball. Spawned here rather than above so
@@ -357,14 +382,22 @@ public class PlayerShooter : MonoBehaviour
     // and always leaves a crater. Blast damage stays at a normal arrow's value; the
     // direct hit is what's multiplied.
     private void ConfigureFireball(GameObject projectile, PlayerProjectile component,
-        EmberBoost emberBoost, int baseDamage)
+        EmberBoost emberBoost, int baseDamage, int holyOnThisShot)
     {
         component.damage = Mathf.Max(1, Mathf.RoundToInt(baseDamage * FireballDirectDamageFactor));
+        // Scaled with the rest of the hit. baseDamage already has the holy inside
+        // it, so the direct hit multiplies Dawn's contribution along with
+        // everything else — and the white number has to say so, or the split reads
+        // as the Order going quiet the moment the arrow becomes a fireball.
+        component.holyDamage = Mathf.RoundToInt(component.holyDamage * FireballDirectDamageFactor);
         component.ignitesOnHit = true;
 
         FireballProjectile fireball = projectile.AddComponent<FireballProjectile>();
         fireball.blastRadius = emberBoost.FireballBlastRadius;
         fireball.blastDamage = Mathf.Max(1, baseDamage);
+        // The blast is paid baseDamage flat, holy and all, so it carries the
+        // undivided holy share rather than the direct hit's scaled one.
+        fireball.blastHolyDamage = holyOnThisShot;
         fireball.ownerBoost = emberBoost;
         fireball.ownerTag = gameObject.tag;
     }
@@ -392,6 +425,10 @@ public class PlayerShooter : MonoBehaviour
         if (component != null)
         {
             component.damage = Mathf.Max(1, arrowDamage);
+            // The dart is paid the arrow's damage holy and all (see above), so it
+            // carries the same holy share for the split number over the body
+            component.holyDamage = GetComponent<DawnBoost>() != null
+                ? GetComponent<DawnBoost>().HolyDamage : 0;
             component.ownerNinjaBoost = ninjaBoost;
             // The main shot is the one that drinks from the field; a second
             // projectile absorbing the same cloud would pay the build twice
@@ -408,18 +445,37 @@ public class PlayerShooter : MonoBehaviour
         dart.AddComponent<SleepDartProjectile>()
             .Configure(sleepBoost.SleepSeconds, sleepBoost.DartSprite);
 
+        // The dart is paid the arrow's damage, holy and all, so it wears the tell
+        DawnBoost dartDawn = GetComponent<DawnBoost>();
+        if (dartDawn != null && dartDawn.HolyDamage > 0) DawnFx.AttachArrowTrail(dart, dartDawn.DawnPicks);
+
         StartCoroutine(DestroyProjectile(dart));
+    }
+
+    // How far down the Dawn Order this knight has gone. The holy glow on a shot is
+    // drawn from it (see DawnFx.AttachArrowTrail), and the echo spawners are given
+    // their holy as a plain number rather than the sheet it came off, so they ask
+    // here rather than being handed a fifth parameter apiece.
+    private int DawnPickCount
+    {
+        get
+        {
+            DawnBoost boost = GetComponent<DawnBoost>();
+            return boost != null ? boost.DawnPicks : 0;
+        }
     }
 
     // Shuriken Fan: angled copies of the main arrow at 35% damage; each rolls
     // its own poison chance so Serpent/Shadow cross-builds keep their bite
-    private void SpawnShurikens(NinjaBoost ninjaBoost, Vector2 spawnPosition, int mainDamage, PoisonTipBoost poisonTipBoost, EmberBoost emberBoost)
+    private void SpawnShurikens(NinjaBoost ninjaBoost, Vector2 spawnPosition, int mainDamage, int holyDamage, PoisonTipBoost poisonTipBoost, EmberBoost emberBoost)
     {
         // Nightglass Shard adds to the multiplier here too, the same way it does
         // for shadow arrows: 0.35 + 0.15 = half the main arrow
         var equipment = GetComponent<EquipmentBoost>();
         float shurikenMultiplier = 0.35f + (equipment != null ? equipment.ShadowArrowDamageBonus : 0f);
-        int shurikenDamage = Mathf.Max(1, Mathf.RoundToInt(mainDamage * shurikenMultiplier));
+        // Dawn's holy rides the fan at its echo share, added AFTER the scaling so a
+        // shuriken at 35% of an arrow still feels the Order it was fired by
+        int shurikenDamage = Mathf.Max(1, Mathf.RoundToInt(mainDamage * shurikenMultiplier) + holyDamage);
 
         // One swish per volley, not per shuriken
         AudioManager.Instance.PlaySFX(AudioManager.Instance.shurikenThrow);
@@ -460,8 +516,9 @@ public class PlayerShooter : MonoBehaviour
 
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
+                // Poisons what it hits, but lays no bead trail
                 PoisonProjectile poison = shuriken.AddComponent<PoisonProjectile>();
-                poison.ConfigureFromBoost(poisonTipBoost);
+                poison.ConfigureFromBoost(poisonTipBoost, shedsTrail: false);
             }
 
             Rigidbody2D shurikenBody = shuriken.GetComponent<Rigidbody2D>();
@@ -475,6 +532,7 @@ public class PlayerShooter : MonoBehaviour
             if (projectileComponent != null)
             {
                 projectileComponent.damage = shurikenDamage;
+                projectileComponent.holyDamage = holyDamage;
                 projectileComponent.ownerNinjaBoost = ninjaBoost;
                 // Shurikens don't absorb fire/poison from the field — only the main shot does
                 projectileComponent.absorbsFieldEffects = false;
@@ -491,6 +549,8 @@ public class PlayerShooter : MonoBehaviour
                     projectileComponent.ignitesOnHit = true;
                     FireFx.AttachArrowTrail(shuriken);
                 }
+
+                if (holyDamage > 0) DawnFx.AttachArrowTrail(shuriken, DawnPickCount);
             }
 
             StartCoroutine(DestroyProjectile(shuriken));
@@ -514,7 +574,7 @@ public class PlayerShooter : MonoBehaviour
     }
 
     // Spawns the chain of shadow arrows with a 0.1s delay between each
-    private IEnumerator SpawnShadowArrows(ShadowArrowBoost shadowArrowBoost, GameObject initialLeader, Vector2 direction, Quaternion rotation, string projectileTag, PoisonTipBoost poisonTipBoost, int mainProjectileFinalDamage, EmberBoost emberBoost)
+    private IEnumerator SpawnShadowArrows(ShadowArrowBoost shadowArrowBoost, GameObject initialLeader, Vector2 direction, Quaternion rotation, string projectileTag, PoisonTipBoost poisonTipBoost, int mainProjectileFinalDamage, int holyDamage, EmberBoost emberBoost)
     {
         int amount = shadowArrowBoost.GetShadowArrowAmount();
         if (amount <= 0)
@@ -548,8 +608,9 @@ public class PlayerShooter : MonoBehaviour
 
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
+                // Poisons what it hits, but lays no bead trail
                 PoisonProjectile shadowPoison = shadowArrow.AddComponent<PoisonProjectile>();
-                shadowPoison.ConfigureFromBoost(poisonTipBoost);
+                shadowPoison.ConfigureFromBoost(poisonTipBoost, shedsTrail: false);
             }
 
             // Velocity and lifetime same as main projectile
@@ -562,7 +623,9 @@ public class PlayerShooter : MonoBehaviour
                 var shadowEquipment = GetComponent<EquipmentBoost>();
                 float shadowMultiplier = shadowArrowBoost.GetDamageMultiplier()
                                          + (shadowEquipment != null ? shadowEquipment.ShadowArrowDamageBonus : 0f);
-                int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowMultiplier);
+                // Dawn's holy, at the echo share and flat on top of the scaling —
+                // see SpawnShurikens for why it is not scaled with the rest
+                int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowMultiplier) + holyDamage;
                 var shadowNinjaBoost = GetComponent<NinjaBoost>();
                 var shadowProjComponents = shadowArrow.GetComponentsInChildren<PlayerProjectile>(true);
                 // One ignite roll for the arrow, applied to all its components, so a
@@ -572,6 +635,7 @@ public class PlayerShooter : MonoBehaviour
                 {
                     comp.isShadowArrow = true;
                     comp.damage = scaledShadowDamage;
+                    comp.holyDamage = holyDamage;
                     comp.ownerNinjaBoost = shadowNinjaBoost;
                     comp.ignitesOnHit = shadowIgnites;
                     comp.ownerFrigidBoost = shadowFrigid;
@@ -582,17 +646,44 @@ public class PlayerShooter : MonoBehaviour
                 {
                     FireFx.AttachArrowTrail(shadowArrow);
                 }
+                if (holyDamage > 0)
+                {
+                    DawnFx.AttachArrowTrail(shadowArrow, DawnPickCount);
+                }
 
             // Next shadow trails this one; update leader to the new shadow arrow GameObject
             leaderGO = shadowArrow;
         }
     }
 
-    // Method for upgrades to modify projectile speed
-    public void ModifyProjectileSpeed(float multiplier)
+    // The speed the prefab was authored at. Cached on first use rather than in
+    // Awake so an upgrade applied at any point in a knight's life reads the same
+    // baseline — see SetProjectileSpeedMultiplier.
+    private float _baseProjectileSpeed = -1f;
+
+    /// <summary>
+    /// Reflector (Guardian) sets how fast everything this knight puts out flies —
+    /// the rocks coming off the guard and the arrows leaving it, one number for
+    /// both. ABSOLUTE, not compounding: rank II replaces rank I's multiplier
+    /// rather than stacking on it, so buying the chain in order and buying it out
+    /// of order land on the same speed.
+    /// </summary>
+    public void SetProjectileSpeedMultiplier(float multiplier)
     {
-        projectileSpeed *= multiplier;
+        if (_baseProjectileSpeed < 0f) _baseProjectileSpeed = projectileSpeed;
+        projectileSpeed = _baseProjectileSpeed * Mathf.Max(1f, multiplier);
     }
+
+    /// <summary>
+    /// Shadow Arrow's reload. Compounds deliberately — each tier of the chain is
+    /// another 10% off, so five of them are 0.9^5 — and it is the persistent
+    /// cooldown being changed, never the temporary no-cooldown window.
+    /// </summary>
+    public void MultiplyCooldown(float multiplier)
+    {
+        cooldownTime *= Mathf.Clamp(multiplier, 0.05f, 1f);
+    }
+
     
     // Method for damage upgrades to increase damage
     public void IncreaseDamage(int amount)

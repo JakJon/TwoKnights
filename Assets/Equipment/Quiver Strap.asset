@@ -17,7 +17,7 @@ MonoBehaviour:
   description: Your hand finds the next arrow without asking your eyes.
   effect: 10% less time between shots.
   icon: {fileID: 4163798953030321950, guid: 1f751f9b1bd322143bcdfd94a3f92457, type: 3}
-  crystalCost: 2
+  crystalCost: 4
   stats:
   - valueText: -10%
     labelText: DRAW TIME
@@ -33,6 +33,13 @@ MonoBehaviour:
   igniteDpsBonus: 0
   startingIgniteChance: 0
   fireZoneRadiusBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 0
+  reflectDamageMultiplier: 1
+  startingLongSword: 0
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

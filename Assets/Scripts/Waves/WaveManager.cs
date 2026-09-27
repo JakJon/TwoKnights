@@ -33,6 +33,11 @@ public class WaveManager : ScriptableObject
     private BaseWave currentWave;
     private int _completedWavesCount = 0;
     private bool _gateBossDefeatedThisRun = false;
+    // Same job the gate flag does, and it became load-bearing the moment a map was
+    // allowed to carry on past its true boss: GetScheduledBoss owns every wave at
+    // or past trueBossWaveNumber, so without this the Twins would be scheduled
+    // again on wave 21, and 22, and 23. Harmless while the fight ended the run.
+    private bool _trueBossDefeatedThisRun = false;
 
     public int CompletedWavesCount => _completedWavesCount;
     public int CurrentWaveNumber => _completedWavesCount + 1;
@@ -69,6 +74,7 @@ public class WaveManager : ScriptableObject
     {
         _completedWavesCount = 0;
         _gateBossDefeatedThisRun = false;
+        _trueBossDefeatedThisRun = false;
         PendingOutcome = RunOutcome.None;
         BeginRunPoolOnly(report);
     }
@@ -117,7 +123,7 @@ public class WaveManager : ScriptableObject
             return map.GateBoss;
         }
 
-        if (GateIsDown() && map.TrueBoss != null
+        if (!_trueBossDefeatedThisRun && GateIsDown() && map.TrueBoss != null
             && CurrentWaveNumber >= map.TrueBossWaveNumber)
         {
             return map.TrueBoss;
@@ -210,7 +216,9 @@ public class WaveManager : ScriptableObject
             return null;
 
         // Get playable waves (now passing completed waves count)
-        var playableWaves = _remainingWaves.Where(w => w.CanPlay(_completedWavesCount)).ToList();
+        var playableWaves = _remainingWaves
+            .Where(w => w.CanPlay(_completedWavesCount) && !IsBossOffLimits(w))
+            .ToList();
         if (playableWaves.Count == 0)
             return null;
 
@@ -245,6 +253,46 @@ public class WaveManager : ScriptableObject
     // as it was authored to.
     private const float SeenWeightMultiplier = 0.25f;
 
+    // A boss is worth exactly ONE fight per run, and the pool is where that rule
+    // gets broken. The Mine lists the Millstone in its setlist as well as naming
+    // it the gate, because it is a real wave on a run that walks past the open
+    // door — but nothing checked, so the pool could draw it at wave 11 straight
+    // after the gate fight at wave 10 and the player got the same boss twice
+    // (owner, 2026-09-16).
+    //
+    // Off limits covers both halves of that:
+    //   * Still owed — the gate stands, so the schedule is going to hand it over
+    //     at its wave number. Drawing it early would spend the gate fight on an
+    //     ordinary wave slot and the schedule would hand it over again anyway.
+    //   * Already fought this run, whichever way it came up.
+    //
+    // What is left is the case the pool entry exists FOR: a return run, where the
+    // gate fell on some earlier run and is never scheduled again (gateBossRepeats
+    // is off and the save remembers the clear). There the Millstone is an ordinary
+    // pool wave, and PickFromPool's own remove-on-draw keeps it to one.
+    //
+    // That is why this asks GateIsDown rather than reading the this-run flag
+    // alone: a flag on its own cannot tell "never scheduled, free to draw" apart
+    // from "still coming", and picking either answer breaks one of the two runs.
+    private bool IsBossOffLimits(BaseWave wave)
+    {
+        var map = CurrentMap;
+        if (map == null || wave == null) return false;
+
+        if (wave == map.GateBoss)
+        {
+            return !GateIsDown() || _gateBossDefeatedThisRun;
+        }
+
+        // The true boss owns its wave number outright and is never a draw. Beaten,
+        // it is this run's one fight already spent; unbeaten, it is still coming.
+        // Both maps' true bosses sit at the bottom of the run, so there is no
+        // return-run case for them the way there is for a gate.
+        if (wave == map.TrueBoss) return true;
+
+        return false;
+    }
+
     public float EffectiveWeight(BaseWave wave)
     {
         var map = CurrentMap;
@@ -277,9 +325,18 @@ public class WaveManager : ScriptableObject
         // Skipped for test runs because ApplyTestStart FABRICATES the wave
         // counter, so a run started at wave 20 would hand out depth quests
         // that were never actually played.
+        //
+        // The tutorial run keeps its depth in its OWN counter. Depth is the one
+        // thing the tutorial run genuinely earns, and it is read by more than one
+        // quest — so letting it touch the lifetime mark handed every depth-gated
+        // quest in the forest its unlock for free the moment the run ended. Only
+        // the quest that is awake during the tutorial reads the tutorial counter.
         if (!IsTestRun())
         {
-            PlayerStats.Raise($"maps.{map.MapId}.furthest_wave", _completedWavesCount);
+            PlayerStats.Raise(TutorialRun.IsTutorialRun
+                                  ? $"maps.{map.MapId}.tutorial_wave"
+                                  : $"maps.{map.MapId}.furthest_wave",
+                              _completedWavesCount);
         }
 
         if (finished == map.GateBoss && map.GateBoss != null)
@@ -310,12 +367,27 @@ public class WaveManager : ScriptableObject
         }
         else if (finished == map.TrueBoss && map.TrueBoss != null)
         {
-            if (map.MapId == "camp_fields" && RunPurity.Bare && !IsTestRun())
+            if (RunPurity.Bare && !IsTestRun())
             {
-                Feats.Record(Feats.TwinsBare);
+                // One rule, two maps: the forest's true boss is the Twins, the
+                // mine's is whatever rides the gold cart. Both are "carried
+                // nothing, spent nothing", so they share the shape and differ
+                // only in which feat they publish.
+                if (map.MapId == "camp_fields") Feats.Record(Feats.TwinsBare);
+                else if (map.MapId == "mine") Feats.Record(Feats.OverseerBare);
             }
             MapProgressStore.MarkTrueCleared(map);
-            PendingOutcome = RunOutcome.TrueVictory;
+            _trueBossDefeatedThisRun = true;
+
+            // Whether the run stops here is the MAP's call, exactly as it is for
+            // the gate. The Camp Fields says no: the Twins are the deepest thing
+            // the forest has a NAME for, not the deepest thing it has, and the run
+            // goes on past them into the moonlit waves until the knights fall. The
+            // clear is recorded and paid for either way, above.
+            if (map.TrueBossEndsRun)
+            {
+                PendingOutcome = RunOutcome.TrueVictory;
+            }
         }
     }
 
@@ -339,6 +411,13 @@ public class WaveManager : ScriptableObject
         if (map != null && map.GateBoss != null && startWave > map.GateBossWaveNumber)
         {
             _gateBossDefeatedThisRun = true;
+        }
+        // And the same for the true boss, or a test run started at wave 25 on a map
+        // that plays past its true boss would be handed the Twins instead of the
+        // deep wave it asked to look at.
+        if (map != null && map.TrueBoss != null && startWave > map.TrueBossWaveNumber)
+        {
+            _trueBossDefeatedThisRun = true;
         }
     }
 

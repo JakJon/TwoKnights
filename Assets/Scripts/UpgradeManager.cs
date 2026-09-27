@@ -176,6 +176,16 @@ public class UpgradeManager : ScriptableObject
                 && CountOwnedInOrder(owned, up.SecondOrder) < up.RequiresSecondOrderCount)
                 continue;
 
+            // Quest-revealed upgrades - the Order capstones and the combination
+            // upgrades - do not exist for the player until the quest that grants
+            // them is visible. This is a HARD hide, not a weighting: the point is
+            // that the first sight of the card is the quest paying off.
+            //
+            // The upgrade's own gates still apply on top, so revealing the quest
+            // does not hand the card over; it only stops hiding it.
+            if (!QuestUpgradeReveals.IsRevealed(StatSlug(up.name)))
+                continue;
+
             // Conflict rule: if an upgrade exists in both arrays for this evaluation, treat as unlocked and optionally throw
             bool conflict = up.UnlockedBy.Any() && up.LockedBy.Any() && up.UnlockedBy.Intersect(up.LockedBy).Any();
             if (conflict)
@@ -204,6 +214,38 @@ public class UpgradeManager : ScriptableObject
         }
     }
     
+    /// <summary>
+    /// Would this upgrade be offered to this knight if nothing were hiding it?
+    ///
+    /// Every gate the draft applies EXCEPT the quest reveal — which is the point:
+    /// it answers "has this knight earned the right to see it yet", which is
+    /// precisely what a combination quest opens on. See ComboReadyWatcher.
+    /// </summary>
+    public bool WouldBeDraftable(string upgradeSlug, KnightTarget targetKnight)
+    {
+        if (string.IsNullOrEmpty(upgradeSlug)) return false;
+        var owned = OwnedSetFor(targetKnight);
+
+        foreach (var up in allUpgrades)
+        {
+            if (up == null || StatSlug(up.name) != upgradeSlug) continue;
+
+            if (up.RequiresOrderCount > 0
+                && CountOwnedInOrder(owned, up.Order) < up.RequiresOrderCount) return false;
+            if (up.RequiresSecondOrderCount > 0
+                && CountOwnedInOrder(owned, up.SecondOrder) < up.RequiresSecondOrderCount) return false;
+
+            bool isStarting = up.UnlockedBy == null || up.UnlockedBy.Count == 0;
+            bool prerequisitesMet = up.UnlockedBy != null && (up.RequiresAllUnlocks
+                ? up.UnlockedBy.All(owned.Contains)
+                : up.UnlockedBy.Any(owned.Contains));
+            if (!isStarting && !prerequisitesMet) return false;
+
+            return up.LockedBy == null || !up.LockedBy.Any(owned.Contains);
+        }
+        return false;
+    }
+
     public void ApplyUpgrade(BaseUpgrade upgrade, KnightTarget targetKnight)
     {
         GameObject knight = targetKnight == KnightTarget.LeftKnight 
@@ -231,6 +273,17 @@ public class UpgradeManager : ScriptableObject
             PlayerStats.Increment($"upgrades.taken.{StatSlug(upgrade.name)}");
             PlayerStats.Increment($"upgrades.order.{upgrade.Order.ToString().ToLowerInvariant()}");
 
+            // Dawn's holy damage is the Order's own tally: every Dawn pick is worth
+            // +2 on the arrow, so the count has to live somewhere that sees the
+            // Order of the card being applied. Doing it here rather than inside the
+            // thirteen Dawn upgrades means a new Dawn card gets it for free.
+            if (upgrade.Order == UpgradeOrder.Dawn)
+            {
+                DawnBoost dawn = knight.GetComponent<DawnBoost>();
+                if (dawn == null) dawn = knight.AddComponent<DawnBoost>();
+                dawn.NoteDawnPick();
+            }
+
             // The Guardian Order's door asks about THIS RUN rather than a lifetime,
             // so it needs the one moment that knows both the knight and the Order.
             // See GuardianAwakening.
@@ -238,6 +291,11 @@ public class UpgradeManager : ScriptableObject
             {
                 GuardianAwakening.NoteUpgrade(knight.tag);
             }
+
+            // The one moment that knows both the knight and their whole build, so
+            // the one place that can notice a knight has just become eligible for
+            // a combination upgrade on both of its Orders.
+            ComboReadyWatcher.Evaluate(this, targetKnight);
 
             // Flip turn to the other knight for next selection
             _nextTarget = targetKnight == KnightTarget.LeftKnight ? KnightTarget.RightKnight : KnightTarget.LeftKnight;
@@ -248,7 +306,7 @@ public class UpgradeManager : ScriptableObject
     // "Serpents Breath 2" -> "serpents_breath_2". Keyed off the ASSET name
     // rather than upgradeName because the asset name is the stable id (display
     // names get retitled, and they carry roman numerals and apostrophes).
-    private static string StatSlug(string assetName)
+    public static string StatSlug(string assetName)
     {
         if (string.IsNullOrEmpty(assetName)) return "unknown";
         var sb = new System.Text.StringBuilder(assetName.Length);

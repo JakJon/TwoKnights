@@ -25,6 +25,7 @@ public class PauseMenu : MonoBehaviour
     private Button _resumeButton;
     private Button _questsButton;
     private Button _equipmentButton;
+    private Button _settingsButton;
     private Button _quitButton;
     private Button _confirmYesButton;
     private Button _confirmNoButton;
@@ -36,6 +37,7 @@ public class PauseMenu : MonoBehaviour
     // what lets them work with the game frozen.
     private QuestPanel _questPanel;
     private EquipmentPanel _equipmentPanel;
+    private SettingsPanel _settingsPanel;
 
     // The button to hand focus back to when a sub-panel closes
     private Button _returnFocus;
@@ -99,6 +101,8 @@ public class PauseMenu : MonoBehaviour
         _equipmentPanel = GetComponent<EquipmentPanel>();
         if (_equipmentPanel == null) _equipmentPanel = gameObject.AddComponent<EquipmentPanel>();
         _equipmentPanel.ReadOnly = true;
+        _settingsPanel = GetComponent<SettingsPanel>();
+        if (_settingsPanel == null) _settingsPanel = gameObject.AddComponent<SettingsPanel>();
     }
 
     private void OnEnable()
@@ -107,6 +111,7 @@ public class PauseMenu : MonoBehaviour
         RegisterInput(togglePauseAction, OnTogglePause, true);
         if (_questPanel != null) _questPanel.OnCloseRequested += HandleSubPanelClosed;
         if (_equipmentPanel != null) _equipmentPanel.OnCloseRequested += HandleSubPanelClosed;
+        if (_settingsPanel != null) _settingsPanel.OnCloseRequested += HandleSubPanelClosed;
     }
 
     private void OnDisable()
@@ -114,6 +119,7 @@ public class PauseMenu : MonoBehaviour
         RegisterInput(togglePauseAction, OnTogglePause, false);
         if (_questPanel != null) _questPanel.OnCloseRequested -= HandleSubPanelClosed;
         if (_equipmentPanel != null) _equipmentPanel.OnCloseRequested -= HandleSubPanelClosed;
+        if (_settingsPanel != null) _settingsPanel.OnCloseRequested -= HandleSubPanelClosed;
         ResumeGameInternal(resetInput: false);
     }
 
@@ -152,6 +158,7 @@ public class PauseMenu : MonoBehaviour
         _resumeButton = _root.Q<Button>("resume-button");
         _questsButton = _root.Q<Button>("pause-quests-button");
         _equipmentButton = _root.Q<Button>("pause-equipment-button");
+        _settingsButton = _root.Q<Button>("pause-settings-button");
         _quitButton = _root.Q<Button>("quit-button");
         _confirmYesButton = _root.Q<Button>("confirm-yes");
         _confirmNoButton = _root.Q<Button>("confirm-no");
@@ -167,6 +174,11 @@ public class PauseMenu : MonoBehaviour
         if (_questsButton != null)
         {
             _questsButton.clicked += OnQuestsClicked;
+        }
+
+        if (_settingsButton != null)
+        {
+            _settingsButton.clicked += OnSettingsClicked;
         }
 
         if (_equipmentButton != null)
@@ -242,7 +254,8 @@ public class PauseMenu : MonoBehaviour
 
     private void OnTogglePause(InputAction.CallbackContext context)
     {
-        if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible)
+        if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible
+            || QuestScene.IsPlaying || TrialRunner.IsSpeaking)
         {
             return;
         }
@@ -271,7 +284,8 @@ public class PauseMenu : MonoBehaviour
             return;
         }
 
-        if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible)
+        if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible
+            || QuestScene.IsPlaying || TrialRunner.IsSpeaking)
         {
             return;
         }
@@ -288,6 +302,7 @@ public class PauseMenu : MonoBehaviour
 
         UpdateWaveLabel();
         UpdateLoadout();
+        UpdateTutorialVisibility();
         HideConfirmPrompt();
         CloseSubPanels();
         ShowMenu();
@@ -465,7 +480,8 @@ public class PauseMenu : MonoBehaviour
     private List<Button> VisibleActionButtons()
     {
         var container = _confirmingQuit ? _confirmActions : _mainActions;
-        return container == null ? new List<Button>() : container.Query<Button>().ToList();
+        if (container == null) return new List<Button>();
+        return container.Query<Button>().ToList().FindAll(b => b.style.display != DisplayStyle.None);
     }
 
     private void FocusCenter()
@@ -518,7 +534,8 @@ public class PauseMenu : MonoBehaviour
 
     private bool SubPanelOpen =>
         (_questPanel != null && _questPanel.IsVisible) ||
-        (_equipmentPanel != null && _equipmentPanel.IsVisible);
+        (_equipmentPanel != null && _equipmentPanel.IsVisible) ||
+        (_settingsPanel != null && _settingsPanel.IsVisible);
 
     private void OnQuestsClicked()
     {
@@ -536,6 +553,14 @@ public class PauseMenu : MonoBehaviour
         _equipmentPanel.Show();
     }
 
+    private void OnSettingsClicked()
+    {
+        if (!_isPaused || _settingsPanel == null) return;
+        _returnFocus = _settingsButton;
+        SetPausePanelVisible(false);
+        _settingsPanel.Show();
+    }
+
     private void HandleSubPanelClosed()
     {
         SetPausePanelVisible(true);
@@ -548,6 +573,7 @@ public class PauseMenu : MonoBehaviour
     {
         if (_questPanel != null) _questPanel.Hide();
         if (_equipmentPanel != null) _equipmentPanel.Hide();
+        if (_settingsPanel != null) _settingsPanel.Hide();
         _returnFocus = null;
         SetPausePanelVisible(true);
     }
@@ -623,6 +649,16 @@ public class PauseMenu : MonoBehaviour
         }
 
         _root.style.display = DisplayStyle.None;
+    }
+
+    // The tutorial run has no quest log or equipment yet - both buttons open panels
+    // with nothing to show during it, so they're hidden rather than opening onto
+    // an empty screen.
+    private void UpdateTutorialVisibility()
+    {
+        bool hide = TutorialRun.IsTutorialRun;
+        if (_questsButton != null) _questsButton.style.display = hide ? DisplayStyle.None : DisplayStyle.Flex;
+        if (_equipmentButton != null) _equipmentButton.style.display = hide ? DisplayStyle.None : DisplayStyle.Flex;
     }
 
     private void UpdateWaveLabel()

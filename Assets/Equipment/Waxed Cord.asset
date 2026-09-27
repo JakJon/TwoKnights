@@ -18,7 +18,7 @@ MonoBehaviour:
     left it.
   effect: Confusion wears off 65% faster.
   icon: {fileID: -4266452073701868233, guid: 64b1f20cd8b43c64ea6587e5b3df437d, type: 3}
-  crystalCost: 2
+  crystalCost: 3
   stats:
   - valueText: -65%
     labelText: CONFUSION
@@ -34,6 +34,13 @@ MonoBehaviour:
   igniteDpsBonus: 0
   startingIgniteChance: 0
   fireZoneRadiusBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 0
+  reflectDamageMultiplier: 1
+  startingLongSword: 0
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

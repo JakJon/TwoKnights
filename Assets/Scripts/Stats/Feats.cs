@@ -34,6 +34,10 @@ public static class Feats
     /// <summary>One knight, in one run, two Guardian picks deep and using them.</summary>
     public const string GuardianAwoken = "feats.guardian_awoken";
 
+    /// <summary>The Mine's gate boss put down with nothing carried and nothing spent.
+    /// Same rule as the forest pair — RunPurity.Bare gates it.</summary>
+    public const string OverseerBare = "feats.overseer_bare";
+
     /// <summary>Running total of shadow arrows that connected.</summary>
     public const string ShadowArrowHits = "hits.shadowarrow";
 
@@ -158,6 +162,9 @@ public class ShurikenVolley
     public void NoteHit()
     {
         _hits++;
+        // Per shuriken, across every volley in the wave — the quest counts blades
+        // landed, where the feat beside it counts four from ONE fan.
+        QuestTally.Wave(OrderStats.ShurikenWaveMax);
         if (_hits >= 4 && !_recorded)
         {
             _recorded = true;
@@ -188,10 +195,42 @@ public static class DawnVigil
 
     private static bool _someoneWentLow;
 
+    // Waves in a row ended with both knights at full. Lives here rather than in
+    // QuestTally because it is not an accumulation — a single blemished wave puts
+    // it back to nothing, and only EndWave can see whether that happened.
+    private static int _flawlessStreak;
+
     /// <summary>Called from Spawner as a wave begins.</summary>
     public static void BeginWave()
     {
         _someoneWentLow = false;
+    }
+
+    /// <summary>Cleared per run, since the streak is static and outlives the scene.</summary>
+    public static void BeginRun()
+    {
+        _flawlessStreak = 0;
+        _someoneWentLow = false;
+    }
+
+    /// <summary>
+    /// Both knights standing at full when the wave ended. Taking damage during it
+    /// is fine and deliberate — the quest is about finishing clean, not about
+    /// never being touched, which a Dawn build would find trivial and everyone
+    /// else impossible.
+    /// </summary>
+    private static void NoteWaveEnded(PlayerHealth left, PlayerHealth right)
+    {
+        bool whole = left != null && right != null
+                     && left.CurrentHealth >= left.MaxHealth
+                     && right.CurrentHealth >= right.MaxHealth;
+        if (!whole)
+        {
+            _flawlessStreak = 0;
+            return;
+        }
+        _flawlessStreak++;
+        QuestTally.Peak(OrderStats.FlawlessWaveStreakMax, _flawlessStreak);
     }
 
     /// <summary>Called from PlayerHealth whenever a knight's health changes downward.</summary>
@@ -204,6 +243,11 @@ public static class DawnVigil
     /// <summary>Called from Spawner once the wave's last enemy is down.</summary>
     public static void EndWave(PlayerHealth left, PlayerHealth right)
     {
+        // Runs on EVERY wave, before the early-out below — the streak has to see
+        // the clean waves too, and the pulled-back feat only cares about the ones
+        // where somebody dipped.
+        NoteWaveEnded(left, right);
+
         if (!_someoneWentLow) return;
         _someoneWentLow = false;
 

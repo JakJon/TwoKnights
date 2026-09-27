@@ -19,6 +19,7 @@ public class QuestPanel : MonoBehaviour
     private VisualElement _panel;
     private ScrollView _list;
     private Label _detailName;
+    private VisualElement _detailNpc;
     private Label _detailDescription;
     private Label _detailProgress;
     private Label _detailReward;
@@ -35,6 +36,10 @@ public class QuestPanel : MonoBehaviour
         public Button Button;
         public Quest Quest;
         public string GroupId;
+        /// <summary>What the header reads. Carried rather than re-derived: section
+        /// ids are now "map:camp_fields" / "npc:Ninja" and no longer look up as
+        /// map ids.</summary>
+        public string GroupLabel;
         public bool CompletedShelf;
     }
 
@@ -132,6 +137,7 @@ public class QuestPanel : MonoBehaviour
         _panel = _root.Q<VisualElement>("quest-panel");
         _list = _root.Q<ScrollView>("quest-list");
         _detailName = _root.Q<Label>("quest-detail-name");
+        _detailNpc = _root.Q<VisualElement>("quest-detail-npc");
         _detailDescription = _root.Q<Label>("quest-detail-description");
         _detailProgress = _root.Q<Label>("quest-detail-progress");
         _detailReward = _root.Q<Label>("quest-detail-reward");
@@ -172,25 +178,30 @@ public class QuestPanel : MonoBehaviour
         // trophies between the player and the next map's live quests.
         var finished = new List<Quest>();
 
-        foreach (var groupId in QuestDatabase.Groups)
+        // Maps group by place; Order lines group by who brings them, with a
+        // subheading per Order inside. QuestLog owns that shape so the camp's copy
+        // of this panel and the pause menu's cannot disagree about it.
+        var sections = QuestLog.Build(finished);
+
+        for (int s = 0; s < sections.Count; s++)
         {
-            var active = new List<Quest>();
-            int done = 0;
-            foreach (var quest in QuestProgress.VisibleForMap(groupId))
-            {
-                if (QuestProgress.IsCompleted(quest.Id)) { finished.Add(quest); done++; }
-                else active.Add(quest);
-            }
+            var section = sections[s];
+            int live = section.LiveCount;
+            if (live == 0) continue;
 
-            // An untouched map shows nothing at all, and a map with nothing live
-            // left says everything it has to say down in the shelf
-            if (active.Count == 0) continue;
-
-            bool collapsed = _collapsed.Contains(groupId);
-            AddHeader(groupId, GroupName(groupId), $"{done}/{done + active.Count}", collapsed, false);
+            bool collapsed = _collapsed.Contains(section.Id);
+            AddHeader(section.Id, section.Name, live.ToString(), collapsed, false);
             if (collapsed) continue;
 
-            for (int i = 0; i < active.Count; i++) AddQuestRow(active[i]);
+            for (int b = 0; b < section.Subsections.Count; b++)
+            {
+                var sub = section.Subsections[b];
+                if (sub.Quests.Count == 0) continue;
+                // A section with ONE nameless block is a map — the heading above it
+                // already said everything a subheading would.
+                if (!string.IsNullOrEmpty(sub.Name)) AddSubHeader(sub.Name);
+                for (int i = 0; i < sub.Quests.Count; i++) AddQuestRow(sub.Quests[i]);
+            }
         }
 
         if (finished.Count > 0)
@@ -236,7 +247,22 @@ public class QuestPanel : MonoBehaviour
         int index = _rows.Count;
         button.RegisterCallback<FocusInEvent>(_ => SelectRow(index));
         _list.Add(button);
-        _rows.Add(new Row { Button = button, Quest = null, GroupId = groupId, CompletedShelf = completedShelf });
+        _rows.Add(new Row { Button = button, Quest = null, GroupId = groupId,
+                            GroupLabel = label, CompletedShelf = completedShelf });
+    }
+
+    /// <summary>
+    /// A quiet label inside a section — "Order of the Serpent" under the assassin.
+    /// Deliberately NOT focusable and NOT a Row: it folds nothing and selects
+    /// nothing, so putting it in the navigation list would only give the player a
+    /// place where the stick appears to stick.
+    /// </summary>
+    private void AddSubHeader(string label)
+    {
+        var element = new Label(label);
+        element.AddToClassList("quest-subgroup");
+        element.focusable = false;
+        _list.Add(element);
     }
 
     private void AddQuestRow(Quest quest)
@@ -278,12 +304,21 @@ public class QuestPanel : MonoBehaviour
         if (!TrySelectQuest(keep)) SelectHeader(groupId, completedShelf);
     }
 
-    private static string GroupName(string mapId)
+    /// <summary>
+    /// The quest's NPC, shown beside its name. Hidden rather than blanked when
+    /// there is nobody to show — an empty square beside a heading reads as art
+    /// that failed to load.
+    /// </summary>
+    private void SetPortrait(NpcId npc)
     {
-        if (string.IsNullOrEmpty(mapId)) return "The Camp";
-        var catalog = MapCatalog.Instance;
-        var map = catalog != null ? catalog.Find(mapId) : null;
-        return map != null ? map.DisplayName : mapId;
+        if (_detailNpc == null) return;
+
+        var catalog = NpcCatalog.Instance;
+        var entry = catalog != null ? catalog.Find(npc) : null;
+        var portrait = entry != null ? entry.portrait : null;
+
+        _detailNpc.style.display = portrait != null ? DisplayStyle.Flex : DisplayStyle.None;
+        if (portrait != null) _detailNpc.style.backgroundImage = new StyleBackground(portrait);
     }
 
     // ---------- selection ----------
@@ -388,6 +423,7 @@ public class QuestPanel : MonoBehaviour
         if (quest == null) return;
         if (_detailName != null) _detailName.text = quest.Name;
         if (_detailDescription != null) _detailDescription.text = quest.Description;
+        SetPortrait(quest.Cast.Primary);
 
         if (_detailProgress != null)
         {
@@ -565,6 +601,12 @@ public class QuestPanel : MonoBehaviour
     /// One line per objective. Objectives that hide their progress show only
     /// their prose — the whole point of a hidden objective is that the count
     /// would give away what the quest is actually asking for.
+    ///
+    /// Record objectives (see QuestObjective.IsRecord) are prefixed "Best
+    /// attempt:". Their number is the furthest any single attempt has got, not a
+    /// total, and without the words in front of it a streak quest sitting at
+    /// 0/100 reads as a tracker that is broken rather than as a record nobody has
+    /// opened yet.
     /// </summary>
     private static string BuildChecklist(Quest quest)
     {
@@ -580,8 +622,13 @@ public class QuestPanel : MonoBehaviour
             {
                 sb.Append(objective.DisplayLabel);
             }
+            else if (objective.CountAfter)
+            {
+                sb.Append($"{objective.DisplayLabel} {objective.Current} / {objective.Target}");
+            }
             else
             {
+                if (objective.IsRecord) sb.Append("Best attempt: ");
                 sb.Append($"{objective.Current}/{objective.Target} {objective.DisplayLabel}");
             }
         }
@@ -591,7 +638,8 @@ public class QuestPanel : MonoBehaviour
     private void ShowGroupDetails(Row row)
     {
         bool shelf = row.CompletedShelf;
-        if (_detailName != null) _detailName.text = shelf ? "Completed" : GroupName(row.GroupId);
+        if (_detailName != null) _detailName.text = shelf ? "Completed" : row.GroupLabel;
+        SetPortrait(NpcId.None);
         if (_detailDescription != null)
         {
             _detailDescription.text = shelf ? "Every quest you have finished." : "";

@@ -1,0 +1,151 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 631c5ca0bb0d7dc4e82c290d8156faa4, type: 3}
+  m_Name: Choo Choo V
+  m_EditorClassIdentifier:
+  waveName: Choo Choo V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: A fifth shift on the loop, and the shafts barely stop.
+  unlockedAfterXWaves: 16
+  lockedAfterXWaves: 22
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: e1c92390a0694a84b96021c10a38891f, type: 2}
+  entryRun: 0
+  ambushes:
+  - label: first shift
+    carts:
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    leadIn: 0.5
+    releaseInterval: 1.2
+    projectileInterval: 3.15
+  - label: second shift, with powder
+    carts:
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    leadIn: 0.7
+    releaseInterval: 1.2
+    projectileInterval: 2.7
+  - label: third shift
+    carts:
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    leadIn: 0.7
+    releaseInterval: 1.2
+    projectileInterval: 2.7
+  - label: last shift, with powder
+    carts:
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    leadIn: 0.7
+    releaseInterval: 1.2
+    projectileInterval: 2.25
+  - label: fifth shift, with powder
+    carts:
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
+    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    leadIn: 0.7
+    releaseInterval: 1.2
+    projectileInterval: 2.25
+  speedUpScale: 1.35
+  whistleOnSpeedUp: 1
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 8
+    interval: 12
+    from: {x: -12, y: -1.5}
+    to: {x: 12, y: -1.5}
+  wardStones: 0
+  wardStonePrefab: {fileID: 6821730625427352102, guid: e3a735aa259ad5e4b8fc19605975b243, type: 3}
+  wardRadius: 0.9
+  wardSpin: 120
+  wardRegrow: 4
+  volleys:
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: over and under, left
+    shape: 3
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.16
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.8
+    count: 4
+    fanDegrees: 65
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: both at once, from under (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 3.15
+    weaveDegrees: 90
+  rockSpeed: 1.75

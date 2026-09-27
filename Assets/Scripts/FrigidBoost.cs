@@ -10,7 +10,9 @@ using UnityEngine;
 //      Every other number here is a second, a percentage of speed, or a
 //      multiplier on a blow the PLAYER lands - so a Frigid knight without Frost
 //      Bite is still buying time and nothing else, which is what the whole
-//      roster below is priced against.
+//      roster below is priced against. The one exception is Rimeblade, whose
+//      burst adds frost damage to the swing that throws it (owner's call,
+//      2026-09-25) - still a blow the player landed, never a timer paying out.
 //   2. Only a blow can freeze. Fields, auras and splinters chill; they never
 //      stop anything. The ward is a floor of cold, not a lockdown engine - this
 //      is the direct analogue of Ember's "only your shots can ignite", and it
@@ -254,7 +256,11 @@ public class FrigidBoost : MonoBehaviour
     {
         get
         {
-            if (glacialWardLevel >= 2) return 2.4f;
+            // Rank III is the one tier that deliberately breaks the "last line"
+            // framing above: it buys reach out past the shield itself, which is
+            // why it costs an Epic slot rather than sitting on the common ladder.
+            if (glacialWardLevel >= 3) return 3.9f;
+            if (glacialWardLevel == 2) return 2.4f;
             if (glacialWardLevel == 1) return 1.6f;
             return 0f;
         }
@@ -265,25 +271,27 @@ public class FrigidBoost : MonoBehaviour
     /// currency this Order deals in.</summary>
     public bool WardSlowsProjectiles { get { return glacialWardLevel >= 2; } }
 
-    public float RimebladeChance
+    /// <summary>Rimeblade's frost damage per rank, dealt ON TOP of the sword's own
+    /// hit to everything the burst catches: 5, then 10, then 15.</summary>
+    public const int RimebladeFrostDamagePerRank = 5;
+
+    // Every rank fires on every swing (owner's call, 2026-09-25 - it used to be
+    // 33% / 60% / 100%). What a rank buys now is reach and frost damage.
+    public bool ShouldReleaseRimeblade() { return rimebladeLevel > 0; }
+
+    public float RimebladeRadius
     {
         get
         {
-            if (rimebladeLevel >= 3) return 100f;
-            if (rimebladeLevel == 2) return 60f;
-            if (rimebladeLevel == 1) return 33f;
-            return 0f;
+            if (rimebladeLevel >= 3) return 3f;
+            if (rimebladeLevel == 2) return 2.3f;
+            return 1.6f;
         }
     }
 
-    public float RimebladeRadius { get { return rimebladeLevel >= 2 ? 2.3f : 1.6f; } }
-
-    public bool ShouldReleaseRimeblade()
+    public int RimebladeFrostDamage
     {
-        float chance = RimebladeChance;
-        if (chance <= 0f) return false;
-        if (chance >= 100f) return true;
-        return Random.Range(0f, 100f) < chance;
+        get { return Mathf.Clamp(rimebladeLevel, 0, 3) * RimebladeFrostDamagePerRank; }
     }
 
     /// <summary>

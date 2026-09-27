@@ -848,6 +848,9 @@ MonoBehaviour:
   playerHurt:
     clip: {fileID: 8300000, guid: 7fc75cfed01919641b13f9ed49cb8e63, type: 3}
     volume: 0.624
+  lowHealthChirp:
+    clip: {fileID: 8300000, guid: 1e00ad6f1016d8374c194ae7c1a08266, type: 3}
+    volume: 0.5
   projectileSpawn:
     clip: {fileID: 8300000, guid: 49cf648fd997c1c43b1cb5a577c72a5a, type: 3}
     volume: 0.351
@@ -1070,6 +1073,30 @@ MonoBehaviour:
   questComplete:
     clip: {fileID: 8300000, guid: 9d11603b947576e449535cb540059879, type: 3}
     volume: 0.432
+  trialWon:
+    clip: {fileID: 8300000, guid: e5369c5f299e8ef999c57bace3530227, type: 3}
+    volume: 0.45
+  trialLost:
+    clip: {fileID: 8300000, guid: a051eeb7981a8f9f60411a25cdbc2b1c, type: 3}
+    volume: 0.5
+  npcVoiceKing:
+    clip: {fileID: 8300000, guid: 0276c375b73771234308b31be6d8ae8b, type: 3}
+    volume: 0.55
+  npcVoiceCartographer:
+    clip: {fileID: 8300000, guid: 25b06b4d506f611e1b5f28de1139ecbd, type: 3}
+    volume: 0.55
+  npcVoiceNinja:
+    clip: {fileID: 8300000, guid: 99180c810757273dea17a96f055439c2, type: 3}
+    volume: 0.55
+  npcVoiceWizard:
+    clip: {fileID: 8300000, guid: bb4a1c453e9670c2d84d128c4513da03, type: 3}
+    volume: 0.45
+  npcVoicePaladin:
+    clip: {fileID: 8300000, guid: e2a101ae3de5cc27daf295f2f737310a, type: 3}
+    volume: 0.45
+  rewardJingle:
+    clip: {fileID: 8300000, guid: 3a24dbf7b139ae93772ad9e30880047c, type: 3}
+    volume: 0.5
   rankUp:
     clip: {fileID: 8300000, guid: 9a9038088ca518448aecb834c2cdffe8, type: 3}
     volume: 0.624

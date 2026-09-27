@@ -18,7 +18,7 @@ MonoBehaviour:
   waveDescription: Something is being hauled up the long way round. Stop it before
     the flag.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: fd81d7bdced74fa58c249e2ea1c2af78, type: 2}
   cartOrder:

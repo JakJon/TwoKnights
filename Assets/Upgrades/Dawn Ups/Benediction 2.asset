@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Benediction 2
   m_EditorClassIdentifier: 
   upgradeName: Benediction II
-  description: The blessing doubles on both knights, and both are untouchable as it breaks.
+  description: The blessing doubles on both knights, and both are untouchable as it breaks. Arrows do more holy damage.
   weight: 35
   order: 5
   requiresOrderCount: 0
@@ -26,6 +26,9 @@ MonoBehaviour:
     isPositive: 1
   - valueText: 1s
     labelText: UNTOUCHABLE BOTH
+    isPositive: 1
+  - valueText: +2
+    labelText: HOLY DAMAGE
     isPositive: 1
   healAmount: 40
   invulnerableSeconds: 1

@@ -19,11 +19,11 @@ public class GiantSlimeWave : BaseWave
              "x 13.5 sits just off-frame (frame ends at 10, a scale-6 slime is ~6.1 wide), " +
              "so they crest the corner ~7s in instead of lurking unseen.\n\n" +
              "y is a READABILITY ceiling, not a free dial. The slime is ~5.7 tall with its " +
-             "pivot at its feet and its ward orbits its body centre at radius 3.6, so the " +
-             "higher it enters the more of that orbit sits above the frame when the ward " +
-             "phase opens at half distance — 2.5 costs ~32% of the orbit at that instant " +
-             "(clearing as it descends), while a corner-height 5.9 costs ~48%, i.e. half " +
-             "the ward unshootable exactly when it must be shot. Raising y barely lengthens " +
+             "pivot at its feet and its fireball ring orbits its body centre at radius 4.6, " +
+             "so the higher it enters the more of that ring sits above the frame when the " +
+             "ward phase opens at half distance — 2.5 hides ~37% of the ring at that " +
+             "instant (clearing as it descends), while a corner-height 5.9 hides ~49%, i.e. " +
+             "half the fireballs swinging in from where nobody can see them coming. Raising y barely lengthens " +
              "the path either (the horizontal leg dominates: 11.9 vs 13.2), so the fight's " +
              "length comes from approachSpeed instead.")]
     [SerializeField] private Vector2 spawnCorner = new Vector2(13.5f, 2.5f);

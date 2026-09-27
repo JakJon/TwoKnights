@@ -180,6 +180,12 @@ public static class SaveManager
         _data.profileName = name;
         EnsureProfileName(_data, ActiveSlot);
         _loaded = true;
+
+        // The file is gone; everything derived from it has to go too. These caches
+        // are static and survive the scene reload the wipe triggers, so without this
+        // the "new" file starts holding the old one's quest state.
+        QuestProgress.ReloadForNewSave();
+        QuestSceneQueue.Discard();
     }
 
     private static void Migrate(SaveData data, int slot)

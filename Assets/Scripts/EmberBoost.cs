@@ -22,8 +22,7 @@ public class EmberBoost : MonoBehaviour
     private int shotCounter = 0;
 
     // --- Firebrand: the sword door ---
-    private float firebrandChance = 0f; // Percentage chance (0-100) per swing
-    private int firebrandCount = 0; // Fireballs hurled when it procs
+    private int firebrandLevel = 0; // 0 = off, 1-3
 
     // --- Fire Trail / Searing Panic ---
     private int fireTrailLevel = 0; // 0 = off, 1-2
@@ -267,9 +266,9 @@ public class EmberBoost : MonoBehaviour
         get { return fireballEveryNShots > 0 && shotCounter >= fireballEveryNShots - 1; }
     }
 
-    // Firebrand also throws fireballs, so it supplies the prefab too — the chain is
-    // gated behind Fireball I, but neither upgrade should depend on the other having
-    // wired the reference.
+    // Firebrand also throws fireballs, so it supplies the prefab too — it is a
+    // starting pick of its own (owner's call, 2026-09-25), so it cannot count on
+    // Fireball having wired the reference.
     public void SetFireballPrefab(GameObject prefab)
     {
         if (prefab != null) fireballPrefab = prefab;
@@ -282,21 +281,37 @@ public class EmberBoost : MonoBehaviour
 
     // ---- Firebrand ----
 
-    // Rank II deliberately does NOT raise the odds — it raises the count, so
-    // Firebrand stays a payoff you can't fish for.
-    public void SetFirebrand(float chance, int count)
+    // Every swing lobs fire (owner's call, 2026-09-25 - it used to be a 20% roll
+    // for one, two or three fireballs flying four seconds). The catch is reach: a
+    // lobbed fireball comes down and bursts a short step in front of the blade.
+    //   I   one fireball, lands 0.5u out
+    //   II  one fireball, lands 1.5u out (three times as far)
+    //   III two fireballs, 1.5u out
+    public const float FirebrandShortLob = 0.5f;
+    public const float FirebrandLongLob = 1.5f;
+
+    public void SetFirebrand(int level)
     {
-        firebrandChance = Mathf.Clamp(Mathf.Max(firebrandChance, chance), 0f, 100f);
-        firebrandCount = Mathf.Max(firebrandCount, count);
+        firebrandLevel = Mathf.Max(firebrandLevel, level);
     }
 
-    public bool ShouldHurlFirebrand()
-    {
-        return firebrandCount > 0 && firebrandChance > 0f
-            && Random.Range(0f, 100f) < firebrandChance;
-    }
+    public bool ShouldHurlFirebrand() { return firebrandLevel > 0; }
 
-    public int FirebrandCount { get { return firebrandCount; } }
+    public int FirebrandLevel { get { return firebrandLevel; } }
+
+    public int FirebrandCount { get { return firebrandLevel >= 3 ? 2 : (firebrandLevel > 0 ? 1 : 0); } }
+
+    /// <summary>How far a Firebrand fireball travels before it comes down and bursts.</summary>
+    public float FirebrandLobDistance { get { return firebrandLevel >= 2 ? FirebrandLongLob : FirebrandShortLob; } }
+
+    // A lob is a smaller bang than a shot fireball (owner's call, 2026-09-25): half
+    // the blast radius, and a crater half as wide that burns half as long. The blast
+    // still grows with the Fireball chain, at half of whatever it has reached.
+    public const float FirebrandBlastScale = 0.5f;
+    public const float FirebrandCraterRadius = CraterRadius * 0.5f;
+    public const float FirebrandCraterDuration = CraterDuration * 0.5f;
+
+    public float FirebrandBlastRadius { get { return fireballBlastRadius * FirebrandBlastScale; } }
 
     // ---- Fire Trail ----
 

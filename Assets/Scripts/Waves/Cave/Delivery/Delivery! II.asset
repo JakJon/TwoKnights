@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Five up the horseshoe, and the shafts stop taking turns.
   unlockedAfterXWaves: 4
-  lockedAfterXWaves: 11
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: fd81d7bdced74fa58c249e2ea1c2af78, type: 2}
   cartOrder:

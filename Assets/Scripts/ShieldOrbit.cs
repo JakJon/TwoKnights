@@ -59,6 +59,15 @@ public class ShieldOrbit : MonoBehaviour
     private Canvas reloadBarCanvas;
     private Image reloadBarImage;
 
+    // The sword's cooldown, drawn exactly like the bow's but blue, and laid flush
+    // against the knight's side of the red bar
+    private GameObject swordReloadBarObject;
+    private Image swordReloadBarImage;
+
+    // Both bars' canvases are built to these, so the two are always the same size
+    private static readonly Vector2 ReloadBarSize = new Vector2(1.1f, .05f);
+    private const float ReloadBarScale = .5f;
+
     void Awake()
     {
         playerTransform = transform.parent; // Assuming shield is a child of the player
@@ -113,37 +122,43 @@ public class ShieldOrbit : MonoBehaviour
     
     private void CreateReloadBar()
     {
+        reloadBarObject = CreateBar("ReloadBar", new Color(0.8f, 0.1f, 0.1f, 1f), out reloadBarImage); // Dark red
+        reloadBarCanvas = reloadBarObject.GetComponent<Canvas>();
+        swordReloadBarObject = CreateBar("SwordReloadBar", new Color(0.1f, 0.35f, 0.9f, 1f), out swordReloadBarImage); // Blue
+    }
+
+    private GameObject CreateBar(string name, Color color, out Image barImage)
+    {
         // Create simple reload bar with transform scaling approach
-        reloadBarObject = new GameObject("ReloadBar");
-        reloadBarObject.transform.SetParent(playerTransform);
-        
+        GameObject barRoot = new GameObject(name);
+        barRoot.transform.SetParent(playerTransform);
+
         // Add Canvas for world space UI
-        reloadBarCanvas = reloadBarObject.AddComponent<Canvas>();
-        reloadBarCanvas.renderMode = RenderMode.WorldSpace;
-        reloadBarCanvas.sortingOrder = 10;
-        
+        Canvas canvas = barRoot.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.sortingOrder = 10;
+
         // Set canvas size - small and simple
-        RectTransform canvasRect = reloadBarObject.GetComponent<RectTransform>();
-        canvasRect.sizeDelta = new Vector2(1.1f, .05f); // Small bar
-        canvasRect.localScale = Vector3.one * .5f; // Small scale
-        
-        // Create a single red bar that we'll scale down
+        RectTransform canvasRect = barRoot.GetComponent<RectTransform>();
+        canvasRect.sizeDelta = ReloadBarSize; // Small bar
+        canvasRect.localScale = Vector3.one * ReloadBarScale; // Small scale
+
+        // Create a single bar that we'll scale down
         GameObject barObj = new GameObject("Bar");
-        barObj.transform.SetParent(reloadBarObject.transform);
-        reloadBarImage = barObj.AddComponent<Image>();
-        // reloadBarImage.color = Color.; // Red bar
-        // set the color to a dark red
-        reloadBarImage.color = new Color(0.8f, 0.1f, 0.1f, 1f); // Dark red
-        
+        barObj.transform.SetParent(barRoot.transform);
+        barImage = barObj.AddComponent<Image>();
+        barImage.color = color;
+
         RectTransform barRect = barObj.GetComponent<RectTransform>();
         barRect.anchorMin = Vector2.zero;
         barRect.anchorMax = Vector2.one;
         barRect.sizeDelta = Vector2.zero;
         barRect.anchoredPosition = Vector2.zero;
         barRect.pivot = new Vector2(0.5f, 0f); // Pivot at bottom center so it shrinks upward
-        
-        // Start hidden (player can shoot initially)
-        reloadBarObject.SetActive(false);        
+
+        // Start hidden (player can shoot and swing initially)
+        barRoot.SetActive(false);
+        return barRoot;
     }
     
     private void CreateSwordAttack()
@@ -177,11 +192,27 @@ public class ShieldOrbit : MonoBehaviour
             (Vector3.up * .5f);
         
         reloadBarObject.transform.position = reloadBarPosition;
-        
+
         // Keep the bar parallel to the shield
         reloadBarObject.transform.rotation = transform.rotation * Quaternion.Euler(0, 0, 90f);
+
+        // The sword's bar rides against the red one on the knight's side. The bars'
+        // local up points in toward the knight, so stepping one bar-thickness along
+        // it lays the two edge to edge with no gap.
+        //
+        // Measured off the red IMAGE, not its canvas: the image is parented keeping
+        // its world scale, so it draws twice as thick as the canvas it sits in,
+        // growing inward from the canvas's outer edge. Stepping by the canvas's
+        // thickness put the blue bar over the inner half of the red one.
+        if (swordReloadBarObject != null && reloadBarImage != null)
+        {
+            RectTransform redRect = reloadBarImage.rectTransform;
+            swordReloadBarObject.transform.rotation = reloadBarObject.transform.rotation;
+            swordReloadBarObject.transform.position = reloadBarPosition +
+                redRect.TransformVector(0f, redRect.rect.height, 0f);
+        }
     }
-    
+
     // Public method to show/hide the reload bar
     public void SetReloadBarVisible(bool isVisible)
     {
@@ -190,15 +221,35 @@ public class ShieldOrbit : MonoBehaviour
             reloadBarObject.SetActive(isVisible);
         }
     }
-    
+
     // Public method to set the bar scale (1.0 = full length, 0.0 = no length)
     public void SetReloadBarFill(float fillAmount)
     {
-        if (reloadBarImage != null)
+        SetBarFill(reloadBarImage, fillAmount);
+    }
+
+    // The sword's twins of the two above, driven by SwordSwing's cooldown
+    public void SetSwordReloadBarVisible(bool isVisible)
+    {
+        if (swordReloadBarObject != null)
         {
-            Vector3 currentScale = reloadBarImage.transform.localScale;
+            swordReloadBarObject.SetActive(isVisible);
+        }
+    }
+
+    public void SetSwordReloadBarFill(float fillAmount)
+    {
+        SetBarFill(swordReloadBarImage, fillAmount);
+    }
+
+    private static void SetBarFill(Image barImage, float fillAmount)
+    {
+        if (barImage != null)
+        {
+            Vector3 currentScale = barImage.transform.localScale;
             // Since bar is rotated 90 degrees, scale X-axis to affect visual length
-            reloadBarImage.transform.localScale = new Vector3(fillAmount, currentScale.y, currentScale.z);        }
+            barImage.transform.localScale = new Vector3(fillAmount, currentScale.y, currentScale.z);
+        }
         else
         {
             Debug.LogWarning("Reload bar image is null!");
@@ -212,10 +263,14 @@ public class ShieldOrbit : MonoBehaviour
             shieldInputAction.Disable();
         }
         
-        // Clean up reload bar
+        // Clean up reload bars
         if (reloadBarObject != null)
         {
             DestroyImmediate(reloadBarObject);
+        }
+        if (swordReloadBarObject != null)
+        {
+            DestroyImmediate(swordReloadBarObject);
         }
     }
 }

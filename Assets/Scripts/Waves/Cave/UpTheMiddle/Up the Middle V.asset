@@ -1,0 +1,165 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71a1439b59d0f1ad4d38dc4c8dac7ca3, type: 3}
+  m_Name: Up the Middle V
+  m_EditorClassIdentifier:
+  waveName: Up the Middle V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: A sixth pair up the middle.
+  unlockedAfterXWaves: 16
+  lockedAfterXWaves: 22
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: cde9e7a124d3c8fdbece04f50a2cb486, type: 2}
+  shaftRun: 0
+  columnPattern:
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  columnCarts: 0
+  columnInterval: 0
+  firstCartAt: 1
+  ambushes:
+  - label: first pair
+    leadIn: 3
+    rats: 2
+    ratInterval: 1.5
+    bats: 0
+    batInterval: 3
+  - label: second pair
+    leadIn: 2.5
+    rats: 2
+    ratInterval: 1.5
+    bats: 1
+    batInterval: 3
+  - label: third pair
+    leadIn: 2.5
+    rats: 2
+    ratInterval: 1.5
+    bats: 2
+    batInterval: 3
+  - label: fourth pair
+    leadIn: 2.5
+    rats: 2
+    ratInterval: 1.5
+    bats: 2
+    batInterval: 3
+  - label: fifth pair
+    leadIn: 2.5
+    rats: 2
+    ratInterval: 1.5
+    bats: 2
+    batInterval: 3
+  - label: sixth pair
+    leadIn: 2.5
+    rats: 2
+    ratInterval: 1.5
+    bats: 2
+    batInterval: 3
+  ratTypes:
+  - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+  - {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
+  stationHeight: 4.3
+  stationLane: 3.2
+  stationSpread: 0.8
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 14
+    interval: 15
+    from: {x: -12, y: -1.5}
+    to: {x: 12, y: -1.5}
+  ogres:
+    label: 8 round the outside of the column
+    count: 5
+    firstAt: 5
+    interval: 4.25
+    fireEveryNth: 3
+    entries:
+    - label: round the column, right flank
+      at: {x: 11.5, y: -0.5}
+      mark: 2
+    - label: over the left rat stations
+      at: {x: -11.5, y: 4.5}
+      mark: 1
+    - label: under the right rat stations
+      at: {x: 11.5, y: -4.5}
+      mark: 2
+    - label: round the column, left flank
+      at: {x: -11.5, y: -0.5}
+      mark: 1
+    startOnRight: 0
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 2.88
+    weaveDegrees: 90
+  - label: both at once, from under (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: two down the right shaft
+    shape: 1
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.17
+    restAfter: 2.88
+    weaveDegrees: 90
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.8
+    count: 4
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.15
+    weaveDegrees: 90
+  projectileWindow: 42
+  rockSpeed: 1.75

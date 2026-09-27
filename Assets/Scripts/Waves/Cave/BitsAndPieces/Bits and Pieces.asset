@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Powder on the outer rail, gnomes on the inner. Pick your keg.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 40e9dc310ff2cf24a33b8d77298aa84c, type: 2}
   gnomeCarts:
@@ -49,10 +49,11 @@ MonoBehaviour:
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
   ogres:
-    label: 3 down and up the empty middle
-    count: 2
-    firstAt: 8
-    interval: 7
+    label: 1 with every shift, down and up the empty middle
+    count: 1
+    firstAt: 3
+    interval: 4
+    throwStagger: 0
     fireEveryNth: 3
     entries:
     - label: down the empty middle, left of centre

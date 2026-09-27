@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: Camp Fields
   m_EditorClassIdentifier: 
   mapId: camp_fields
-  displayName: The Camp Fields
+  displayName: Kingdom's Forest
   unlockedByDefault: 1
   previewImage: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
-  tagline: Where the vigil began
-  lockedHint: 
+  description: Directly outside the kingdom gates lies the deep forests swarmed by creatures.
+    The deeper you venture the darker it gets.
+  finalWaveNumber: 30
   completionMarkColor: {r: 0.4784314, g: 0.7607843, b: 0.4156863, a: 1}
   waves:
   - {fileID: 11400000, guid: bc25a2b379c5c53448aecc87bd1d5c0e, type: 2}
@@ -63,6 +64,39 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 29eb114cf2667a94b892227dfa14c407, type: 2}
   - {fileID: 11400000, guid: 20249c8dbb26624459358f071773c695, type: 2}
   - {fileID: 11400000, guid: 05ba42be3bd82f146be94880f48e9291, type: 2}
+  - {fileID: 11400000, guid: 06bc8d70b07f3d8007f4395512fc06be, type: 2}
+  - {fileID: 11400000, guid: ab8b0638a8dc7e59c2c63c357f340a59, type: 2}
+  - {fileID: 11400000, guid: 0ed7e96e3b8a0d7130111e281c3ccd59, type: 2}
+  - {fileID: 11400000, guid: 7fb8130410fbb8eb21b053b1c5513155, type: 2}
+  - {fileID: 11400000, guid: a9290f04af4d2531bebd8e597ee8e902, type: 2}
+  - {fileID: 11400000, guid: 006a93f7d98355f28e9daac86a9d9648, type: 2}
+  - {fileID: 11400000, guid: 3a29058c33a49b2a579179445796833b, type: 2}
+  - {fileID: 11400000, guid: 5c620716431a85ee080452be952f3bba, type: 2}
+  - {fileID: 11400000, guid: 8da09e52800734fb0bbcd06af9abd391, type: 2}
+  - {fileID: 11400000, guid: 84bcc345784911cacf4a195a271c9b58, type: 2}
+  - {fileID: 11400000, guid: 29fa0a68c93714e1317982a2b86846e3, type: 2}
+  - {fileID: 11400000, guid: db5b90c889de13f2ebc75e18756a2d4f, type: 2}
+  - {fileID: 11400000, guid: 59518a09084e6332f551081b88646598, type: 2}
+  - {fileID: 11400000, guid: 5fe4b8b36e2a61340a0e3b7a1bfbd118, type: 2}
+  - {fileID: 11400000, guid: 08da6f30c36a9969c3235d6f72c945a7, type: 2}
+  - {fileID: 11400000, guid: 13aaee078cfd8c165613f1bb71c96820, type: 2}
+  - {fileID: 11400000, guid: 3bf8ebb06173c178b8bf775543dc1bab, type: 2}
+  - {fileID: 11400000, guid: 89159d493f3616be0b0d62dd95eaac9b, type: 2}
+  - {fileID: 11400000, guid: 7d351878e43242346a5cd121018b5203, type: 2}
+  - {fileID: 11400000, guid: af0109c2bbedd340949a716dedb275de, type: 2}
+  - {fileID: 11400000, guid: d638bd4e480513f65c66c4ddb0b16f99, type: 2}
+  - {fileID: 11400000, guid: 2beb4f05e57401bb2ca43ae0d8d71e58, type: 2}
+  - {fileID: 11400000, guid: af42784e402648d55f07e93d828bea0c, type: 2}
+  - {fileID: 11400000, guid: e28120d4efa66f34063ecdfb128c6858, type: 2}
+  - {fileID: 11400000, guid: ffbadc8aa37d4036456218f0ee79936d, type: 2}
+  - {fileID: 11400000, guid: 0c2a715e4feba338bd30388540040fd4, type: 2}
+  - {fileID: 11400000, guid: b6ed9cea5687c9dae3ccc7496037288c, type: 2}
+  - {fileID: 11400000, guid: bd759cf6ab41db640d299f34308a5235, type: 2}
+  - {fileID: 11400000, guid: 37de300672124d07fd8a51c29756be40, type: 2}
+  - {fileID: 11400000, guid: 1d8941890b1416b19daae90045746002, type: 2}
+  - {fileID: 11400000, guid: 5de12c80cfcb4c544fead3b10fa6ed96, type: 2}
+  - {fileID: 11400000, guid: 03274f6d7b7ba3ec3f4a3cde432224fb, type: 2}
+  - {fileID: 11400000, guid: 881e6c168ad71db6c0ad01549f0d0cda, type: 2}
   waveFolders:
   - Assets/Scripts/Waves/Forest/AboutFace
   - Assets/Scripts/Waves/Forest/BatCauldron
@@ -74,6 +108,7 @@ MonoBehaviour:
   - Assets/Scripts/Waves/Forest/RatKing
   - Assets/Scripts/Waves/Forest/RatMischief
   - Assets/Scripts/Waves/Forest/SheepsClothing
+  - Assets/Scripts/Waves/Forest/Stalkers
   - Assets/Scripts/Waves/Forest/StickySituation
   gateBoss: {fileID: 11400000, guid: 6767c128b721f54cc031ffd692c9971c, type: 2}
   gateBossWaveNumber: 10
@@ -81,7 +116,19 @@ MonoBehaviour:
   gateBossEndsRun: 1
   trueBoss: {fileID: 11400000, guid: 922e5ba9684734244a1ddbf6f374e186, type: 2}
   trueBossWaveNumber: 20
+  trueBossEndsRun: 0
   strongerEnemiesFromWave: -1
+  ratPhases:
+  - label: The Camp
+    fromWaveNumber: 1
+    cadence: 0000000001000000
+  - label: Deep Forest
+    fromWaveNumber: 11
+    cadence: 000000000100000002000000
+  - label: Moonlit Wood
+    fromWaveNumber: 21
+    cadence: 030000000100000002000000
+  deepRosterFromWave: 21
   stages:
   - label: Forest
     fromWaveNumber: 1
@@ -95,4 +142,14 @@ MonoBehaviour:
     foreground: {fileID: 0}
     canopy: {fileID: 11400000, guid: e4103d4c9b6fb954b91a127ff4ede75a, type: 2}
     ventureLine: The knights venture deeper into the forest.
+  - label: Moonlit Wood
+    fromWaveNumber: 21
+    backdrop: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+    foreground: {fileID: 0}
+    canopy: {fileID: 11400000, guid: e4103d4c9b6fb954b91a127ff4ede75a, type: 2}
+    ventureLine: The canopy closes over. Something pale moves between the trunks.
+  explorationMusic: {fileID: 8300000, guid: bacd3a1a09ebb474cbc8511f9fdde73b, type: 3}
+  intenseMusic: {fileID: 8300000, guid: f30566957c15fe4459e128e31253c361, type: 3}
+  intenseMusicFromWave: 11
+  bossMusic: {fileID: 8300000, guid: 1c364d1c3a480d04eb3098678bcf1965, type: 3}
   unlocksMapId: mine

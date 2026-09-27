@@ -26,10 +26,59 @@ public static class TutorialRun
     /// </summary>
     public static bool Pending { get; private set; }
 
+    /// <summary>
+    /// True for the whole of the run that begins with the tutorial. Separate from
+    /// <see cref="Pending"/>, which the director CONSUMES the moment it takes the
+    /// arena — that flag answers "should I start teaching", this one answers "is
+    /// this still that run", and quests need the second question long after the
+    /// lesson is over.
+    ///
+    /// It cannot be derived from tutorialCompleted: the director writes that true
+    /// and then hands straight off to wave one, so by the time any wave runs the
+    /// save already says the tutorial is behind us.
+    ///
+    /// ALWAYS ASSIGNED, never only set. Statics outlive a scene load in this
+    /// project — the same hazard QuestProgress and RunPurity both carry — so a
+    /// version of this that only wrote `true` on the tutorial path would leave
+    /// every later run in the same scene session believing it was the tutorial.
+    /// <see cref="Spawner"/> calls <see cref="NoteRunStarted"/> with what
+    /// TutorialDirector.TryBegin returned, on every run.
+    /// </summary>
+    public static bool IsTutorialRun { get; private set; }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void ResetForNewSession()
     {
         Pending = false;
+        IsTutorialRun = false;
+        SceneManager.activeSceneChanged -= HandleSceneChanged;
+        SceneManager.activeSceneChanged += HandleSceneChanged;
+    }
+
+    /// <summary>
+    /// The tutorial run is over the moment it leaves the arena — by death, by a
+    /// quit to camp, or by victory. Clearing it here rather than waiting for the
+    /// next run's Spawner matters: the player reads the quest log in camp between
+    /// the two, and a flag still standing would show them a log with everything
+    /// frozen out of it.
+    /// </summary>
+    private static void HandleSceneChanged(Scene from, Scene to)
+    {
+        if (to.name != GameSceneName) NoteRunStarted(false);
+    }
+
+    /// <summary>
+    /// Called once per run from <see cref="Spawner"/>, with whether the tutorial
+    /// just took over. Pass false and the flag clears — that is the point.
+    /// </summary>
+    public static void NoteRunStarted(bool isTutorial)
+    {
+        if (IsTutorialRun == isTutorial) return;
+        IsTutorialRun = isTutorial;
+        // Quests read this flag through Quest.IsUnlocked, and QuestProgress caches
+        // which quests it has already announced. Flipping the gate without telling
+        // it would either announce nothing or announce everything twice.
+        QuestProgress.HandleTutorialGateChanged();
     }
 
     /// <summary>

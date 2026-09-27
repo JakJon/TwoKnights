@@ -9,7 +9,28 @@ public enum VolleyShape
     Pair,   // two down the same shaft — the second lands while the first is still being answered
     Split,  // both knights at once. Nobody is shooting anything during this one
     Flip,   // same knight, one side then the other: the guard has to cross the whole dial
-    Fan     // a spread that walks outward around the knight's own half
+    Fan,    // a spread that walks outward around the knight's own half
+
+    // The three below exist because the forest's deep tiers had run out of ways
+    // to be harder that were not just "more rock, sooner". Everything above asks
+    // for ONE facing held, or one crossing made; these ask for two facings at
+    // once, or for a crossing on every single shot.
+    //
+    // APPENDED, NEVER REORDERED. VolleyShape is serialised into the wave assets
+    // as an integer (`shape: 3` is Flip), so inserting a value here silently
+    // rewrites every volley already authored in the Mine and the forest.
+    Mirror,   // both knights at once, from OPPOSITE sides. Split, but the two shields end up facing apart
+    Scissors, // Mirror, then both knights flip - two dials crossing at the same moment, in opposite directions
+    Weave,    // one knight, N shots, each arriving on the far side of the dial from the last
+
+    // Spirals (owner, 2026-09-25: "the projectile patterns are too simple, make
+    // them spirals"). Every shot leaves from the same radius a little further
+    // round the dial than the last, and every shot is in the air for the same
+    // time, so while a volley is flying the rocks in the air literally form a
+    // spiral arm closing on the knight. The guard follows it round like a clock
+    // hand: small steps, one direction, rather than Weave's crossing on every shot.
+    Spiral,     // one knight: arrivals walk steadily round his own side of the dial
+    TwinSpiral  // both knights at once, mirror images - the two guards turn in opposite directions
 }
 
 /// <summary>
@@ -41,14 +62,23 @@ public class RockVolley
     [Tooltip("Mirror the volley to come up from underneath. Flip uses both sides whatever this says, but it still sets which one it OPENS on — false is over then under, true is under then over.")]
     public bool fromBelow;
 
-    [Tooltip("Seconds between shots inside the volley — used by Pair, Flip and Fan. Because flight time is identical for every shot, this is also the gap between their ARRIVALS.")]
+    [Tooltip("Seconds between shots inside the volley — used by Pair, Flip, Fan, Weave and the spirals. Because flight time is identical for every shot, this is also the gap between their ARRIVALS.")]
     public float spacing = 1f;
 
-    [Tooltip("Fan only: how many rocks in the spread")]
+    [Tooltip("Fan: how many rocks in the spread. Weave: how many shots. Spiral and TwinSpiral: shots per pass - raised automatically if the sweep would need steps wider than 45 degrees.")]
     public int count = 3;
 
     [Tooltip("Fan only: degrees it sweeps, from straight overhead outward to the knight's own side. Hard-capped at 80 — past that the spread reaches round to the other knight's half and gets absorbed by the wrong guard.")]
     public float fanDegrees = 60f;
+
+    [Tooltip("Weave only: how wide the crossing band is, in degrees either side of the knight's outward direction. 90 is the full legal half-circle and the house value; lower it to keep the crossings shallow. Never goes above 90 - past that the band reaches over the middle and the far end of it is answered by the WRONG knight's shield.")]
+    public float weaveDegrees = 90f;
+
+    [Tooltip("Spiral and TwinSpiral: how far round the dial one pass walks, in degrees. It starts 30 degrees past straight up toward the other knight (straight DOWN with fromBelow) and walks outward round the knight's own side. 240 is the whole legal sweep, top to bottom, and the cap: past it the far end reaches the band where a shot could be eaten by the partner's guard. 120 keeps it to one quarter plus the side, which is how a wave says 'from underneath' with a spiral.")]
+    public float spiralDegrees = 180f;
+
+    [Tooltip("Spiral and TwinSpiral: how many times it crosses the sweep. 1 walks it once. 2 walks it and comes back the same way, 3 goes out again. The turn at each end repeats no shot.")]
+    public int spiralPasses = 1;
 
     [Tooltip("Rocks released TOGETHER on every shot of this volley. 1 is one rock. This is the Mine's tier dial for rock: the shape stays the shape and the windows stay the windows, but a late-tier window has to be answered with the shield actually covering it rather than nearly covering it. House ladder: 1 / 3 / 5 / 8 across a wave's four tiers.")]
     public int salvo = 1;
@@ -85,6 +115,29 @@ public class RockVolley
             float busy = Fire(spawner, volley, rockSpeed);
             yield return new WaitForSeconds(busy + Mathf.Max(0f, volley.restAfter));
         }
+    }
+
+    /// <summary>
+    /// Fire one volley <paramref name="delay"/> seconds from now.
+    ///
+    /// For waves that schedule their whole body up front instead of yielding
+    /// through it — Bat Cauldron lays every ring down on one frame with the
+    /// spacing carried as per-spawn delays, so there is no later moment at which
+    /// to call Fire. Nothing is returned: a caller that is scheduling rather than
+    /// pacing has nothing to do with a busy time.
+    /// </summary>
+    public static void FireAfter(Spawner spawner, RockVolley volley, float rockSpeed, float delay)
+    {
+        if (volley == null) return;
+        if (delay <= 0f) { Fire(spawner, volley, rockSpeed); return; }
+        spawner.StartCoroutine(FireAfterRoutine(spawner, volley, rockSpeed, delay));
+    }
+
+    private static IEnumerator FireAfterRoutine(Spawner spawner, RockVolley volley,
+                                                float rockSpeed, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Fire(spawner, volley, rockSpeed);
     }
 
     /// <summary>
@@ -189,10 +242,277 @@ public class RockVolley
                 return beat * (count - 1) + salvoBusy;
             }
 
+            case VolleyShape.Mirror:
+            {
+                // Split's problem: it resolves `fromBelow` once and hands BOTH
+                // knights the same side, so both shields end up pointing the same
+                // way and the player answers two rocks with one decision made
+                // twice. Mirror resolves the side per knight and inverts it, so the
+                // two guards finish the volley facing apart. Same geometry and the
+                // same safety argument - each leg runs straight down its own
+                // knight's x and never goes near the partner - for a genuinely
+                // different ask.
+                //
+                // `fromBelow` names the LEFT knight's side; the right knight always
+                // gets the other one.
+                const float half = MinStagger * 0.5f;
+                Salvo(spawner, volley, spawner.LeftPlayer,
+                    volley.fromBelow ? spawner.belowLeftPlayer : spawner.aboveLeftPlayer, 0f, rockSpeed);
+                Salvo(spawner, volley, spawner.RightPlayer,
+                    volley.fromBelow ? spawner.aboveRightPlayer : spawner.belowRightPlayer, half, rockSpeed);
+                return salvoBusy + half;
+            }
+
+            case VolleyShape.Scissors:
+            {
+                // Mirror answered by its own inverse: both knights cross the dial
+                // on the same beat, in opposite directions. The deepest thing the
+                // two-knight geometry can be asked for, and still fair - each
+                // knight only ever answers one rock at a time, and the order never
+                // changes, so it is a rehearsal problem rather than a reaction one.
+                const float half = MinStagger * 0.5f;
+
+                Vector2 leftOpen  = volley.fromBelow ? spawner.belowLeftPlayer  : spawner.aboveLeftPlayer;
+                Vector2 leftShut  = volley.fromBelow ? spawner.aboveLeftPlayer  : spawner.belowLeftPlayer;
+                Vector2 rightOpen = volley.fromBelow ? spawner.aboveRightPlayer : spawner.belowRightPlayer;
+                Vector2 rightShut = volley.fromBelow ? spawner.belowRightPlayer : spawner.aboveRightPlayer;
+
+                Salvo(spawner, volley, spawner.LeftPlayer,  leftOpen,  0f,          rockSpeed);
+                Salvo(spawner, volley, spawner.RightPlayer, rightOpen, half,        rockSpeed);
+                Salvo(spawner, volley, spawner.LeftPlayer,  leftShut,  beat,        rockSpeed);
+                Salvo(spawner, volley, spawner.RightPlayer, rightShut, beat + half, rockSpeed);
+                return beat + salvoBusy + half;
+            }
+
+            case VolleyShape.Weave:
+            {
+                // One knight, and every shot lands on the far side of the dial from
+                // the one before it. This is Suppressing Fire's crossing pattern
+                // (SuppressingFire.PatternFor, tier 5) made available to any wave:
+                // a stream whose difficulty is WHERE the next one comes from rather
+                // than how fast they come.
+                //
+                // Written as a closed form over the shot index and NOT as a walk,
+                // which is the lesson that file paid for. Its first version stepped
+                // the angle on each shot, two of those rules were contractions, and
+                // after about ten shots every rock was leaving from the same spot -
+                // the pattern quietly decayed into the straight stream it existed
+                // to replace. Nothing here reads the previous shot, so nothing here
+                // can converge.
+                int shots = Mathf.Max(2, volley.count);
+
+                // The sign alternates on every shot, so consecutive arrivals ALWAYS
+                // cross the middle of the band; the magnitude shrinks strictly, so
+                // the crossings start at the full width of the band and close in.
+                //
+                // Strictly shrinking is what makes the shape safe, and it was the
+                // second attempt. The first ran the magnitude out to the edge and
+                // back - close in, then open out again - which reads beautifully and
+                // is degenerate: with the sign flipping every shot and the magnitude
+                // symmetric about the middle, the back half of an odd-length weave
+                // replays the front half shot for shot. A five-shot weave came out
+                // -90, +45, 0, +45, -90, which is three distinct angles wearing five
+                // rocks. A strictly decreasing magnitude cannot do that at any count.
+                float band = Mathf.Clamp(volley.weaveDegrees, 10f, MaxWeaveDegrees);
+                float weaveBeat = salvoBusy + Mathf.Max(MinWeaveGap, spacing);
+
+                for (int i = 0; i < shots; i++)
+                {
+                    float magnitude = (float)(shots - i) / shots;
+                    float sign = (i % 2 == 0) ? -1f : 1f;
+                    // fromBelow opens the weave underneath instead of on top
+                    if (volley.fromBelow) sign = -sign;
+
+                    Salvo(spawner, volley, knight,
+                          WeavePoint(spawner, knight, sign * magnitude * band),
+                          weaveBeat * i, rockSpeed);
+                }
+
+                return weaveBeat * (shots - 1) + salvoBusy;
+            }
+
+            case VolleyShape.Spiral:
+            {
+                int perPass = SpiralShotsPerPass(volley);
+                int shots = SpiralShots(perPass, volley.spiralPasses);
+                float spiralBeat = salvoBusy + Mathf.Max(MinSpiralGap, spacing);
+
+                for (int i = 0; i < shots; i++)
+                {
+                    Salvo(spawner, volley, knight,
+                          SpiralPoint(spawner, knight, SpiralDegreesAt(volley, perPass, i), volley.fromBelow),
+                          spiralBeat * i, rockSpeed);
+                }
+
+                return spiralBeat * (shots - 1) + salvoBusy;
+            }
+
+            case VolleyShape.TwinSpiral:
+            {
+                // Both knights on the same beat, both opening on the same side, so
+                // the two arms are mirror images across the middle of the board and
+                // the two guards turn in opposite directions. Each knight still only
+                // ever answers one rock at a time. The right knight's arm is nudged
+                // a frame behind for the same reason Split's is.
+                const float half = MinStagger * 0.5f;
+                int perPass = SpiralShotsPerPass(volley);
+                int shots = SpiralShots(perPass, volley.spiralPasses);
+                float spiralBeat = salvoBusy + Mathf.Max(MinSpiralGap, spacing);
+
+                for (int i = 0; i < shots; i++)
+                {
+                    float degrees = SpiralDegreesAt(volley, perPass, i);
+                    Salvo(spawner, volley, spawner.LeftPlayer,
+                          SpiralPoint(spawner, spawner.LeftPlayer, degrees, volley.fromBelow),
+                          spiralBeat * i, rockSpeed);
+                    Salvo(spawner, volley, spawner.RightPlayer,
+                          SpiralPoint(spawner, spawner.RightPlayer, degrees, volley.fromBelow),
+                          spiralBeat * i + half, rockSpeed);
+                }
+
+                return spiralBeat * (shots - 1) + salvoBusy + half;
+            }
+
             default:
                 Salvo(spawner, volley, knight, from, 0f, rockSpeed);
                 return salvoBusy;
         }
+    }
+
+    // The band a Weave is allowed to cross, measured either side of the knight's
+    // outward direction. At 90 it is the whole half-circle on that knight's own
+    // side of the board, which is the widest span where no shot can be absorbed by
+    // the partner - the same argument SuppressingFire.MaxOffset makes.
+    private const float MaxWeaveDegrees = 90f;
+
+    // Seconds between the ARRIVALS of a weave, floored (owner, 2026-09-15, for
+    // Suppressing Fire; the same number here for the same reason). A weave is a
+    // reading problem: the work is turning to meet a shot that came from the
+    // opposite side of the dial, and under about a second that stops being a turn
+    // anyone can read and becomes a toll. Flip is allowed a tenth of a second
+    // because it is ONE crossing off a shape already seen; a weave is a crossing on
+    // every shot, for the length of the volley.
+    //
+    // A wave converting a straight stream into a weave therefore has to THIN it:
+    // eleven rocks at 0.45s is five seconds of stream and nineteen seconds of
+    // weave. Half the rocks per knight, twice the knights, four times the turns.
+    private const float MinWeaveGap = 1.2f;
+
+    // Where one shot of a weave leaves from. Built on the same arc centre and the
+    // same radius as the belt in PinnedWave, for the identical reason: every shot
+    // of the volley sits at ONE radius, so they arrive in the order they left with
+    // the gaps they were authored with.
+    //
+    // THIRTEEN, and the exact number matters - this is not a round-up of the 12 the
+    // pin belt uses. Two separate things rule it:
+    //
+    // Seven, what above/belowPlayer sit at, is far too short: the band sweeps
+    // through the knight's outward horizontal, and at radius 7 that point is
+    // (-9, 0), a rock appearing in open frame nine units from the middle of the
+    // board. Rule 1 forbids it outright.
+    //
+    // Twelve is not enough either, which is less obvious and was caught by sweeping
+    // the band rather than by looking at it. Off the left knight's centre a shot at
+    // offset o lands at x = -2 - R*cos(o), y = R*sin(o). Clearing the frame needs
+    // |x| >= 12 OR |y| >= 7, and at R = 12 the first fails past |o| = 33.6 degrees
+    // while the second does not hold until 35.7 - a two-degree window where a rock
+    // appears just inside the corner of the screen. R = 12.25 closes it exactly;
+    // 13 closes it with about half a unit to spare at the tightest angle.
+    //
+    // The pin belt gets away with 12 because it only ever uses offsets 0 and +/-90,
+    // and Suppressing Fire because its authored angles happen to step over the
+    // window. A weave generates its angles, so it has to clear the whole band.
+    private const float WeaveRadius = 13f;
+
+    private static Vector2 WeavePoint(Spawner spawner, Transform knight, float offsetDegrees)
+    {
+        Vector2 centre = ArcCentreFor(spawner, knight);
+        // Outward = away from the middle of the board: 0 degrees for the right
+        // knight, 180 for the left.
+        float outward = (knight == spawner.LeftPlayer) ? 180f : 0f;
+        float radians = (outward + offsetDegrees) * Mathf.Deg2Rad;
+        return centre + new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)) * WeaveRadius;
+    }
+
+    // How far round a spiral may walk. It starts 30 degrees past straight up
+    // toward the partner and ends 30 degrees past straight down, 240 in all, so
+    // the steepest shot on the partner's side still comes in 60 degrees off the
+    // horizontal: from the left knight's point of view that rock crosses x = 2
+    // (the right knight) about seven units up, far clear of his guard. Rule 2.
+    //
+    // It also stays inside the out-of-frame arc at WeaveRadius: off the left
+    // knight's centre every angle from 32.6 to 327.4 degrees clears the frame at
+    // radius 13, and the spiral uses 60 to 300.
+    private const float MaxSpiralDegrees = 240f;
+    private const float SpiralOvershoot = 30f;
+
+    // The biggest step one shot may take round the dial. The stock guard covers
+    // sixty degrees, so a step of 45 always overlaps the facing before it: the
+    // spiral asks for a steady turn, never for a crossing. A sweep with too few
+    // shots to honour that gets more shots rather than bigger steps.
+    private const float MaxSpiralStep = 45f;
+
+    // Seconds between the arrivals of a spiral, floored. Much lower than a
+    // weave's 1.2s because each shot is a small turn in a direction the player
+    // already knows, not a crossing.
+    private const float MinSpiralGap = 0.3f;
+
+    private static int SpiralShotsPerPass(RockVolley volley)
+    {
+        float sweep = Mathf.Clamp(volley.spiralDegrees, 30f, MaxSpiralDegrees);
+        int needed = Mathf.CeilToInt(sweep / MaxSpiralStep) + 1;
+        return Mathf.Max(2, Mathf.Max(volley.count, needed));
+    }
+
+    // A pass after the first shares its opening shot with the end of the pass
+    // before it, so it adds one shot fewer.
+    private static int SpiralShots(int perPass, int passes)
+    {
+        return perPass + (Mathf.Max(1, passes) - 1) * (perPass - 1);
+    }
+
+    // Degrees along the sweep for shot i. A CLOSED FORM over the shot index, for
+    // the reason Weave gives: nothing here reads the previous shot, so nothing
+    // here can drift. Even passes walk out from the start, odd passes walk back.
+    private static float SpiralDegreesAt(RockVolley volley, int perPass, int shot)
+    {
+        float sweep = Mathf.Clamp(volley.spiralDegrees, 30f, MaxSpiralDegrees);
+        float step = sweep / (perPass - 1);
+
+        int along;
+        if (shot < perPass)
+        {
+            along = shot;
+        }
+        else
+        {
+            int beyond = shot - perPass;
+            int pass = 1 + beyond / (perPass - 1);
+            int into = beyond % (perPass - 1);
+            along = (pass % 2 == 1) ? perPass - 2 - into : into + 1;
+        }
+
+        return along * step;
+    }
+
+    // Where a spiral shot leaves from: `degrees` along the sweep from its start.
+    // The start is SpiralOvershoot past straight up toward the partner (straight
+    // down with fromBelow), and the sweep walks away from the partner, round the
+    // knight's own side. Built on WeavePoint, so the offsets are measured from
+    // the knight's outward direction and every shot sits at WeaveRadius.
+    private static Vector2 SpiralPoint(Spawner spawner, Transform knight, float degrees, bool fromBelow)
+    {
+        // Offsets are counter-clockwise from outward. For the left knight straight
+        // up is -90 and the top end of the sweep is -120; for the right knight both
+        // signs flip.
+        float side = (knight == spawner.LeftPlayer) ? -1f : 1f;
+        float start = 90f + SpiralOvershoot;
+
+        float offset = fromBelow
+            ? -side * start + side * degrees
+            : side * start - side * degrees;
+
+        return WeavePoint(spawner, knight, offset);
     }
 
     /// <summary>

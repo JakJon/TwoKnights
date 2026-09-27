@@ -13,13 +13,18 @@ MonoBehaviour:
   m_Name: Serpents Breath 3
   m_EditorClassIdentifier: 
   upgradeName: Serpent's Breath III
-  description: Every swing exhales a venom cloud that lingers.
+  description: An 8-second venom cloud rides out with the fan, and its beads last 6 seconds.
   weight: 10
   order: 1
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 9ef6b32b06a3b84e0362b8876eb05ae9, type: 2}
   lockedBy: []
-  cloudChance: 100
-  cloudDuration: 15
-  largeCloud: 1
+  stats:
+  - valueText: +1 CLOUD
+    labelText: WITH THE FAN
+    isPositive: 1
+  - valueText: 4s
+    labelText: LINGERS
+    isPositive: 1
+  tier: 3

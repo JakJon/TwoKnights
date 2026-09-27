@@ -31,7 +31,7 @@ the Crimson Twins.
   disagree, the Orders finding you rather than the reverse.
 
 > **Two targets are computed at runtime, not authored.** The explorer finales
-> (`forest_explorer_2` = 45, `mine_explorer_2` = 42) count every playable wave on
+> (`one_with_the_woods` = 45, `certified_shaft_spelunker` = 42) count every playable wave on
 > their map, so both numbers move whenever waves are added. They are shown here as
 > they stood when this was generated.
 
@@ -88,7 +88,7 @@ the Crimson Twins.
 | **Unlocks** | — |
 | **Complete condition** | `maps.camp_fields.gate_cleared` >= 1 — "Venture further into the forest"  *(progress hidden)* |
 | **Reward** | equipment `gnawed_crown`, unlocks map `mine` |
-| **Tutorial run** | `no`   ← `yes` / `no` |
+| **Tutorial run** | **`yes`** — the only quest live during the tutorial run |
 
 **OFFER** — 
 
@@ -104,7 +104,7 @@ NOTE - AT THIS POINT HAVE LAYER THREE (CROWN LAYER) HIDDEN ON KINGS SPRITE
 
 **COMPLETED** — the NPC says this when you finish it
 
-> <slow>My crown...<slow> <fast>Very good!<fast> (UNHIDE KING SPRITE LAYER 3 (CROWN) BEFORE NEXT DIALOUGE) > I must say, you have impressed me by bringing this back. > There were more creatures in this forest than I'd expect. > There is more work to be done in the forest, however I have gotten word that there are also disturbances in the mine. > Lets retreat to camp for now, before you choose which trouble to pursue.
+> <slow>My crown...<slow> <fast>Very good!<fast> (UNHIDE KING SPRITE LAYER 3 (CROWN) BEFORE NEXT DIALOGUE) > I must say, you have impressed me by bringing this back. > There were more creatures in this forest than I'd expected. > There is more work to be done in the forest, however I have gotten word that there are also disturbances in the mine. > Let's retreat to camp for now, before you choose which trouble to pursue.
 
 ## The First Watch
 
@@ -126,7 +126,7 @@ WE ARE REMOVING THE FIRST WATCH QUEST. THE FIRST WATCH QUEST ESSENTIALLY BECOMES
 
 **OFFER** — 
 
-> Hello! I'm a cartographer, in the progress of mapping this forest. > Lately my work has become more diffictul with the increase in creatures about. Please, continue ridding the forest of more creatures so I can complete my assignment. I'll make it worth your time!
+> Hello! I'm a cartographer, in the process of mapping this forest. > Lately my work has become more difficult with the increase in creatures about. Please, continue ridding the forest of more creatures so I can complete my assignment. I'll make it worth your time!
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
@@ -145,7 +145,7 @@ WE ARE REMOVING THE FIRST WATCH QUEST. THE FIRST WATCH QUEST ESSENTIALLY BECOMES
 | **Group** | The Camp Fields |
 | **Unlocked by** | complete **Camp Cleanup** |
 | **Unlock condition** | `quests.camp_cleanup_1.completed` >= 1  *(completion of camp_cleanup_1)* |
-| **Unlocks** | **Camp Cleanup III** |
+| **Unlocks** | — |
 | **Complete condition** | `kills.map.camp_fields` >= 2000 — "*(stat's own label)*" |
 | **Reward** | 3 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
@@ -171,7 +171,7 @@ DELETE CAMP CLEANUP III
 
 | | |
 |---|---|
-| **Id** | `into_the_deep_wood` |
+| **Id** | `into_the_deep_woods` |
 | **NPC** | king |
 | **Group** | The Camp Fields |
 | **Unlocked by** | a ruckus in the woods |
@@ -218,13 +218,13 @@ DELETE CAMP CLEANUP III
 
 **COMPLETED** — the NPC says this when you finish it
 
-> <slow>Truly remarkable!<slow> You should be proud to have made it this far. You are the first two to have done so. > Now that the crimson beasts have been slain, we should move our efforts elsewhere. > Unfortanately there is no time to rest. >  This should help though, I've given you another equipment slot to help you along your way. > Stay safe.
+> <slow>Truly remarkable!<slow> You should be proud to have made it this far. You are the first two to have done so. > Now that the crimson beasts have been slain, we should move our efforts elsewhere. > Unfortunately there is no time to rest. >  This should help though, I've given you another equipment slot to help you along your way. > Stay safe.
 
 ## Wrecking Rat King
 
 | | |
 |---|---|
-| **Id** | `forest_ranger` |
+| **Id** | `wrecking_rat_king` |
 | **NPC** | Cartographer |
 | **Group** | The Camp Fields |
 | **Unlocked by** | complete **The Crimson Twins** |
@@ -236,7 +236,7 @@ DELETE CAMP CLEANUP III
 
 **OFFER** — 
 
-> Wow! You sure have gotten good at getting past him. I've been studying the rat kings movements. > I wonder how the battle would go if you didn't use your special abilities or equipment? > What? Pointless? No! This is extremely valuable research! > <slow>And...<slow> I'll give you more rewards. 
+> Wow! You sure have gotten good at getting past him. I've been studying the Rat King's movements. > I wonder how the battle would go if you didn't use your special abilities or equipment? > What? Pointless? No! This is extremely valuable research! > <slow>And...<slow> I'll give you more rewards. 
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
@@ -250,11 +250,11 @@ DELETE CAMP CLEANUP III
 
 | | |
 |---|---|
-| **Id** | `one_with_the_trees` |
+| **Id** | `crushing_crimson` |
 | **NPC** | Cartographer |
 | **Group** | The Camp Fields |
 | **Unlocked by** | complete **Forest Ranger** |
-| **Unlock condition** | `quests.wrecked rat king.completed` >= 1  *(completion of forest_ranger)* |
+| **Unlock condition** | `quests.wrecking_rat_king.completed` >= 1  *(completion of wrecking_rat_king)* |
 | **Unlocks** | — |
 | **Complete condition** | `feats.twins_bare` >= 1 — "Defeat the Crimson Twins with no equipment or special equipped"  *(progress hidden)* |
 | **Reward** | 4 crystals |
@@ -277,12 +277,12 @@ DELETE CAMP CLEANUP III
 
 | | |
 |---|---|
-| **Id** | `forest_explorer_1` |
+| **Id** | `forest_ranger` |
 | **NPC** | Cartographer |
 | **Group** | The Camp Fields |
 | **Unlocked by** | |
 | **Unlock condition** | reaches 33% of total forest wave types |
-| **Unlocks** | **Every Path in the Wood** |
+| **Unlocks** | **One with the woods** |
 | **Complete condition** | `waves.distinct.camp_fields` >= 60% of total "forest wave types met" |
 | **Reward** | 2 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
@@ -303,11 +303,11 @@ DELETE CAMP CLEANUP III
 
 | | |
 |---|---|
-| **Id** | `forest_explorer_2` |
+| **Id** | `one_with_the_woods` |
 | **NPC** | Cartographer |
 | **Group** | The Camp Fields |
-| **Unlocked by** | complete **The Long Way Round** |
-| **Unlock condition** | `quests.forest_explorer_1.completed` >= 1  *(completion of forest_explorer_1)* |
+| **Unlocked by** | complete **Forest ranger** |
+| **Unlock condition** | `quests.forest_ranger.completed` >= 1  *(completion of forest_ranger)* |
 | **Unlocks** | — |
 | **Complete condition** | `waves.distinct.camp_fields` >= total amount of waves in the forest — "forest wave types met" |
 | **Reward** | equipment `wolfsbane_pendant` |
@@ -324,7 +324,7 @@ DELETE CAMP CLEANUP III
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Wow! I've done it! <slow>Or..<slow> We've done it! We have documented the entirity of the forest.> I've been wearing this as a form of protection, but I want you to have it now. > Thank you for your help in this undertaking!
+> Wow! I've done it! <slow>Or..<slow> We've done it! We have documented the entirety of the forest.> I've been wearing this as a form of protection, but I want you to have it now. > Thank you for your help in this undertaking!
 
 ---
 
@@ -348,11 +348,11 @@ DELETE CAMP CLEANUP III
 
 **OFFER** — the NPC says this when the quest appears
 
-> Welcome to the mines! > We have had to pause our operations within these caves, since the gnomes have taken ahold of them. Their overseer is said to be holed deep within. > Please put an end to to this madness so we can once again put the mines to use.
+> Welcome to the mines! > We have had to pause our operations within these caves, since the gnomes have taken hold of them. Their overseer is said to be holed up deep within. > Please put an end to this madness so we can once again put the mines to use.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> The kingdoms mine has been taken over by gnomes. Explore deeper into the mines, and investigate rumors of an overseer that may be orchestrating the chaos.
+> The kingdom's mine has been taken over by gnomes. Explore deeper into the mines, and investigate rumors of an overseer that may be orchestrating the chaos.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -360,7 +360,7 @@ DELETE CAMP CLEANUP III
 
 BEGIN KINGS EXIT SEQUENCE. AFTER HE NAVIGATES TWO UNITS DOWNWARD TRIGGER NEXT TEXT BOX.
 
-> <slow>Oh yes...<slow> There is more trouble in the kingdom... > One of our old keeps has been turned into an enemy foothold. > They are within our own walls. > I know you still have to be done here, but your help is needed at the pallid keep.
+> <slow>Oh yes...<slow> There is more trouble in the kingdom... > One of our old keeps has been turned into an enemy foothold. > They are within our own walls. > I know you still have work to be done here, but your help is needed at the pallid keep.
 
 SHOW REWARDS SCREEN
 
@@ -368,19 +368,19 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `off_the_rails` |
+| **Id** | `clearing_out_carts` |
 | **NPC** | Cartographer |
 | **Group** | The Mine |
 | **Unlocked by** | no required quests to unlock |
 | **Unlock condition** | destroy 10 empty mine carts |
 | **Unlocks** | — |
-| **Complete condition** | `kills.family.cart` >= 100 — "*(stat's own label)*" |
+| **Complete condition** | `carts.broken.empty` >= 300 — "empty carts broken" |
 | **Reward** | 2 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
 **OFFER** — the NPC says this when the quest appears
 
-> It seems you too have noticed the abundance of empty mine carts in these caves. > They are a nuissance to navigate! > Please continue to destroy them, and I will ensure I reward you.
+> It seems you too have noticed the abundance of empty mine carts in these caves. > They are a nuisance to navigate! > Please continue to destroy them, and I will ensure I reward you.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
@@ -388,7 +388,7 @@ SHOW REWARDS SCREEN
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Wow! It sure does feel more spacious in here with less of those empty mine carts rolling around! > Here is some pay for your trouble.
+> Wow! It sure does feel more spacious in here with fewer of those empty mine carts rolling around! > Here is some pay for your trouble.
 
 ## Powder and Patience
 
@@ -397,20 +397,20 @@ SHOW REWARDS SCREEN
 | **Id** | `powder_and_patience` |
 | **NPC** | Cartographer |
 | **Group** | The Mine |
-| **Unlocked by** | *(available from a new game)* |
-| **Unlock condition** | — |
+| **Unlocked by** | *(no prerequisite quest)* |
+| **Unlock condition** | blow up 20 explosive carts |
 | **Unlocks** | — |
-| **Complete condition** | `kills.blasted` >= 50 — "*(stat's own label)*" |
+| **Complete condition** | `kills.blasted` >= 150 — "*(stat's own label)*" |
 | **Reward** | 2 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
 **OFFER** — the NPC says this when the quest appears
 
-> I see you've noticed my explosives. > I've been rigging some of the carts to open new routes within the mines. >It looks like you've found, <slow>another<slow> purpose for them. > It has been helping research with less distractions. > If you continue to blow up creates with the mine cart explosives, I can reward you.
+> I see you've noticed my explosives. > I've been rigging some of the carts to open new routes within the mines. >It looks like you've found <slow>another<slow> purpose for them. > It has been helping research with less distractions. > If you continue to blow up creatures with the mine cart explosives, I can reward you.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> The cartogropher his been rigging the carts in the mine with explosives. He wants us to put these explosives to use and finish off some creatures with them.
+> The cartographer has been rigging the carts in the mine with explosives. He wants us to put these explosives to use and finish off some creatures with them.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -422,7 +422,7 @@ SHOW REWARDS SCREEN
 | | |
 |---|---|
 | **Id** | `the_gold_cart` |
-| **NPC** | Cartographer |
+| **NPC** | King |
 | **Group** | The Mine |
 | **Unlocked by** | `maps.mine.gate_cleared` reaches 1 |
 | **Unlock condition** | `maps.mine.gate_cleared` >= 1 |
@@ -441,18 +441,18 @@ SHOW REWARDS SCREEN
 
 **COMPLETED** — the NPC says this when you finish it
 
-> <slow>The overseer is dead...<slow> Well done. > We should be able to begin to put these mines back to use slowly > I'm sure it will be some time before the gnomes fully clear out. > I've given you the ability to posses another special equipment slot. > If you have two specials equipped on one of you, when activated, both special effects will engage simutaneously. > This should greatly aid you on your journey.
+> <slow>The overseer is dead...<slow> Well done. > We should be able to begin to put these mines back to use slowly > I'm sure it will be some time before the gnomes fully clear out. > I've given you the ability to posses another special equipment slot. > If you have two specials equipped on one of you, when activated, both special effects will engage simultaneously. > This should greatly aid you on your journey.
 
 ## Start spelunking
 
 | | |
 |---|---|
-| **Id** | `mine_explorer_1` |
+| **Id** | `start_spelunking` |
 | **NPC** | Cartographer |
 | **Group** | The Mine |
 | **Unlocked by** | |
 | **Unlock condition** | `waves.distinct.mine` >= 30% of total mine waves |
-| **Unlocks** | **Every Shaft Walked** |
+| **Unlocks** | **Certified Shaft Spelunker** |
 | **Complete condition** | `waves.distinct.mine` >= 66% total mine waves — "mine wave types met" |
 | **Reward** | 2 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
@@ -473,11 +473,11 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `mine_explorer_2` |
+| **Id** | `certified_shaft_spelunker` |
 | **NPC** | Cartographer |
 | **Group** | The Mine |
-| **Unlocked by** | complete **Deeper Workings** |
-| **Unlock condition** | `quests.mine_explorer_1.completed` >= 1  *(completion of mine_explorer_1)* |
+| **Unlocked by** | complete **Start spelunking** |
+| **Unlock condition** | `quests.start_spelunking.completed` >= 1  *(completion of start_spelunking)* |
 | **Unlocks** | — |
 | **Complete condition** | `waves.distinct.mine` >= 100% of total of all  "mine wave types met" |
 | **Reward** | 4 crystals |
@@ -489,7 +489,7 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> You have almost fully charted every single shaft within the mines. Continuee your exploration until it is complete.
+> You have almost fully charted every single shaft within the mines. Continue your exploration until it is complete.
 **COMPLETED** — the NPC says this when you finish it
 
 > Amazing! We've gathered a full map covering each shaft within the cave! > I couldn't have done this without your help. Please take this.
@@ -512,7 +512,7 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> Legend has it the overseer has legions of fellow overseeing bretheren. > Slay one of them with nothing equipped. > <fast>For research purposes<fast> 
+> Legend has it the overseer has legions of fellow overseeing brethren. > Slay one of them with nothing equipped. > <fast>For research purposes<fast> 
 
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
@@ -543,11 +543,11 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> The serpant order has noticed your poison techniques. > We can teach you more... >  We'll be watching. 
+> The Serpent Order has noticed your poison techniques. > We can teach you more... >  We'll be watching. 
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> An assasin took note of our work. If we continue using poison, we will see what comes of it.
+> An assassin took note of our work. If we continue using poison, we will see what comes of it.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -557,24 +557,24 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `serpent_fang_1` |
+| **Id** | `deadly_aroma` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Green Oath** |
 | **Unlock condition** | `quests.serpent_initiation.completed` >= 1  *(completion of serpent_initiation)* |
-| **Unlocks** | **The slow work** |
-| **Complete condition** | `simultaneously.poisoned` >= 11 11 creatues poisoned simultaneously alive |
+| **Unlocks** | **Acidic Accumulation** |
+| **Complete condition** | `simultaneously.poisoned` >= 11 11 creatures poisoned simultaneously alive |
 | ** progress | Show their highest simultaneous poison count / 11
 | **Reward** | serpents eye |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
 **OFFER** — the NPC says this when the quest appears
 
-> No offer text. uses completion text of intiation
+> No offer text. uses completion text of initiation
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> We're challenged by the serpant order to have 11 creatures poisoned simultaneously.
+> We're challenged by the Serpent Order to have 11 creatures poisoned simultaneously.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -584,11 +584,11 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `serpent_fang_2` |
+| **Id** | `acidic_accumulation` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Deadly Aroma** |
-| **Unlock condition** | `quests.serpent_fang_1.completed` >= 1  *(completion of serpent_fang_1)* |
+| **Unlock condition** | `quests.deadly_aroma.completed` >= 1  *(completion of deadly_aroma)* |
 | **Unlocks** | — |
 | **Complete condition** | `kills.highest poison tick` >= 100 |
 | progress | Highest poison tick yet / 100 
@@ -597,11 +597,11 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> None. Deadly aroma completion text is uesd.
+> None. Deadly aroma completion text is used.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> We're challenged by the serpent order to deal 100 poison damage at once.
+> We're challenged by the Serpent Order to deal 100 poison damage at once.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -611,7 +611,7 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `serpent_coil_1` |
+| **Id** | `the_slow_work` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Green Oath** |
@@ -627,7 +627,7 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> We're being challenged by the serpent order to slay 300 enemies using poison.
+> We're being challenged by the Serpent Order to slay 300 enemies using poison.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -637,11 +637,11 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `serpent_coil_2` |
+| **Id** | `dagger_of_death` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
 | **Unlocked by** | complete **the slow work** |
-| **Unlock condition** | `quests.serpent_coil_1.completed` >= 1  *(completion of serpent_coil_1)* |
+| **Unlock condition** | `quests.the_slow_work.completed` >= 1  *(completion of the_slow_work)* |
 | **Unlocks** | — |
 | **Complete condition** | `upgrades.taken.acid dagger` >= 1 — "Acquire acid dagger, the Serpent capstone" and kill 5 enemies with the acid dagger progress: kills / 5 |
 | **Reward** |  2 crystals & Upgrade Acid Dagger |
@@ -653,11 +653,11 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> Obtain one of the serpent orders most lethal abilities. 
+> Obtain one of the Serpent Order's most lethal abilities. 
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Well done. You've shown you know what it means to belong to the serpent order.
+> Well done. You've shown you know what it means to belong to the Serpent Order.
 
 ---
 
@@ -681,11 +681,11 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> You seem to have no shortage of infantry.. > If you show us you know how to use it properly, we may be able to teach you more.
+> You seem to have no shortage of arrows.. > If you show us you know how to use it properly, we may be able to teach you more.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> Show you know how to aim your shadow arrows in order to be accepted by the shadow order.
+> Show you know how to aim your shadow arrows in order to be accepted by the Shadow Order.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -695,7 +695,7 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `shadow_blade_1` |
+| **Id** | `symphony_of_shadows` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Silent Oath** |
@@ -712,7 +712,7 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> Land 75 shadow arrows in a single wave to prove yourself to the shadow order.
+> Land 75 shadow arrows in a single wave to prove yourself to the Shadow Order.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -722,13 +722,13 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `shadow_blade_2` |
+| **Id** | `thousand_cuts` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
-| **Unlocked by** | Beastly Blades |
-| **Unlock condition** | `quests.beastly_blades_1.completed` >= 1  *(completion of shadow_blade_1)* |
+| **Unlocked by** | complete **Beastly Blades** |
+| **Unlock condition** | `quests.beastly_blades.completed` >= 1  *(completion of beastly_blades)* |
 | **Unlocks** | — |
-| **Complete condition** | `upgrades.taken.thousand_cuts` >= 1 — "Acquire Thousand Cuts, the Shadow capsstone" and have it activate 20 times. Progress: activations / 20 |
+| **Complete condition** | `upgrades.taken.thousand_cuts` >= 1 — "Acquire Thousand Cuts, the Shadow capstone" and have it activate 20 times. Progress: activations / 20 |
 | **Reward** | 3 crystals and thousand cuts upgrade |  |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
@@ -738,21 +738,21 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> The shadow order assassin told us he will teach us the order's sacred technique. 
+> The Shadow Order assassin told us he will teach us the order's sacred technique. 
 
 **COMPLETED** — the NPC says this when you finish it
 
-> You now understand the true power of the shadow order. <slow>You are one with the shade.<slow>
+> You now understand the true power of the Shadow Order. <slow>You are one with the shade.<slow>
 
 ## Slicing Spirals
 
 | | |
 |---|---|
-| **Id** | `shadow_fan_1` |
+| **Id** | `slicing_spirals` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Symphony of shadows** |
-| **Unlock condition** | `quests.symphony of shadows.completed` >= 1  |
+| **Unlock condition** | `quests.symphony_of_shadows.completed` >= 1  |
 | **Unlocks** |  |
 | **Complete condition** | `feats.shuriken_hits.in_same_wave` >= 75 — "Land 75 shurikens in a single wave"   |
 | progress | Show the most shurikens landed in one wave / 75 
@@ -765,7 +765,7 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> Land 75 shurikens in a single wave to prove yourself to the shadow order.
+> Land 75 shurikens in a single wave to prove yourself to the Shadow Order.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -775,12 +775,12 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `shadow_fan_2` |
+| **Id** | `beastly_blades` |
 | **NPC** | Ninja |
 | **Group** | The Camp |
-| **Unlocked by** | Green oath initiation |
-| **Unlock condition** | green oath initation* |
-| **Unlocks** | Dagger of death |
+| **Unlocked by** | complete **Initiation: The Silent Oath** |
+| **Unlock condition** | `quests.shadow_initiation.completed` >= 1 |
+| **Unlocks** | **Thousand Cuts** |
 | **Complete condition** | 1. `feats.phantom_full_3` >= 1 — "Land a swing and both its phantom echoes. 6 kills with a phantom swing in one wave. (objectives can be completed in separate waves)  *(progress hidden) |
 | **Reward** | equipment `echo_ribbon` |
 | **Tutorial run** | `no`   ← `yes` / `no` |
@@ -795,7 +795,7 @@ SHOW REWARDS SCREEN
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Your swing is strong. > Lets see if you're able to master our orders secret technique.
+> Your swing is strong. > Let's see if you're able to master our Order's secret technique.
 
 ---
 
@@ -812,28 +812,28 @@ SHOW REWARDS SCREEN
 | **Group** | The Camp |
 | **Unlocked by** | `applied.ignite` reaches 60 |
 | **Unlock condition** | `applied.ignite` >= 60 |
-| **Unlocks** | **Up in smoke**, **Lay the Pyre** |
+| **Unlocks** | **Up in smoke**, **Superb Spellcasting** |
 | **Complete condition** | 1. `applied.ignite` >= 300 — "enemies set alight"<br>2. `kills.burned` >= 150 — "slain by fire"<br>3. `upgrades.order.ember` >= 5 — "ember upgrades taken"<br>*(all must be met together)* |
 | **Reward** | 2 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
 **OFFER** — the NPC says this when the quest appears
 
-> Oh oh. I must say, you sure seem to know how to heat things up! > <fast>Your fire abilities show true potential!<fast> > The ember order could benefit from another member. > If you show you are serious in your pyromancy, we can train you knightly skills to not only bash, but also <slow>burn.<slow>
+> Oh oh. I must say, you sure seem to know how to heat things up! > <fast>Your fire abilities show true potential!<fast> > The Ember Order could benefit from another member. > If you show you are serious in your pyromancy, we can train you knightly skills to not only bash, but also <slow>burn.<slow>
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> A wizard of the fire order revealed himself, and offered to enroll us if we can pass his initiation trials.
+> A wizard of the Fire Order revealed himself, and offered to enroll us if we can pass his initiation trials.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Yes! That was great! > I knew that you were capable of not only setting creatures ablaze, but reducing them to ashes. > <fast>You have shown yourself worth of more challenging tasks! <fast> > If you complete more of our trials you will be rewarded with fire enhancing equipment and techniques. . Burn Brightly.
+> Yes! That was great! > I knew that you were capable of not only setting creatures ablaze, but reducing them to ashes. > <fast>You have shown yourself worthy of more challenging tasks! <fast> > If you complete more of our trials you will be rewarded with fire enhancing equipment and techniques. . Burn Brightly.
 
 ## Up in smoke
 
 | | |
 |---|---|
-| **Id** | `ember_brand_1` |
+| **Id** | `up_in_smoke` |
 | **NPC** | Wizard (fire) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Ashen Oath** |
@@ -845,27 +845,27 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> None. Ashen oath complettion text
+> None. Ashen oath completion text
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> One of our first ember initiation trials is to cover the field in fire.
+> One of our first Ember initiation trials is to cover the field in fire.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> <fast>Ho ho! Wow!<Fast> It sure got hot in here. > That was an exquisitely large fire you created just now! > Take this as a token of recognition. > Lets see if you can handle an even more challenging feat of fire! > Burn Brightly.
+> <fast>Ho ho! Wow!<Fast> It sure got hot in here. > That was an exquisitely large fire you created just now! > Take this as a token of recognition. > Let's see if you can handle an even more challenging feat of fire! > Burn Brightly.
 
 ## Sustained Sizzle
 
 | | |
 |---|---|
-| **Id** | `ember_brand_2` |
+| **Id** | `sustained_sizzle` |
 | **NPC** | Wizard (fire) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Up in smoke** |
-| **Unlock condition** | *1200 damage to boss while enflamed without deigniting* (progress shows the most uninterrupted damage ever done / 1200 ) |
+| **Unlock condition** | `quests.up_in_smoke.completed` >= 1  *(completion of up_in_smoke)* |
 | **Unlocks** | — |
-| **Complete condition** |  |
+| **Complete condition** | *1200 damage to a boss while it stays alight, without the burn ever dropping*  (progress shows the most uninterrupted damage ever done / 1200) |
 | **Reward** | equipment `Emberbrand` |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
@@ -875,7 +875,7 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> We have been challenged with one of the ember order's most challenging trials. We must keep a sustain our flame on a boss mob while dealing massive damage. 
+> We have been challenged with one of the Ember Order's most challenging trials. We must sustain our flame on a boss mob while dealing massive damage. 
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -885,23 +885,23 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `ember_pyre_1` |
+| **Id** | `superb_spellcasting` |
 | **NPC** | Wizard (fire) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Ashen Oath** |
 | **Unlock condition** | `quests.ember_initiation.completed` >= 1  *(completion of ember_initiation)* |
-| **Unlocks** | **Salt the Earth** |
-| **Complete condition** | `Land 30 fireballs in a run. *(show most fireballs landed in a run / 30)* |
+| **Unlocks** | **The Permanence of Pyromancy** |
+| **Complete condition** | `Land 150 fireballs in a run. *(show most fireballs landed in a run / 150)* |
 | **Reward** | 2 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
 **OFFER** — the NPC says this when the quest appears
 
-> None. Ashen oath complettion text
+> None. Ashen oath completion text
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> One of our first ember initiation trials is to master our spell casting. We must show off our accuracy with fireball casts.
+> One of our first Ember initiation trials is to master our spell casting. We must show off our accuracy with fireball casts.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -911,13 +911,13 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `ember_pyre_2` |
+| **Id** | `permanence_of_pyromancy` |
 | **NPC** | Wizard (fire) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Superb Spellcasting** |
-| **Unlock condition** | `quests.ember_pyre_1.completed` >= 1  *(completion of ember_pyre_1)* |
+| **Unlock condition** | `quests.superb_spellcasting.completed` >= 1  *(completion of superb_spellcasting)* |
 | **Unlocks** | — |
-| **Complete condition** | `upgrades.taken.scorched_earth` >= 1 — "Acquire Scorched Earth, the Ember capstone" Create a fire field that lasts over a minte long. |
+| **Complete condition** | `upgrades.taken.scorched_earth` >= 1 — "Acquire Scorched Earth, the Ember capstone" Create a fire field that lasts over a minute long. |
 | **Reward** | equipment `cinder_crown` and upgrade |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
@@ -927,7 +927,7 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> The ember order has agreed to teach us one of the sacred fire spells.
+> The Ember Order has agreed to teach us one of its sacred fire spells, Scorched Earth. To prove we have learned it, we must take it up in battle and keep a single fire burning without ever letting it go out.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -955,11 +955,11 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> Oh.. It seems that you may know how to handle frost magic.. That is very exciting! > The frost order would like to see if you have what it takes to join our ranks! > If you're able to handle these challenges, we will tell you more.
+> Oh.. It seems that you may know how to handle frost magic.. That is very exciting! > The Frost Order would like to see if you have what it takes to join our ranks! > If you're able to handle these challenges, we will tell you more.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> A wizard from the frost order is offering to let us undergo their initiation trials. We must 
+> A wizard from the Frost Order is offering to let us undergo their initiation trials. We must 
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -969,13 +969,13 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `frigid_rime_1` |
+| **Id** | `frozen_in_time` |
 | **NPC** | Wizard (frost) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Frosted Oath** |
 | **Unlock condition** | `quests.frigid_initiation.completed` >= 1  *(completion of frigid_initiation)* |
 | **Unlocks** | **Brittle things** |
-| **Complete condition** | `frigid.frozen.duration` >= 5 minutes — "enemies frozen for 5 minutes across mutliple runs" progress shows total frozen duration |
+| **Complete condition** | `frigid.frozen.duration` >= 5 minutes — "enemies frozen for 5 minutes across multiple runs" progress shows total frozen duration |
 | **Reward** | equipment `winters tooth` |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
@@ -989,17 +989,17 @@ SHOW REWARDS SCREEN
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Hoo. <fast>You stopped those creatures in their tracks!<fast> as a reward for your dedication to the fine art of frost we presesnt you this trinket. > As well as, another trial. > Not only can frost freeze, it can fell an enemy too.
+> Hoo. <fast>You stopped those creatures in their tracks!<fast> as a reward for your dedication to the fine art of frost we present you this trinket. > As well as, another trial. > Not only can frost freeze, it can fell an enemy too.
 
 ## Brittle Things 
 
 | | |
 |---|---|
-| **Id** | `frigid_rime_2` |
+| **Id** | `brittle_things` |
 | **NPC** | Wizard (frost) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Frozen in Time** |
-| **Unlock condition** | `quests.frigid_rime_1.completed` >= 1  *(completion of frigid_rime_1)* |
+| **Unlock condition** | `quests.frozen_in_time.completed` >= 1  *(completion of frozen_in_time)* |
 | **Unlocks** | — |
 | **Complete condition** | `feats.shatter_damage.300 in one non boss wave` >= 300 shatter damage done in one wave. Most shatter damage done in one wave / 300 |
 | **Reward** | equipment `heart of ice` |
@@ -1011,17 +1011,17 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> Another trial from the frost order. This time we must deal massive damage with shatter damage.
+> Another trial from the Frost Order. This time we must deal massive damage with shatter damage.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Hoh! Well done! You've shown that not only can you use the frost orders abilities well, but lethaly. > You have earned the title of a frost knight. Great work! 
+> Hoh! Well done! You've shown that not only can you use the Frost Order's abilities well, but lethally. > You have earned the title of a frost knight. Great work! 
 
 ## Frozen Final Chances
 
 | | |
 |---|---|
-| **Id** | `frigid_silence_1` |
+| **Id** | `frozen_final_chances` |
 | **NPC** | Wizard (frost) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Frosted Oath** |
@@ -1037,21 +1037,21 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> After our frost order initiation we are undergoing a trial to freeze a number of enemies that have been chilled by our glaical ward within one run.
+> After our Frost Order initiation we are undergoing a trial to freeze a number of enemies that have been chilled by our glacial ward within one run.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Brr! You just barely managed to stop those creatures in time > You are ready to undergo training with the frost orders most pain inducing spell. > 
+> Brr! You just barely managed to stop those creatures in time > You are ready to undergo training with the Frost Order's most pain-inducing spell. > 
 
 ## Frigid Fatalities
 
 | | |
 |---|---|
-| **Id** | `frigid_silence_2` |
+| **Id** | `frigid_fatalities` |
 | **NPC** | Wizard (frost) |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Frozen Final Chances** |
-| **Unlock condition** | `quests.frigid_silence_1.completed` >= 1  *(completion of frigid_silence_1)* |
+| **Unlock condition** | `quests.frozen_final_chances.completed` >= 1  *(completion of frozen_final_chances)* |
 | **Unlocks** | — |
 | **Complete condition** | `upgrades.taken.permafrost` >= 1 — "Acquire Deep Freeze III, the deepest ice" and deal 100 frozen frost damage  *(progress hidden)* |
 | **Reward** | equipment `hoarfrost_band` upgrade |
@@ -1063,11 +1063,11 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> The frost order has offered us the chance to learn one of their most lethal frost spells.
+> The Frost Order has offered us the chance to learn one of their most lethal frost spells.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Grat job. You've now witnessed all that is capable within the frost order. 
+> Great job. You've now witnessed all that is capable within the Frost Order. 
 
 ---
 
@@ -1091,11 +1091,11 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> Greetings. It seems that you may be interested in the guardian order's abilities. > If you prove your worth then we will be more than willing to teach you the way of the guardian! > Here, try your hand at these trials before we speak more.
+> Greetings. It seems that you may be interested in the Guardian Order's abilities. > If you prove your worth then we will be more than willing to teach you the way of the guardian! > Here, try your hand at these trials before we speak more.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> A paladin of the guardian order has noticed our skills. We must utilize their abilities to learn more.
+> A paladin of the Guardian Order has noticed our skills. We must utilize their abilities to learn more.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -1105,7 +1105,7 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `guardian_wall_1` |
+| **Id** | `whats_yours_is_mine` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Standing Order** |
@@ -1131,11 +1131,11 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `guardian_wall_2` |
+| **Id** | `shield_slammer` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Whats yours is mine** |
-| **Unlock condition** | `quests.guardian_wall_1.completed` >= 1  *(completion of guardian_wall_1)* |
+| **Unlock condition** | `quests.whats_yours_is_mine.completed` >= 1  *(completion of whats_yours_is_mine)* |
 | **Unlocks** | — |
 | **Complete condition** | `upgrades.taken.bulwark` >= 1 — "Acquire Bulwark, the Guardian capstone" and bounce back enemies 15 times |
 | **Reward** | 2 crystals and upgrade |
@@ -1151,13 +1151,13 @@ SHOW REWARDS SCREEN
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Amazing work! You have shown you understand what it means to be a guardian. > We are honnored to have you amongst us. 
+> Amazing work! You have shown you understand what it means to be a guardian. > We are honored to have you amongst us. 
 
 ## Ace Shooter
 
 | | |
 |---|---|
-| **Id** | `guardian_line_1` |
+| **Id** | `ace_shooter` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The Standing Order** |
@@ -1169,7 +1169,7 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> none initation completion text.
+> none initiation completion text.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
@@ -1177,19 +1177,19 @@ SHOW REWARDS SCREEN
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Brilliant shots! You didn't miss once. > Lets see if you have that same finesse with your sword.
+> Brilliant shots! You didn't miss once. > Let's see if you have that same finesse with your sword.
 
 ## A safe distance
 
 | | |
 |---|---|
-| **Id** | `guardian_line_2` |
+| **Id** | `a_safe_distance` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Ace Shooter** |
-| **Unlock condition** | `quests.guardian_line_1.completed` >= 1  *(completion of guardian_line_1)* |
+| **Unlock condition** | `quests.ace_shooter.completed` >= 1  *(completion of ace_shooter)* |
 | **Unlocks** | — |
-| **Complete condition** | `get 10 long distance sword kills in one wave." (long distance is considered 2.55+ units away from a knight) |
+| **Complete condition** | `get 10 long-distance sword kills in one wave." (long distance is considered 2.55+ units away from a knight) |
 | **Reward** | equipment `worn_baldric` |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
@@ -1199,11 +1199,11 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> The guardian has given us a trial for our blade. Get long distance kills with our long swor in a single wave.
+> The guardian has given us a trial for our blade. Get long distance kills with our long sword in a single wave.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> You have mastered the guardian equipment and shown your self honorable. > You are hereeby an exalted guardian!
+> You have mastered the guardian equipment and shown yourself honorable. > You are hereby an exalted guardian!
 
 ---
 
@@ -1220,18 +1220,18 @@ SHOW REWARDS SCREEN
 | **Group** | The Camp |
 | **Unlocked by** | `dawn.shared_light` reaches 40 or 20 health regened from lifebloom |
 | **Unlock condition** | `dawn.shared_light` >= 40 |
-| **Unlocks** | **The Longer Half**, **Draw From The Well** |
+| **Unlocks** | **First aid frenzy**, **Regained composure** |
 | **Complete condition** | 1. `dawn.shared_light` >= 100 — "heals passed to the other knight"<br>2. `dawn.lifebloom` >= 50 — "kills that healed"<br> |
 | **Reward** | 2 crystals |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
 **OFFER** — the NPC says this when the quest appears
 
-> You must be intrigued by the powers of the dawn order. > We can teach you healing abilities far greater than you've seen before. > First you must show us you're able.
+> You must be intrigued by the powers of the Dawn Order. > We can teach you healing abilities far greater than you've seen before. > First you must show us you're able.
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> A paladin of the dawn order has shown up and challenged us to prove our abilities with healing spells.
+> A paladin of the Dawn Order has shown up and challenged us to prove our abilities with healing spells.
 
 **COMPLETED** — the NPC says this when you finish it
 
@@ -1241,13 +1241,13 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `dawn_vigil_1` |
+| **Id** | `first_aid_frenzy` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The protected order** |
 | **Unlock condition** | `quests.dawn_initiation.completed` >= 1  *(completion of dawn_initiation)* |
 | **Unlocks** | **Not a scratch** |
-| **Complete condition** | `Heat.150" heal 150 health in a single wave |
+| **Complete condition** | `Heal.150" heal 150 health in a single wave |
 | **Reward** | equipment `warm_lantern` |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
@@ -1257,21 +1257,21 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> Another trial from the dawn paladin. We must recover plenty of health within a single wave.
+> Another trial from the Dawn paladin. We must recover plenty of health within a single wave.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> Nicely done, you really are putting your healing spells to use. > Lets see if you can take them even further. 
+> Nicely done, you really are putting your healing spells to use. > Let's see if you can take them even further. 
 
 ## Not a scratch
 
 | | |
 |---|---|
-| **Id** | `dawn_vigil_2` |
+| **Id** | `not_a_scratch` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **First aid frenzy** |
-| **Unlock condition** | `quests.dawn_vigil_1.completed` >= 1  *(completion of dawn_vigil_1)* |
+| **Unlock condition** | `quests.first_aid_frenzy.completed` >= 1  *(completion of first_aid_frenzy)* |
 | **Unlocks** | — |
 | **Complete condition** | `feats.survive.10.roundsatfullhealth. Survive 10 waves in a row with both knights at full health |
 | **Reward** | equipment `oathbound_locket` |
@@ -1279,21 +1279,21 @@ SHOW REWARDS SCREEN
 
 **OFFER** — the NPC says this when the quest appears
 
-> none first aid frency completion
+> none first aid frenzy completion
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> The dawn paladin has asked us to take another trial, surviving waves of creatures at max health. (Note you can take damage, just not end the wave below max health.)
+> The Dawn paladin has asked us to take another trial, surviving waves of creatures at max health. (Note you can take damage, just not end the wave below max health.)
 
 **COMPLETED** — the NPC says this when you finish it
 
-> The dawn order is pleased with your progress. > We hope you cherish this reward, and continue to be a light to those around you.
+> The Dawn Order is pleased with your progress. > We hope you cherish this reward, and continue to be a light to those around you.
 
 ## Regained composure
 
 | | |
 |---|---|
-| **Id** | `dawn_wellspring_1` |
+| **Id** | `regained_composure` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Initiation: The protected order** |
@@ -1319,14 +1319,14 @@ SHOW REWARDS SCREEN
 
 | | |
 |---|---|
-| **Id** | `dawn_wellspring_2` |
+| **Id** | `the_last_light` |
 | **NPC** | Paladin |
 | **Group** | The Camp |
 | **Unlocked by** | complete **Regained composure** |
-| **Unlock condition** | `quests.dawn_wellspring_1.completed` >= 1  *(completion of dawn_wellspring_1)* |
+| **Unlock condition** | `quests.regained_composure.completed` >= 1  *(completion of regained_composure)* |
 | **Unlocks** | — |
 | **Complete condition** | `upgrades.taken.last_light` >= 1 — "Acquire Last Light, the Dawn capstone" and activate it once |
-| **Reward** | equipment `dawnbreak_crown` |
+| **Reward** | equipment `dawnbreak_crown` and the Last Light upgrade |
 | **Tutorial run** | `no`   ← `yes` / `no` |
 
 **OFFER** — the NPC says this when the quest appears
@@ -1335,11 +1335,11 @@ SHOW REWARDS SCREEN
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 
-> We must learn the dawn orders sacred healing spell and put it to use.
+> We must learn the Dawn Order's sacred healing spell and put it to use.
 
 **COMPLETED** — the NPC says this when you finish it
 
-> You are a light in darkness. > You have shown to be worthy of the dawn orders charms > Please wear this crown with dignity.
+> You are a light in darkness. > You have shown to be worthy of the Dawn Order's charms > Please wear this crown with dignity.
 
 ---
 

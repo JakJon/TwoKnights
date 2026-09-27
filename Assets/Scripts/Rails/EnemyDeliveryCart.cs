@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // A cart hauling something alive under a grate, bound for a flagged spot on the
@@ -146,22 +146,26 @@ public class EnemyDeliveryCart : EnemyMineCart
 
         switch (cargo)
         {
+            // A cart's cargo is authored per wave and is the point of the cart, so
+            // these name their rat outright instead of taking the map's cadence.
+            // Naming one does not advance that cadence either.
             case Cargo.BrownRat:
-                spawner.SpawnRat(at, spawner.brownRat, 0f, target);
+                spawner.SpawnRat(at, 0f, target, spawner.brownRat);
                 break;
             case Cargo.GreyRat:
-                spawner.SpawnRat(at, spawner.greyRat, 0f, target);
+                spawner.SpawnRat(at, 0f, target, spawner.greyRat);
                 break;
             case Cargo.BlackRat:
-                spawner.SpawnRat(at, spawner.blackRat, 0f, target);
+                spawner.SpawnRat(at, 0f, target, spawner.blackRat);
                 break;
             case Cargo.Bat:
                 // Bats pick their own knight, and the dark-bat cadence is counted
                 // inside SpawnBat so the pattern stays the wave's, not the cart's
-                spawner.SpawnBat(at, 0f);
+                spawner.SpawnBat(at, 0f, entersFromOffscreen: false);
                 break;
             case Cargo.Slime:
-                spawner.SpawnSlime(Mathf.Max(1, slimeSize), at, 0f, target);
+                spawner.SpawnSlime(Mathf.Max(1, slimeSize), at, 0f, target,
+                                   entersFromOffscreen: false);
                 break;
         }
     }

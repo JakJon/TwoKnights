@@ -11,9 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6299f799a84fece41b0981d7fb4b7694, type: 3}
   m_Name: Venom Tip 2
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   upgradeName: Venom Tip II
-  description: More arrows carry venom, and the beads linger twice as long.
+  description: More arrows carry venom, and the beads linger three times as long.
   weight: 80
   order: 1
   requiresOrderCount: 0
@@ -27,8 +27,8 @@ MonoBehaviour:
   - valueText: 60%
     labelText: ARROWS
     isPositive: 1
-  - valueText: 10s
+  - valueText: 3s
     labelText: VENOM TRAIL
     isPositive: 1
   poisonChanceIncrease: 30
-  trailBubbleSeconds: 10
+  trailBubbleSeconds: 3

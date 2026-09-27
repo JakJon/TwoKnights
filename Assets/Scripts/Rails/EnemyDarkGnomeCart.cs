@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 // The Overseer (WORKING NAME — one string on the prefab and one in MineQuests):
@@ -34,6 +34,11 @@ using UnityEngine;
 // BeginLastStand for why that is a promise and not a cheat.
 public class EnemyDarkGnomeCart : EnemyGnomeCart
 {
+    // The quests know him as the Overseer, so the kill counter says so. Without
+    // this the key would be minted from the class name as "kills.darkgnomecart",
+    // which nothing reads and no player would recognise.
+    protected override string StatKey => "overseer";
+
     [Header("Pickaxes")]
     [Tooltip("One at EACH knight on every throw, like the purple gnome — there is only one of him, so a throw that could be answered by turning a single guard would be no question at all.")]
     [SerializeField] private GameObject pickaxePrefab;
@@ -438,13 +443,15 @@ public class EnemyDarkGnomeCart : EnemyGnomeCart
                   $"cart at {(Cart != null ? Cart.Speed : 0f):F2}, pickaxes x{1f / Mathf.Max(0.05f, lastStandThrowScale):F1}");
     }
 
-    public override void TakeDamage(int damage, GameObject projectile)
+    protected override bool RefusesHits => IsInvincible;
+
+    public override void TakeDamage(int damage, GameObject projectile, int holyPortion = 0)
     {
         // Refused outright rather than reduced to nothing, so no number floats and
         // no flash fires — the halo is the whole answer to "why did that do
         // nothing", and a 0 over his head would be a second, worse answer
         if (IsInvincible) return;
-        base.TakeDamage(damage, projectile);
+        base.TakeDamage(damage, projectile, holyPortion);
 
         if (_maxHealth > 0f) BossHealthBar.SetHealth(isDead ? 0f : health, _maxHealth);
     }

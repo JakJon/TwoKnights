@@ -18,7 +18,7 @@ MonoBehaviour:
   waveDescription: Bats on the beat upstairs, rat fuses burning below. Spend your
     spare arrows wisely.
   unlockedAfterXWaves: 11
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 20
   useEnemyTracking: 1
   ratPairs: 4
   secondsBetweenBats: 3

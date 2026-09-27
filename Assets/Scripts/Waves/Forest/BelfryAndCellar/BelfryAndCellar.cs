@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -19,6 +20,13 @@ public class BelfryAndCellar : BaseWave
     [FormerlySerializedAs("beatDecay")]
     [SerializeField] private float batSpeedUpMultiplier = 0.9f;
 
+    [Header("Rock")]
+    [Tooltip("Cycled in order, one per pin slot - a pin comes up every third bat. Leave EMPTY to keep the old single steep rock, which is one rock every three bats and the thinnest rock in the forest. Author these to fire BETWEEN bat beats, as the old one did: a pin that lands on a bat's arrival traps a knight into eating it, which is the one thing the shield rules forbid.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("World units per second for this wave's rock. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 0f;
+
     private const float CycleSeconds = 12f;    // gap between rat pairs; the rat fuse itself is 15s
     private const float MinBeatSeconds = 1.5f; // never outpace the arrow cooldown
     private const float RatSlotX = 6.5f;
@@ -28,19 +36,29 @@ public class BelfryAndCellar : BaseWave
     {
         float beat = Mathf.Max(MinBeatSeconds, secondsBetweenBats);
         int batIndex = 0;
+        // Which pin slot the wave is on. Counted separately from batIndex so the
+        // volley list is walked one entry per pin rather than every third entry.
+        int pinIndex = 0;
 
         for (int pair = 0; pair < ratPairs; pair++)
         {
-            // The cellar: one rat per knight walks in and patrols — a visible 15s fuse
-            GameObject ratPrefab = RatForPair(spawner, pair);
-            spawner.SpawnRat(new Vector2(-RatSlotX, RatSlotY), ratPrefab, 0f, spawner.LeftPlayer);
-            spawner.SpawnRat(new Vector2(RatSlotX, RatSlotY), ratPrefab, 0f, spawner.RightPlayer);
+            // The cellar: one rat per knight walks in and patrols — a visible 15s fuse.
+            // Which rat is the map's call now, not this wave's: the pair comes off
+            // the depth cadence, so the same asset sends greys and blacks early and
+            // moonlit and browns deep without needing a tier per roster.
+            spawner.SpawnRat(new Vector2(-RatSlotX, RatSlotY), 0f, spawner.LeftPlayer);
+            spawner.SpawnRat(new Vector2(RatSlotX, RatSlotY), 0f, spawner.RightPlayer);
 
-            // Orbs ride the lane you should already be watching
-            if (pair % 2 == 0)
-                spawner.SpawnOrb(new Vector2(-13f, 4.5f), new Vector2(13f, 4.5f), false, beat * 0.5f);
-            else
-                spawner.SpawnOrb(new Vector2(13f, -4.5f), new Vector2(-13f, -4.5f), true, beat * 0.5f);
+            // Orbs ride the lane you should already be watching. Three per wave is
+            // the allowance (health and mana counted together), so the four- and
+            // five-pair tiers spread them across the pairs rather than one apiece.
+            if (WaveOrbBudget.SlotCarriesOrb(pair, ratPairs))
+            {
+                if (pair % 2 == 0)
+                    spawner.SpawnOrb(new Vector2(-13f, 4.5f), new Vector2(13f, 4.5f), false, beat * 0.5f);
+                else
+                    spawner.SpawnOrb(new Vector2(13f, -4.5f), new Vector2(-13f, -4.5f), true, beat * 0.5f);
+            }
 
             // The belfry: bats cross on the beat, alternating entry side and altitude.
             // A bat spawned on the left always crosses to attack the RIGHT knight.
@@ -55,12 +73,21 @@ public class BelfryAndCellar : BaseWave
                 // fired between beats so it never traps anyone into eating an enemy
                 if (batIndex % 3 == 2)
                 {
-                    bool pinLeft = batIndex % 2 == 0;
-                    Transform pinned = pinLeft ? spawner.LeftPlayer : spawner.RightPlayer;
-                    Vector2 from = altY > 0
-                        ? (pinLeft ? spawner.belowLeftPlayer : spawner.belowRightPlayer)
-                        : (pinLeft ? spawner.aboveLeftPlayer : spawner.aboveRightPlayer);
-                    spawner.SpawnProjectileStraight(from, pinned, 1, 1f, beat * 0.5f);
+                    if (volleys != null && volleys.Count > 0)
+                    {
+                        RockVolley.FireAfter(spawner, volleys[pinIndex % volleys.Count],
+                                             rockSpeed, beat * 0.5f);
+                    }
+                    else
+                    {
+                        bool pinLeft = batIndex % 2 == 0;
+                        Transform pinned = pinLeft ? spawner.LeftPlayer : spawner.RightPlayer;
+                        Vector2 from = altY > 0
+                            ? (pinLeft ? spawner.belowLeftPlayer : spawner.belowRightPlayer)
+                            : (pinLeft ? spawner.aboveLeftPlayer : spawner.aboveRightPlayer);
+                        spawner.SpawnProjectileStraight(from, pinned, 1, 1f, beat * 0.5f);
+                    }
+                    pinIndex++;
                 }
 
                 batIndex++;
@@ -75,9 +102,4 @@ public class BelfryAndCellar : BaseWave
         yield return null;
     }
 
-    private GameObject RatForPair(Spawner spawner, int pair)
-    {
-        if (pair >= ratPairs - 1) return spawner.blackRat; // final pair hits hardest
-        return pair % 2 == 0 ? spawner.brownRat : spawner.greyRat;
-    }
 }

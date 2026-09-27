@@ -3,127 +3,190 @@ using UnityEngine;
 using static QuestBuild;
 
 /// <summary>
-/// The Mine. The map opens once the Rat King is down; its explorer line then
-/// opens on its own terms, off how much of the workings you have actually walked.
+/// The Mine. The King opens it and names what is wrong with it; the Cartographer
+/// works it. The map's own business — carts, powder, shafts — needs no story
+/// permission, so most of it hangs off what the player has actually done down there
+/// rather than off the line above it.
 /// </summary>
 public static class MineQuests
 {
-    public const string OffTheRails = "off_the_rails";
-    public const string PowderAndPatience = "powder_and_patience";
     public const string WhatRunsTheCarts = "what_runs_the_carts";
-    public const string Explorer1 = "mine_explorer_1";
-    public const string Explorer2 = "mine_explorer_2";
+    public const string ClearingOutCarts = "clearing_out_carts";
+    public const string PowderAndPatience = "powder_and_patience";
     public const string TheGoldCart = "the_gold_cart";
+    public const string Explorer1 = "start_spelunking";
+    public const string Explorer2 = "certified_shaft_spelunker";
+    public const string OutdoneOverseer = "outdone_overseer";
 
-    // No mine quest measures depth right now, but the phrasing is one measure
-    // with one wording everywhere — a future one takes these rather than
-    // re-deriving the key and drifting from the forest's.
     public const string DepthStat = "maps.mine.furthest_wave";
     public const string DepthLabel = "waves into the mine";
 
     private static string ExploreStat => WaveExploration.DistinctStatKey(Mine);
     private const string ExploreLabel = "mine wave types met";
 
-    // The mine's own quests open the moment the mine does. Gating them on the
-    // forest's gate_cleared said the same thing on a new save and nothing at all
-    // on an old one — that stat is written once, on the kill, so a save that had
-    // already opened the mine never received it and the line stayed invisible.
-    private static UnlockCondition MineOpen => Stat(MapProgressStore.UnlockedStatKey(Mine));
-
     public static IEnumerable<Quest> All()
     {
+        // ---- the King's line ----
+
         yield return new Quest(
             id: WhatRunsTheCarts,
-            name: "What Runs the Carts",
+            name: "What Runs the Carts?",
             description:
-                "Every cart you break is back on the rails the next time you go down, and nobody at camp " +
-                "will say who is putting them there. The survey maps stop where the upper galleries stop, " +
-                "which the scouts insist is because there is nothing under them worth drawing. Follow the " +
-                "track instead of the maps. Whatever is turning the wheel down there is at the end of it.",
+                "The kingdom's mine has been taken over by gnomes. Explore deeper into the mines, and "
+                + "investigate rumors of an overseer that may be orchestrating the chaos.",
             mapId: Mine,
-            // The objective never says "wave ten" — the quest is to go and look
             objectives: One("maps.mine.gate_cleared", 1,
                             "Follow the rails to the bottom", hideProgress: true),
             reward: Reward(crystals: 1, unlocksMapId: Keep),
-            unlocks: Gate(MineOpen));
+            unlocks: Gate(After(ForestQuests.Ruckus), Stat(DepthStat, 3)),
+            cast: King,
+            offer:
+                "Welcome to the mines!\n"
+                + "We have had to pause our operations within these caves, since the gnomes have taken hold "
+                + "of them. Their overseer is said to be holed up deep within.\n"
+                + "Please put an end to this madness so we can once again put the mines to use.",
+            completion:
+                "<slow>Hmmm...<slow> I thought for certain the overseer would have been in that large "
+                + "gathering.\n"
+                + "I guess I should have expected he'd be even further in.\n"
+                + "<fast>Don't stop looking yet<fast> he has got to be in here.\n"
+                + "<exit>\n"
+                + "<slow>Oh yes...<slow> There is more trouble in the kingdom...\n"
+                + "One of our old keeps has been turned into an enemy foothold.\n"
+                + "They are within our own walls.\n"
+                + "I know you still have work to be done here, but your help is needed at the pallid keep.");
 
         yield return new Quest(
-            id: OffTheRails,
-            name: "Off the Rails",
+            id: TheGoldCart,
+            name: "The Gold Cart",
             description:
-                "The carts run all night on a loop that goes somewhere and comes back, and there is " +
-                "never anyone driving them. Breaking them is loud, wasteful, and the only thing that " +
-                "reliably stops the loop. Nobody has explained who keeps putting them back on the track.",
+                "Go deeper into the mines find the overseer, and put an end to his malice.",
             mapId: Mine,
-            objectives: One("kills.family.cart", 100),
-            reward: Reward(crystals: 1),
-            unlocks: Gate(MineOpen));
+            objectives: One("maps.mine.true_cleared", 1,
+                            "Put down whatever rides the gold cart", hideProgress: true),
+            reward: Reward(extraSpecialSlot: true),
+            unlocks: Gate(Stat("maps.mine.gate_cleared")),
+            cast: King,
+            offer:
+                "",
+            completion:
+                "<slow>The overseer is dead...<slow> Well done.\n"
+                + "We should be able to begin to put these mines back to use slowly\n"
+                + "I'm sure it will be some time before the gnomes fully clear out.\n"
+                + "I've given you the ability to posses another special equipment slot.\n"
+                + "If you have two specials equipped on one of you, when activated, both special effects "
+                + "will engage simultaneously.\n"
+                + "This should greatly aid you on your journey.");
+
+
+        // ---- the Cartographer's line ----
+
+        yield return new Quest(
+            id: ClearingOutCarts,
+            name: "Clearing out Carts",
+            description:
+                "The abandoned empty mine carts have made navigating the mines troublesome. Destroy empty "
+                + "mine carts to clear the cartographers path.",
+            mapId: Mine,
+            objectives: One(MineStats.EmptyCartsBroken, 300, "empty carts broken"),
+            reward: Reward(crystals: 2),
+            unlocks: Gate(Stat(MineStats.EmptyCartsBroken, 10)),
+            cast: Mapmaker,
+            offer:
+                "It seems you too have noticed the abundance of empty mine carts in these caves.\n"
+                + "They are a nuisance to navigate!\n"
+                + "Please continue to destroy them, and I will ensure I reward you.",
+            completion:
+                "Wow! It sure does feel more spacious in here with fewer of those empty mine carts "
+                + "rolling around!\n"
+                + "Here is some pay for your trouble.");
 
         yield return new Quest(
             id: PowderAndPatience,
             name: "Powder and Patience",
             description:
-                "Whoever worked this seam left their powder exactly where it sat, strapped to carts that " +
-                "still run. You can shoot around it all night, or you can let the mine do the work it " +
-                "was always going to do and make sure you're standing elsewhere when it does.",
+                "The cartographer has been rigging the carts in the mine with explosives. He wants us to "
+                + "put these explosives to use and finish off some creatures with them.",
             mapId: Mine,
-            objectives: One("kills.blasted", 50),
+            objectives: One("kills.blasted", 150),
             reward: Reward(crystals: 2),
-            unlocks: Gate(MineOpen));
-
-        // The one quest the mine ends on. It opens the moment the Millstone is
-        // down, because beating the wheel is what tells you there was somebody
-        // turning it — the quest is the answer to the question the gate asked.
-        yield return new Quest(
-            id: TheGoldCart,
-            name: "The Gold Cart",
-            description:
-                "Something has been putting the carts back on the rails all along, and the survey maps " +
-                "have no word for it. The millstone was only the wheel. Whatever was turning it rides the " +
-                "same loop its shifts ride, in a cart nobody who works this seam could afford, and it does " +
-                "not get off.",
-            mapId: Mine,
-            objectives: One("maps.mine.true_cleared", 1,
-                            "Put down whatever rides the gold cart", hideProgress: true),
-            // A second special slot, not a second equipment slot: the Overseer
-            // rode the loop firing whatever it liked, and putting it down is
-            // what lets a knight hold two specials and spend one bar on both.
-            reward: Reward(extraSpecialSlot: true),
-            unlocks: Gate(Stat("maps.mine.gate_cleared")));
-
-        // ---- the Explorer line ----
+            unlocks: Gate(Stat(MineStats.PowderCartsDetonated, 20)),
+            cast: Mapmaker,
+            offer:
+                "I see you've noticed my explosives.\n"
+                + "I've been rigging some of the carts to open new routes within the mines.\n"
+                + "It looks like you've found <slow>another<slow> purpose for them.\n"
+                + "It has been helping research with less distractions.\n"
+                + "If you continue to blow up creatures with the mine cart explosives, I can reward you.",
+            completion:
+                "Wow! You decimated those monsters with the explosives! I'm going to have to ask the king "
+                + "for an expanded pouch... <fast>Anyways!<fast> here is your reward, as promised.");
 
         yield return new Quest(
             id: Explorer1,
-            name: "Deeper Workings",
+            name: "Start spelunking",
             description:
-                "The upper galleries are a known quantity now — same rails, same shifts, same places " +
-                "the roof drips. Further down the shafts stop following the seam and start following " +
-                "something else, and what you meet down there does not work the way the upper crews do. " +
-                "Go and see the rest of it.",
+                "The cartographer has recruited you to scout out the many shafts within the mines. "
+                + "Continue to explore different mines shafts.",
             mapId: Mine,
-            objectives: One(ExploreStat, 24, ExploreLabel),
-            reward: Reward(crystals: 1),
-            unlocks: Gate(Stat(ExploreStat, 20)));
+            objectives: One(ExploreStat, ExplorePercent(66), ExploreLabel, lifetime: true),
+            reward: Reward(crystals: 2),
+            unlocks: Gate(Stat(ExploreStat, ExplorePercent(30))),
+            cast: Mapmaker,
+            offer:
+                "I see you've explored a good amount of shafts by now. Continue to chart your path and "
+                + "I'll give you a reward.",
+            completion:
+                "Wow! You've really charted out these caverns.\n"
+                + "We've almost got a full picture of the mine shafts since the gnome take over\n"
+                + "Please continue your exploration until the cave is fully understood.");
 
         yield return new Quest(
             id: Explorer2,
-            name: "Every Shaft Walked",
+            name: "Certified Shaft Spelunker",
             description:
-                "You have been down every gallery this mine still has open. The survey maps back at camp " +
-                "are wrong in nine places and you can name all nine from memory. Whatever else the dark " +
-                "below is, it is no longer unknown to you.",
+                "You have almost fully charted every single shaft within the mines. Continue your "
+                + "exploration until it is complete.",
             mapId: Mine,
-            objectives: One(ExploreStat, FinaleTarget(), ExploreLabel),
-            reward: Reward(crystals: 3),
-            unlocks: Gate(After(Explorer1)));
+            objectives: One(ExploreStat, ExplorePercent(75), ExploreLabel, lifetime: true),
+            reward: Reward(crystals: 4),
+            unlocks: Gate(After(Explorer1)),
+            cast: Mapmaker,
+            offer:
+                "",
+            completion:
+                "Amazing! We've gathered a full map covering each shaft within the cave!\n"
+                + "I couldn't have done this without your help. Please take this.");
+
+        yield return new Quest(
+            id: OutdoneOverseer,
+            name: "Outdone Overseer",
+            description:
+                "The cartographer wants us to defeat an overseer now without any equipment, or specials "
+                + "equipped...",
+            mapId: Mine,
+            objectives: One(Feats.OverseerBare, 1,
+                            "Defeat the Overseer with no equipment or special equipped", hideProgress: true),
+            reward: Reward(equipmentId: "cart_detonator"),
+            unlocks: Gate(After(ForestQuests.WreckingRatKing), Stat("kills.overseer", 1)),
+            cast: Mapmaker,
+            offer:
+                "Legend has it the overseer has legions of fellow overseeing brethren.\n"
+                + "Slay one of them with nothing equipped.\n"
+                + "<fast>For research purposes<fast>",
+            completion:
+                "WOW! WOW! WO-\n"
+                + "<slow>Oh...<slow> I should compose myself.. That was great work.\n"
+                + "Please take this, and have some fun with it.");
+
     }
 
-    private static int FinaleTarget()
+    /// <summary>See ForestQuests.ExplorePercent — same rule, this map's catalog.</summary>
+    private static int ExplorePercent(int percent)
     {
         int total = WaveExploration.TotalWaveTypesFor(Mine);
-        if (total > 0) return total;
-        Debug.LogWarning("[MineQuests] Wave catalog unreadable; explorer finale left unreachable.");
+        if (total > 0) return Mathf.Max(1, Mathf.CeilToInt(total * (percent / 100f)));
+        Debug.LogWarning("[MineQuests] Wave catalog unreadable; explorer targets left unreachable.");
         return int.MaxValue;
     }
 }

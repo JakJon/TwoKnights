@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
@@ -25,11 +25,18 @@ public class Spawner : MonoBehaviour
     [SerializeField] public GameObject brownWolfPrefab;
     [SerializeField] public GameObject blackWolfPrefab;
     [SerializeField] public GameObject darkBat;
+    [Tooltip("The Camp Fields' deep roster. Moonlit bat: 35hp, three-quarter size, half again as fast.")]
+    [SerializeField] public GameObject moonlitBat;
+    [Tooltip("Deep roster slime. Half size, double hp per tier, double speed - the numbers live on the prefab.")]
+    [SerializeField] public GameObject moonlitSlimePrefab;
+    [Tooltip("Deep roster rat. Grey's movement exactly, at 40hp. Fills the Moonlit slot of a map's rat cadence.")]
+    [SerializeField] public GameObject moonlitRat;
     [SerializeField] public GameObject ogrePrefab;
     [SerializeField] public GameObject fireOgrePrefab;
     [Tooltip("Every Nth bat of a wave spawns as a dark bat once past the gate boss. Deterministic — wave content must never roll dice")]
     [SerializeField] private int darkBatInterval = 4;
     private int _batCallCount; // bat spawn calls this wave, in wave-script order
+    private int _ratCallCount; // rat spawn calls this wave, in wave-script order
     [SerializeField] public GameObject healthOrbPrefab;
     [SerializeField] public GameObject manaOrbPrefab;
     [Tooltip("Mine-map track builder. Waves ask for a RailLayout through Spawner.Rails.")]
@@ -42,6 +49,8 @@ public class Spawner : MonoBehaviour
     private bool _isWaveInProgress;
     private bool _isUpgradeMenuActive; // Track if upgrade menu is showing
     private bool _isTransitionActive;  // Curtain is closing or opening
+    // An NPC is on the board. Holds off StartNextWave exactly as the other three do.
+    private bool _isQuestSceneActive;
     // Prose for the stage the run is about to enter, shown over black after the
     // upgrade pick. Non-empty also means "this gap gets the long ceremony".
     private string _pendingVentureLine;
@@ -60,6 +69,79 @@ public class Spawner : MonoBehaviour
     public Vector2 topRightCorner => new Vector2(12, 6);
     public Vector2 bottomLeftCorner => new Vector2(-12, -6);
     public Vector2 bottomRightCorner => new Vector2(12, -6);
+
+    // ---- the frame, and staying out of it -------------------------------
+    //
+    // The camera is orthographic at size 5.625, parked at the origin, and the game
+    // is authored for 16:9 — so the visible world is exactly x ± 10, y ± 5.625.
+    // Hardcoded rather than read off Camera.main on purpose: the aspect follows the
+    // window, and a spawn point that moved with somebody's window size would make
+    // the same wave play differently on two machines. OgreBand has carried these
+    // same two numbers for a while; they live here now so everything can use them.
+    public const float ViewHalfWidth = 10f;
+    public const float ViewHalfHeight = 5.625f;
+
+    // How far past the edge a walk-on starts. Enough that the body and its shadow
+    // are fully clear of the frame before it begins moving in.
+    private const float OffscreenMargin = 1.5f;
+
+    /// <summary>
+    /// Is this point somewhere the player can actually see?
+    /// </summary>
+    public static bool IsInView(Vector2 point)
+    {
+        return Mathf.Abs(point.x) < ViewHalfWidth && Mathf.Abs(point.y) < ViewHalfHeight;
+    }
+
+    /// <summary>
+    /// The point just off the edge of the frame that <paramref name="destination"/>
+    /// should be walked on from. Already-offscreen points are handed straight back,
+    /// so this is safe to run over every spawn.
+    ///
+    /// Pushed out along whichever edge is NEAREST, which keeps the walk-on short and
+    /// keeps the direction the enemy arrives from close to the direction it was
+    /// authored to be at — a point in the middle of the board is far more often
+    /// "just above the arena" than "miles off to the left".
+    /// </summary>
+    public static Vector2 OffscreenEntryFor(Vector2 destination)
+    {
+        if (!IsInView(destination)) return destination;
+
+        float outX = ViewHalfWidth + OffscreenMargin;
+        float outY = ViewHalfHeight + OffscreenMargin;
+
+        // Ties go to the vertical edge. Arbitrary, but FIXED — the one thing this
+        // must not do is pick a different side on different runs.
+        return (outY - Mathf.Abs(destination.y)) <= (outX - Mathf.Abs(destination.x))
+            ? new Vector2(destination.x, destination.y >= 0f ? outY : -outY)
+            : new Vector2(destination.x >= 0f ? outX : -outX, destination.y);
+    }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    /// <summary>
+    /// Shouts when something is put down where the player can see it appear.
+    ///
+    /// Bats, slimes and ogres are placed exactly where the wave asks and never move
+    /// themselves afterwards, so an in-frame spawn point IS an enemy popping into
+    /// existence in front of the player. (Rats are the exception — EnemyRat.Start
+    /// walks itself out to the nearest edge first — and wolves are handled outright
+    /// in SpawnWolf.) A warning rather than a correction because the deliberate
+    /// cases are real: a delivery cart unloads its passenger on screen by design,
+    /// and the rat king summons bats out of his own body. Those say so at the call
+    /// site with entersFromOffscreen: false.
+    /// </summary>
+    private static void WarnIfOnScreen(string what, Vector2 at, bool entersFromOffscreen)
+    {
+        if (!entersFromOffscreen || !IsInView(at)) return;
+        Debug.LogWarning($"[Spawner] {what} spawned at {at}, which is INSIDE the view " +
+                         $"(x +/-{ViewHalfWidth}, y +/-{ViewHalfHeight}). It will pop into " +
+                         "existence in front of the players instead of walking in from " +
+                         "off-frame. Move the spawn point out, or pass " +
+                         "entersFromOffscreen: false if appearing on screen is the point.");
+    }
+#else
+    private static void WarnIfOnScreen(string what, Vector2 at, bool entersFromOffscreen) { }
+#endif
 
     // Null on maps with no track in the scene — wave scripts must null-check
     public RailNetwork Rails
@@ -109,8 +191,26 @@ public class Spawner : MonoBehaviour
         // Static state survives scene reloads, so this must run every run
         RunPurity.BeginRun(_leftPlayer.gameObject, _rightPlayer.gameObject);
 
+        // Belt and braces for the same static: a run that ended without OnDestroy
+        // running (a domain reload mid-wave) must not start this one mid-journal.
+        PlayerStats.DiscardWave();
+
         // Static and therefore survives a scene reload, exactly like RunPurity above
         GuardianAwakening.BeginRun();
+        // Per-wave and per-run quest records. Static, so it must be cleared at the
+        // START of a run rather than trusted to be empty from the last one.
+        QuestTally.BeginRun();
+        // The queue is deliberately NOT cleared here. A quest can open while the
+        // player is standing in camp — the tutorial run ending is the obvious case,
+        // since the freeze lifting is what opens them — and camp has no arena to
+        // play a scene in. Dropping the queue at the start of the next run meant
+        // those quests never got introduced at all. The save's record of what has
+        // been announced is what stops anything being introduced twice.
+        GuidedAim.BeginRun();
+        // Live-body tallies are static and survive the scene load, so a run that
+        // ended with things still poisoned would start the next one mid-count.
+        EnemyBase.ResetLivePoisonedCount();
+        DawnVigil.BeginRun();
 
 
         // Setup upgrade menu callback
@@ -139,7 +239,22 @@ public class Spawner : MonoBehaviour
         // A brand-new file learns the controls before it fights anything. The
         // tutorial owns the arena until it is done, then calls BeginFirstWave
         // itself — so wave one starts the same way either way.
-        if (TutorialDirector.TryBegin(this)) return;
+        // Assigned every run, not just the tutorial one — the flag is static and
+        // outlives the scene load, so leaving it alone on an ordinary run would
+        // keep quests frozen for the rest of the session.
+        // Whether this is the tutorial run is a fact about the SAVE, not about how
+        // the player got here. Asking TutorialDirector instead meant a file that
+        // reached the arena by any route other than the file select — wiping from
+        // the camp menu, most obviously — reported false and had every quest live
+        // on what was still its first run.
+        //
+        // Read BEFORE TryBegin: the director writes tutorialCompleted true and then
+        // hands straight off to wave one, so afterwards the save already says the
+        // tutorial is behind us.
+        TutorialRun.NoteRunStarted(!SaveManager.Data.tutorialCompleted);
+
+        bool tutorial = TutorialDirector.TryBegin(this);
+        if (tutorial) return;
 
         BeginFirstWave();
     }
@@ -237,7 +352,8 @@ public class Spawner : MonoBehaviour
     {
         // The curtain owns the call to this while it's up — a stray one would
         // start a wave the player can't see
-        if (_isWaveInProgress || _isUpgradeMenuActive || _isTransitionActive)
+        if (_isWaveInProgress || _isUpgradeMenuActive || _isTransitionActive || _isQuestSceneActive
+            || TrialRunner.IsRunning)
             return;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -259,14 +375,64 @@ public class Spawner : MonoBehaviour
         return knight != null ? knight.GetComponent<PlayerHealth>() : null;
     }
 
+    /// <summary>
+    /// Runs whatever the wave queued, with the arena frozen and the flag up so no
+    /// stray StartNextWave can spawn a wave underneath an NPC. A no-op when nothing
+    /// is pending, which is the common case.
+    /// </summary>
+    private IEnumerator PlayQuestScenes()
+    {
+        if (!QuestSceneQueue.HasPending) yield break;
+
+        _isQuestSceneActive = true;
+        Time.timeScale = 0f;
+
+        // Health, specials and streaks belong to a fight, and there is no fight
+        // while somebody is standing in the middle of the arena talking. Taken down
+        // for the whole queue rather than per scene, so two quests in a row do not
+        // flash the bars back between them.
+        yield return StartCoroutine(ArenaHud.FadeTo(0f));
+
+        yield return StartCoroutine(QuestSceneQueue.PlayPending());
+
+        // Here rather than at the end of each scene, for the same reason. The ward
+        // ring is built once and never rebuilt, so leaving it silenced would cost
+        // it for the rest of the run.
+        ArenaSweep.Restore();
+        yield return StartCoroutine(ArenaHud.FadeTo(1f));
+
+        Time.timeScale = 1f;
+        _isQuestSceneActive = false;
+    }
+
+    /// <summary>
+    /// Takes the last wave's leftovers off the field ahead of a trial — carts and
+    /// their track, the castle's mirrors, stray orbs and ordnance. See
+    /// ArenaSweep.ClearPlayingField. The next wave builds its own track and panes
+    /// when it starts, exactly as it does after an upgrade pick.
+    /// </summary>
+    public void ClearFixturesForTrial()
+    {
+        // Through the field as well as the singleton: the network is built lazily
+        // and this spawner may be holding one that has not registered itself.
+        if (mirrorNetwork != null) mirrorNetwork.Clear();
+        ArenaSweep.ClearPlayingField();
+    }
+
     private void BeginWave(BaseWave nextWave)
     {
         if (nextWave == null) return;
         if (waveNameDisplay != null)
             waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
         _isWaveInProgress = true;
+        UpdateWaveMusic(nextWave);
         _batCallCount = 0; // dark-bat cadence restarts every wave
+        _ratCallCount = 0; // and the rat cadence with it - see NextRatInCadence
         DawnVigil.BeginWave();
+        QuestTally.BeginWave();
+        // Everything this wave counts is provisional until it is survived. A wave
+        // that kills a knight banks nothing — see PlayerStats.BeginWave.
+        PlayerStats.BeginWave();
         // Last wave's track comes down as this one starts, so rails stay up
         // through the wave-complete beat and the upgrade menu
         if (Rails != null) Rails.ClearAll();
@@ -275,6 +441,27 @@ public class Spawner : MonoBehaviour
         // just to tear it down again.
         if (mirrorNetwork != null) mirrorNetwork.Clear();
         StartCoroutine(RunWave(nextWave));
+    }
+
+    /// <summary>
+    /// Hand the score the wave that is starting. Called from BeginWave, so it runs
+    /// for EVERY wave including the ones Test Mode forces — the map decides what
+    /// should be playing and AudioManager.PlayMusic ignores a request for the track
+    /// already on, so the common case (wave 4 following wave 3) costs a comparison
+    /// and nothing else.
+    ///
+    /// Asked with the wave object rather than the wave number because that is what
+    /// actually knows whether a boss is on: the gate does not come back on its wave
+    /// number once it has fallen this run.
+    /// </summary>
+    private void UpdateWaveMusic(BaseWave wave)
+    {
+        if (AudioManager.Instance == null || waveManager == null) return;
+        var map = waveManager.CurrentMap;
+        if (map == null) return;
+
+        AudioManager.Instance.PlayMusic(
+            map.MusicForWave(waveManager.CurrentWaveNumber, map.IsBossWave(wave)));
     }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -401,6 +588,22 @@ public class Spawner : MonoBehaviour
         
         _isWaveInProgress = false;
 
+        // The boss is down: take the music off and leave the upgrade screen quiet.
+        // Asked here, before WaveCompleted moves the wave number on, and asked with
+        // the wave OBJECT so it is answering "was that a boss" rather than "is this
+        // a boss wave number" — which stops being the same question the moment a
+        // gate that has already fallen this run is not rescheduled.
+        //
+        // Nothing turns it back on: the next wave's BeginWave does, with whatever
+        // the map says should play at that depth. On a boss that ENDS the run the
+        // silence carries through the victory banner into camp, where the camp
+        // track comes up on the scene load.
+        bool wasBossWave = waveManager.CurrentMap != null && waveManager.CurrentMap.IsBossWave(wave);
+        if (AudioManager.Instance != null && wasBossWave)
+        {
+            AudioManager.Instance.StopMusic();
+        }
+
         // Read before WaveCompleted so it is answering the wave that just ran,
         // and before the upgrade menu can heal anybody.
         DawnVigil.EndWave(
@@ -415,6 +618,12 @@ public class Spawner : MonoBehaviour
         BackgroundController.Instance?.Hold();
 
         waveManager.WaveCompleted();
+
+        // The wave was survived, so everything it counted really happened: replay
+        // the journal down the ordinary paths (quest meters, fan-out and all), and
+        // only then write to disk. A knight who died never reaches this line and
+        // the wave's counting is dropped instead — see HandlePlayerDeathTransition.
+        PlayerStats.CommitWave();
 
         // Stat writes are batched in memory rather than hitting disk per kill;
         // the wave boundary is the natural commit point, so a crash mid-run
@@ -439,9 +648,20 @@ public class Spawner : MonoBehaviour
         if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
         {
             // Every path out of here has to let the backdrop go, or the hold above
-            // outlives the wave that took it.
-            BackgroundController.Instance?.ReleaseAndApply();
+            // outlives the wave that took it. Release, not ReleaseAndApply: the
+            // arena is still lit and the player is on their way out of it.
+            BackgroundController.Instance?.Release();
             VentureCurtain.ForceClear();
+            // The player is leaving. Any completion this wave queued is dropped
+            // rather than left to surface over the first wave of the NEXT run — the
+            // queue is static and would otherwise carry straight across the scene
+            // load. Offers are not in that queue and are deliberately not dropped:
+            // the save still records them as owed, and they are paid on the map
+            // they belong to. See QuestSceneQueue.OwedHere.
+            QuestSceneQueue.Discard();
+            // Belt and braces: a run abandoned while a scene was up must not leave
+            // the next one with no bars.
+            ArenaHud.ShowImmediate();
             yield break;
         }
 
@@ -449,7 +669,28 @@ public class Spawner : MonoBehaviour
         var outcome = waveManager.ConsumePendingOutcome();
         if (outcome != RunOutcome.None && GameSceneManager.Instance != null)
         {
-            BackgroundController.Instance?.ReleaseAndApply();
+            // The tutorial run is over HERE, not at the scene load. The gate
+            // lifting is what opens the quests the run earned, and lifting it on
+            // the way into camp opened them somewhere no NPC can walk on to say
+            // so — a new player's first look at the quest log was a list of things
+            // they had apparently already been offered. Lifting it now means the
+            // King finishes his line and the rest of the forest introduces itself
+            // over the same cleared arena.
+            TutorialRun.NoteRunStarted(false);
+
+            // The scenes run FIRST. A boss kill is the most quest-laden moment in
+            // the game — A Ruckus in the Wood, The Crimson Twins and The Gold Cart
+            // all complete on one — and this path used to return before anything
+            // was announced, leaving them queued behind a scene load that never
+            // played them. The victory screen can wait for the King.
+            yield return PlayQuestScenes();
+
+            // Release WITHOUT applying. The boss kill already moved
+            // CurrentWaveNumber into the next stage, so swapping here would raise
+            // the deep forest behind the victory banner — on the very run that
+            // earned the right to see it properly. OnVictory takes its own hold a
+            // line later; this only hands the backdrop over between the two.
+            BackgroundController.Instance?.Release();
             VentureCurtain.ForceClear();
             GameSceneManager.Instance.OnVictory(waveManager.CurrentMap, outcome == RunOutcome.TrueVictory,
                 waveManager.CompletedWavesCount);
@@ -471,6 +712,30 @@ public class Spawner : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
 
+        // One between-wave event at most — an Order trial or the target range —
+        // over the same lit arena the NPCs use. Ranked: a quest scene beats a
+        // trial beats the range, and nothing plays after a boss. See
+        // BetweenWaveEvents.
+        var gapMap = waveManager.CurrentMap;
+        yield return BetweenWaveEvents.PlayOne(this, waveManager.CompletedWavesCount, wasBossWave,
+                                               gapMap != null ? gapMap.MapId : "");
+
+        if (GameSceneManager.Instance != null && GameSceneManager.Instance.IsTransitioningToCamp)
+        {
+            // Walked out mid-event. Same exit as the one above.
+            BackgroundController.Instance?.Release();
+            VentureCurtain.ForceClear();
+            QuestSceneQueue.Discard();
+            ArenaHud.ShowImmediate();
+            yield break;
+        }
+
+        // The NPCs, over the cleared arena while it is still lit. Before the
+        // curtain deliberately: these are people walking into the field the player
+        // just fought in, not prose over black. After the trial, so a trial that
+        // finished its initiation is answered by the Order's own completion scene.
+        yield return PlayQuestScenes();
+
         // Take the screen to black before the menu. Crossing into a stage that
         // carries a venture line (forest -> deep forest) earns the long close;
         // every other gap gets the short fade, so the two read as one language.
@@ -483,7 +748,10 @@ public class Spawner : MonoBehaviour
         _isTransitionActive = true;
         Time.timeScale = 0f;
         yield return StartCoroutine(VentureCurtain.Close(!string.IsNullOrEmpty(_pendingVentureLine)));
-        BackgroundController.Instance?.ReleaseAndApply();
+        // The backdrop stays HELD through the upgrade menu and is swapped later,
+        // on the venture line — see RaiseCurtainThenStartWave. Swapping it here
+        // put the new stage up before the line that explains it, so the crossing
+        // was already over by the time the player was told it had happened.
         _isTransitionActive = false;
 
         // Show upgrade menu and pause game instead of immediately starting next wave
@@ -496,6 +764,9 @@ public class Spawner : MonoBehaviour
         {
             _isUpgradeMenuActive = false;
             _pendingVentureLine = null;
+            // Bailing out before RaiseCurtainThenStartWave, which is what would
+            // normally have released it. Nothing to apply — the player is leaving.
+            BackgroundController.Instance?.Release();
             VentureCurtain.ForceClear();
             return;
         }
@@ -561,6 +832,12 @@ public class Spawner : MonoBehaviour
     // calls StartNextWave while _isTransitionActive is set, so this must.
     private IEnumerator RaiseCurtainThenStartWave(bool ceremonial)
     {
+        // The stage changes HERE, under the black and behind the line that
+        // announces it, rather than the moment the curtain finished closing.
+        // Nothing is visible until Open() below, so this is the last possible
+        // point that is still safely out of sight.
+        BackgroundController.Instance?.ReleaseAndApply();
+
         if (!string.IsNullOrEmpty(_pendingVentureLine))
         {
             yield return StartCoroutine(VentureCurtain.ShowLine(_pendingVentureLine));
@@ -578,16 +855,30 @@ public class Spawner : MonoBehaviour
 
     public void HandlePlayerDeathTransition()
     {
+        // The wave was not survived, so nothing it counted is kept: no kill toward
+        // an objective, and no quest finished on the blow that killed you.
+        PlayerStats.DiscardWave();
+
         _isUpgradeMenuActive = false;
         _isTransitionActive = false;
         _pendingVentureLine = null;
-        // Dying mid-curtain must never leave the player staring at black
+        // Dying mid-curtain must never leave the player staring at black, nor at
+        // a backdrop still frozen on the wave they died in.
+        BackgroundController.Instance?.ReleaseAndApply();
         VentureCurtain.ForceClear();
         Time.timeScale = 1f;
     }
 
     void OnDestroy()
     {
+        // The arena is going away. Any wave still open was not survived, and its
+        // journal must not be left standing — PlayerStats is static, so a journal
+        // left open here would swallow every write made in CAMP (quest turn-ins,
+        // equipment) and then throw them away at the next wave. A legitimate
+        // completion has already committed by this point, so this only ever drops
+        // a wave nobody finished.
+        PlayerStats.DiscardWave();
+
         // Clean up event subscription
         if (upgradeMenu != null)
         {
@@ -612,23 +903,89 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    // `roster`, when given, collects the rat once it exists. A rat cannot be
-    // handed back from here — the spawn is a delayed coroutine — so a wave that
-    // has to know when ITS rats are dead (rather than when every enemy is) reads
-    // the roster and drops the entries Unity has nulled out.
-    public void SpawnRat(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate = false, Vector2? entryPoint = null, List<GameObject> roster = null)
+    // Is the map's deep roster live? The Camp Fields' moonlit waves, past the
+    // Twins: pale bats sharing the air with the dark ones, pale slimes half the
+    // size and twice the weight, and grey wolves coming out black. A map with no
+    // deep roster answers false forever and nothing is ever substituted.
+    //
+    // Rats are NOT decided here. They run on the map's rat cadence, which turns
+    // over on its own schedule and on both maps — see NextRatInCadence.
+    private bool DeepRosterAllowed
     {
+        get
+        {
+            if (waveManager == null) return false;
+            var map = waveManager.CurrentMap;
+            if (map == null) return false;
+            int fromWave = map.DeepRosterFromWave;
+            return fromWave >= 0 && waveManager.CurrentWaveNumber >= fromWave;
+        }
+    }
+
+    /// <summary>
+    /// Puts a rat down. WHICH rat is not the wave's decision: leave
+    /// <paramref name="ratType"/> null — which is what every ordinary wave does — and
+    /// the map's own cadence supplies it (MapDefinition.RatPhase). Waves choose
+    /// where and when; the map chooses what, because what is a fact about how deep
+    /// the run is rather than about which wave happens to be playing.
+    ///
+    /// Pass a prefab only when the spawn is meant to name its own rat whatever the
+    /// depth — the rat king's brood, and Delivery's carts, whose cargo is authored
+    /// per wave. Naming one does NOT advance the cadence, so a boss emptying itself
+    /// mid-wave cannot shift the pattern the wave around it is running.
+    ///
+    /// `roster`, when given, collects the rat once it exists. A rat cannot be
+    /// handed back from here — the spawn is a delayed coroutine — so a wave that
+    /// has to know when ITS rats are dead (rather than when every enemy is) reads
+    /// the roster and drops the entries Unity has nulled out.
+    /// </summary>
+    public void SpawnRat(Vector2 targetPosition, float delay, Transform playerTarget,
+                         GameObject ratType = null, bool bypassStrengthGate = false,
+                         Vector2? entryPoint = null, List<GameObject> roster = null)
+    {
+        // Resolved HERE rather than inside the coroutine, for the same reason the
+        // dark-bat cadence is: coroutine wake-up order ties on equal delays, so
+        // deciding after the wait would make the pattern non-deterministic. Read
+        // at CALL time, in wave-script order, the same wave always sends the same
+        // rats in the same order.
+        if (ratType == null) ratType = NextRatInCadence();
+
         StartCoroutine(SpawnRatAfterDelay(targetPosition, ratType, delay, playerTarget, bypassStrengthGate, entryPoint, roster));
+    }
+
+    /// <summary>
+    /// The next rat off the active map's cadence for the wave number the run is on.
+    /// Falls back to the grey rat when a map declares no phases at all, so a map
+    /// authored before this existed still spawns something.
+    /// </summary>
+    private GameObject NextRatInCadence()
+    {
+        var map = waveManager != null ? waveManager.CurrentMap : null;
+        var cadence = map != null ? map.RatCadenceForWave(waveManager.CurrentWaveNumber) : null;
+        if (cadence == null || cadence.Count == 0) return greyRat;
+
+        RatType next = cadence[_ratCallCount % cadence.Count];
+        _ratCallCount++;
+
+        switch (next)
+        {
+            case RatType.Black:   return blackRat != null ? blackRat : greyRat;
+            case RatType.Brown:   return brownRat != null ? brownRat : greyRat;
+            case RatType.Moonlit: return moonlitRat != null ? moonlitRat : greyRat;
+            default:              return greyRat;
+        }
     }
 
     private IEnumerator SpawnRatAfterDelay(Vector2 targetPosition, GameObject ratType, float delay, Transform playerTarget, bool bypassStrengthGate, Vector2? entryPoint, List<GameObject> roster = null)
     {
         yield return new WaitForSeconds(delay);
-        // bypassStrengthGate lets the rat king summon his brown brood mid-fight
-        if (!bypassStrengthGate && !StrongerEnemiesAllowed && (ratType == brownRat || ratType == blackRat))
-        {
-            ratType = greyRat;
-        }
+        // NOTE: rats used to be downgraded to grey here when the map was holding
+        // its stronger enemies back. That gate is gone, and deliberately: it was
+        // what made black rats almost unreachable in the forest. Depth now decides
+        // the rat BEFORE the spawn, in the map's cadence, so a shallow wave simply
+        // has no black in its phase rather than asking for one and being refused.
+        // bypassStrengthGate is kept on the signature for the rat king's brood,
+        // which names its own prefab and so was never gated anyway.
         GameObject enemy = Instantiate(ratType);
         enemy.transform.position = targetPosition;
 
@@ -675,13 +1032,16 @@ public class Spawner : MonoBehaviour
     /// uses, so a wave can hold itself open until its ogres in particular are down.
     /// </summary>
     public void SpawnOgre(Vector2 spawnPosition, float delay = 0f, bool fire = false,
-                          List<GameObject> roster = null, Transform mark = null)
+                          List<GameObject> roster = null, Transform mark = null,
+                          float firstThrowDelay = 0f)
     {
-        StartCoroutine(SpawnOgreAfterDelay(spawnPosition, delay, fire, roster, mark));
+        WarnIfOnScreen("Ogre", spawnPosition, true);
+        StartCoroutine(SpawnOgreAfterDelay(spawnPosition, delay, fire, roster, mark, firstThrowDelay));
     }
 
     private IEnumerator SpawnOgreAfterDelay(Vector2 spawnPosition, float delay, bool fire,
-                                            List<GameObject> roster, Transform mark)
+                                            List<GameObject> roster, Transform mark,
+                                            float firstThrowDelay)
     {
         if (delay > 0f) yield return new WaitForSeconds(delay);
 
@@ -702,18 +1062,34 @@ public class Spawner : MonoBehaviour
             if (brute != null) brute.AssignTarget(mark, mark == _leftPlayer ? _rightPlayer : _leftPlayer);
         }
 
+        // Also before Start, which is where the fire ogre sets its first throw
+        if (firstThrowDelay > 0f)
+        {
+            EnemyFireOgre thrower = ogre.GetComponent<EnemyFireOgre>();
+            if (thrower != null) thrower.DelayFirstThrow(firstThrowDelay);
+        }
+
         if (roster != null) roster.Add(ogre);
     }
 
-    public void SpawnSlime(int size, Vector2 spawnPosition, float delay, Transform targetPlayer)
+    public void SpawnSlime(int size, Vector2 spawnPosition, float delay, Transform targetPlayer,
+                           bool entersFromOffscreen = true)
     {
+        WarnIfOnScreen("Slime", spawnPosition, entersFromOffscreen);
         StartCoroutine(SpawnSlimeAfterDelay(size, spawnPosition, delay, targetPlayer));
     }
 
     private IEnumerator SpawnSlimeAfterDelay(int size, Vector2 spawnPosition, float delay, Transform targetPlayer)
     {
         yield return new WaitForSeconds(delay);
-        GameObject slime = Instantiate(slimePrefab);
+        // Deep in the forest every slime is a moonlit one. The size argument still
+        // means what it meant — the prefab's own multipliers are what make it half
+        // the body and twice the weight, so a wave asking for a king still gets a
+        // king, just a paler and meaner one.
+        GameObject prefab = (DeepRosterAllowed && moonlitSlimePrefab != null)
+            ? moonlitSlimePrefab
+            : slimePrefab;
+        GameObject slime = Instantiate(prefab);
         slime.transform.position = spawnPosition;
 
         EnemySlime slimeScript = slime.GetComponent<EnemySlime>();
@@ -725,19 +1101,40 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnBat(Vector2 spawnPosition, float delay)
+    public void SpawnBat(Vector2 spawnPosition, float delay, bool entersFromOffscreen = true)
     {
+        WarnIfOnScreen("Bat", spawnPosition, entersFromOffscreen);
+
         // Decide dark-vs-normal at CALL time, in wave-script order: coroutine
         // wake-up order ties on equal delays, so deciding after the wait would
         // make the pattern non-deterministic. Same wave = same bats, always.
         _batCallCount++;
-        GameObject prefab = bat;
+        StartCoroutine(SpawnBatAfterDelay(NextBatPrefab(), spawnPosition, delay));
+    }
+
+    /// <summary>
+    /// Which bat this call of the wave sends. Reads _batCallCount, which the
+    /// caller has already advanced, so it is the same contract NextRatInCadence
+    /// has: the answer depends only on the position in the wave, never on when
+    /// the coroutine happens to wake.
+    ///
+    /// The dark bat keeps its every-fourth slot and the moonlit one takes the
+    /// other even beats, so a cycle of four reads basic, moonlit, basic, dark —
+    /// half the flight ordinary, and the two ways it can be dangerous alternating
+    /// behind it.
+    /// </summary>
+    private GameObject NextBatPrefab()
+    {
         if (StrongerEnemiesAllowed && darkBat != null && darkBatInterval > 0
             && _batCallCount % darkBatInterval == 0)
         {
-            prefab = darkBat;
+            return darkBat;
         }
-        StartCoroutine(SpawnBatAfterDelay(prefab, spawnPosition, delay));
+        if (DeepRosterAllowed && moonlitBat != null && _batCallCount % 2 == 0)
+        {
+            return moonlitBat;
+        }
+        return bat;
     }
 
     private IEnumerator SpawnBatAfterDelay(GameObject prefab, Vector2 spawnPosition, float delay)
@@ -760,6 +1157,13 @@ public class Spawner : MonoBehaviour
         if (wolfType == WolfType.Black && !StrongerEnemiesAllowed)
         {
             wolfType = WolfType.Grey;
+        }
+        else if (wolfType == WolfType.Grey && DeepRosterAllowed)
+        {
+            // Nothing grey runs this deep. The two downgrade/upgrade arms can never
+            // both fire: one wants the stronger enemies held back, the other wants
+            // the deep roster live, and the deep wave is always the later one.
+            wolfType = WolfType.Black;
         }
 
         GameObject prefabToUse = null;
@@ -785,10 +1189,24 @@ public class Spawner : MonoBehaviour
                 wp3.Add(new Vector3(waypoints[i].x, waypoints[i].y, 0f));
         }
 
-        // If we have at least one waypoint, place the wolf there before initialization
+        // Put the wolf down OFF the frame and let it walk to the first waypoint,
+        // rather than dropping it straight onto that waypoint.
+        //
+        // Several of the shared patterns open on a point in the middle of the
+        // board — WolfMovementPatterns.CircleLeftThenRight starts at (-2, 2), which
+        // is dead centre — and a wolf placed there simply appeared in front of the
+        // player. Waves that knew this worked around it by hand (WolfCircles
+        // prepends an entry point above the left knight before the circle); the
+        // ones that did not, like About Face, spawned wolves in plain view.
+        //
+        // EnemyWolf does the rest for free: its Start measures the distance to
+        // waypoint 0 and, finding itself somewhere else, walks there first.
+        // Off-frame waypoints are handed back unchanged, so the hand-written
+        // entries above are untouched.
         if (wp3 != null && wp3.Count > 0)
         {
-            wolf.transform.position = wp3[0];
+            Vector2 entry = OffscreenEntryFor(wp3[0]);
+            wolf.transform.position = new Vector3(entry.x, entry.y, 0f);
         }
 
         EnemyWolf wolfScript = wolf.GetComponent<EnemyWolf>();
@@ -836,7 +1254,25 @@ public class Spawner : MonoBehaviour
         // is authored as an order — first this rock, then that one — and the
         // per-rock delays would otherwise shuffle the cadence out of that order.
         RockVariant variant = RockEscalation.NextVariant();
+        BookArrival(targetPlayer, spawnPosition, delay, speed);
         StartCoroutine(SpawnProjectileAfterDelay(targetPlayer, spawnPosition, delay, speed, variant));
+    }
+
+    // A rock released later does not exist yet, so a fire ogre deciding on a
+    // throw now could not see it (IncomingLedger). Its landing is booked here,
+    // at the moment the wave schedules it.
+    private void BookArrival(Transform targetPlayer, Vector2 spawnPosition, float delay, float speed)
+    {
+        if (targetPlayer == null || projectilePrefab == null) return;
+
+        ProjectileMovement prefabMovement = projectilePrefab.GetComponent<ProjectileMovement>();
+        float baseSpeed = speed > 0f ? speed : (prefabMovement != null ? prefabMovement.Speed : 0f);
+        float flightSpeed = baseSpeed * Mathf.Max(1f, RockEscalation.SpeedScale);
+        if (flightSpeed <= 0.0001f) return;
+
+        Vector2 aim = (Vector2)targetPlayer.position + new Vector2(0f, 0.5f);
+        float flight = Vector2.Distance(spawnPosition, aim) / flightSpeed;
+        IncomingLedger.Book(targetPlayer, Time.time + Mathf.Max(0f, delay) + flight);
     }
 
     private IEnumerator SpawnProjectileAfterDelay(Transform targetPlayer, Vector2 spawnPosition, float delay,

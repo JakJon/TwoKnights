@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: 
   unlockedAfterXWaves: 16
-  lockedAfterXWaves: 21
+  lockedAfterXWaves: 20
   useEnemyTracking: 1
   waveOccurences: 3
   baseRatCount: 4

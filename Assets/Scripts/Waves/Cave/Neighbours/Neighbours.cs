@@ -200,6 +200,11 @@ public class Neighbours : BaseWave
 
         yield return haul;
         yield return pack;
+
+        // The freight and the pack are both out: if the orb timer has not paid
+        // yet, it pays now. See OrbRun.SendFirstIfWaiting.
+        orbs.SendFirstIfWaiting(spawner);
+
         yield return vermin;
         yield return brutes;
         yield return shafts;

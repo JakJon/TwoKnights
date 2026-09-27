@@ -15,9 +15,9 @@ MonoBehaviour:
   waveName: Run of the Mine IV
   weight: 1000
   isUnlocked: 0
-  waveDescription: Twelve of them, two charges, and no time to line either one up.
+  waveDescription: Nine relays of four, with more road before they turn on you.
   unlockedAfterXWaves: 12
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 18
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: e1c92390a0694a84b96021c10a38891f, type: 2}
   entryRun: 2
@@ -37,60 +37,60 @@ MonoBehaviour:
   firstCartDelay: 0.5
   packLeadIn: 4
   relays:
-  - label: first relay (four, the top edge and no more)
+  - label: first relay (four, the top edge and down the side)
     courseRun: 0
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: second relay (four, the bottom edge and no more)
+    courseDistance: 36
+  - label: second relay (four, the bottom edge and up the side)
     courseRun: 2
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: third relay (four, the top edge and no more)
+    courseDistance: 36
+  - label: third relay (four, the top edge and down the side)
     courseRun: 0
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: first relay (four, the top edge and no more) [pass 2]
+    courseDistance: 36
+  - label: first relay (four, the top edge and down the side) [pass 2]
     courseRun: 2
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: second relay (four, the bottom edge and no more) [pass 2]
+    courseDistance: 36
+  - label: second relay (four, the bottom edge and up the side) [pass 2]
     courseRun: 0
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: third relay (four, the top edge and no more) [pass 2]
+    courseDistance: 36
+  - label: third relay (four, the top edge and down the side) [pass 2]
     courseRun: 2
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: first relay (four, the top edge and no more) [pass 3]
+    courseDistance: 36
+  - label: first relay (four, the top edge and down the side) [pass 3]
     courseRun: 0
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: second relay (four, the bottom edge and no more) [pass 3]
+    courseDistance: 36
+  - label: second relay (four, the bottom edge and up the side) [pass 3]
     courseRun: 2
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
-  - label: third relay (four, the top edge and no more) [pass 3]
+    courseDistance: 36
+  - label: third relay (four, the top edge and down the side) [pass 3]
     courseRun: 0
     wolves: 4
     wolfInterval: 1
     leadIn: 1
-    courseDistance: 18
+    courseDistance: 36
   packOrder:
   - 0
   - 0

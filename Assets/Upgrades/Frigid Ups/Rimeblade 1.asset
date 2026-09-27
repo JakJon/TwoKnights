@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rimeblade 1
   m_EditorClassIdentifier: 
   upgradeName: Rimeblade I
-  description: Your sword swings can throw off a burst of cold.
+  description: Every sword swing throws off a burst of cold that deals frost damage.
   weight: 55
   order: 6
   requiresOrderCount: 0
@@ -24,7 +24,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 799603b65e53950459c15e22882d3166, type: 2}
   lockedBy: []
   stats:
-  - valueText: 33%
+  - valueText: 100%
     labelText: OF SWINGS
+    isPositive: 1
+  - valueText: +5
+    labelText: FROST DAMAGE
     isPositive: 1
   bladeLevel: 1

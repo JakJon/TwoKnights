@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Reflector 2
   m_EditorClassIdentifier: 
   upgradeName: Reflector II
-  description: Nothing lands on this guard without being returned, and it comes
-    back twice as hard.
+  description: Nothing lands unreturned, and it comes back harder. Your projectiles fly 2.5x faster.
   weight: 16
   order: 3
   requiresOrderCount: 0
@@ -28,7 +27,10 @@ MonoBehaviour:
   - valueText: 100%
     labelText: BLOCKS REFLECT
     isPositive: 1
-  - valueText: x2
-    labelText: ROCK DAMAGE
+  - valueText: x2.5
+    labelText: REFLECT DAMAGE
+    isPositive: 1
+  - valueText: x2.5
+    labelText: PROJECTILE SPEED
     isPositive: 1
   rank: 2

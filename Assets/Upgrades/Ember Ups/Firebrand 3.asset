@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Firebrand 3
   m_EditorClassIdentifier: 
   upgradeName: Firebrand III
-  description: A third fireball, straight down the middle of the pair.
+  description: A second fireball is lobbed beside the first.
   weight: 14
   order: 4
   requiresOrderCount: 0
@@ -21,9 +21,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 41fec2544e8b4febb284f47ce9fae1ae, type: 2}
   lockedBy: []
   stats:
-  - valueText: 3
+  - valueText: 2
     labelText: FIREBALLS
     isPositive: 1
-  hurlChance: 20
-  fireballCount: 3
+  rank: 3
   fireballPrefab: {fileID: 4271991971420557666, guid: 086b3c5d7a42ae942a4566a3f1caa667, type: 3}

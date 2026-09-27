@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: The last shift comes out spread the whole way round the loop.
   unlockedAfterXWaves: 12
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 18
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 1f509b24b78bdbb6893dc781c71bc8c5, type: 2}
   entryRun: 2

@@ -2,97 +2,123 @@ using System.Collections.Generic;
 using static QuestBuild;
 
 /// <summary>
-/// The Dawn Order. Same shape as the Serpent, the Ember and the Frigid: a light
-/// trigger reveals the initiation, the initiation admits you, admission opens the
-/// two branches.
+/// The Order of the Dawn. Every other Order measures a knight by what they killed;
+/// this one measures you by what reached the person beside you, and it is the only
+/// tally where sending more of it away is the better score.
 ///
-/// Dawn's branches are not a disagreement about tactics the way Frigid's are.
-/// They are a disagreement about WHO the light is for. Vigil says it is for the
-/// other knight. Wellspring says you cannot pour from an empty cup. The Order has
-/// been having this argument for a long time and is not close to settling it.
+/// Its door opens either way round — on light shared across, or on health mended by
+/// Lifebloom — because a knight who went down the mending branch practised the same
+/// thing by a different route. This is the only Any-of gate in the game.
 /// </summary>
 public static class DawnQuests
 {
     public const string Initiation = "dawn_initiation";
-    public const string Vigil1 = "dawn_vigil_1";
-    public const string Vigil2 = "dawn_vigil_2";
-    public const string Wellspring1 = "dawn_wellspring_1";
-    public const string Wellspring2 = "dawn_wellspring_2";
+    public const string FirstAidFrenzy = "first_aid_frenzy";
+    public const string NotAScratch = "not_a_scratch";
+    public const string RegainedComposure = "regained_composure";
+    public const string LastLight = "the_last_light";
 
     public static IEnumerable<Quest> All()
     {
         yield return new Quest(
             id: Initiation,
-            name: "Initiation: The Kept Watch",
+            name: "Initiation: The protected order",
             description:
-                "The Order of the Dawn holds that there is no such thing as a knight who survived a " +
-                "night, only a pair who did. They are aware this is a technicality on most evenings. " +
-                "They are also aware that on the evenings it is not a technicality it is the only " +
-                "thing that mattered, and they would like to see you act as though you knew which " +
-                "evening you were having.",
+                "A paladin of the Dawn Order has shown up and challenged us to prove our abilities with "
+                + "healing spells. His trial throws rocks at both of us at once, each of us the mirror of "
+                + "the other, and neither of us can be hit even once.",
             mapId: Camp,
-            objectives: new[]
-            {
-                Obj("dawn.shared_light", 100, "heals passed to the other knight"),
-                Obj("dawn.lifebloom", 50, "kills that healed"),
-                Obj("upgrades.order.dawn", 5, "dawn upgrades taken"),
-            },
+            objectives: One("trials.dawn", 1, "Pass the Paladin's trial", hideProgress: true),
             reward: Reward(crystals: 2),
-            unlocks: Gate(Stat("dawn.shared_light", 40)));
-
-        // ---- Vigil: the light you give away ----
+            unlocks: Gate(Stat("dawn.shared_light", 40),
+                          Stat(OrderStats.LifebloomHealing, 20)),
+            unlockMode: UnlockMode.Any,
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Dawn),
+            offer:
+                "You must be intrigued by the powers of the Dawn Order.\n"
+                + "We can teach you healing abilities far greater than you've seen before.\n"
+                + "First you must show us you're able.",
+            completion:
+                "We will take you under our wing.\n"
+                + "Your healing spells are admirable, but have room for growth still.\n"
+                + "Take on these trials, and your light will grow stronger.");
 
         yield return new Quest(
-            id: Vigil1,
-            name: "The Longer Half",
+            id: FirstAidFrenzy,
+            name: "First aid frenzy",
             description:
-                "Every Order in the field measures a knight by what they killed. This one measures you " +
-                "by what reached the person beside you, and it is the only tally where sending more of " +
-                "it away is the better score. Some recruits take a while with this.",
+                "Another trial from the Dawn paladin. We must recover plenty of health within a single "
+                + "wave.",
             mapId: Camp,
-            objectives: One("dawn.shared_light", 300, "heals passed to the other knight"),
+            objectives: One(OrderStats.HealedInWaveMax, 150, "health recovered in one wave"),
             reward: Reward(equipmentId: "warm_lantern"),
-            unlocks: Gate(After(Initiation)));
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Dawn),
+            offer:
+                "",
+            completion:
+                "Nicely done, you really are putting your healing spells to use.\n"
+                + "Let's see if you can take them even further.");
 
         yield return new Quest(
-            id: Vigil2,
-            name: "Both Of You, Standing",
+            id: NotAScratch,
+            name: "Not a scratch",
             description:
-                "The rite is not a demonstration of healing. It is a demonstration of a night going " +
-                "badly and then not going badly, which are two different skills and the Order only " +
-                "cares about the second one. Let it get close. Then do not let it finish.",
+                "The Dawn paladin has asked us to take another trial, surviving waves of creatures at max "
+                + "health. (Note you can take damage, just not end the wave below max health.)",
+            mapId: Camp,
+            objectives: One(OrderStats.FlawlessWaveStreakMax, 10,
+                            "waves in a row ended with both knights whole"),
+            reward: Reward(equipmentId: "oathbound_locket"),
+            unlocks: Gate(After(FirstAidFrenzy)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Dawn),
+            offer:
+                "",
+            completion:
+                "The Dawn Order is pleased with your progress.\n"
+                + "We hope you cherish this reward, and continue to be a light to those around you.");
+
+        yield return new Quest(
+            id: RegainedComposure,
+            name: "Regained composure",
+            description:
+                "We must recover our health after having it fall low. (WRITE THE EXACT SPECIFIC NUMBERS "
+                + "SOMEWHERE IN THIS QUEST)",
             mapId: Camp,
             objectives: One(Feats.DawnPairPulledBack, 1,
                             "Finish a wave with both knights at full after one was driven low",
                             hideProgress: true),
-            reward: Reward(equipmentId: "oathbound_locket"),
-            unlocks: Gate(After(Vigil1)));
-
-        // ---- Wellspring: the light you find ----
-
-        yield return new Quest(
-            id: Wellspring1,
-            name: "Draw From The Well",
-            description:
-                "The other branch is unromantic about it. Light has to come from somewhere, it never " +
-                "arrives on a timer, and a knight who gave away more than they gathered is a knight " +
-                "who has arranged for two people to fall over instead of one.",
-            mapId: Camp,
-            objectives: One("dawn.lifebloom", 200, "kills that healed"),
-            reward: Reward(crystals: 1),
-            unlocks: Gate(After(Initiation)));
+            reward: Reward(crystals: 2),
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Dawn),
+            offer:
+                "",
+            completion:
+                "Very good.\n"
+                + "Your light shines bright, but it may shine brighter yet with further training\n"
+                + "We will now teach you the redeeming power of light.");
 
         yield return new Quest(
-            id: Wellspring2,
+            id: LastLight,
             name: "The Last Light",
             description:
-                "The Order's final rite is the one thing both branches agree on, which is why it is " +
-                "kept for the end. Once a map, the other knight simply does not fall. It insures the " +
-                "person beside you and never you, and every initiate asks about that exactly once.",
+                "We must learn the Dawn Order's sacred healing spell and put it to use.",
             mapId: Camp,
-            objectives: One("upgrades.taken.last_light", 1,
-                            "Acquire Last Light, the Dawn capstone", hideProgress: true),
-            reward: Reward(equipmentId: "dawnbreak_crown"),
-            unlocks: Gate(After(Wellspring1)));
+            objectives: new[]
+            {
+                Obj("upgrades.taken.last_light", 1, "Take up Last Light", hideProgress: true),
+                Obj(OrderStats.LastLightActivations, 1,
+                    "Let it catch the other knight once", hideProgress: true),
+            },
+            reward: Reward(equipmentId: "dawnbreak_crown", upgradeSlug: "last_light"),
+            unlocks: Gate(After(RegainedComposure)),
+            cast: Cast(NpcId.Paladin, UpgradeOrder.Dawn),
+            offer:
+                "",
+            completion:
+                "You are a light in darkness.\n"
+                + "You have shown to be worthy of the Dawn Order's charms\n"
+                + "Please wear this crown with dignity.");
+
     }
 }

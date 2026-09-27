@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Solid iron up the middle, and vermin parked where the powder cannot be spent.
   unlockedAfterXWaves: 4
-  lockedAfterXWaves: 11
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: cde9e7a124d3c8fdbece04f50a2cb486, type: 2}
   shaftRun: 0
@@ -52,7 +52,6 @@ MonoBehaviour:
   stationHeight: 4.3
   stationLane: 3.2
   stationSpread: 0.8
-  holdStation: 1
   orbs:
     healthOrb: 0
     count: 1

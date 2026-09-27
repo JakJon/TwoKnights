@@ -15,7 +15,7 @@ public class PoisonTipUpgrade : BaseUpgrade
 {
     [SerializeField] private float poisonChanceIncrease = 30f; // Added to the knight's poison chance
 
-    [Tooltip("How long a bead shed by this knight's poisoned arrows keeps working. Set OUTRIGHT by each rank, not added: 5 / 10 / 15 across the three. The boost keeps the larger of what it has and what it is given, so the draft re-offering a rank can never take the trail back down.")]
+    [Tooltip("How long a bead shed by this knight's poisoned arrows keeps working. Set OUTRIGHT by each rank, not added: 1 / 3 / 5 across the three. The boost keeps the larger of what it has and what it is given, so the draft re-offering a rank can never take the trail back down.")]
     [SerializeField] private float trailBubbleSeconds = 5f;
 
     // Chain steps are named "Venom Tip I/II/III" on the assets

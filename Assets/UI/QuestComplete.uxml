@@ -1,12 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <!-- Wave Survived: a Gilded Vigil panel over the cleared arena, no button.
-         Quest lines are built in code; the hint only appears when the wave
-         actually finished or opened something and the overlay waits on input. -->
+    <!-- Wave Survived: two words floating over the cleared arena. No scrim, no
+         panel, no button. Quest news is a scene with a person in it now — see
+         QuestScene — so nothing else belongs here. -->
     <ui:VisualElement name="wave-survived-screen" class="ws-overlay">
-        <ui:VisualElement name="ws-panel" class="ws-panel">
-            <ui:Label text="Wave Survived" name="ws-title" class="ws-title" />
-            <ui:VisualElement name="ws-quests" class="ws-quests" />
-            <ui:Label text="Press any button to continue" name="ws-hint" class="ws-hint" style="display: none;" />
-        </ui:VisualElement>
+        <ui:Label text="Wave Survived" name="ws-title" class="ws-title" />
     </ui:VisualElement>
 </ui:UXML>

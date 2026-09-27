@@ -48,6 +48,23 @@ public class EnemyMineCart : EnemyBase
         base.Awake();
     }
 
+    /// <summary>
+    /// "Ten empty carts" means the ones carrying nothing, so this counts an exact
+    /// type match rather than an is-a: a keg cart, a delivery cart and a gnome's
+    /// cart are all EnemyMineCarts, and none of them is empty.
+    ///
+    /// Hung off OnDeath rather than Shatter, deliberately — Shatter is the
+    /// Overseer running one down, which nobody earned.
+    /// </summary>
+    protected override void OnDeath()
+    {
+        base.OnDeath();
+        if (GetType() == typeof(EnemyMineCart))
+        {
+            QuestTally.Total(MineStats.EmptyCartsBroken);
+        }
+    }
+
     protected virtual void Start()
     {
         attributes = EnemyType.Ground;

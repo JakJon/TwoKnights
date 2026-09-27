@@ -22,7 +22,7 @@ using UnityEngine;
 // it every tick would be a damage aura, and the Serpent already has clouds for
 // area. What a bead is worth is one application of the arrow's own venom.
 //
-// Lifetime is the Venom Tip TIER: 5 seconds at rank I, 10 at II, 15 at III. That
+// Lifetime is the Venom Tip TIER: 1 second at rank I, 3 at II, 5 at III. That
 // is the only thing the later ranks change about the trail, and it is the right
 // dial — a longer bead is a lane you can lay further ahead of what it is for.
 public class PoisonTrailBubble : MonoBehaviour
@@ -49,6 +49,17 @@ public class PoisonTrailBubble : MonoBehaviour
     private const float DriftSpeed = 0.35f;
     private const float FadeSeconds = 0.6f;
 
+    // Drawn part-transparent (owner, 2026-09-16). A bead is vapour shaken off an
+    // arrow, and at full opacity a trail read as a row of solid green dots sitting
+    // on top of the board rather than hanging in it. Half-and-a-bit keeps it
+    // readable as a lane without hiding what is walking through it.
+    private const float BeadAlpha = 0.55f;
+
+    // Serpent's Breath beads are a quarter more see-through again (owner,
+    // 2026-09-23): 0.55 x 0.75. A swing throws three at a time from rank II, so
+    // they sit over the fight in a way a trail's scattered dots do not.
+    private const float BreathBeadAlpha = 0.41f;
+
     // Off the board and it is nobody's problem — the same bounds PoisonCloud uses
     private const float OffscreenX = 13f;
     private const float OffscreenY = 8f;
@@ -57,19 +68,81 @@ public class PoisonTrailBubble : MonoBehaviour
     private float _poisonDuration;
     private float _poisonTickRate;
     private string _ownerTag;
+    private EnemyBase _source; // Airborne Virus: the body that breathed this bead out
 
     private float _diesAt;
     private Vector2 _drift;
     private SpriteRenderer _renderer;
     private float _startAlpha;
 
+    // Plaguebringer (owner, 2026-09-26): a bead made by a knight who owns it hunts,
+    // the way that knight's clouds do - it turns onto the nearest on-screen mob
+    // within PoisonCloud.HomingRadius and keeps that mob until it dies or leaves the
+    // view. A bead is spent on the first body it touches, so reaching the mob is the
+    // whole chase: it never eases off the way a cloud settling over one does.
+    //
+    // It never slows down to hunt. A thrown bead turns at its own pace, and only a
+    // bead drifting slower than the mob can walk speeds up, to that pace plus the
+    // cloud's margin, so it always gains.
+    private bool _homing;
+    private EnemyBase _homingTarget;
+    private Collider2D _homingBody;
+    private float _nextHomingSearch;
+
     /// <summary>
     /// Leave a bead at <paramref name="position"/> carrying the same venom the
-    /// arrow that shed it was carrying, so Virulence flows through the trail
-    /// without the trail knowing Virulence exists.
+    /// arrow that shed it was carrying, so the knight's tick bonus flows through
+    /// the trail without the trail knowing it exists.
     /// </summary>
     public static PoisonTrailBubble Drop(Vector2 position, float seconds, int poisonDamage,
         float poisonDuration, float poisonTickRate, string ownerTag, int index)
+    {
+        // Fixed, not rolled - the no-randomness pillar reaches this far down.
+        // Alternating the lean means a trail reads as a line of beads that are
+        // wandering rather than a column marching the same way.
+        float lean = (index % 2 == 0) ? 0.45f : -0.45f;
+        Vector2 drift = new Vector2(lean, 1f).normalized * DriftSpeed;
+
+        return Create(position, seconds, poisonDamage, poisonDuration, poisonTickRate,
+                      ownerTag, drift, BeadAlpha);
+    }
+
+    /// <summary>
+    /// A bead the knight THROWS rather than sheds: Serpent's Breath exhales these
+    /// along the shield facing, so this one travels a chosen way at a chosen pace
+    /// instead of hanging where it was made and wafting upward.
+    ///
+    /// It is otherwise exactly a bead - same size, same single application, spent
+    /// on the first body it touches. That is deliberate: the Serpent has one venom
+    /// vocabulary, and a swing that exhales the same thing an arrow sheds is
+    /// legible the moment a player has seen either.
+    /// </summary>
+    public static PoisonTrailBubble Launch(Vector2 position, Vector2 direction, float speed,
+        float seconds, int poisonDamage, float poisonDuration, float poisonTickRate,
+        string ownerTag)
+    {
+        return Create(position, seconds, poisonDamage, poisonDuration, poisonTickRate,
+                      ownerTag, direction.normalized * speed, BreathBeadAlpha);
+    }
+
+    /// <summary>
+    /// A bead a poisoned ENEMY breathes out (Airborne Virus). Thrown exactly like
+    /// a Serpent's Breath bead, except it never lands on the enemy it came out
+    /// of - it is born inside that body, and would otherwise be spent on the
+    /// spot re-poisoning its own source.
+    /// </summary>
+    public static PoisonTrailBubble Release(Vector2 position, Vector2 direction, float speed,
+        float seconds, int poisonDamage, float poisonDuration, float poisonTickRate,
+        string ownerTag, EnemyBase source)
+    {
+        PoisonTrailBubble bubble = Create(position, seconds, poisonDamage, poisonDuration,
+            poisonTickRate, ownerTag, direction.normalized * speed, BreathBeadAlpha);
+        if (bubble != null) bubble._source = source;
+        return bubble;
+    }
+
+    private static PoisonTrailBubble Create(Vector2 position, float seconds, int poisonDamage,
+        float poisonDuration, float poisonTickRate, string ownerTag, Vector2 drift, float alpha)
     {
         Sprite sprite = PoisonResourceManager.Instance != null
             ? PoisonResourceManager.Instance.GetPoisonBubbleSprite()
@@ -83,6 +156,9 @@ public class PoisonTrailBubble : MonoBehaviour
         var renderer = go.AddComponent<SpriteRenderer>();
         renderer.sprite = sprite;
         renderer.sortingOrder = 5;
+        // Set before _startAlpha is captured below, so the dying fade thins out
+        // from THIS alpha rather than snapping up to full first
+        renderer.color = new Color(1f, 1f, 1f, alpha);
 
         var circle = go.AddComponent<CircleCollider2D>();
         circle.isTrigger = true;
@@ -106,18 +182,16 @@ public class PoisonTrailBubble : MonoBehaviour
         bubble._diesAt = Time.time + Mathf.Max(0.5f, seconds);
         bubble._renderer = renderer;
         bubble._startAlpha = renderer.color.a;
-
-        // Fixed, not rolled — the no-randomness pillar reaches this far down.
-        // Alternating the lean means a trail reads as a line of beads that are
-        // wandering rather than a column marching the same way.
-        float lean = (index % 2 == 0) ? 0.45f : -0.45f;
-        bubble._drift = new Vector2(lean, 1f).normalized * DriftSpeed;
+        bubble._drift = drift;
+        bubble._homing = PoisonCloud.OwnerHasPlaguebringer(ownerTag);
 
         return bubble;
     }
 
     private void Update()
     {
+        if (_homing) Home();
+
         transform.position += (Vector3)(_drift * Time.deltaTime);
 
         float left = _diesAt - Time.time;
@@ -139,13 +213,75 @@ public class PoisonTrailBubble : MonoBehaviour
         }
     }
 
+    // Steers `_drift` toward the current mob. With no mob in reach the bead keeps
+    // whatever drift it has, so it carries on exactly as a plain bead would.
+    private void Home()
+    {
+        if (!IsWorthChasing(_homingTarget, _homingBody))
+        {
+            _homingTarget = null;
+            _homingBody = null;
+            FindHomingTarget();
+        }
+
+        if (_homingTarget == null) return;
+
+        // The body's middle, not its transform - enemy pivots sit at the feet
+        Vector2 toTarget = (Vector2)_homingBody.bounds.center - (Vector2)transform.position;
+        float distance = toTarget.magnitude;
+        if (distance < 1e-4f) return;
+
+        float chaseSpeed = Mathf.Max(_drift.magnitude,
+            _homingTarget.MeasuredSpeed + PoisonCloud.HomingSpeedMargin);
+        _drift = Vector2.MoveTowards(_drift, toTarget / distance * chaseSpeed,
+            PoisonCloud.HomingAcceleration * Time.deltaTime);
+    }
+
+    // Not the body it came out of (Airborne Virus), and not one venom cannot touch -
+    // a cart would spend the bead and take nothing from it
+    private bool IsWorthChasing(EnemyBase enemy, Collider2D body)
+    {
+        return enemy != null && !enemy.IsDead && enemy != _source
+            && !enemy.ImmuneToAreaDamage
+            && body != null && body.enabled
+            && FireField.IsInsideView(body.bounds.center);
+    }
+
+    private void FindHomingTarget()
+    {
+        if (Time.time < _nextHomingSearch) return;
+        _nextHomingSearch = Time.time + PoisonCloud.HomingSearchInterval;
+
+        Vector2 here = transform.position;
+        Collider2D[] hits = PoisonCloud.HomingHits;
+        int count = Physics2D.OverlapCircle(here, PoisonCloud.HomingRadius,
+            PoisonCloud.HomingFilter, hits);
+
+        float bestDistance = float.MaxValue;
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D hit = hits[i];
+            if (hit == null) continue;
+
+            EnemyBase enemy = hit.GetComponent<EnemyBase>();
+            if (!IsWorthChasing(enemy, hit)) continue;
+
+            float distance = ((Vector2)hit.bounds.center - here).sqrMagnitude;
+            if (distance >= bestDistance) continue;
+
+            bestDistance = distance;
+            _homingTarget = enemy;
+            _homingBody = hit;
+        }
+    }
+
     // Poisons whatever walks into it, once, and is spent doing so. Spent rather
     // than persistent because a bead is one application of one arrow's venom —
     // see the note at the top about why it is not an aura.
     private void OnTriggerEnter2D(Collider2D other)
     {
         EnemyBase enemy = other.GetComponent<EnemyBase>();
-        if (enemy == null || enemy.IsDead) return;
+        if (enemy == null || enemy.IsDead || enemy == _source) return;
 
         enemy.ApplyPoisonFromTag(_poisonDamage, _poisonDuration, _poisonTickRate, _ownerTag);
         Destroy(gameObject);

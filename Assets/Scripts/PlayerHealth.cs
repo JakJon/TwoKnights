@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
@@ -25,6 +25,22 @@ public class PlayerHealth : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
 
+    // Low-health warning: two chirps on a clock that speeds up as the knight
+    // nears death, and a red halo round their bar that pulses in time with it.
+    // Absolute HP rather than a fraction of max, on purpose — a rock hits just
+    // as hard whether the knight's max is 100 or 180, so "one more hit and I'm
+    // dead" is a number, not a percentage.
+    [Header("Low health warning")]
+    [SerializeField] private int lowHealthThreshold = 30;
+    [SerializeField] private float lowHealthChirpInterval = 3f;
+    [SerializeField] private int criticalHealthThreshold = 10;
+    [SerializeField] private float criticalHealthChirpInterval = 1.5f;
+
+    // When this knight last chirped. Kept across recoveries, so a knight bobbing
+    // either side of the line (hit, orb, hit) is held to the same clock instead
+    // of chirping afresh every time they cross it.
+    private float _lastWarningChirp = float.NegativeInfinity;
+
     private void Awake()
     {
         glowManager = GetComponent<GlowManager>();
@@ -39,6 +55,62 @@ public class PlayerHealth : MonoBehaviour
         healthBar.SetValue(currentHealth);
     }
 
+    private void Update()
+    {
+        TickLowHealthWarning();
+    }
+
+    /// <summary>
+    /// Chirps when the interval for the knight's current health has passed since
+    /// the last chirp — so it sounds the moment they first drop below the line,
+    /// and dropping into critical pulls the next chirp in rather than waiting out
+    /// the slower clock. Scaled time: the pause and upgrade menus stop the clock,
+    /// and the alarm with it.
+    /// </summary>
+    private void TickLowHealthWarning()
+    {
+        float interval = LowHealthChirpInterval;
+        if (interval <= 0f || FightIsStoodDown)
+        {
+            healthBar.SetWarningGlow(0f);
+            return;
+        }
+
+        float sinceChirp = Time.time - _lastWarningChirp;
+        if (sinceChirp >= interval)
+        {
+            _lastWarningChirp = Time.time;
+            sinceChirp = 0f;
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.lowHealthChirp);
+        }
+
+        // Two pulses per chirp, peaking ON the chirp, so what the player hears
+        // and what they see land on the same beat. Never fully dark between
+        // pulses — the halo itself says "low", the pulse says "how low".
+        float pulse = 0.5f + 0.5f * Mathf.Cos(sinceChirp / interval * 2f * Mathf.PI * 2f);
+        healthBar.SetWarningGlow(Mathf.Lerp(0.3f, 1f, pulse));
+    }
+
+    // No alarm while the fight is stood down (owner, 2026-09-26): an NPC talking,
+    // an Order trial, or the target range. None of them can kill the knight, so a
+    // "one more hit" warning is only noise over the dialogue or the test. The clock
+    // is left alone, so the first chirp after comes as soon as the gap ends.
+    private static bool FightIsStoodDown =>
+        QuestScene.IsPlaying || TrialRunner.IsRunning || TrialRunner.IsSpeaking;
+
+    // Seconds between chirps at the knight's current health; 0 means no warning
+    private float LowHealthChirpInterval
+    {
+        get
+        {
+            if (currentHealth <= 0) return 0f;
+            if (currentHealth < criticalHealthThreshold) return criticalHealthChirpInterval;
+            if (currentHealth < lowHealthThreshold) return lowHealthChirpInterval;
+            return 0f;
+        }
+    }
+
     // Read-only accessors for UI/status
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
@@ -47,7 +119,27 @@ public class PlayerHealth : MonoBehaviour
     // later hits can find the earlier ones and nudge them up.
     private void ShowDamageText(int damage, Color textColor)
     {
-        if (damageTextPrefab == null || damage <= 0) return;
+        FloatingNumber(damage)?.Initialize(damage, textColor);
+    }
+
+    /// <summary>
+    /// A heal over the knight's head, in gold. Out of the same prefab and into the
+    /// same stack as the damage numbers, so a knight taking a hit and drinking an
+    /// orb in the same second reads as one column of numbers rather than two
+    /// systems arguing over the same patch of screen.
+    /// </summary>
+    private void ShowHealText(int amount)
+    {
+        FloatingNumber(amount)?.InitializeHeal(amount);
+    }
+
+    /// <summary>
+    /// Puts a fresh number above the sprite and lifts whatever is already up there
+    /// out of its way. Null when there is nothing to say.
+    /// </summary>
+    private DamageText FloatingNumber(int amount)
+    {
+        if (damageTextPrefab == null || amount <= 0) return null;
 
         float spriteHeight = spriteRenderer != null ? spriteRenderer.bounds.size.y : 1f;
         Vector3 spawnPosition = transform.position + damageTextOffset + new Vector3(0f, spriteHeight, 0f);
@@ -59,7 +151,7 @@ public class PlayerHealth : MonoBehaviour
 
         GameObject go = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity);
         go.transform.SetParent(transform);
-        go.GetComponent<DamageText>()?.Initialize(damage, textColor);
+        return go.GetComponent<DamageText>();
     }
 
     public void TakeDamage(int damage)
@@ -124,8 +216,8 @@ public class PlayerHealth : MonoBehaviour
     /// Damage with the flash and the voice spelled out. The streak reset and the
     /// death path stay identical whatever is passed, because a knight being hurt
     /// has to be ONE event however it happened — this is still the single funnel,
-    /// it just lets a source that repeats (KnightPoison, 25 ticks) sound like
-    /// itself instead of like twenty-five arrows. A null <paramref name="sound"/>
+    /// it just lets a source that repeats (KnightPoison, 10 ticks) sound like
+    /// itself instead of like ten arrows. A null <paramref name="sound"/>
     /// gets the standard hurt cry, which is what every other caller wants.
     /// </summary>
     public void TakeDamage(int damage, string sourceName, Color flashColor, float flashSeconds,
@@ -268,8 +360,21 @@ public class PlayerHealth : MonoBehaviour
         if (amount <= 0) return;
 
         int missing = maxHealth - currentHealth;
+        // What the heal was WORTH, not what it offered. Healing 40 into a knight
+        // missing 5 mends 5; counting the 40 would make the quest a matter of
+        // spamming orbs at a full knight.
+        int mended = Mathf.Min(amount, missing);
+        QuestTally.Wave(OrderStats.HealedInWaveMax, mended);
         currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
         healthBar.SetValue(currentHealth);
+
+        // The same figure, for the same reason: a "+40" over a knight who was one
+        // point down is a lie about what just happened. A knight already full
+        // prints nothing at all — and under Shared Light the overflow is not lost
+        // either, it goes to the partner, who prints their own number when the
+        // echo lands on them.
+        ShowHealText(mended);
+
         CurePoison();
 
         // The holy light and its chime, fired from the one funnel every heal

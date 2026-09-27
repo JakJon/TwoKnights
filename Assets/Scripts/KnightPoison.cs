@@ -1,12 +1,12 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 // Poison on a KNIGHT. The mine's answer to a player who has learned to shoot
 // every bomb out of the air: this one does not need to land a big hit, it needs
 // to land at all.
 //
-// The shape of it is a debt rather than a blow. Twelve points is less than the
-// fifteen a bomb or a keg lands for, but it arrives one point every two seconds
+// The shape of it is a debt rather than a blow. Ten points is less than the
+// fifteen a bomb or a keg lands in one go, and it arrives one point at a time
 // across most of a wave. So it is never what kills you on its own and always what
 // makes the next thing lethal, and the knight carrying it is playing the rest of
 // the wave on a clock.
@@ -34,12 +34,14 @@ public class KnightPoison : MonoBehaviour
     // means. A gnome's bomb and anything that inherits this later both leave a
     // knight in exactly the same state.
     private const int DamagePerTick = 1;
-    private const float TickSeconds = 2f;
+    private const float TickSeconds = 2.4f;
 
     // A whole number of ticks, deliberately: the duration and the cadence have to
     // agree, or the last tick lands after the poison was supposed to be over and
-    // the total stops being something you can state in one sentence. Twelve ticks
-    // of one, twenty-four seconds.
+    // the total stops being something you can state in one sentence. Ten ticks of
+    // one, twenty-four seconds — the DURATION is the knob that matters, since
+    // it is measured against how long a wave lasts, so a change to the total moves
+    // the cadence and leaves the twenty-four seconds alone.
     private const float DefaultDuration = 24f;
 
     // Matches the red pulse every other damage event uses, in the one colour that

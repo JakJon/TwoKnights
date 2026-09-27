@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: The Mine
   m_EditorClassIdentifier: 
   mapId: mine
-  displayName: The Mine
+  displayName: Overrun Mine
   unlockedByDefault: 0
   previewImage: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
-  tagline: Rails, carts, and the dark below
-  lockedHint: Defeat the Rat King
+  description: The kingdom's mine was once a prosperous source of resources. Now
+    it is an enemy foothold for the gnomes.
+  finalWaveNumber: 30
   completionMarkColor: {r: 0.6941176, g: 0.5411765, b: 0.8784314, a: 1}
   waves:
   - {fileID: 11400000, guid: 81abf34fe97395d48b43cbb55f58edad, type: 2}
@@ -61,6 +62,50 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4748e9350043bc0702736002ff0a750f, type: 2}
   - {fileID: 11400000, guid: 24bbc20b9429416acc49fb30b6ff2570, type: 2}
   - {fileID: 11400000, guid: f97f1ad2ea66a183ceed7328182c66b7, type: 2}
+  - {fileID: 11400000, guid: 675ce8ae99904617a6730e7c6879cb5d, type: 2}
+  - {fileID: 11400000, guid: ade92bb5e2734c35b4e400e438208ab5, type: 2}
+  - {fileID: 11400000, guid: ae48304c96a54c35aec13c6aaaf1a30e, type: 2}
+  - {fileID: 11400000, guid: 77b365c351804d37a0494e488acf07d9, type: 2}
+  - {fileID: 11400000, guid: 98e5634231ee4bbaae56bfbaad25a872, type: 2}
+  - {fileID: 11400000, guid: e6fcd02663e04555a78ab5c9264cee8f, type: 2}
+  - {fileID: 11400000, guid: 5945c729ce254a7ea22883e892d57ef3, type: 2}
+  - {fileID: 11400000, guid: 4d3105145f0a4f61ba71a7d439b338fe, type: 2}
+  - {fileID: 11400000, guid: eded35bf2a5a408a8bad0805f7aeda8f, type: 2}
+  - {fileID: 11400000, guid: 8cf914e40af14c75982e4b4d7560a6da, type: 2}
+  - {fileID: 11400000, guid: d973fc6b823c490fae13513f2beaf14d, type: 2}
+  - {fileID: 11400000, guid: c7b17b13f1624514a2f4bf524092d76b, type: 2}
+  - {fileID: 11400000, guid: ebf74e36d94041e2a414263078ed10e5, type: 2}
+  - {fileID: 11400000, guid: 26ab9b1cff9d4dc88c6d2488246fbcb2, type: 2}
+  - {fileID: 11400000, guid: c4b408e964204c8a9f77e6c5b2f2d990, type: 2}
+  - {fileID: 11400000, guid: 089a78c4097647158bf8757983d595c5, type: 2}
+  - {fileID: 11400000, guid: 0ee68406e8c642a289bbc061afd2b433, type: 2}
+  - {fileID: 11400000, guid: 794cd45df2254ade95d5555d033df43b, type: 2}
+  - {fileID: 11400000, guid: d1d258da5c64467abfed05e1e21b30d6, type: 2}
+  - {fileID: 11400000, guid: b8dfc58d993b43f3a90187c90727207b, type: 2}
+  - {fileID: 11400000, guid: 29930e29da7a4cb9bc979c122dc7e44a, type: 2}
+  - {fileID: 11400000, guid: e7d6690b2df64f668845038f0266c067, type: 2}
+  - {fileID: 11400000, guid: 0652d493fdf5438d86810bd0329cc7c3, type: 2}
+  - {fileID: 11400000, guid: 2bee181536994de0a800ce4c31233a6d, type: 2}
+  - {fileID: 11400000, guid: 887fc1278ad8489c8aab044a4a13ed11, type: 2}
+  - {fileID: 11400000, guid: 3379bfc9d5f143408a98ae18aaa3b683, type: 2}
+  - {fileID: 11400000, guid: f926551aef2c4404b7e8b9e544d6918b, type: 2}
+  - {fileID: 11400000, guid: e74c21cc1b6d461ea9abb3be75c43169, type: 2}
+  - {fileID: 11400000, guid: 263a54bcdbaa4c4e95d57e0797c36d5b, type: 2}
+  - {fileID: 11400000, guid: 882a147c1e414d59888a63cbadaf35c0, type: 2}
+  - {fileID: 11400000, guid: 945018881d444d40b60f00952c131b5c, type: 2}
+  - {fileID: 11400000, guid: 92b861504fb8462e87a02a9d081bf54f, type: 2}
+  - {fileID: 11400000, guid: 139433687a5949659079b0239e1342cd, type: 2}
+  - {fileID: 11400000, guid: 5495c20d8683423eb7fb564b6defa9ad, type: 2}
+  - {fileID: 11400000, guid: 3d4e6b474e3a47cc8c12ee4a6098022c, type: 2}
+  - {fileID: 11400000, guid: a1475c3ed9c84e358ad7679eb20029c1, type: 2}
+  - {fileID: 11400000, guid: e4350aad878b476ea8071fdc6fcec7b8, type: 2}
+  - {fileID: 11400000, guid: 6347b28f53db4c20be85a445ec1e43fd, type: 2}
+  - {fileID: 11400000, guid: bcdc2c9cbc0941519d454e198a61c7b4, type: 2}
+  - {fileID: 11400000, guid: e98db4c98a91404496b495f5e2f757a4, type: 2}
+  - {fileID: 11400000, guid: 2e4c6da965824f7a979977dcf9ad5187, type: 2}
+  - {fileID: 11400000, guid: e44453a1583049da877819efa4dba20d, type: 2}
+  - {fileID: 11400000, guid: 9efd3e1e158148e188145da39b9a6157, type: 2}
+  - {fileID: 11400000, guid: 151da7488b26444387b1ab418b276bbb, type: 2}
   waveFolders:
   - Assets/Scripts/Waves/Cave/ChooChoo
   - Assets/Scripts/Waves/Cave/Delivery
@@ -73,13 +118,24 @@ MonoBehaviour:
   - Assets/Scripts/Waves/Cave/RunOfTheMine
   - Assets/Scripts/Waves/Cave/Neighbours
   - Assets/Scripts/Waves/Cave/UpTheMiddle
+  - Assets/Scripts/Waves/Cave/HotPotato
+  - Assets/Scripts/Waves/Cave/RushHour
   gateBoss: {fileID: 11400000, guid: fd330e4440ca80c85e44ee8c7f216238, type: 2}
   gateBossWaveNumber: 10
   gateBossRepeats: 0
   gateBossEndsRun: 0
   trueBoss: {fileID: 11400000, guid: 5d7bd7d9013d7cd4faa97df4421b4f59, type: 2}
-  trueBossWaveNumber: 20
+  trueBossWaveNumber: 25
+  trueBossEndsRun: 0
   strongerEnemiesFromWave: 1
+  ratPhases:
+  - label: The Mine
+    fromWaveNumber: 1
+    cadence: 000000000100000002000000
+  - label: Deep Mine
+    fromWaveNumber: 11
+    cadence: 030000000100000002000000
+  deepRosterFromWave: -1
   stages:
   - label: Mine
     fromWaveNumber: 1
@@ -93,4 +149,8 @@ MonoBehaviour:
     foreground: {fileID: -5368810055853492662, guid: 56b8e1b55ed0c3a46b702f4d4fdfedcf, type: 3}
     canopy: {fileID: 11400000, guid: a2473eeed0abb5c40b46636c88748527, type: 2}
     ventureLine: The knights wander further into the cave.
+  explorationMusic: {fileID: 8300000, guid: 374d718c2e5394d429d7a79e11628cdf, type: 3}
+  intenseMusic: {fileID: 8300000, guid: 761f33fbd26d6c84b9902832dae4aee1, type: 3}
+  intenseMusicFromWave: 11
+  bossMusic: {fileID: 8300000, guid: 1c364d1c3a480d04eb3098678bcf1965, type: 3}
   unlocksMapId: pallid_keep

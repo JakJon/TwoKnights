@@ -920,7 +920,6 @@ MonoBehaviour:
   uiDocument: {fileID: 913371068}
   styleSheet: {fileID: 7433441132597879392, guid: 50c47a472d649947831c0ccd167ec593, type: 3}
   autoAdvanceSeconds: 1
-  inputGraceSeconds: 0.25
 --- !u!114 &913371068
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1319,6 +1318,9 @@ MonoBehaviour:
   brownWolfPrefab: {fileID: 5002236303498629586, guid: 999ff400cb9718143822bc10fffcd80d, type: 3}
   blackWolfPrefab: {fileID: 5002236303498629586, guid: a3275b14505447841b8f3a6bf0fd530e, type: 3}
   darkBat: {fileID: 1524171790021137871, guid: 4424adafa6589cf4ba02cbd43f6b01fc, type: 3}
+  moonlitBat: {fileID: 7726164781703987083, guid: 2a8806d3d3a71c640b4ffcabc583889c, type: 3}
+  moonlitSlimePrefab: {fileID: 6778644240228171417, guid: 2bb9df75cba367643838ee78991993f7, type: 3}
+  moonlitRat: {fileID: 2514751607320038494, guid: e1380df4be9e3974bad948c17a1cb485, type: 3}
   ogrePrefab: {fileID: 1212333551141852500, guid: 702d08fe5619d21478ca600d07a98235, type: 3}
   fireOgrePrefab: {fileID: 5860371335261493873, guid: 1c01a9a675df66d42ab78df969b02b7c, type: 3}
   darkBatInterval: 4
@@ -1582,6 +1584,9 @@ MonoBehaviour:
   playerHurt:
     clip: {fileID: 8300000, guid: 7fc75cfed01919641b13f9ed49cb8e63, type: 3}
     volume: 1
+  lowHealthChirp:
+    clip: {fileID: 8300000, guid: 1e00ad6f1016d8374c194ae7c1a08266, type: 3}
+    volume: 0.5
   projectileSpawn:
     clip: {fileID: 8300000, guid: 49cf648fd997c1c43b1cb5a577c72a5a, type: 3}
     volume: 0.351
@@ -1804,6 +1809,30 @@ MonoBehaviour:
   questComplete:
     clip: {fileID: 8300000, guid: 9d11603b947576e449535cb540059879, type: 3}
     volume: 0.432
+  trialWon:
+    clip: {fileID: 8300000, guid: e5369c5f299e8ef999c57bace3530227, type: 3}
+    volume: 0.45
+  trialLost:
+    clip: {fileID: 8300000, guid: a051eeb7981a8f9f60411a25cdbc2b1c, type: 3}
+    volume: 0.5
+  npcVoiceKing:
+    clip: {fileID: 8300000, guid: 0276c375b73771234308b31be6d8ae8b, type: 3}
+    volume: 0.55
+  npcVoiceCartographer:
+    clip: {fileID: 8300000, guid: 25b06b4d506f611e1b5f28de1139ecbd, type: 3}
+    volume: 0.55
+  npcVoiceNinja:
+    clip: {fileID: 8300000, guid: 99180c810757273dea17a96f055439c2, type: 3}
+    volume: 0.55
+  npcVoiceWizard:
+    clip: {fileID: 8300000, guid: bb4a1c453e9670c2d84d128c4513da03, type: 3}
+    volume: 0.45
+  npcVoicePaladin:
+    clip: {fileID: 8300000, guid: e2a101ae3de5cc27daf295f2f737310a, type: 3}
+    volume: 0.45
+  rewardJingle:
+    clip: {fileID: 8300000, guid: 3a24dbf7b139ae93772ad9e30880047c, type: 3}
+    volume: 0.5
   rankUp:
     clip: {fileID: 8300000, guid: 9a9038088ca518448aecb834c2cdffe8, type: 3}
     volume: 0.624

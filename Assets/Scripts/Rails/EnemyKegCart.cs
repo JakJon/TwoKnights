@@ -93,6 +93,12 @@ public class EnemyKegCart : EnemyMineCart
 
     private void Detonate()
     {
+        // Counted here rather than in OnDeath so a keg set off by a neighbour's
+        // blast counts too — a chain the player started is still the player
+        // using the powder. Detonate runs once per keg; ChainDetonate routes
+        // through the same path.
+        QuestTally.Total(MineStats.PowderCartsDetonated);
+
         Vector2 center = Body();
 
         // Collected before anything is applied. A keg inside the radius dies to

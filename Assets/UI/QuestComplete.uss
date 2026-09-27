@@ -1,15 +1,16 @@
 /* ============================================================
-   Wave Survived — Gilded Vigil.
+   Wave Survived.
 
-   Still not the death screen's anatomy: no full scrim, no button.
-   The arena the player just cleared stays visible around the edges.
-   What sits over it is one raised panel, because the type alone —
-   shadowed as heavily as it was — still had to compete with fire
-   fields, corpses and lit ground for every letter.
+   Was a raised Gilded Vigil plate carrying a list; is now two words.
+   The panel existed because type alone could not hold its own against
+   fire fields, corpses and lit ground — with the list gone, a heavy
+   shadow does that job and the arena the player just cleared stays
+   visible behind it.
 
-   The panel hugs its content, so a clean wave is a small plate with
-   two words on it and a wave that finished a quest grows to hold
-   the list.
+   The gold is the TUTORIAL's gold (rgb(244,170,54)) rather than the
+   old panel's paler rgb(240,205,120): this is the game's own voice
+   speaking over the field, the same one the wave banner and the
+   tutorial use, and it should sound like them.
    ============================================================ */
 
 .ws-overlay {
@@ -19,20 +20,6 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    /* Barely there: enough to seat the panel, not enough to hide the field */
-    background-color: rgba(10, 8, 5, 0.28);
-}
-
-.ws-panel {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    max-width: 74%;
-    padding: 26px 46px 28px 46px;
-    border-radius: 8px;
-    background-color: rgba(26, 21, 13, 0.94);
-    border-width: 1px;
-    border-color: rgb(58, 50, 34);
 }
 
 .ws-title {
@@ -40,99 +27,10 @@
     -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
     -unity-font-style: normal;
     letter-spacing: 6px;
-    color: rgb(240, 205, 120);
+    color: rgb(244, 170, 54);
     -unity-text-align: middle-center;
     white-space: normal;
-    max-width: 100%;
-}
-
-.ws-quests {
-    flex-direction: column;
-    align-items: center;
-    max-width: 100%;
-    margin-top: 18px;
-}
-
-/* A quiet rule between what the wave finished and what it opened, so two
-   lists never read as one run-on column of quest names. */
-.ws-section-divider {
-    width: 180px;
-    height: 1px;
-    background-color: rgb(58, 50, 34);
-    margin-top: 20px;
-}
-
-/* "Quests Completed" / "Quests Unlocked" — headlines in their own right, at
-   the panel title's size and gold, so the two blocks are told apart from across
-   the room rather than by reading the rows under them. */
-.ws-section-title {
-    font-size: 46px;
-    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
-    -unity-font-style: normal;
-    letter-spacing: 6px;
-    color: rgb(240, 205, 120);
-    -unity-text-align: middle-center;
-    white-space: normal;
-    max-width: 100%;
-    margin-top: 16px;
-}
-
-/* Kept for any caption that wants to stay out of the way of what it labels. */
-.ws-section-caption {
-    font-size: 12px;
-    -unity-font-style: bold;
-    letter-spacing: 3px;
-    color: rgb(141, 130, 102);
-    -unity-text-align: middle-center;
-    margin-top: 14px;
-}
-
-.ws-quest-name {
-    font-size: 20px;
-    -unity-font-style: bold;
-    letter-spacing: 2px;
-    color: rgb(224, 214, 192);
-    -unity-text-align: middle-center;
-    white-space: normal;
-    max-width: 100%;
-    margin-top: 14px;
-}
-
-/* The condition that was met, sitting between the quest and its reward. Quieter
-   than both — it explains the line above rather than competing with it. */
-.ws-quest-objective {
-    font-size: 15px;
-    color: rgb(179, 168, 143);
-    -unity-text-align: middle-center;
-    white-space: normal;
-    max-width: 100%;
-    margin-top: 4px;
-}
-
-/* The same line for a quest that just opened: what it is going to ask for.
-   Dimmer than a met objective, because nothing has been earned yet. */
-.ws-quest-task {
-    font-size: 15px;
-    color: rgb(150, 140, 118);
-    -unity-text-align: middle-center;
-    white-space: normal;
-    max-width: 100%;
-    margin-top: 4px;
-}
-
-/* The reward hangs under its quest, gold so it reads as the thing gained */
-.ws-quest-reward {
-    font-size: 16px;
-    color: rgb(212, 162, 74);
-    -unity-text-align: middle-center;
-    margin-top: 3px;
-}
-
-.ws-hint {
-    font-size: 13px;
-    -unity-font-style: italic;
-    letter-spacing: 2px;
-    color: rgb(150, 140, 118);
-    -unity-text-align: middle-center;
-    margin-top: 26px;
+    max-width: 90%;
+    /* Doing the work the panel used to do. */
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.95);
 }

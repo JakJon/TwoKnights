@@ -18,8 +18,46 @@ using UnityEngine;
 // EmberBoost and NinjaBoost.
 public class DawnBoost : MonoBehaviour
 {
+    // --- Holy damage: the Order's weight of arms ---
+    // Dawn had no damage of its own, which made it a tax on the run rather than a
+    // way to play it. The answer is deliberately not a chain you buy: EVERY Dawn
+    // pick is worth +2 on the arrow, so the Order pays for depth instead of for a
+    // single card anyone can dip for. One Dawn upgrade is +2 and not worth taking
+    // for the damage; a knight who commits the whole Order lands within a point of
+    // where the old classless Damage chain topped out, having spent thirteen picks
+    // to get there.
+    //
+    // It is counted in UpgradeManager.ApplyUpgrade rather than added up by the
+    // upgrades themselves, because every Dawn card grants it and none of them
+    // should have to remember to.
+    private int dawnPicks = 0;
+
+    public void NoteDawnPick()
+    {
+        dawnPicks++;
+    }
+
+    public int DawnPicks => dawnPicks;
+
+    /// <summary>Holy damage on the knight's own shot — the arrow, the fireball it
+    /// becomes, the dart that rides beside it.</summary>
+    public int HolyDamage => dawnPicks * 2;
+
+    /// <summary>Holy damage on an ECHO — a shadow arrow or a shuriken. Lower per
+    /// projectile than the main shot (1.5 a pick against 2), but flat rather than
+    /// scaled, because an echo is only a fifth of an arrow and a scaled share of
+    /// the holy would round away to nothing.
+    ///
+    /// FLOORED, not rounded. Mathf.RoundToInt does banker's rounding, so a single
+    /// Dawn pick turned 1.5 into 2 and the first echo got exactly what the main
+    /// shot got — which contradicts the whole reason this number is separate.
+    /// Flooring keeps every step at or under the stated 1.5 and never over it:
+    /// 1, 3, 4, 6, 7, 9 … up to 19 at the full thirteen picks.</summary>
+    public int EchoHolyDamage => Mathf.FloorToInt(dawnPicks * 1.5f);
+
     // --- Sunwell: the orb door ---
     private float orbHealMultiplier = 1f;
+    private float manaOrbMultiplier = 1f;   // rank I+: mana orbs fill more of the bar
     private int manaOrbHeal = 0;
     private bool slowsOrbs = false;
 
@@ -98,6 +136,22 @@ public class DawnBoost : MonoBehaviour
     public void SetManaOrbHeal(int amount)
     {
         manaOrbHeal = Mathf.Max(manaOrbHeal, amount);
+    }
+
+    // Sunwell pays on BOTH kinds of orb from rank I (owner's call, 2026-09-25):
+    // a mana orb the knight shot is the same aim rewarded as a health orb, so
+    // the chain's first card should not ignore half the orbs in the game.
+    // Kept apart from the heal multiplier so the two can be tuned separately.
+    public void SetManaOrbMultiplier(float multiplier)
+    {
+        manaOrbMultiplier = Mathf.Max(manaOrbMultiplier, multiplier);
+    }
+
+    // Rounded up, the same as ScaleOrbHeal
+    public int ScaleOrbMana(int baseAmount)
+    {
+        if (manaOrbMultiplier <= 1f) return baseAmount;
+        return Mathf.CeilToInt(baseAmount * manaOrbMultiplier);
     }
 
     public void EnableSlowOrbs()
@@ -187,6 +241,9 @@ public class DawnBoost : MonoBehaviour
         health.Heal(lifebloomHeal);
         GetComponent<GlowManager>()?.StartGlow(DawnGlow, 0.25f);
         PlayerStats.Increment("dawn.lifebloom");
+        // The Order's door also opens on health MENDED rather than procs counted,
+        // for a knight who went down this branch instead of Shared Light.
+        QuestTally.Total(OrderStats.LifebloomHealing, Mathf.RoundToInt(lifebloomHeal));
     }
 
     // ---- Second Wind ----

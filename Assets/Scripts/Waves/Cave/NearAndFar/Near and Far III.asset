@@ -18,7 +18,7 @@ MonoBehaviour:
   waveDescription: Two crates a shift, and the wrecks of the last one still coming
     round.
   unlockedAfterXWaves: 8
-  lockedAfterXWaves: 15
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 1f509b24b78bdbb6893dc781c71bc8c5, type: 2}
   entryRun: 2

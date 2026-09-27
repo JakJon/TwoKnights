@@ -32,6 +32,17 @@ public static class TestRunConfig
     // to weighted random. Not cleared by Clear() — it steers the whole run.
     public static string AutoPickWave;
 
+    // Order trials on demand: an OrderTrials key ("ember", "frigid", "serpent",
+    // "shadow", "guardian", "dawn") plays that trial at ForcedTrialPhase (1-based)
+    // in EVERY gap between waves of a test run, whether or not its quest is open,
+    // and as practice — it records nothing. Boss gaps and gaps with an NPC scene
+    // queued are still skipped. Null/empty leaves trials to their normal dice.
+    // "targets" forces a target range pattern instead, with the pattern number
+    // (1-5) in ForcedTrialPhase — see TargetRange.TryForced.
+    // Like AutoPickWave it steers the whole run and is not cleared by Clear().
+    public static string ForcedTrial;
+    public static int ForcedTrialPhase = 1;
+
     public static void Set(int startWave, IEnumerable<BaseUpgrade> left, IEnumerable<BaseUpgrade> right)
     {
         StartWave = startWave < 1 ? 1 : startWave;

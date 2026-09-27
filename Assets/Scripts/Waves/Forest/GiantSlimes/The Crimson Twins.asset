@@ -26,7 +26,7 @@ MonoBehaviour:
   spawnCorner: {x: 13.5, y: 2.5}
   entranceDelay: 1.5
   config:
-    health: 1750
+    health: 2000
     scale: 6
     approachSpeed: 0.11475
     contactDamage: 9999
@@ -42,8 +42,9 @@ MonoBehaviour:
     homingTurnRate: 80
     straightShotsPerVolley: 2
     straightShotStagger: 0.3
-    wardRadius: 3.6
-    wardRadiusSwing: 3
+    wardCount: 1
+    wardRadius: 4.6
+    wardRadiusSwing: 0
     wardPulseSeconds: 4
     wardDegreesPerSecond: 110
     wardRespawnSeconds: 3

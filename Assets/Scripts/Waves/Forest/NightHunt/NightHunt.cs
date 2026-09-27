@@ -124,8 +124,14 @@ public class NightHunt : BaseWave
             // whole round and go on working through the rest bar, which is a
             // better version of what the single arc was for.
             bool lastRound = round == totalRounds - 1;
-            float orbFromY = round % 2 == 0 ? -9f : 9f;
-            spawner.SpawnOrb(new Vector2(0f, orbFromY), new Vector2(0f, -orbFromY), lastRound, 1f);
+            // Three orbs is the wave's whole allowance, so the five-round tiers
+            // spread them over the rounds instead of one per round. The last round
+            // always keeps its health orb — it is the round that earns it.
+            if (WaveOrbBudget.SlotCarriesOrb(round, totalRounds))
+            {
+                float orbFromY = round % 2 == 0 ? -9f : 9f;
+                spawner.SpawnOrb(new Vector2(0f, orbFromY), new Vector2(0f, -orbFromY), lastRound, 1f);
+            }
 
             yield return new WaitForSeconds(RestSeconds);
         }
@@ -174,7 +180,7 @@ public class NightHunt : BaseWave
             // Their own side of the board, so they never walk the middle and
             // become the other knight's problem
             Vector2 target = new Vector2(side * (4f + i * 1.6f), i % 2 == 0 ? -1.5f : 1.5f);
-            spawner.SpawnRat(target, spawner.greyRat, delay + 0.5f + i * 0.9f, knight);
+            spawner.SpawnRat(target, delay + 0.5f + i * 0.9f, knight);
         }
 
         // The bats spawn on the OPPOSITE side (so they cross to this knight,

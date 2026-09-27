@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 // The Rat King: a boss that circles the arena on a fixed rectangle rail.
@@ -17,7 +17,7 @@ public class EnemyRatKing : EnemyBase
     [System.Serializable]
     public class Config
     {
-        public float health = 1500f;
+        public float health = 1200f;
         public float moveSpeed = 3f;
         public float actionCooldown = 3.5f; // phase-1 seconds between actions
         public float telegraphPause = 0.9f; // glow warning before each attack
@@ -101,15 +101,20 @@ public class EnemyRatKing : EnemyBase
     private float _leftVolleyClearTime;
     private float _rightVolleyClearTime;
 
+    // HP remaining at which the king enrages into his final phase
+    private const float EnrageHealthRemaining = 200f;
+
     // 1 (fresh) -> 2 (bloodied) -> 3 (enraged)
     public int Phase
     {
         get
         {
+            // Phase three is keyed to an absolute HP remainder, not a fraction, so
+            // the enraged finale is always the same length no matter the max HP.
+            if (health <= EnrageHealthRemaining) return 3;
             float fraction = _maxHealth > 0f ? health / _maxHealth : 1f;
             if (fraction > 0.66f) return 1;
-            if (fraction > 0.33f) return 2;
-            return 3;
+            return 2;
         }
     }
 
@@ -337,7 +342,7 @@ public class EnemyRatKing : EnemyBase
         {
             Vector2 pos = (Vector2)transform.position
                 + new Vector2(Random.Range(-1.2f, 1.2f), Random.Range(-0.8f, 0.8f));
-            _spawner.SpawnBat(pos, i * 0.35f);
+            _spawner.SpawnBat(pos, i * 0.35f, entersFromOffscreen: false);
         }
 
         int broodSize = trimmed
@@ -358,7 +363,13 @@ public class EnemyRatKing : EnemyBase
                 {
                     // Brood bursts out of the king himself (entryPoint) — without it
                     // rats would instead walk in from the nearest screen edge.
-                    _spawner.SpawnRat(SafeBroodLanding(knight), _spawner.brownRat, 0f, knight,
+                    //
+                    // His children are brown whatever the depth, so the type is
+                    // named outright rather than taken from the map's cadence. That
+                    // also leaves the cadence where it was: naming a rat does not
+                    // advance the counter, so a king emptying himself mid-wave
+                    // cannot shift the pattern the wave around him is running.
+                    _spawner.SpawnRat(SafeBroodLanding(knight), 0f, knight, _spawner.brownRat,
                         bypassStrengthGate: true, entryPoint: transform.position);
                 }
             }

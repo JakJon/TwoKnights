@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Four shifts into a shaft that never empties.
   unlockedAfterXWaves: 12
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 18
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 40e9dc310ff2cf24a33b8d77298aa84c, type: 2}
   gnomeCarts:
@@ -59,10 +59,11 @@ MonoBehaviour:
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
   ogres:
-    label: 12 down and up the empty middle
-    count: 5
-    firstAt: 5
-    interval: 4.5
+    label: 4 with every shift, down and up the empty middle
+    count: 4
+    firstAt: 3
+    interval: 3.5
+    throwStagger: 0
     fireEveryNth: 3
     entries:
     - label: up the empty middle, right of centre

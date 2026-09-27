@@ -26,7 +26,22 @@ Columns: 7
  76  25 108	purple-1 4c196c
  87  32 121	purple-2 572079
 113  55 148	purple-3 713794
-171 116 205	purple-4 ab74cd
+141  95 171	purple-4 8d5fab
+171 116 205	purple-5 ab74cd
+# moonlit_gold - bat_moonlit, slime_moonlit, rat_moonlit
+# The Camp Fields' deep roster, wave 21 and beyond. Rank-matched to shadow_purple
+# step for step and lifted bright and warm, so a moonlit enemy reads as pale light
+# against the deep forest rather than as a second purple. The low steps keep brown
+# in them so the shading still reads as a body; only the top two go properly gold.
+# The rat maps its three fur greys onto steps 2-4 (fur is less luminous than a
+# slime) and keeps its accent_mauve ears, nose, feet and tail. Its eye, which was
+# the blue 306082, goes to 3d2f14 or it vanishes into the new coat.
+ 74  58  34	moonlit-1 4a3a22
+110  87  48	moonlit-2 6e5730
+168 134  63	moonlit-3 a8863f
+216 184  98	moonlit-4 d8b862
+245 227 168	moonlit-5 f5e3a8
+ 61  47  20	moonlit-eye 3d2f14
 # accent_mauve - rat ears/noses, shield, swords, projectile
  57  34  50	mauve-1 392232
  69  40  60	mauve-2 45283c

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using System.Collections;
 
@@ -38,13 +38,33 @@ public class DamageText : MonoBehaviour
     [Tooltip("Below 1 the small end of the range is stretched out, so the ten-point hits the game is mostly made of are told apart from each other instead of all bunching at the bottom. 0.7 puts a plain arrow at roughly the old fixed size.")]
     [SerializeField] private float sizeCurve = 0.7f;
 
-    
+    // ---- depth ----
+    //
+    // A number printed at its parent's own z sorts against that parent by whatever
+    // order the renderers happen to be in, which meant a hit on a big body — a
+    // slime, an ogre, a boss — regularly printed BEHIND the thing it was reporting
+    // on. Pulling it a little toward the camera settles it: everything on the
+    // field shares one sorting layer and order (see FX_DamageText / the enemy and
+    // knight prefabs), so within that layer Unity falls back to distance from the
+    // camera, and the camera looks along +z from z = -10. Nearer is smaller z.
+    //
+    // Small on purpose. This is a tie-break between things standing at the same
+    // depth, not a licence to jump in front of scenery the arena puts closer.
+    [Header("Depth")]
+    [Tooltip("How far toward the camera the number sits in front of the object it is reporting on. Smaller z is nearer.")]
+    [SerializeField] private float zLift = 0.1f;
+
+    [Header("Screen bounds")]
+    [Tooltip("Fraction of the viewport kept clear at each edge, so a number spawned on (or drifting into) an enemy standing off the edge of the screen gets pulled back onto it instead of printing somewhere the player can never read.")]
+    [SerializeField] private float viewportMargin = 0.06f;
+
     private TextMeshPro textMesh;
     private Color originalColor;
     // Base world position captured at spawn; can be adjusted via PushUp()
     private Vector3 basePosition;
     // Extra Y offset so existing texts can be nudged upward when new ones spawn
     private float externalYOffset = 0f;
+    private Camera _camera;
 
     void Awake()
     {
@@ -67,25 +87,80 @@ public class DamageText : MonoBehaviour
         {
             originalColor = textMesh.color;
         }
+
+        _camera = Camera.main;
     }
+
+    // Pulls a world position back onto the visible screen, with a small margin so a
+    // number never prints flush against the very edge of the frame. Used both at
+    // spawn (an enemy hit right at the edge of the arena) and every animation frame
+    // (a number that starts on-screen but drifts up past the top as it floats).
+    private Vector3 ClampToView(Vector3 worldPosition)
+    {
+        if (_camera == null) return worldPosition;
+
+        Vector3 viewportPoint = _camera.WorldToViewportPoint(worldPosition);
+        if (viewportPoint.z <= 0f) return worldPosition; // behind the camera; leave it alone
+
+        viewportPoint.x = Mathf.Clamp(viewportPoint.x, viewportMargin, 1f - viewportMargin);
+        viewportPoint.y = Mathf.Clamp(viewportPoint.y, viewportMargin, 1f - viewportMargin);
+        return _camera.ViewportToWorldPoint(viewportPoint);
+    }
+
+    /// <summary>
+    /// The game's gold, the one the wave banner and the NPCs speak in. Healing gets
+    /// it because gold is already what the game means by "something good is
+    /// happening to you", and because nothing else prints in it now that burning
+    /// ground pays in the same ember orange as the burn itself.
+    /// </summary>
+    public static readonly Color HealGold = new Color(0.957f, 0.667f, 0.212f, 1f);
 
     public void Initialize(int damage, Color? color = null)
     {
+        Show(damage, "-", color ?? Color.red);
+    }
+
+    /// <summary>
+    /// Mending, rather than harm: a plus instead of a minus, and gold instead of
+    /// red. Deliberately the same object, the same stack and the same size curve a
+    /// hit uses — a heal drawn in some other style would read as UI arriving over
+    /// the fight, instead of as one more line in the conversation the damage
+    /// numbers are already having.
+    /// </summary>
+    public void InitializeHeal(int amount, Color? color = null)
+    {
+        Show(amount, "+", color ?? HealGold);
+    }
+
+    private void Show(int amount, string sign, Color color)
+    {
         if (textMesh != null)
         {
-            // minus sign and then the dmage value
-            textMesh.text = $"-{damage}";
-            // Use provided color or default to red
-            textMesh.color = color ?? Color.red;
-            ApplySize(damage);
+            textMesh.text = sign + amount;
+            textMesh.color = color;
+            ApplySize(amount);
         }
-        
-        // Adjust starting position (lower the text)
-        transform.position += Vector3.down * 0.0f; // Adjust 0.3f to your preference
-        // Capture base world position for animation calculations
-        basePosition = transform.position;
+
+        // Capture base world position for animation calculations, pulled onto
+        // screen first so a number landing off the edge of the arena doesn't print
+        // somewhere nobody is looking.
+        basePosition = ClampToView(LiftAboveParent(transform.position));
+        transform.position = basePosition;
         
         StartCoroutine(AnimateText());
+    }
+
+    // Parks the number just in front of whatever it is parented to. Done off the
+    // PARENT's z rather than the number's own so the lift is the same whether the
+    // spawner handed us the body's position or an offset one, and so it survives an
+    // enemy that lives at some z of its own.
+    private Vector3 LiftAboveParent(Vector3 worldPosition)
+    {
+        Transform parent = transform.parent;
+        if (parent == null) return worldPosition;
+
+        worldPosition.z = parent.position.z - zLift;
+        return worldPosition;
     }
 
     /// <summary>
@@ -128,8 +203,9 @@ public class DamageText : MonoBehaviour
         {
             float progress = elapsed / duration;
             
-            // Move the text upward
-            transform.position = basePosition + (Vector3.up * externalYOffset) + (moveDirection * moveSpeed * elapsed);
+            // Move the text upward, clamped back onto screen every frame so the
+            // float-up drift can never carry it past the top edge either.
+            transform.position = ClampToView(basePosition + (Vector3.up * externalYOffset) + (moveDirection * moveSpeed * elapsed));
             
             // Fade out using the animation curve - make fade happen mostly at the end
             if (textMesh != null)

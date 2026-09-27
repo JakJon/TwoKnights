@@ -50,7 +50,7 @@ public class ReflectedShot : MonoBehaviour
         ReflectedShot shot = host.GetComponent<ReflectedShot>();
         if (shot == null) shot = host.AddComponent<ReflectedShot>();
 
-        shot._speed = Mathf.Max(0.1f, speed) * GuardianBoost.ReflectedSpeedMultiplier;
+        shot._speed = Mathf.Max(0.1f, speed) * Mathf.Max(1f, turn.SpeedMultiplier);
         shot._damage = Mathf.Max(1, Mathf.CeilToInt(damage * turn.DamageMultiplier));
         shot._ownerTag = turn.OwnerTag;
         shot._blastRadius = Mathf.Max(0f, blastRadius);
@@ -105,7 +105,9 @@ public class ReflectedShot : MonoBehaviour
             carrier.tag = _ownerTag + "Projectile";
         }
 
-        enemy.TakeDamage(EquipmentBoost.ScaleHit(_damage, enemy, _ownerTag), carrier);
+        int dealt = EquipmentBoost.ScaleHit(_damage, enemy, _ownerTag);
+        enemy.TakeDamage(dealt, carrier);
+        QuestTally.Wave(OrderStats.ReflectDamageWaveMax, dealt);
         if (carrier != null) Destroy(carrier);
 
         Burst(enemy);
@@ -131,7 +133,11 @@ public class ReflectedShot : MonoBehaviour
 
         for (int i = 0; i < victims.Count; i++)
         {
-            victims[i].ApplyBlastDamage(EquipmentBoost.ScaleHit(_damage, victims[i], _ownerTag), _ownerTag);
+            int splash = EquipmentBoost.ScaleHit(_damage, victims[i], _ownerTag);
+            victims[i].ApplyBlastDamage(splash, _ownerTag);
+            // A powder rock turned back is still damage the knight sent back, so
+            // everything the blast reaches counts toward the same wave record.
+            QuestTally.Wave(OrderStats.ReflectDamageWaveMax, splash);
         }
 
         if (victims.Count + 1 >= 3) Feats.Record(Feats.ReflectThree);

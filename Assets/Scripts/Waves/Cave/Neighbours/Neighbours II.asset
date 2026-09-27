@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Five loads, and something of your own running the other way.
   unlockedAfterXWaves: 4
-  lockedAfterXWaves: 11
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: dd71bd9bb1b61790228eeb033eb6b897, type: 2}
   eastboundRun: 0

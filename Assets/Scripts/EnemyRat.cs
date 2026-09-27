@@ -1,6 +1,18 @@
 using System.Collections;
 using UnityEngine;
 
+// Which rat walked on. Mirrors WolfType: the wave does not choose it, the MAP
+// does -- see MapDefinition.RatPhase. A rat's tier is a fact about how deep the
+// run is, not about which wave is playing, and every wave that hand-picked its
+// own prefab is why black rats were almost never seen in the forest.
+public enum RatType
+{
+    Grey = 0,
+    Black = 1,
+    Brown = 2,
+    Moonlit = 3
+}
+
 public class EnemyRat : EnemyBase
 {
     public override EnemyFamily Family => EnemyFamily.Vermin;
@@ -86,11 +98,22 @@ public class EnemyRat : EnemyBase
         if (!_isChasing)
         {
             _chaseTimer += Time.deltaTime;
-            if (_chaseTimer >= chaseDelay && _assignedPlayer != null)
+            // Every rat comes down when its patrol is up (owner's call, 2026-09-25:
+            // no rat ever holds station). The knight the wave assigned if it named
+            // one, otherwise whichever is nearest.
+            if (_chaseTimer >= chaseDelay)
             {
-                StartChasing(_assignedPlayer);
+                Transform target = _assignedPlayer != null ? _assignedPlayer : NearestKnight();
+                if (target != null) StartChasing(target);
             }
-            _hasPlayedChaseSFX = false; 
+            _hasPlayedChaseSFX = false;
+        }
+
+        // The knight it was running at is gone: go for the other one rather than
+        // dropping back into a patrol it would never leave
+        if (_isChasing && _playerTransform == null)
+        {
+            _playerTransform = NearestKnight();
         }
 
         if (_isChasing && _playerTransform != null)
@@ -162,6 +185,18 @@ public class EnemyRat : EnemyBase
     {
         _isChasing = true;
         _playerTransform = player;
+    }
+
+    private Transform NearestKnight()
+    {
+        GameObject left = GameObject.FindWithTag("PlayerLeft");
+        GameObject right = GameObject.FindWithTag("PlayerRight");
+        if (left == null) return right != null ? right.transform : null;
+        if (right == null) return left.transform;
+
+        float toLeft = Vector2.Distance(transform.position, left.transform.position);
+        float toRight = Vector2.Distance(transform.position, right.transform.position);
+        return toLeft <= toRight ? left.transform : right.transform;
     }
 
     // Override to handle additional collision with other ground enemies

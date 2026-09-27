@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Freight on both edges, and every cart is a delivery in progress.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 9c5cb3ce973ee782f6941a10de194e58, type: 2}
   crateCarts:

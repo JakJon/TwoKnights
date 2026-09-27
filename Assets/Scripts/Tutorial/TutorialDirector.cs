@@ -198,10 +198,11 @@ public class TutorialDirector : MonoBehaviour
         yield return _text.Lower();
 
         _stage.AllowSpecial();
-        yield return Lesson("Press the left stick in to use your special.", SpecialLesson(), "special");
+        yield return Lesson("Press the d-pad to use your special.", SpecialLesson(), "special");
 
         yield return _text.Say("This is all of the basic controls.", LongLine);
         yield return _text.Say("They all apply to your right knight as well.", LongLine);
+        yield return _text.Say("Its special is on the face buttons.", LongLine);
 
         yield return _text.Raise("Good luck!");
         yield return BringEverythingBack();

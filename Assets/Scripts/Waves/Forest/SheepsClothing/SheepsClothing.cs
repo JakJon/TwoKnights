@@ -19,6 +19,13 @@ public class SheepsClothing : BaseWave
     [Tooltip("Seconds the wolf paces up and down behind the wall before it peels off and lunges. Does NOT change the spacing between the two ambush rounds")]
     [SerializeField] private float secondsBeforeWolfAttack = 18f;
 
+    [Header("Rock")]
+    [Tooltip("ONE VOLLEY PER ROUND, IN ORDER (see RockVolley): entry 0 is the round where the RIGHT knight is besieged, so its rock belongs to the LEFT one, and entry 1 is the mirror of that. Author `rightKnight` to match or the steering lands on the knight who is already buried in slime. Leave EMPTY to keep the old pair of two-rock streams, which is four rocks in fifteen seconds and barely rock at all.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("World units per second for this wave's rock. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 0f;
+
     private const float WallSpawnX = 12.5f;         // just out of frame
     private const float WallSpreadY = 6f;           // vertical fan the wall covers
     private const float WolfZigzagAmplitude = 1.75f;
@@ -29,15 +36,15 @@ public class SheepsClothing : BaseWave
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
-        yield return SpawnWallRound(spawner, 1f);   // right knight besieged first
+        yield return SpawnWallRound(spawner, 1f, 0);   // right knight besieged first
         yield return new WaitForSeconds(BreatherSeconds);
-        yield return SpawnWallRound(spawner, -1f);  // mirrored onto the left knight
+        yield return SpawnWallRound(spawner, -1f, 1);  // mirrored onto the left knight
 
         MarkSpawningComplete();
         yield return null;
     }
 
-    private IEnumerator SpawnWallRound(Spawner spawner, float side)
+    private IEnumerator SpawnWallRound(Spawner spawner, float side, int round)
     {
         Transform wallKnight = side > 0 ? spawner.RightPlayer : spawner.LeftPlayer;
         Transform offKnight = side > 0 ? spawner.LeftPlayer : spawner.RightPlayer;
@@ -70,9 +77,19 @@ public class SheepsClothing : BaseWave
         waypoints.Add(new Vector2(side * WolfPeelX, 0f));
         spawner.SpawnWolf(waypoints, wallKnight, wolfType, 2f);
 
-        // Steep pin shots steer the off knight (blocked projectiles are combo-safe)
-        spawner.SpawnProjectileStraight(aboveOff, offKnight, 2, 8f, 2f);
-        spawner.SpawnProjectileStraight(belowOff, offKnight, 2, 8f, 6f);
+        // Steep pin shots steer the off knight (blocked projectiles are combo-safe).
+        // The deep tiers replace them with a weave: the off knight's job is to shoot
+        // across at a wall they cannot reach, so the rock that steers them is worth
+        // more than the rock that merely taxes them.
+        if (volleys != null && volleys.Count > 0)
+        {
+            RockVolley.FireAfter(spawner, volleys[round % volleys.Count], rockSpeed, 2f);
+        }
+        else
+        {
+            spawner.SpawnProjectileStraight(aboveOff, offKnight, 2, 8f, 2f);
+            spawner.SpawnProjectileStraight(belowOff, offKnight, 2, 8f, 6f);
+        }
 
         // Mana orb sweeps the off knight's side; health orb threads behind the wall late,
         // so collecting it means shooting through a gap in the (split) slime line

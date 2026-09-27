@@ -101,15 +101,19 @@ public class PoisonProjectile : MonoBehaviour
         poisonBubbles.StartBubbles();
     }
     
-    // Bend the serialized defaults by the firing knight's Serpent stats (Virulence),
-    // and take the trail's lifetime off the same sheet (Venom Tip). Called right
-    // after AddComponent, before Start.
-    public void ConfigureFromBoost(PoisonTipBoost boost)
+    // Bend the serialized defaults by the firing knight's poison tick bonus
+    // (equipment), and take the trail's lifetime off the same sheet (Venom Tip).
+    // Called right after AddComponent, before Start.
+    //
+    // shedsTrail is false for echoes - shadow arrows and shurikens (owner's call,
+    // 2026-09-25). They still poison what they hit; they just lay no beads, so
+    // the trail stays a line the knight's own shot drew rather than a fan of them
+    // covering the board.
+    public void ConfigureFromBoost(PoisonTipBoost boost, bool shedsTrail = true)
     {
         if (boost == null) return;
         poisonDamage += boost.TickDamageBonus;
-        poisonTickRate = Mathf.Max(0.2f, poisonTickRate * boost.TickRateMultiplier);
-        trailSeconds = boost.TrailBubbleSeconds;
+        trailSeconds = shedsTrail ? boost.TrailBubbleSeconds : 0f;
         ownerTag = boost.gameObject.tag;
     }
 

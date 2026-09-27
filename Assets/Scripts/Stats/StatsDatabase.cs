@@ -67,7 +67,39 @@ public static class StatsDatabase
         new StatDefinition("dawn.second_wind",  "Second Winds",      "second winds"),
         new StatDefinition("dawn.benediction",  "Benedictions Paid", "benedictions paid"),
         new StatDefinition("dawn.last_light",   "Falls Prevented",   "falls prevented"),
+
+        // Order trials passed — see OrderTrials. One per phase; the initiation
+        // quests read these.
+        new StatDefinition("trials.ember",    "Fire Trials Passed",     "fire trials passed"),
+        new StatDefinition("trials.frigid",   "Frost Trials Passed",    "frost trials passed"),
+        new StatDefinition("trials.serpent",  "Venom Trials Passed",    "venom trials passed"),
+        new StatDefinition("trials.shadow",   "Shadow Trials Passed",   "shadow trials passed"),
+        new StatDefinition("trials.guardian", "Guardian Trials Passed", "guardian trials passed"),
+        new StatDefinition("trials.dawn",     "Dawn Trials Passed",     "dawn trials passed"),
+
+        // The forest's target range — see TargetRange. Target Practice reads the
+        // first; the per-pattern flags and the rotation's place are bookkeeping and
+        // deliberately not listed.
+        new StatDefinition("targets.patterns", "Target Patterns Cleared", "target patterns cleared"),
+        new StatDefinition("targets.cleared",  "Target Ranges Cleared",   "target ranges cleared"),
     };
+
+    /// <summary>
+    /// True when this counter is a HIGH-WATER MARK rather than a running total:
+    /// the best single wave, the best run, the longest unbroken streak, the
+    /// deepest wave reached. Those are written with <see cref="PlayerStats.Raise"/>
+    /// and reset their live tally every wave or every run, so a quest reading one
+    /// is asking for a best attempt, not for an accumulation — which is why the
+    /// log has to label them differently. See OrderStats for the naming rule.
+    ///
+    /// Decided by the shape of the key rather than by a list here, so a counter
+    /// added tomorrow cannot end up displayed as a total by omission.
+    /// </summary>
+    public static bool IsRecord(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return false;
+        return key.EndsWith(".max") || key.EndsWith(".furthest_wave");
+    }
 
     public static string GetDisplayName(string key)
     {

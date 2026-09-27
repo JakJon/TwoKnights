@@ -1,0 +1,734 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2826da971e4548a1bc2744fb582381ae, type: 3}
+  m_Name: Rush Hour VII
+  m_EditorClassIdentifier: 
+  waveName: Rush Hour VII
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Thirty-six ogres. The board fills up.
+  unlockedAfterXWaves: 24
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  gangs:
+  - label: roof and floor together
+    ogres:
+      label: 6 ogres, roof and floor together
+      count: 6
+      firstAt: 2
+      interval: 1.2
+      throwStagger: 0
+      fireEveryNth: 0
+      entries:
+      - label: over the roof, wide left
+        at: {x: -4.5, y: 6.5}
+        mark: 1
+      - label: up through the floor, wide right
+        at: {x: 4.5, y: -7}
+        mark: 2
+      - label: up through the floor, inside left
+        at: {x: -1, y: -7}
+        mark: 1
+      - label: over the roof, inside right
+        at: {x: 1, y: 6.5}
+        mark: 2
+      - label: up through the floor, wide left
+        at: {x: -4.5, y: -7}
+        mark: 1
+      - label: over the roof, wide right
+        at: {x: 4.5, y: 6.5}
+        mark: 2
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    volleys:
+    - label: fan round the left knight from above
+      shape: 4
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: spiral round the right knight from underneath
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 6
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: weave on the left knight
+      shape: 7
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: both knights spiral from underneath, mirrored
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: fan round the right knight from underneath
+      shape: 4
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+  - label: in off both edges
+    ogres:
+      label: 4 ogres, in off both edges
+      count: 4
+      firstAt: 10
+      interval: 1.2
+      throwStagger: 0
+      fireEveryNth: 0
+      entries:
+      - label: in off the left edge, high
+        at: {x: -11.5, y: 1.5}
+        mark: 1
+      - label: in off the right edge, low
+        at: {x: 11.5, y: -1.5}
+        mark: 2
+      - label: in off the left edge, low
+        at: {x: -11.5, y: -2}
+        mark: 1
+      - label: in off the right edge, high
+        at: {x: 11.5, y: 2}
+        mark: 2
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    volleys:
+    - label: fan round the right knight from above
+      shape: 4
+      rightKnight: 1
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: spiral round the left knight from above
+      shape: 8
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 6
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: weave on the right knight
+      shape: 7
+      rightKnight: 1
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: both knights spiral from above, mirrored
+      shape: 9
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: fan round the left knight from above
+      shape: 4
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+  - label: roof and floor together, right first
+    ogres:
+      label: 6 ogres, roof and floor together, right first
+      count: 6
+      firstAt: 18
+      interval: 1.2
+      throwStagger: 0
+      fireEveryNth: 0
+      entries:
+      - label: over the roof, wide right
+        at: {x: 4.5, y: 6.5}
+        mark: 2
+      - label: up through the floor, wide left
+        at: {x: -4.5, y: -7}
+        mark: 1
+      - label: up through the floor, inside right
+        at: {x: 1, y: -7}
+        mark: 2
+      - label: over the roof, inside left
+        at: {x: -1, y: 6.5}
+        mark: 1
+      - label: up through the floor, wide right
+        at: {x: 4.5, y: -7}
+        mark: 2
+      - label: over the roof, wide left
+        at: {x: -4.5, y: 6.5}
+        mark: 1
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    volleys:
+    - label: fan round the left knight from above
+      shape: 4
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: spiral round the right knight from underneath
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 6
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: weave on the left knight
+      shape: 7
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: both knights spiral from underneath, mirrored
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: fan round the right knight from underneath
+      shape: 4
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+  - label: in off both edges again, right first
+    ogres:
+      label: 4 ogres, in off both edges again, right first
+      count: 4
+      firstAt: 26
+      interval: 1.2
+      throwStagger: 0
+      fireEveryNth: 0
+      entries:
+      - label: in off the right edge, high
+        at: {x: 11.5, y: 1.5}
+        mark: 2
+      - label: in off the left edge, low
+        at: {x: -11.5, y: -1.5}
+        mark: 1
+      - label: in off the right edge, low
+        at: {x: 11.5, y: -2}
+        mark: 2
+      - label: in off the left edge, high
+        at: {x: -11.5, y: 2}
+        mark: 1
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    volleys:
+    - label: fan round the right knight from above
+      shape: 4
+      rightKnight: 1
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: spiral round the left knight from above
+      shape: 8
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 6
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: weave on the right knight
+      shape: 7
+      rightKnight: 1
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: both knights spiral from above, mirrored
+      shape: 9
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: fan round the left knight from above
+      shape: 4
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+  - label: roof and floor together again
+    ogres:
+      label: 6 ogres, roof and floor together again
+      count: 6
+      firstAt: 34
+      interval: 1.2
+      throwStagger: 0
+      fireEveryNth: 0
+      entries:
+      - label: over the roof, wide left
+        at: {x: -4.5, y: 6.5}
+        mark: 1
+      - label: up through the floor, wide right
+        at: {x: 4.5, y: -7}
+        mark: 2
+      - label: up through the floor, inside left
+        at: {x: -1, y: -7}
+        mark: 1
+      - label: over the roof, inside right
+        at: {x: 1, y: 6.5}
+        mark: 2
+      - label: up through the floor, wide left
+        at: {x: -4.5, y: -7}
+        mark: 1
+      - label: over the roof, wide right
+        at: {x: 4.5, y: 6.5}
+        mark: 2
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    volleys:
+    - label: fan round the left knight from above
+      shape: 4
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: spiral round the right knight from underneath
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 6
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: weave on the left knight
+      shape: 7
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: both knights spiral from underneath, mirrored
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: fan round the right knight from underneath
+      shape: 4
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+  - label: up through the floor
+    ogres:
+      label: 4 ogres, up through the floor
+      count: 4
+      firstAt: 42
+      interval: 1.2
+      throwStagger: 0
+      fireEveryNth: 0
+      entries:
+      - label: up through the floor, wide right
+        at: {x: 4.5, y: -7}
+        mark: 2
+      - label: up through the floor, wide left
+        at: {x: -4.5, y: -7}
+        mark: 1
+      - label: up through the floor, inside right
+        at: {x: 1, y: -7}
+        mark: 2
+      - label: up through the floor, inside left
+        at: {x: -1, y: -7}
+        mark: 1
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    volleys:
+    - label: fan round the right knight from above
+      shape: 4
+      rightKnight: 1
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: spiral round the left knight from above
+      shape: 8
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 6
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: weave on the right knight
+      shape: 7
+      rightKnight: 1
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: both knights spiral from above, mirrored
+      shape: 9
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: fan round the left knight from above
+      shape: 4
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+  - label: roof and floor, last of them
+    ogres:
+      label: 6 ogres, roof and floor, last of them
+      count: 6
+      firstAt: 50
+      interval: 1.2
+      throwStagger: 0
+      fireEveryNth: 0
+      entries:
+      - label: over the roof, wide right
+        at: {x: 4.5, y: 6.5}
+        mark: 2
+      - label: up through the floor, wide left
+        at: {x: -4.5, y: -7}
+        mark: 1
+      - label: up through the floor, inside right
+        at: {x: 1, y: -7}
+        mark: 2
+      - label: over the roof, inside left
+        at: {x: -1, y: 6.5}
+        mark: 1
+      - label: up through the floor, wide right
+        at: {x: 4.5, y: -7}
+        mark: 2
+      - label: over the roof, wide left
+        at: {x: -4.5, y: 6.5}
+        mark: 1
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    volleys:
+    - label: fan round the left knight from above
+      shape: 4
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: spiral round the right knight from underneath
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 6
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: weave on the left knight
+      shape: 7
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: both knights spiral from underneath, mirrored
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.4
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 5
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+    - label: fan round the right knight from underneath
+      shape: 4
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.4
+      count: 4
+      fanDegrees: 75
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 8
+      salvoSpread: 0.45
+      salvoStagger: 0.1
+      restAfter: 2.5
+  firstVolleyAt: 5
+  rockSpeed: 1.75
+  healthOrbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 20
+    interval: 12
+    from: {x: -12, y: -3.5}
+    to: {x: 12, y: -3.5}
+  manaOrbs:
+    healthOrb: 0
+    count: 2
+    firstAt: 35
+    interval: 20
+    from: {x: 12, y: 3.5}
+    to: {x: -12, y: 3.5}

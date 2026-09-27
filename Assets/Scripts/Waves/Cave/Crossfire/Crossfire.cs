@@ -165,6 +165,10 @@ public class Crossfire : BaseWave
 
         while (!PressureOver(rails, fallbackUntil))
         {
+            // Last rider out: if the orb timer has not paid yet, it pays now,
+            // while a rider is still up. See OrbRun.SendFirstIfWaiting.
+            if (_allRidersReleased) orbs.SendFirstIfWaiting(spawner);
+
             FirePair(spawner);
             yield return new WaitForSeconds(PairPeriod);
         }

@@ -121,6 +121,9 @@ public class Delivery : BaseWave
         yield return vermin;
         yield return brutes;
 
+        // Everything is out. If the orb timer somehow has not paid yet, it pays
+        // now rather than being stopped unpaid. See OrbRun.SendFirstIfWaiting.
+        orbs.SendFirstIfWaiting(spawner);
         spawner.StopCoroutine(orbRun);
 
         MarkSpawningComplete();

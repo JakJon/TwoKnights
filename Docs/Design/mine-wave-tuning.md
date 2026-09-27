@@ -349,10 +349,10 @@ Pattern shorthand: **E** = empty cart, **K** = keg, **·** = gap.
 |---|---|---|---|---|
 | Window (wave numbers) | 1–7 | 5–11 | 9–15 | 13+ |
 | `isUnlocked` / `unlockedAfter` / `lockedAfter` | 0 / 0 / 7 | 0 / 4 / 11 | 0 / 8 / 15 | 0 / 12 / -1 |
-| `cartPattern[]` | `E K K E K K · ·` | `E K K E K E · ·` | `E K K E K E K E K E K K E E · ·` | `E K E E K E E K E E K E E E · ·` |
-| pattern length | 8 (×4) | 8 (×4) | 16 (×2) | 16 (×2) |
-| gaps on the ring | 8 of 32 (25%) | 8 of 32 (25%) | 4 of 32 (12.5%, paired) | 4 of 32 (12.5%, paired) |
-| kegs : empties | 16 : 8 | 12 : 12 | 14 : 14 | 8 : 20 |
+| `cartPattern[]` | `E K K · · · · ·` | `E K K E K E · · E K E · · · · ·` | `E K K E K E K E K E K K E E · ·` | `E K E E K E E K E E K E E E · ·` |
+| pattern length | 8 (×4) | 16 (×2) | 16 (×2) | 16 (×2) |
+| gaps on the ring | 20 of 32 (62.5%) | 14 of 32 (44%) | 4 of 32 (12.5%, paired) | 4 of 32 (12.5%, paired) |
+| kegs : empties | 8 : 4 | 8 : 10 | 14 : 14 | 8 : 20 |
 | `cartSpeed` | 2.4 | 2.4 | 2.6 | 2.9 |
 | gap comes round every | 3.3s | 3.3s | 6.2s | 5.5s |
 | `enemyCount` | 12 | 14 | 17 | 20 |
@@ -361,6 +361,8 @@ Pattern shorthand: **E** = empty cart, **K** = keg, **·** = gap.
 | `ratType` | grey | grey | brown | black |
 | `firstCartDelay` / `slotInterval` | 0.5 / 0 | 0.5 / 0 | 0.5 / 0 | 0.4 / 0 |
 | orb (inside the ring, y -1.5) | mana ×1 @12s | health ×1 @12s | mana ×2 @11s/+12s | health ×2 @10s/+12s |
+
+**Thinned 2026-09-25 (owner's call):** T1 runs half its old carts (24 → 12 a lap) and T2 a quarter fewer (24 → 18). T2's 4.5 carts per 8 slots needed the 16-slot pattern. The old patterns were `E K K E K K · ·` and `E K K E K E · ·`, both 8 gaps a lap, so the step into T3 (4 gaps) is now much steeper than the paragraph below describes.
 
 The step change is at T3, where the gap count halves: the same 2-unit window, but it now
 comes round every 6.2 seconds instead of every 3.3, so a knight who misses it waits

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 // Half of the Camp Fields' true boss: a giant red slime that walks a straight line
@@ -28,8 +28,8 @@ public class EnemyGiantSlime : EnemyBase
     public class Config
     {
         [Header("Body")]
-        [Tooltip("Health per slime. Default is 2x the gate Rat King's 750.")]
-        public float health = 2500f;
+        [Tooltip("Health per slime. The shared boss bar shows the pair, so it holds twice this.")]
+        public float health = 2000f;
         [Tooltip("Double the size-3 slime's scale of 3.")]
         public float scale = 6f;
         [Tooltip("Units/second toward the knight. THIS IS THE FIGHT TIMER — the knights " +
@@ -64,19 +64,22 @@ public class EnemyGiantSlime : EnemyBase
         public float straightShotStagger = 0.3f;
 
         [Header("Ward (second phase)")]
-        [Tooltip("Orbit radius the ward fireball breathes around, in units from the " +
-                 "slime's body centre.")]
-        public float wardRadius = 3.6f;
-        [Tooltip("Peak-to-peak swing of that radius. At 3 the ward ranges 2.1 -> 5.1 " +
-                 "units out: the far extreme reaches past the knight so the shield has to " +
-                 "answer it, the near one tucks back against the slime's flank.")]
-        public float wardRadiusSwing = 3f;
+        [Tooltip("Fireballs in the ring, spaced evenly around it. One since 2026-09-26 " +
+                 "(owner) — was four.")]
+        public int wardCount = 1;
+        [Tooltip("Orbit radius the ring breathes around, in units from the slime's " +
+                 "body centre.")]
+        public float wardRadius = 4.6f;
+        [Tooltip("Peak-to-peak swing of that radius. 0 holds the fireball at exactly " +
+                 "wardRadius (owner, 2026-09-26). It was 3, which breathed the ring " +
+                 "3.1 -> 6.1 units out.")]
+        public float wardRadiusSwing = 0f;
         [Tooltip("Seconds for one full out-and-back breath. Kept off the orbit period " +
                  "(360/wardDegreesPerSecond) on purpose so the far extreme drifts around " +
                  "the circle instead of always lunging the same way.")]
         public float wardPulseSeconds = 4f;
         public float wardDegreesPerSecond = 110f;
-        [Tooltip("Seconds the slime is exposed after its ward is popped.")]
+        [Tooltip("Seconds before a popped fireball comes back in its own place in the ring.")]
         public float wardRespawnSeconds = 3f;
         [Tooltip("Bigger than a loose fireball — it has to be an obvious target.")]
         public float wardScale = 3.1f;
@@ -91,13 +94,14 @@ public class EnemyGiantSlime : EnemyBase
     private Side _side;
     private Transform _knight;
     private float _openingDistance;
-    private EnemyFireball _ward;
-    private Coroutine _wardRespawn;
+    // One entry per place in the ring. A popped fireball leaves its slot null until
+    // it comes back, so the others keep their spacing around the gap.
+    private EnemyFireball[] _wards;
+    private Coroutine[] _wardRespawns;
     private bool _wardPhaseEntered;
     private Collider2D _collider;
 
     public Side WhichSide => _side;
-    public bool IsWarded => _ward != null;
     public bool InWardPhase => _wardPhaseEntered;
 
     // The slime's pivot sits at the BOTTOM of its body (the authored collider spans
@@ -242,62 +246,96 @@ public class EnemyGiantSlime : EnemyBase
 
     #region ward
 
+    // The ward is a HAZARD, not a shield (owner's call, 2026-09-24). It used to
+    // refuse every hit on the body while a fireball was up, with a three-second
+    // window after each pop, and nothing on screen said so. The twins now take
+    // damage at all times; the ring is only something the knights' shields have to
+    // answer when it swings out past them.
+
+    private float WardSpacing => 360f / Mathf.Max(1, _wards.Length);
+
     private void EnterWardPhase()
     {
         _wardPhaseEntered = true;
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.bossRoar);
         glowManager?.StartGlow(new Color(1f, 0.5f, 0.2f), 1f, 10f, 0.8f);
-        SpawnWard();
+
+        int count = Mathf.Max(1, _config.wardCount);
+        _wards = new EnemyFireball[count];
+        _wardRespawns = new Coroutine[count];
+
+        // One launch sound for the whole ring. Four copies of the clip on one frame
+        // just play it four times as loud.
+        for (int slot = 0; slot < count; slot++)
+        {
+            SpawnWard(slot, playSound: slot == 0);
+        }
     }
 
-    private void SpawnWard()
+    private void SpawnWard(int slot, bool playSound = true)
     {
-        if (isDead || _config == null) return;
-        // Twins start their wards on opposite sides, so the pair reads as a mirror
-        float startAngle = _side == Side.Left ? 0f : 180f;
-        _ward = EnemyFireball.Orbit(_fireballPrefab, this, _config.wardRadius,
+        if (isDead || _config == null || _wards == null) return;
+
+        // A fireball coming back rejoins the ring where its slot is NOW, read off a
+        // fireball that is still up. Starting it from the opening layout instead
+        // would drop it wherever that happens to be after the ring has turned, and
+        // over a few pops the four would bunch up. Only when the whole ring is down
+        // is there nothing to line up with, and it starts fresh.
+        int siblingSlot = FirstLiveWardSlot();
+        float angle;
+        float pulseTime = 0f;
+        if (siblingSlot >= 0)
+        {
+            EnemyFireball sibling = _wards[siblingSlot];
+            angle = sibling.OrbitAngle + (slot - siblingSlot) * WardSpacing * MirrorSign;
+            pulseTime = sibling.PulseTime;
+        }
+        else
+        {
+            // Twins start their rings on opposite sides and spaced the opposite way
+            // round, so the pair reads as a mirror
+            angle = (_side == Side.Left ? 0f : 180f) + slot * WardSpacing * MirrorSign;
+        }
+
+        _wards[slot] = EnemyFireball.Orbit(_fireballPrefab, this, _config.wardRadius,
             _config.wardRadiusSwing, _config.wardPulseSeconds,
-            _config.wardDegreesPerSecond * MirrorSign, startAngle,
-            _config.fireballDamage, _config.wardScale);
+            _config.wardDegreesPerSecond * MirrorSign, angle,
+            _config.fireballDamage, _config.wardScale, pulseTime, playSound);
     }
 
-    // Called by the ward itself as it pops
-    public void OnWardDestroyed()
+    private int FirstLiveWardSlot()
     {
-        _ward = null;
-        if (isDead) return;
-        if (_wardRespawn != null) StopCoroutine(_wardRespawn);
-        _wardRespawn = StartCoroutine(RespawnWardAfterDelay());
+        for (int i = 0; i < _wards.Length; i++)
+        {
+            if (_wards[i] != null) return i;
+        }
+        return -1;
     }
 
-    private IEnumerator RespawnWardAfterDelay()
+    // Called by a ward fireball as it pops
+    public void OnWardDestroyed(EnemyFireball ward)
+    {
+        if (_wards == null) return;
+        int slot = System.Array.IndexOf(_wards, ward);
+        if (slot < 0) return;
+
+        _wards[slot] = null;
+        if (isDead) return;
+        if (_wardRespawns[slot] != null) StopCoroutine(_wardRespawns[slot]);
+        _wardRespawns[slot] = StartCoroutine(RespawnWardAfterDelay(slot));
+    }
+
+    private IEnumerator RespawnWardAfterDelay(int slot)
     {
         yield return new WaitForSeconds(_config.wardRespawnSeconds);
-        if (!isDead && _wardPhaseEntered && _ward == null)
+        _wardRespawns[slot] = null;
+        if (!isDead && _wardPhaseEntered && _wards[slot] == null)
         {
-            SpawnWard();
+            SpawnWard(slot);
         }
     }
 
     #endregion
-
-    // The ward eats every direct hit meant for the body: arrows, sword, shield. Note
-    // that poison and fire DoT tick straight into `health` (PoisonRoutine and
-    // ApplyFireDamage bypass TakeDamage), so Serpent and Ember still chew through a
-    // warded slime — intentional, or a fully warded boss would blank two Orders.
-    public override void TakeDamage(int damage, GameObject projectile)
-    {
-        if (isDead) return;
-
-        if (_ward != null)
-        {
-            AudioManager.Instance?.PlaySFX(AudioManager.Instance.projectileShield);
-            glowManager?.StartGlow(new Color(1f, 0.85f, 0.4f), 0.2f, 12f, 0.5f);
-            return;
-        }
-
-        base.TakeDamage(damage, projectile);
-    }
 
     // A boss can't be popped by contact the way a mob can (see EnemyRatKing): the
     // shield gets no purchase on it, and reaching a knight kills the KNIGHT — the
@@ -334,7 +372,7 @@ public class EnemyGiantSlime : EnemyBase
 
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
-            // Damage was applied by PlayerProjectile (or refused above); eat the arrow
+            // Damage was applied by PlayerProjectile; eat the arrow
             Destroy(other.gameObject);
             return;
         }
@@ -354,10 +392,13 @@ public class EnemyGiantSlime : EnemyBase
     protected override void OnDeath()
     {
         // No Split() — see the attributes note in Start
-        if (_ward != null)
+        if (_wards != null)
         {
-            Destroy(_ward.gameObject);
-            _ward = null;
+            for (int i = 0; i < _wards.Length; i++)
+            {
+                if (_wards[i] != null) Destroy(_wards[i].gameObject);
+                _wards[i] = null;
+            }
         }
         base.OnDeath();
     }

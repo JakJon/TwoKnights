@@ -3,21 +3,28 @@ using UnityEngine;
 // The giant slimes' ammunition. Three flight modes share one prefab because they
 // share one rule: EVERY tool the knights hold can pop a fireball — arrow, sword,
 // and shield alike. That's deliberate and it differs from ProjectileSettings (the
-// rats' arrows, which only the shield stops): the Ward variant gates the boss's
-// damage, so a knight whose sword is mid-swing must still be able to clear it.
+// rats' arrows, which only the shield stops): the Ward variant's orbit swings out
+// past the knight, so whatever the knight is holding when it arrives has to be
+// able to clear it.
 //
 // Bolted-on configuration follows PoisonProjectile/FireballProjectile: the prefab
 // carries sprite + collider identity, Launch/Orbit hand it the per-shot state.
-public class EnemyFireball : MonoBehaviour, IChillable
+public class EnemyFireball : MonoBehaviour, IChillable, IIncoming
 {
     public enum Mode
     {
         Straight,    // fired at where the knight stands, no course correction
         ArcThenHome, // one lateral sweep, then it turns and chases the knight
-        Ward         // orbits its slime; popping it opens the damage window
+        Ward         // one of a ring orbiting its slime; comes back a few seconds after a pop
     }
 
-    private const float PopRadius = 0.6f; // visual only — fireballs deal no splash
+    // Visual only — an enemy fireball hurts what it touched and nothing else, so
+    // unlike a keg or a player fireball this radius is not a damage circle. The
+    // ring is still drawn on it, because a pop that skipped the ring would read
+    // as a different KIND of event from every other explosion on screen; what it
+    // promises here is the size of the pop, not a blast the knights can be caught
+    // by. Keep it small for exactly that reason.
+    private const float PopRadius = 0.6f;
 
     private Mode _mode;
     private Transform _target;
@@ -43,6 +50,11 @@ public class EnemyFireball : MonoBehaviour, IChillable
     private bool _popped;
 
     public Mode CurrentMode => _mode;
+
+    // Where a ward is on its orbit and in its breath, so a fireball coming back
+    // can take its place in the ring alongside the ones still up
+    public float OrbitAngle => _orbitAngle;
+    public float PulseTime => _pulseTime;
 
     // A shot aimed at a knight. arcSign mirrors the sweep between the twins (+1 /
     // -1) so the pair's volleys are horizontal mirror images of each other.
@@ -87,8 +99,9 @@ public class EnemyFireball : MonoBehaviour, IChillable
         return ball;
     }
 
-    // The orbiting ward. It never expires on its own — only a knight's tool clears
-    // it, and its owner watches for that to open its damage window.
+    // One fireball of the orbiting ward. It never expires on its own — only a
+    // knight's tool clears it, and its owner puts it back in the ring a few
+    // seconds later.
     //
     // radiusSwing makes the orbit BREATHE in and out. pulseSeconds is deliberately not
     // a multiple of the orbit period: if the two were locked the ward would always reach
@@ -96,17 +109,16 @@ public class EnemyFireball : MonoBehaviour, IChillable
     // that extreme around the circle, so it only *sometimes* lunges at the knight — and
     // when it does, the shield is the only answer. Both are pure functions of time, so
     // the pattern stays deterministic (no dice in wave content).
+    //
+    // pulseTime starts the breath part-way through, so a fireball rejoining the ring
+    // breathes in step with the others instead of from the start of its own breath.
     public static EnemyFireball Orbit(GameObject prefab, EnemyGiantSlime owner, float radius,
         float radiusSwing, float pulseSeconds, float degreesPerSecond, float startAngle,
-        int damage, float scale)
+        int damage, float scale, float pulseTime = 0f, bool playSound = true)
     {
         if (prefab == null || owner == null) return null;
 
-        // Starts at the base radius (sin 0) and swells outward from there
-        Vector2 start = owner.BodyCenter
-            + new Vector2(Mathf.Cos(startAngle * Mathf.Deg2Rad), Mathf.Sin(startAngle * Mathf.Deg2Rad)) * radius;
-
-        GameObject go = Instantiate(prefab, start, Quaternion.identity);
+        GameObject go = Instantiate(prefab, owner.BodyCenter, Quaternion.identity);
         go.transform.localScale = Vector3.one * scale;
 
         EnemyFireball ball = go.GetComponent<EnemyFireball>();
@@ -119,11 +131,30 @@ public class EnemyFireball : MonoBehaviour, IChillable
         ball._orbitPulseSeconds = pulseSeconds;
         ball._orbitDegreesPerSecond = degreesPerSecond;
         ball._orbitAngle = startAngle;
+        ball._pulseTime = pulseTime;
         ball._damage = damage;
         ball._sourceName = "a Slime's Ward";
+        ball.PlaceOnOrbit();
 
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.fireballLaunch);
+        if (playSound) AudioManager.Instance?.PlaySFX(AudioManager.Instance.fireballLaunch);
         return ball;
+    }
+
+    // In the IncomingLedger while it flies (see ProjectileMovement). Only a
+    // STRAIGHT shot has an arrival time worth stating: an arcing one curves and
+    // then chases, and a ward orbits rather than arrives.
+    private void OnEnable() { IncomingLedger.Add(this); }
+    private void OnDisable() { IncomingLedger.Remove(this); }
+
+    public Transform IncomingTarget => _mode == Mode.Straight ? _target : null;
+
+    public float SecondsToArrival
+    {
+        get
+        {
+            if (_mode != Mode.Straight || _target == null) return float.PositiveInfinity;
+            return IncomingLedger.StraightEta(transform.position, HeadingVector(), _target.position, _speed * ChillScale);
+        }
     }
 
     private void Start()
@@ -161,19 +192,7 @@ public class EnemyFireball : MonoBehaviour, IChillable
                 _pulseTime += dt;
             }
 
-            // Breathe: the far extreme reaches past the knight (block it), the near one
-            // tucks the ward back against the slime's flank
-            float radius = _orbitRadius;
-            if (_orbitRadiusSwing > 0f && _orbitPulseSeconds > 0f)
-            {
-                radius += Mathf.Sin(_pulseTime / _orbitPulseSeconds * 2f * Mathf.PI)
-                    * (_orbitRadiusSwing * 0.5f);
-            }
-
-            float rad = _orbitAngle * Mathf.Deg2Rad;
-            transform.position = _owner.BodyCenter
-                + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * radius;
-            transform.rotation = Quaternion.AngleAxis(_orbitAngle, Vector3.forward);
+            PlaceOnOrbit();
             return;
         }
 
@@ -200,6 +219,24 @@ public class EnemyFireball : MonoBehaviour, IChillable
         // returns before it reaches this line, so a boss's guard keeps its pace -
         // chilling that would be chilling the boss's aura, not its ammunition.
         transform.position += (Vector3)(HeadingVector() * _speed * ChillScale * dt);
+    }
+
+    // Puts a ward where its angle and breath say it is, around wherever its slime
+    // is standing. Breathe: the far extreme reaches past the knight (block it), the
+    // near one tucks the ward back against the slime's flank.
+    private void PlaceOnOrbit()
+    {
+        float radius = _orbitRadius;
+        if (_orbitRadiusSwing > 0f && _orbitPulseSeconds > 0f)
+        {
+            radius += Mathf.Sin(_pulseTime / _orbitPulseSeconds * 2f * Mathf.PI)
+                * (_orbitRadiusSwing * 0.5f);
+        }
+
+        float rad = _orbitAngle * Mathf.Deg2Rad;
+        transform.position = _owner.BodyCenter
+            + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * radius;
+        transform.rotation = Quaternion.AngleAxis(_orbitAngle, Vector3.forward);
     }
 
     // Glacial Ward II: enemy ammunition crossing a knight's ring of cold loses
@@ -255,9 +292,9 @@ public class EnemyFireball : MonoBehaviour, IChillable
             playerSpecial?.updateSpecial(1);
 
             // Reflector (Guardian): the guard turns the slime's own fire around.
-            // A WARD is exempt and always pops: it is the boss's guard rather than a
-            // shot at anybody, and popping it is what opens the damage window — a
-            // reflected ward would be the Order quietly deleting the fight's one rule.
+            // A WARD is exempt and always pops: it is part of the ring orbiting the
+            // boss rather than a shot at anybody, and it has no flight speed of its
+            // own to turn around — a reflected ward would just hang in the air.
             if (_mode != Mode.Ward)
             {
                 GuardianReflect.Turn turn = GuardianReflect.TryTurn(other, HeadingVector());
@@ -290,12 +327,12 @@ public class EnemyFireball : MonoBehaviour, IChillable
         _popped = true;
 
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.fireballExplode);
-        FireFx.Burst(transform.position, PopRadius);
+        FireFx.Burst(transform.position, PopRadius, markRadius: true);
 
-        // Tell the slime its guard is down before we vanish
+        // Tell the slime this place in its ring is empty before we vanish
         if (_mode == Mode.Ward && _owner != null)
         {
-            _owner.OnWardDestroyed();
+            _owner.OnWardDestroyed(this);
         }
 
         Destroy(gameObject);

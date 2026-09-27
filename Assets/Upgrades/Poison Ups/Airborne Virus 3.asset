@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c422b4ac08014f489c69a3ec9ed2b4a, type: 3}
+  m_Name: Airborne Virus 3
+  m_EditorClassIdentifier: 
+  upgradeName: Airborne Virus III
+  description: Poisoned enemies release eight poison bubbles every 4 seconds.
+  weight: 100
+  order: 1
+  requiresOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: eae54f744310b18d343005b42c8817b1, type: 2}
+  lockedBy: []
+  stats:
+  - valueText: +60%
+    labelText: BUBBLES
+    isPositive: 1
+  - valueText: +20%
+    labelText: RELEASE SPEED
+    isPositive: 1
+  tier: 3

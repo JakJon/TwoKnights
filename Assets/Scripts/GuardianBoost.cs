@@ -25,10 +25,27 @@ public class GuardianBoost : MonoBehaviour
 {
     // ---- tuning knobs, all in one place so the balance pass is one file ----
 
-    /// <summary>How much faster a reflected rock flies than it arrived. It has to
-    /// leave HARD — at anything gentler the rebound reads as the same rock politely
-    /// turning around rather than as something the guard hit back.</summary>
-    public const float ReflectedSpeedMultiplier = 2.5f;
+    // Reflect speed used to be one const for both ranks. It is now the Reflector
+    // chain's headline number, and it drives TWO things off the same figure: how
+    // hard a rock leaves the guard, and how fast this knight's own arrows fly.
+    // That is the whole point of putting projectile speed here — the card can say
+    // "x2.5" once and the player can see it in both places.
+    private const float ReflectSpeedRank1 = 1.5f;
+    private const float ReflectSpeedRank2 = 2.5f;
+
+    /// <summary>How much faster a reflected rock flies than it arrived, AND what
+    /// this knight's arrows are multiplied by. Rank II keeps the 2.5 the rebound
+    /// has always left at, so the Order's signature does not change feel — rank I
+    /// is the new, gentler step in front of it.</summary>
+    public float ReflectSpeedMultiplier
+    {
+        get
+        {
+            if (reflectorLevel >= 2) return ReflectSpeedRank2;
+            if (reflectorLevel == 1) return ReflectSpeedRank1;
+            return 1f;
+        }
+    }
 
     /// <summary>A reflected rock is destroyed this long after the block, whatever it
     /// hit or didn't.
@@ -145,19 +162,22 @@ public class GuardianBoost : MonoBehaviour
 
     /// <summary>How close a mob or an orb has to be before this knight's arrow bends
     /// onto it. Zero while the knight has no Guided Shot, which is what keeps the
-    /// steering component off every arrow in a run with no Guardian picks.</summary>
+    /// steering component off every arrow in a run with no Guardian picks.
+    ///
+    /// Widened on 2026-09-25 (owner's call): rank I by 15%, ranks II and III by
+    /// 10%, from 0.5 / 1.0 / 1.6. Guided Reflections keeps the old radii.</summary>
     public float GuidedShotRadius
     {
         get
         {
-            if (guidedShotLevel >= 3) return 1.6f;
-            if (guidedShotLevel == 2) return 1f;
-            if (guidedShotLevel == 1) return 0.5f;
+            if (guidedShotLevel >= 3) return 1.76f;
+            if (guidedShotLevel == 2) return 1.1f;
+            if (guidedShotLevel == 1) return 0.575f;
             return 0f;
         }
     }
 
-    /// <summary>The same radii, bought again for the rock coming back. Deliberately
+    /// <summary>The radii for the rock coming back. Deliberately
     /// a separate chain rather than a rider on Guided Shot: the arrow and the rebound
     /// are two different shots and the player pays for each one they want steered.</summary>
     public float GuidedReflectionRadius

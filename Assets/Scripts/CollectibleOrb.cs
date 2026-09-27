@@ -13,6 +13,12 @@ public class CollectibleOrb : MonoBehaviour, IChillable
     [SerializeField] private int healthRestoreAmount = 20;
     [SerializeField] private int manaRestoreAmount = 10;
 
+    /// <summary>
+    /// The prefab's own speed. Order trials read it to throw their orbs at "twice
+    /// the speed of a normal orb" and "half", so retuning the orb retunes them too.
+    /// </summary>
+    public float MoveSpeed => moveSpeed;
+
     private Vector2 startPos;
     private Vector2 endPos;
     private Vector2 moveDir;
@@ -108,7 +114,8 @@ public class CollectibleOrb : MonoBehaviour, IChillable
                 PlayerSpecial playerSpecial = player.GetComponent<PlayerSpecial>();
                 if (playerSpecial != null)
                 {
-                    playerSpecial.AddSpecialFromOrb(manaRestoreAmount);
+                    int amount = dawn != null ? dawn.ScaleOrbMana(manaRestoreAmount) : manaRestoreAmount;
+                    playerSpecial.AddSpecialFromOrb(amount);
                 }
 
                 // Sunwell II: even the mana orbs carry a little light
@@ -132,8 +139,11 @@ public class CollectibleOrb : MonoBehaviour, IChillable
     /// being ignored because they happened to be mid-swing rather than mid-shot is
     /// not a decision anyone made, and the sword is already the answer to everything
     /// else that comes that close.
+    ///
+    /// Public for TrialOrb and the ninja trial, which are collected — or hit — by
+    /// exactly the same things.
     /// </summary>
-    private static GameObject CollectorFor(Collider2D other)
+    public static GameObject CollectorFor(Collider2D other)
     {
         if (other.CompareTag("PlayerLeftProjectile")) return GameObject.FindWithTag("PlayerLeft");
         if (other.CompareTag("PlayerRightProjectile")) return GameObject.FindWithTag("PlayerRight");

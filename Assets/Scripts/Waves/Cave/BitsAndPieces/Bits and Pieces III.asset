@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: More riders than powder now. The tail of a shift comes down uncovered.
   unlockedAfterXWaves: 8
-  lockedAfterXWaves: 15
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 40e9dc310ff2cf24a33b8d77298aa84c, type: 2}
   gnomeCarts:
@@ -54,10 +54,11 @@ MonoBehaviour:
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
   ogres:
-    label: 8 down and up the empty middle
-    count: 4
-    firstAt: 6
-    interval: 5
+    label: 3 with every shift, down and up the empty middle
+    count: 3
+    firstAt: 3
+    interval: 3.5
+    throwStagger: 0
     fireEveryNth: 3
     entries:
     - label: down the empty middle, left of centre

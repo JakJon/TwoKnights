@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: The flags have moved up. Stop it on the way down or not at all.
   unlockedAfterXWaves: 8
-  lockedAfterXWaves: 15
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 220095e03f60dd8c755e97e0d2400bdd, type: 2}
   crateCarts:

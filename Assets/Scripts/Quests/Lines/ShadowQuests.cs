@@ -2,18 +2,17 @@ using System.Collections.Generic;
 using static QuestBuild;
 
 /// <summary>
-/// The Shadow Order. Same shape as the Serpent and the Ember: a light trigger
-/// reveals the initiation, the initiation admits you, admission opens Blade and
-/// Fan. The trigger counts landed shadow arrows, so it measures the practice
-/// rather than the purchase.
+/// The Order of the Shadow. Both branches measure one wave rather than a lifetime:
+/// the Order's whole argument is that volume delivered at once is worth more than
+/// the same volume spread thin, so the quests ask for it that way.
 /// </summary>
 public static class ShadowQuests
 {
     public const string Initiation = "shadow_initiation";
-    public const string Blade1 = "shadow_blade_1";
-    public const string Blade2 = "shadow_blade_2";
-    public const string Fan1 = "shadow_fan_1";
-    public const string Fan2 = "shadow_fan_2";
+    public const string Symphony = "symphony_of_shadows";
+    public const string ThousandCuts = "thousand_cuts";
+    public const string SlicingSpirals = "slicing_spirals";
+    public const string BeastlyBlades = "beastly_blades";
 
     public static IEnumerable<Quest> All()
     {
@@ -21,90 +20,94 @@ public static class ShadowQuests
             id: Initiation,
             name: "Initiation: The Silent Oath",
             description:
-                "The Order of the Shadow has no interest in how loudly you can kill. What gets their " +
-                "attention is arrows that connect — the dark ones, the ones nobody hears coming, put " +
-                "into something often enough that it stops looking like luck. Show enough of it and the " +
-                "invitation arrives without ceremony, usually folded into something you were already " +
-                "carrying.",
+                "Show you know how to aim your shadow arrows in order to be accepted by the Shadow Order. "
+                + "Between waves, the Order's ninja turns up at the edge of the field and vanishes again "
+                + "moments later. We have to land a shot on him every time he shows himself.",
             mapId: Camp,
-            // Both halves measure the same practice: taking the Order's upgrades
-            // and actually putting its arrows into things. The old second half
-            // counted Killing Blow finishes, which asked for a different branch's
-            // work before the Order had admitted you to any branch at all.
-            objectives: new[]
-            {
-                Obj("upgrades.order.shadow", 6, "shadow upgrades taken"),
-                Obj(Feats.ShadowArrowHits, 250, "shadow arrows landed"),
-            },
+            objectives: One("trials.shadow", 3, "shadow trials passed"),
             reward: Reward(crystals: 2),
-            // Noticed for practising the Order, not for owning it: sixty arrows
-            // that connected, the same counter the Blade branch then asks five
-            // thousand of. Drafting Shadow Arrow was the old trigger and it fired
-            // on the pick rather than on any use of it.
-            unlocks: Gate(Stat(Feats.ShadowArrowHits, 60)));
-
-        // ---- Blade: finish what is already failing ----
-
-        yield return new Quest(
-            id: Blade1,
-            name: "The Quiet End",
-            description:
-                "Wounded things take considerably longer to die than they need to, and every second of " +
-                "it is a second you are not aiming somewhere more useful. The Order regards a slow " +
-                "finish as a form of rudeness, mostly toward yourself.",
-            mapId: Camp,
-            objectives: One(Feats.ShadowArrowHits, 5000, "shadow arrows landed"),
-            reward: Reward(equipmentId: "nightglass_shard"),
-            unlocks: Gate(After(Initiation)));
+            unlocks: Gate(Stat(Feats.ShadowArrowHits, 100)),
+            cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
+            offer:
+                "You seem to have no shortage of arrows..\n"
+                + "If you show us you know how to use it properly, we may be able to teach you more.",
+            completion:
+                "You seem to understand the art of shadowing your shot.\n"
+                + "We will take you under our wing, and reward you if you prove you're fit.");
 
         yield return new Quest(
-            id: Blade2,
-            name: "Thousand Cuts",
+            id: Symphony,
+            name: "Symphony of Shadows",
             description:
-                "The last lesson of the blade branch is that one blade was always a compromise you " +
-                "agreed to for no particular reason. Take up the rite and stop agreeing to it.",
+                "Land 75 shadow arrows in a single wave to prove yourself to the Shadow Order.",
             mapId: Camp,
-            objectives: One("upgrades.taken.thousand_cuts", 1,
-                            "Acquire Thousand Cuts, the Shadow capstone", hideProgress: true),
+            objectives: One(OrderStats.ShadowArrowWaveMax, 75, "shadow arrows landed in one wave"),
             reward: Reward(equipmentId: "starless_quiver"),
-            unlocks: Gate(After(Blade1)));
-
-        // ---- Fan: fill the air instead ----
-
-        yield return new Quest(
-            id: Fan1,
-            name: "A Hundred Edges",
-            description:
-                "The other branch gave up on aim as a luxury some time ago. Coverage is cheaper, far " +
-                "more forgiving, and considerably harder to walk through. Widen the fan and stop being " +
-                "precious about where each one lands.",
-            mapId: Camp,
-            objectives: One(Feats.ShurikenVolleyFour, 1,
-                            "Land four shurikens from a single volley", hideProgress: true),
-            reward: Reward(crystals: 1),
-            unlocks: Gate(After(Initiation)));
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
+            offer:
+                "",
+            completion:
+                "<slow>Your aim is keen.<slow> You know your way with the arrow.\n"
+                + "Take this trinket to permanently strengthen your shadows.");
 
         yield return new Quest(
-            id: Fan2,
-            name: "What Follows the Blade",
+            id: SlicingSpirals,
+            name: "Slicing Spirals",
             description:
-                "Swing once and let the dark swing after you, and do the same courtesy to anything an " +
-                "arrow finds already most of the way dead. Neither half is really a technique. The " +
-                "branch treats them as one habit, which is declining to do a job twice, and the Order " +
-                "has offered no account of how the echoes work beyond politely asking that you stop " +
-                "asking.",
+                "Land 75 shurikens in a single wave to prove yourself to the Shadow Order.",
             mapId: Camp,
-            // The feat is met the first swing after Phantom Blade II lands, so on
-            // its own this quest was over the moment it opened. The execute count
-            // is what gives it length — and it is the only home Killing Blow has
-            // left since the initiation stopped counting it.
+            objectives: One(OrderStats.ShurikenWaveMax, 75, "shurikens landed in one wave"),
+            reward: Reward(equipmentId: "nightglass_shard"),
+            unlocks: Gate(After(Symphony)),
+            cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
+            offer:
+                "",
+            completion:
+                "Great shots.\n"
+                + "You have proven yourself worthy to be equipped with so much.");
+
+        yield return new Quest(
+            id: BeastlyBlades,
+            name: "Beastly Blades",
+            description:
+                "Show off your skills with your phantom blades by landing both shadow swings in one "
+                + "swing. Then get 6 kills with phantom swings in one wave.",
+            mapId: Camp,
             objectives: new[]
             {
                 Obj(Feats.PhantomFullThree, 1,
                     "Land a swing and both its phantom echoes", hideProgress: true),
-                Obj("kills.executed", 250, "finished by Killing Blow"),
+                Obj(OrderStats.PhantomKillsWaveMax, 6, "felled by echoes in one wave"),
             },
             reward: Reward(equipmentId: "echo_ribbon"),
-            unlocks: Gate(After(Fan1)));
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
+            offer:
+                "",
+            completion:
+                "Your swing is strong.\n"
+                + "Let's see if you're able to master our Order's secret technique.");
+
+        yield return new Quest(
+            id: ThousandCuts,
+            name: "Thousand Cuts",
+            description:
+                "The Shadow Order assassin told us he will teach us the order's sacred technique.",
+            mapId: Camp,
+            objectives: new[]
+            {
+                Obj("upgrades.taken.thousand_cuts", 1, "Take up Thousand Cuts", hideProgress: true),
+                Obj(OrderStats.ThousandCutsActivations, 20, "times the cooldown fell away"),
+            },
+            reward: Reward(crystals: 3, upgradeSlug: "thousand_cuts"),
+            unlocks: Gate(After(BeastlyBlades)),
+            cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
+            offer:
+                "",
+            completion:
+                "You now understand the true power of the Shadow Order. <slow>You are one with the "
+                + "shade.<slow>");
+
     }
 }

@@ -23,7 +23,7 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 0.5
+  - valueText: 0.58
     labelText: HOMING RANGE
     isPositive: 1
   - valueText: MAIN SHOT

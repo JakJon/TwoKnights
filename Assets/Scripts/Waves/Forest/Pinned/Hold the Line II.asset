@@ -17,8 +17,8 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: The barrage shifts once. Rats and a king slime arrive together
     on the far side.
-  unlockedAfterXWaves: 8
-  lockedAfterXWaves: 12
+  unlockedAfterXWaves: 10
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   pinnedKnight: 0
   anchorSequence: 0000000001000000

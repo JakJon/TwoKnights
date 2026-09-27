@@ -25,7 +25,7 @@ using UnityEngine;
 // The asset keeps the filename Permafrost.asset even though the card now reads
 // "Deep Freeze III", because the stat slug is minted from the FILENAME
 // (UpgradeManager.StatSlug) and the Frigid quest line spends
-// upgrades.taken.permafrost. Same trick Greatshield plays to read "Dawn Shield".
+// upgrades.taken.permafrost. Same trick Greatshield plays to read "Holy Shield".
 [CreateAssetMenu(fileName = "DeepFreezeUpgrade", menuName = "Upgrades/Deep Freeze")]
 public class DeepFreezeUpgrade : BaseUpgrade
 {

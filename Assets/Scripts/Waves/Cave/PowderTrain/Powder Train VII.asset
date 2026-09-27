@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8da314436f17e2645bf3c58951e0847f, type: 3}
+  m_Name: Powder Train VII
+  m_EditorClassIdentifier:
+  waveName: Powder Train VII
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Twenty-six outside the ring, and the powder is all you have.
+  unlockedAfterXWaves: 24
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: 9cc32b97993d4e538f6f1c49b5759748, type: 2}
+  cartPattern:
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  repeats: 2
+  entryRun: 0
+  firstCartDelay: 0.4
+  slotInterval: 0
+  enemyInterval: 1.65
+  enemyCount: 26
+  enemyStartDelay: 3
+  ratType: {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 10
+    interval: 12
+    from: {x: -12, y: -1.5}
+    to: {x: 12, y: -1.5}
+  volleys:
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.45
+    weaveDegrees: 90
+  - label: wide spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: both knights flip at once
+    shape: 6
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: both at once, from under (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.45
+    weaveDegrees: 90
+  - label: wide spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.24
+    weaveDegrees: 90
+  projectileWindow: 50
+  rockSpeed: 1.75

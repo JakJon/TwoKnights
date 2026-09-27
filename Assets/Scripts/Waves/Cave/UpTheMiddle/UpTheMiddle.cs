@@ -81,10 +81,10 @@ using UnityEngine;
 // the board while the shaft is running.
 //
 // They walk in from the nearest screen edge, settle onto their station, and pace
-// there for the rest of the wave. They never come down: nobody is assigned to
-// them, which is what switches EnemyRat's fifteen-second chase off entirely (see
-// Station). The pressure they apply is not that they are arriving, it is that
-// the wave does not end and the wall does not come down until they are dead.
+// there for fifteen seconds, then come down on the knight on their side of the
+// shaft, as rats do everywhere else (owner's call, 2026-09-25: a rat pacing up top
+// forever held the wave open until somebody hunted it down). The wave does not end
+// and the wall does not come down until they are dead.
 //
 // They alternate corners of the middle — high left, low right, high right, low
 // left — so both halves of the board stay loaded. Past four in a group the
@@ -168,10 +168,7 @@ public class UpTheMiddle : BaseWave
     [Tooltip("In order — one entry per shift. Each waits for the last to be dead before it sets off, so a two-entry list with the heavier shift second is a fight that gets worse rather than one that merely runs longer.")]
     [SerializeField] private List<Ambush> ambushes = new List<Ambush>();
 
-    [Tooltip("Cycled in order as the rats are placed, and carried across the whole wave. Grey is the mine's ordinary rat; brown and black are heavier.")]
-    [SerializeField] private List<GameObject> ratTypes = new List<GameObject>();
-
-    [Tooltip("How far above and below the knights a rat holds station — the height of the line it paces along. Mind that a rat does NOT sit still on its station: EnemyRat paces its prefab's moveDistance either side of it, which is 3 units for a grey and 5 for a brown, so the station is the centre of a six- or ten-unit sweep. 4.3 keeps that whole sweep near the top and bottom of the view and never closer than four units to a knight.")]
+    [Tooltip("How far above and below the knights a rat's station is — the height of the line it paces along for fifteen seconds before it comes down. Mind that a rat does NOT sit still on its station: EnemyRat paces its prefab's moveDistance either side of it, which is 3 units for a grey and 5 for a brown, so the station is the centre of a six- or ten-unit sweep. 4.3 keeps that whole sweep near the top and bottom of the view and never closer than four units to a knight.")]
     [SerializeField] private float stationHeight = 4.3f;
 
     [Tooltip("How far to each side of the shaft the pacing line is centred. Anything past 2.8 puts the rats outside a keg's reach for good — at 3.2 the powder on the shaft cannot touch them at any height, which is deliberate: the rats are arrow work and the column is a hazard, and the two do not solve each other.")]
@@ -179,9 +176,6 @@ public class UpTheMiddle : BaseWave
 
     [Tooltip("How much further out each repeat of a station stands. There are only four stations, so a shift of more than four puts two rats in the same corner; this is what stops them arriving inside one another. Mind the pacing sweep when raising it — a brown rat covers five units either side of wherever it is put, so lane plus spread plus five wants to stay inside the ten-unit half-width of the view.")]
     [SerializeField] private float stationSpread = 0.8f;
-
-    [Tooltip("Leave the rats on their station instead of letting them come down. A rat with a knight assigned abandons its patrol after fifteen seconds and charges him (EnemyRat's chase timer, which is not authorable from out here) — so this wave assigns nobody, and the pack stays up top where it was put. Untick to get the old behaviour: they pace for fifteen seconds and then drop on the nearest knight.")]
-    [SerializeField] private bool holdStation = true;
 
     [Header("Rock")]
     [Tooltip("Volleys down the shafts, cycled in order for the window below. The mine had only three waves that threw a rock at all, which left the guard — half of what a knight is — idle through the rest. This is the second question a wave asks while the first one is still standing.")]
@@ -211,12 +205,6 @@ public class UpTheMiddle : BaseWave
     private int _rat;
     private int _bat;
 
-    // The rat types with the holes taken out. Resolved once per run so that the
-    // count each ambush is opened with is the count that will really be placed —
-    // a promise the release loop then fails to meet is a group that can never
-    // read as clear, and a wave that hangs on it forever.
-    private readonly List<GameObject> _vermin = new List<GameObject>();
-
     // Set once every shift has been cleared. The column watches it rather than
     // IsAmbushClear, and that distinction is the whole reason it exists: a group
     // closes between shifts, so a column asking "is the current group down" would
@@ -230,15 +218,6 @@ public class UpTheMiddle : BaseWave
         _rat = 0;
         _bat = 0;
         _fightOver = false;
-
-        _vermin.Clear();
-        if (ratTypes != null)
-        {
-            for (int i = 0; i < ratTypes.Count; i++)
-            {
-                if (ratTypes[i] != null) _vermin.Add(ratTypes[i]);
-            }
-        }
 
         var rails = spawner.Rails;
         if (rails == null && railLayout != null)
@@ -267,15 +246,14 @@ public class UpTheMiddle : BaseWave
             // Only the opening shift waits out the track
             yield return new WaitForSeconds((i == 0 ? layDuration : 0f) + Mathf.Max(0f, shift.leadIn));
 
-            int ratCount = _vermin.Count > 0 ? Mathf.Max(0, shift.rats) : 0;
+            int ratCount = Mathf.Max(0, shift.rats);
             int batCount = Mathf.Max(0, shift.bats);
 
             // The count is DECLARED, and it has to be: both spawners are late.
             // Spawner.SpawnRat and SpawnBat each yield before instantiating, even
             // at zero delay, so a group whose first rat dies before its second
             // exists would read as clear and the next shift would run straight
-            // over the top of it. Counted off ratCount rather than shift.rats so
-            // a wave with no rat prefabs wired promises nothing.
+            // over the top of it.
             BeginAmbush(ratCount + batCount);
 
             // Released together and BOTH waited on. A bat still queued behind its
@@ -293,6 +271,10 @@ public class UpTheMiddle : BaseWave
             // MarkSpawningComplete: a shift that is never marked released can
             // never read as clear, and the wait below would hang on it forever.
             MarkAmbushReleased();
+
+            // Last shift out: if a quick clear beat the orb timer, the orb goes
+            // now, with this shift still on the board. See OrbRun.SendFirstIfWaiting.
+            if (i == ambushes.Count - 1) orbs.SendFirstIfWaiting(spawner);
 
             yield return WaitForAmbushClear();
         }
@@ -397,13 +379,9 @@ public class UpTheMiddle : BaseWave
     // That walk-in is the wave's telegraph and it takes a second or two, which is
     // why nothing is authored to arrive off-frame by hand.
     //
-    // NOBODY IS ASSIGNED TO IT, and that is the whole reason the pack stays put.
-    // A rat with a knight assigned patrols for fifteen seconds and then charges
-    // him; a rat with none patrols indefinitely, because EnemyRat's chase gate
-    // needs a target to fire (see its Update). The delay itself is private and
-    // not authorable, so a null target is the only lever there is — and it is the
-    // right one here. This wave wants vermin standing off at the top and bottom
-    // of the view being difficult to reach, not vermin arriving.
+    // It is assigned the knight on its own side of the shaft, so it patrols for
+    // fifteen seconds and then charges him without crossing the column.
+    //
     // Eight stations rather than four, because the shifts are now big enough
     // that four would stack three rats on one corner. The extra four sit inboard
     // of the corners at the same height, so the pack reads as a line across the
@@ -431,16 +409,13 @@ public class UpTheMiddle : BaseWave
         float height = Mathf.Max(MinHeight, Mathf.Abs(stationHeight) - ring * 0.5f);
 
         var at = new Vector2(SlotLane[slot] * lane, SlotHigh[slot] * height);
-        bool left = at.x < 0f;
+        Transform knight = at.x < 0f ? spawner.LeftPlayer : spawner.RightPlayer;
 
-        Transform knight = holdStation
-            ? null
-            : (left ? spawner.LeftPlayer : spawner.RightPlayer);
-
-        GameObject type = _vermin[_rat % _vermin.Count];
+        // _rat keeps counting: it is the SLOT and RING index above, not a rat
+        // type index. Which rat walks on comes off the map's cadence now.
         _rat++;
 
-        spawner.SpawnRat(at, type, 0f, knight);
+        spawner.SpawnRat(at, 0f, knight);
     }
 
     // The air, held back by one interval on purpose: the rats are what the shift

@@ -88,17 +88,86 @@ public static class MapProgressStore
         SaveManager.Save();
     }
 
-    /// <summary>
-    /// Waves a run has to clear on one map before that map wears its star on the
-    /// level select. Twenty is well past either shipped map's gate, so the star
-    /// says "went deep here" rather than "finished the tutorial".
-    /// </summary>
-    public const int StarWaveNumber = 20;
+    /// <summary>How many stars one map can wear on the level select.</summary>
+    public const int StarCount = 3;
 
-    /// <summary>Has this map ever been run past <see cref="StarWaveNumber"/>?</summary>
-    public static bool HasStar(string mapId)
+    /// <summary>
+    /// First star: the run reached the bottom of the map — its authored
+    /// finalWaveNumber. Not the true boss's wave: the Camp Fields keeps playing
+    /// past the Twins, and the star is for getting all the way down.
+    /// </summary>
+    public static bool HasDepthStar(MapDefinition map)
     {
-        return FurthestWave(mapId) >= StarWaveNumber;
+        if (map == null) return false;
+        return FurthestWave(map.MapId) >= map.FinalWaveNumber;
+    }
+
+    /// <summary>
+    /// Second star: every quest filed under this map is finished. A map with no
+    /// quests authored yet never earns it — otherwise an empty line would hand
+    /// out a star for nothing.
+    /// </summary>
+    public static bool HasQuestStar(string mapId)
+    {
+        QuestTally(mapId, out int done, out int total);
+        return total > 0 && done >= total;
+    }
+
+    /// <summary>
+    /// Third star: every wave type on the map has been met. Deliberately a true
+    /// sweep, where the explorer QUEST finale only asks for 75% — so finishing a
+    /// map's quests and having seen all of it stay two different achievements.
+    /// </summary>
+    public static bool HasWaveTypeStar(string mapId)
+    {
+        WaveTypeTally(mapId, out int found, out int total);
+        return total > 0 && found >= total;
+    }
+
+    /// <summary>
+    /// How many of this map's wave types the player has met, and how many it
+    /// has. Both numbers are real: unlike how deep a map goes, there is nothing
+    /// worth withholding in saying how much there is left to find. The found
+    /// count is clamped, because the saved tally is recounted from the setlist
+    /// and a wave dropped from the map would otherwise read as 33 of 32.
+    /// </summary>
+    public static void WaveTypeTally(string mapId, out int found, out int total)
+    {
+        found = 0;
+        total = 0;
+        if (string.IsNullOrEmpty(mapId)) return;
+
+        total = WaveExploration.TotalWaveTypesFor(mapId);
+        if (total <= 0) return;
+        found = Mathf.Min(PlayerStats.Get(WaveExploration.DistinctStatKey(mapId)), total);
+    }
+
+    /// <summary>How many of the three stars this map has earned, 0 to 3.</summary>
+    public static int StarsFor(MapDefinition map)
+    {
+        if (map == null) return 0;
+        int stars = 0;
+        if (HasDepthStar(map)) stars++;
+        if (HasQuestStar(map.MapId)) stars++;
+        if (HasWaveTypeStar(map.MapId)) stars++;
+        return stars;
+    }
+
+    /// <summary>
+    /// How many quests this map has, and how many are done — the level select
+    /// prints both. The total is always the REAL total, never hidden behind a
+    /// question mark, so a card says up front how much work a map holds.
+    /// </summary>
+    public static void QuestTally(string mapId, out int completed, out int total)
+    {
+        completed = 0;
+        total = 0;
+        if (string.IsNullOrEmpty(mapId)) return;
+        foreach (var quest in QuestDatabase.ForMap(mapId))
+        {
+            total++;
+            if (QuestProgress.IsCompleted(quest.Id)) completed++;
+        }
     }
 
     public static void Unlock(string mapId)
@@ -130,9 +199,9 @@ public static class MapProgressStore
         foreach (var map in catalog.Maps)
         {
             if (map == null) continue;
-            if (IsUnlocked(map)) PlayerStats.Raise(UnlockedStatKey(map.MapId), 1);
-            if (IsGateCleared(map.MapId)) PlayerStats.Raise($"maps.{map.MapId}.gate_cleared", 1);
-            if (IsTrueCleared(map.MapId)) PlayerStats.Raise($"maps.{map.MapId}.true_cleared", 1);
+            if (IsUnlocked(map)) PlayerStats.Republish(UnlockedStatKey(map.MapId), 1);
+            if (IsGateCleared(map.MapId)) PlayerStats.Republish($"maps.{map.MapId}.gate_cleared", 1);
+            if (IsTrueCleared(map.MapId)) PlayerStats.Republish($"maps.{map.MapId}.true_cleared", 1);
         }
     }
 

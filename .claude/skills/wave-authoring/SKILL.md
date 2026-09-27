@@ -87,6 +87,16 @@ action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
    wave has several `OrbRun` fields (Bits and Pieces, Cart Loads), only one of them
    may be a health run.
 
+   **Every Mine wave has at least one orb** (owner, 2026-09-23). Never author a
+   Mine tier with `count: 0`. And because most Mine waves end when the players kill
+   what is out, `OrbRun`'s `firstAt` timer alone is not enough: a quick clear used
+   to finish the wave before the timer fired, and the `StopCoroutine` at the end
+   took the orb with it. So every Mine wave calls
+   `orbs.SendFirstIfWaiting(spawner)` as its LAST group goes out (last ambush
+   released, last rider out, last crate out). That sends the first orb right then
+   if the timer has not already, while there is still something on the board. A
+   new Mine wave must make the same call.
+
 9. **Tier names carry Roman numerals; the first tier carries nothing** (owner,
    2026-09-06). "Choo Choo", then "Choo Choo II", "Choo Choo III", "Choo Choo IV".
    Waves whose tiers all shared one name (Neighbours, Run of the Mine, Up the
@@ -138,7 +148,7 @@ public class MyWave : BaseWave
 - Class names already taken (avoid collisions): `RatMischief` (inside the misnamed
   `TemplateWave.cs`), `RatMischef` [sic], `WolfCircles`, `BatSwarmWave`, `SlimesAndBats`,
   `ChaoticCorners`, `Slimy`, `AboutFace`, `SheepsClothing`, `BelfryAndCellar`,
-  `NightHunt`, `ChooChoo`, `Delivery`, `PowderTrain`. `WolfPack.cs` and
+  `NightHunt`, `ChooChoo`, `Delivery`, `PowderTrain`, `HotPotato`, `RushHour`. `WolfPack.cs` and
   `Editor/WaveManagerEditor.cs` are empty stubs.
 
 ## Rock: RockVolley, and how a tier makes it harder (updated 2026-09-06)
@@ -162,6 +172,11 @@ second of window, then eight from ABOVE over 0.80–1.50s.
 | `Split` | 2 | both knights at once |
 | `Flip` | 3 | same knight, one side then the other. `fromBelow` picks which side it OPENS on — false is over-then-under, true is under-then-over |
 | `Fan` | 4 | `count` shots walking outward around the knight's own half, capped at 80° |
+| `Mirror` | 5 | both knights at once from opposite sides |
+| `Scissors` | 6 | Mirror, then both knights flip |
+| `Weave` | 7 | one knight, each shot from the far side of the dial from the last (1.2s floor) |
+| `Spiral` | 8 | one knight, `count` shots per pass stepping steadily round his own side: from 30° past straight up toward the partner (straight down with `fromBelow`), outward, `spiralDegrees` in all (cap 240). `spiralPasses` 2+ comes back the same way. Steps never exceed 45°, gaps floor at 0.3s |
+| `TwinSpiral` | 9 | a Spiral on both knights at once, mirror images, so the guards turn in opposite directions |
 
 **`salvo` is the tier dial, and it is the answer to "this wave's rock does not get
 harder at later tiers"** (owner, 2026-09-06). It is how many rocks go out TOGETHER
@@ -169,9 +184,9 @@ on every shot of the volley: the shape stays the shape and the windows stay the
 windows, but a late-tier window has to be answered with the shield actually
 covering it rather than nearly covering it.
 
-**House ladder across a wave's four tiers: `salvo: 1 / 3 / 5 / 8`.** Tier I stays a
+**House ladder across a wave's first four tiers: `salvo: 1 / 3 / 5 / 8`.** Tier I stays a
 single rock — the opening tier is where a player learns the shape, and a wall
-teaches nothing.
+teaches nothing. Mine tiers V / VI / VII go on to `8 / 9 / 10` (see "Seven tiers" below).
 
 **A salvo is RAKED, never fired as a block.** `salvoStagger` (0.1s) is the gap
 between one rock of the wall and the next, and it is released in order along the
@@ -358,13 +373,50 @@ is serialized on the component — add entries there for future areas).
 | Night Hunt 0–3 (NightHunt) | telegraphed wolf+bat pincer strikes | 3–9 / 7–13 / 11–17 / 15+ |
 
 **The Mine** (`Assets/Scripts/Maps/The Mine.asset`) is a map-scoped pool — the forest
-waves above never play there, and these three never play in the forest:
+waves above never play there, and these never play in the forest:
 
 | Wave (class) | Pattern | Layout |
 |---|---|---|
 | Choo Choo | gnome carts in ambush shifts on a loop | Mine Circuit (40-unit lap) |
 | Delivery | cargo carts racing to a drop flag | Mine Horseshoe (open route) |
 | Powder Train | keg ring with gaps + enemies outside it | Mine Ring (32-unit lap) |
+| Hot Potato | fire ogres only, each group sent together (4/5/6/7/7/8/9 per group); spiral rock | none |
+| Rush Hour | gangs of plain ogres (8/12/16/22/26/30/36); straight shaft rock at I–II, fans/spirals/weaves from III | none |
+
+The Mine has 13 wave types (2026-09-25; the forest has 12). The Overseer is at wave 25
+and does NOT end the run (`trueBossEndsRun: 0`), so a Mine run goes on to wave 30 and
+past it like the forest does. `finalWaveNumber: 30` is only the level-select star.
+
+**Seven tiers per wave (owner, 2026-09-25).** Every tiered wave has tiers I–VII, not
+four. In the Mine they are spread evenly over the run: tier k (0-based) has
+`unlockedAfterXWaves: 4k`, `lockedAfterXWaves: 4k+6`, and VII has no lock, i.e.
+waves 1–6 / 5–10 / 9–14 / 13–18 / 17–22 / 21–26 / 25+. Tier I may start a wave or
+two late when the wave is too heavy for wave 1 (Run of the Mine, Hot Potato, Rush
+Hour). The Millstone is a single asset because it is the gate boss. With this
+spread a simulated run reaches wave 30 without a repeat.
+
+Tiers V–VII of the ten older Mine waves were generated from their tier IV by a
+script. The per-wave settings grow (more riders, crates, wolves, relays, ogres,
+bats, shorter gaps), and the rock goes: rests ×0.9 / ×0.8 / ×0.7 (never under
+1.8s), salvo 8 / 9 / 10 with tighter rakes, Split → Mirror from V, the first Flip
+→ Scissors from VI, the first Pair → a four-shot Weave (salvo 3) at VII.
+Cart counts on LOOPING layouts were left at tier IV's, because a loop's spacing
+is fixed by its length: Near and Far swaps empties for riders instead of adding
+carts. All of this is a first pass, not playtested.
+
+**Fire ogres wait for a gap in the rock (2026-09-25; replaces hand-timing the
+rock between the fireballs).** Before each throw a fire ogre works out when its
+fireball would land and holds the throw while anything else is due at that knight
+within `clearance` (0.9s) either side. The check reads `IncomingLedger`: rocks and
+straight fireballs register while they fly, `Spawner.SpawnProjectile` books a
+delayed rock's landing the moment it is scheduled, and a decided throw is booked
+before its wind-up. Rock is never held. The cost is that a wave's rock sets how
+much fire gets through: a knight under a long spiral takes no fire at all. So
+leave every knight long quiet stretches (Hot Potato's tiers keep each knight's
+rock under ~45% of the cycle, with ~5s rests); simulated, 79–100% of throws still
+go out. `OgreBand.interval: 0` sends a group on one frame, and
+`OgreBand.throwStagger` (10 / group size) spreads their first throws round the
+clock so the fire alternates knights instead of arriving as a volley.
 
 **Guarded riders** (`GnomeWardRing`, added 2026-09-06): a gnome can come out
 wearing a spinning ring of stone that eats arrows — one stone per arrow, and the

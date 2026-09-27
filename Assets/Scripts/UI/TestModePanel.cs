@@ -36,7 +36,7 @@ public class TestModePanel : MonoBehaviour
     private Label _budgetLine;
     private Button _closeButton;
 
-    private enum RowKind { Wave, Map, Randomize, Section, Upgrade, Start }
+    private enum RowKind { Wave, Map, Randomize, Trial, Section, Upgrade, Start }
 
     private class Row
     {
@@ -60,6 +60,10 @@ public class TestModePanel : MonoBehaviour
     private int _selectedIndex;
     private int _startWave = 1;
     private int _mapIndex;
+    // Force-a-trial row: index into _trialOptions, 0 = off
+    private int _trialIndex;
+    private Label _trialValue;
+    private readonly List<(string Key, int Phase, string Label)> _trialOptions = new();
     private float _inputReadyTime;
     private int _heldVertical;
     private int _heldHorizontal;
@@ -178,6 +182,24 @@ public class TestModePanel : MonoBehaviour
         randomizeRow.RegisterCallback<ClickEvent>(_ => RandomizeLoadout());
         _rows.Add(new Row { Kind = RowKind.Randomize, Element = randomizeRow });
         _list.Add(randomizeRow);
+
+        // Plays one Order trial at one phase, or one target range pattern, in
+        // every gap of the test run — practice only, nothing is recorded.
+        // Left/right cycles it.
+        BuildTrialOptions();
+        var trialRow = new VisualElement();
+        trialRow.AddToClassList("test-row");
+        var trialLabel = new Label("Force event between waves");
+        trialLabel.AddToClassList("test-row-name");
+        trialRow.Add(trialLabel);
+        _trialValue = new Label();
+        _trialValue.AddToClassList("test-row-value");
+        trialRow.Add(_trialValue);
+        int trialIndex = _rows.Count;
+        trialRow.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(trialIndex));
+        trialRow.RegisterCallback<ClickEvent>(_ => CycleTrial(1));
+        _rows.Add(new Row { Kind = RowKind.Trial, Element = trialRow });
+        _list.Add(trialRow);
 
         if (_upgradeManager != null)
         {
@@ -433,6 +455,7 @@ public class TestModePanel : MonoBehaviour
         // map and start rows sit in the panel's fixed chrome
         var selected = _rows[_selectedIndex];
         bool inList = selected.Kind == RowKind.Randomize
+                      || selected.Kind == RowKind.Trial
                       || selected.Kind == RowKind.Section
                       || selected.Kind == RowKind.Upgrade;
         if (scrollIntoView && inList && _list != null)
@@ -458,6 +481,9 @@ public class TestModePanel : MonoBehaviour
                     _mapIndex = (_mapIndex + direction + _maps.Count) % _maps.Count;
                     RefreshAll();
                 }
+                break;
+            case RowKind.Trial:
+                if (firstPress) CycleTrial(direction);
                 break;
             case RowKind.Section:
                 // Tree-view convention: right expands, left collapses
@@ -489,6 +515,9 @@ public class TestModePanel : MonoBehaviour
                 break;
             case RowKind.Randomize:
                 RandomizeLoadout();
+                break;
+            case RowKind.Trial:
+                CycleTrial(1);
                 break;
         }
     }
@@ -623,6 +652,11 @@ public class TestModePanel : MonoBehaviour
             _mapValue.text = $"◄ {MapLabel()} ►";
         }
 
+        if (_trialValue != null && _trialOptions.Count > 0)
+        {
+            _trialValue.text = $"◄ {_trialOptions[_trialIndex].Label} ►";
+        }
+
         foreach (var row in _rows)
         {
             if (row.Kind == RowKind.Section)
@@ -663,6 +697,9 @@ public class TestModePanel : MonoBehaviour
 
         TestRunConfig.Set(_startWave, OrderForApplication(_leftPicked), OrderForApplication(_rightPicked));
         TestRunConfig.Map = SelectedMap;
+        var trial = _trialOptions.Count > 0 ? _trialOptions[_trialIndex] : default;
+        TestRunConfig.ForcedTrial = trial.Key;
+        TestRunConfig.ForcedTrialPhase = trial.Phase;
 
         if (GameSceneManager.Instance != null)
         {
@@ -683,6 +720,46 @@ public class TestModePanel : MonoBehaviour
             .OrderBy(u => _upgradeManager != null ? _upgradeManager.GetChainInfo(u, KnightTarget.LeftKnight).Position : 0)
             .ThenBy(u => u.name)
             .ToList();
+    }
+
+    private void BuildTrialOptions()
+    {
+        _trialOptions.Clear();
+        _trialOptions.Add((null, 1, "Off"));
+        string[] numerals = { "I", "II", "III", "IV", "V" };
+        foreach (var (key, name) in new[]
+                 {
+                     ("ember", "Fire"), ("frigid", "Ice"), ("serpent", "Venom"),
+                     ("shadow", "Ninja"), ("guardian", "Guardian"), ("dawn", "Dawn"),
+                 })
+        {
+            var trial = OrderTrials.Find(key);
+            if (trial == null) continue;
+            for (int phase = 1; phase <= trial.Phases; phase++)
+            {
+                string label = trial.Phases > 1 ? $"{name} {numerals[Mathf.Min(phase, numerals.Length) - 1]}" : name;
+                _trialOptions.Add((key, phase, label));
+            }
+        }
+
+        // The target range rides the same two settings: its key, and the pattern
+        // number where a trial's phase would go.
+        foreach (var pattern in TargetRange.Patterns)
+        {
+            _trialOptions.Add((TargetRange.ForcedKey, pattern.Number, $"Targets {pattern.Number}"));
+        }
+
+        // Re-opening the panel shows what the last test run was set to
+        _trialIndex = Mathf.Max(0, _trialOptions.FindIndex(o =>
+            o.Key == TestRunConfig.ForcedTrial && o.Phase == TestRunConfig.ForcedTrialPhase));
+        if (string.IsNullOrEmpty(TestRunConfig.ForcedTrial)) _trialIndex = 0;
+    }
+
+    private void CycleTrial(int direction)
+    {
+        if (_trialOptions.Count == 0) return;
+        _trialIndex = (_trialIndex + direction + _trialOptions.Count) % _trialOptions.Count;
+        RefreshAll();
     }
 
     private void Close()

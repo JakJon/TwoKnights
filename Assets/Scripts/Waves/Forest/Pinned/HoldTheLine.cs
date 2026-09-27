@@ -24,7 +24,7 @@ public class HoldTheLine : PinnedWave
     // PinnedWave.BatSpawnX), so the post-gate dark bat can never confuse the knight
     // who is holding the belt.
 
-    [Tooltip("1-4. Selects the authored mob progression")]
+    [Tooltip("1-7. Selects the authored mob progression. 5-7 are the moonlit waves past the Twins.")]
     [SerializeField] private int tier = 1;
     [Tooltip("Seconds the first wolf of a beat paces in the open before it commits")]
     [SerializeField] private float wolfPaceSeconds = 10f;
@@ -33,6 +33,24 @@ public class HoldTheLine : PinnedWave
     [Tooltip("Scales every gap between beats; below 1 tightens the whole wave")]
     [SerializeField] private float beatSpacingFactor = 1f;
 
+    [Header("Rock on the free knight")]
+    // NEVER AUTHOR Mirror OR Scissors HERE, and this is a correctness rule rather
+    // than a taste one. Both shapes throw at BOTH knights, and one of these two is
+    // holding a rock belt at a fixed angle for the whole wave. A second arrival
+    // direction on that shield is not difficulty, it is damage with no answer —
+    // exactly the "two arrival directions on one shield" PinnedWave's uniform
+    // flight time exists to prevent. Single-knight shapes only (Weave, Flip, Fan,
+    // Pair, Single), with rightKnight set to the FREE side: pinnedKnight
+    // LeftKnight means rightKnight true here.
+    [Tooltip("Cycled in order under the free knight's half of the wave (see RockVolley). SINGLE-KNIGHT SHAPES ONLY — Mirror and Scissors throw at both knights and would put a second angle on the pinned knight's shield, which cannot be blocked. Empty leaves the free knight's rock to the pin belt alone.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("Seconds of that rock, from the start of the wave. Size it against the pin length (anchors x hold), not longer.")]
+    [SerializeField] private float projectileWindow = 0f;
+
+    [Tooltip("World units per second for this wave's rock. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 0f;
+
     // EnemyWolf.SetWolfType
     private const float BrownSpeed = 3.5f;
     private const float GreySpeed = 3f;
@@ -40,11 +58,29 @@ public class HoldTheLine : PinnedWave
 
     protected override IEnumerator SpawnFreeKnightContent(Spawner spawner)
     {
-        switch (Mathf.Clamp(tier, 1, 4))
+        // Beside the mob progression rather than inside it, so a tier's beats stay
+        // exactly the beats they were tuned at and the rock is a second clock
+        // running underneath them.
+        Coroutine shafts = spawner.StartCoroutine(
+            RockVolley.WorkTheShafts(spawner, volleys, projectileWindow, rockSpeed));
+
+        yield return MobsFor(spawner);
+
+        // Rock already scheduled is still the wave's business — see PinnedWave,
+        // which will not mark spawning complete until the belt has finished either.
+        yield return shafts;
+    }
+
+    private IEnumerator MobsFor(Spawner spawner)
+    {
+        switch (Mathf.Clamp(tier, 1, 7))
         {
             case 2:  return this.TierTwo(spawner);
             case 3:  return this.TierThree(spawner);
             case 4:  return this.TierFour(spawner);
+            case 5:  return this.TierFive(spawner);
+            case 6:  return this.TierSix(spawner);
+            case 7:  return this.TierSeven(spawner);
             default: return this.TierOne(spawner);
         }
     }
@@ -96,8 +132,8 @@ public class HoldTheLine : PinnedWave
 
         // Crux: the rat pair and the king slime arrive together. Two rats is the
         // ceiling for one knight, and the slime splits twice on top of that
-        spawner.SpawnRat(new Vector2(side * 7f, 3f), spawner.brownRat, 0f, knight);
-        spawner.SpawnRat(new Vector2(side * 7f, -3f), spawner.brownRat, 0.8f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, 3f), 0f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -3f), 0.8f, knight);
         spawner.SpawnSlime(3, new Vector2(side * 11f, 0f), 0f, knight);
     }
 
@@ -121,8 +157,8 @@ public class HoldTheLine : PinnedWave
         yield return this.Beat(16f);
 
         // Closer: a rat pair and a bat pair together, ground and air at once
-        spawner.SpawnRat(new Vector2(side * 7f, 2.5f), spawner.brownRat, 0f, knight);
-        spawner.SpawnRat(new Vector2(side * 7f, -2.5f), spawner.brownRat, 0.7f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, 2.5f), 0f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -2.5f), 0.7f, knight);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 5f), 1.5f);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -5f), 2.5f);
     }
@@ -146,8 +182,8 @@ public class HoldTheLine : PinnedWave
         spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -6f), 1f);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 4f), 2f);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -4f), 3f);
-        spawner.SpawnRat(new Vector2(side * 7f, 3f), spawner.brownRat, 0f, knight);
-        spawner.SpawnRat(new Vector2(side * 7f, -3f), spawner.brownRat, 0.8f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, 3f), 0f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -3f), 0.8f, knight);
         yield return this.Beat(18f);
 
         // Closer: two king slimes and two bats, all at once
@@ -155,6 +191,112 @@ public class HoldTheLine : PinnedWave
         spawner.SpawnSlime(3, new Vector2(side * 11f, -3f), 0.6f, knight);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 5.5f), 1.2f);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -5.5f), 2.2f);
+    }
+
+    // Tiers 5-7 are the moonlit waves. They are NOT tier 4 with bigger numbers:
+    // past wave 21 every slime is half the size and twice the weight, every grey
+    // wolf comes out black, and the rat cadence is running moonlit/black/brown, so
+    // the roster alone is worth most of a tier. What these add is SHAPE — the order
+    // things arrive in, and how much of it arrives at once.
+
+    // Tier 5 — the wolves stop arriving in single file. Two pairs on a half
+    // stagger instead of one file of three: there is no clean kill order to find,
+    // only a choice about which pair to answer first.
+    private IEnumerator TierFive(Spawner spawner)
+    {
+        Transform knight = this.FreeTransform(spawner);
+        float side = FreeSideSign;
+
+        spawner.SpawnWolf(this.StalkPath(side, 9f, wolfPaceSeconds, BlackSpeed), knight, WolfType.Black, 0f);
+        spawner.SpawnWolf(this.StalkPath(side, 7f, wolfPaceSeconds + wolfPaceStagger * 0.5f, BlackSpeed), knight, WolfType.Black, 0f);
+        yield return this.Beat(14f);
+
+        spawner.SpawnWolf(this.StalkPath(side, 8f, wolfPaceSeconds, BlackSpeed), knight, WolfType.Black, 0f);
+        spawner.SpawnWolf(this.StalkPath(side, 6f, wolfPaceSeconds + wolfPaceStagger * 0.5f, BrownSpeed), knight, WolfType.Brown, 0f);
+        yield return this.Beat(16f);
+
+        // Air over ground, the pairing tier 4 closed on, moved to the middle
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 6f), 0f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -6f), 1f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 4f), 2f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -4f), 3f);
+        spawner.SpawnRat(new Vector2(side * 7f, 3f), 0f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -3f), 0.8f, knight);
+        yield return this.Beat(16f);
+
+        // Closer: two moonlit kings. Half the body of an ordinary one and twice the
+        // weight, so they are quicker to reach the belt and slower to come apart.
+        spawner.SpawnSlime(3, new Vector2(side * 11f, 3f), 0f, knight);
+        spawner.SpawnSlime(3, new Vector2(side * 11f, -3f), 0.6f, knight);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 5.5f), 1.2f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -5.5f), 2.2f);
+    }
+
+    // Tier 6 — no warmup. It opens on the pairing every other tier saves for its
+    // middle, and never gives the free knight a beat that is only one thing.
+    private IEnumerator TierSix(Spawner spawner)
+    {
+        Transform knight = this.FreeTransform(spawner);
+        float side = FreeSideSign;
+
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 5.5f), 0f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -5.5f), 1.1f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 3.5f), 2.2f);
+        spawner.SpawnRat(new Vector2(side * 7f, 2.5f), 0.5f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -2.5f), 1.3f, knight);
+        yield return this.Beat(15f);
+
+        // Three lanes on a tighter stagger than tier 4's: still single file, but
+        // the gaps are no longer wide enough to finish one before the next commits
+        spawner.SpawnWolf(this.StalkPath(side, 9f, wolfPaceSeconds, BlackSpeed), knight, WolfType.Black, 0f);
+        spawner.SpawnWolf(this.StalkPath(side, 7f, wolfPaceSeconds + wolfPaceStagger * 0.6f, BlackSpeed), knight, WolfType.Black, 0f);
+        spawner.SpawnWolf(this.StalkPath(side, 5f, wolfPaceSeconds + wolfPaceStagger * 1.2f, BrownSpeed), knight, WolfType.Brown, 0f);
+        yield return this.Beat(18f);
+
+        // The kings arrive mid-pin rather than as the closer, so there is still a
+        // wave left to fight while they are coming apart
+        spawner.SpawnSlime(3, new Vector2(side * 11f, 3f), 0f, knight);
+        spawner.SpawnSlime(3, new Vector2(side * 11f, -3f), 0.6f, knight);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 6f), 1.5f);
+        yield return this.Beat(16f);
+
+        spawner.SpawnRat(new Vector2(side * 7f, 3f), 0f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -3f), 0.8f, knight);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 5f), 1.4f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -5f), 2.4f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 3f), 3.4f);
+    }
+
+    // Tier 7 — the deepest pin in the forest. Four lanes of wolf off the banner,
+    // and a closer that puts the kings down on top of a rat pair instead of after it.
+    private IEnumerator TierSeven(Spawner spawner)
+    {
+        Transform knight = this.FreeTransform(spawner);
+        float side = FreeSideSign;
+
+        spawner.SpawnWolf(this.StalkPath(side, 9.5f, wolfPaceSeconds, BlackSpeed), knight, WolfType.Black, 0f);
+        spawner.SpawnWolf(this.StalkPath(side, 8f, wolfPaceSeconds + wolfPaceStagger * 0.5f, BlackSpeed), knight, WolfType.Black, 0f);
+        spawner.SpawnWolf(this.StalkPath(side, 6.5f, wolfPaceSeconds + wolfPaceStagger, BlackSpeed), knight, WolfType.Black, 0f);
+        spawner.SpawnWolf(this.StalkPath(side, 5f, wolfPaceSeconds + wolfPaceStagger * 1.5f, BrownSpeed), knight, WolfType.Brown, 0f);
+        yield return this.Beat(20f);
+
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 6f), 0f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -6f), 0.9f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 4f), 1.8f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -4f), 2.7f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 2f), 3.6f);
+        spawner.SpawnRat(new Vector2(side * 7f, 3f), 0.4f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -3f), 1.2f, knight);
+        yield return this.Beat(17f);
+
+        // Everything at once. Two kings coming apart over a rat pair that is already
+        // pacing, with the air still working above it.
+        spawner.SpawnSlime(3, new Vector2(side * 11f, 3.5f), 0f, knight);
+        spawner.SpawnSlime(3, new Vector2(side * 11f, -3.5f), 0.6f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, 1.5f), 0.2f, knight);
+        spawner.SpawnRat(new Vector2(side * 7f, -1.5f), 1f, knight);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 5.5f), 1.6f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -5.5f), 2.6f);
     }
 
     private WaitForSeconds Beat(float seconds)

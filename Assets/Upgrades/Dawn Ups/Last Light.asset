@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Last Light
   m_EditorClassIdentifier: 
   upgradeName: Last Light
-  description: Once per map the other knight cannot fall. They hold at a sliver, and you both stand again.
+  description: Once per map the other knight cannot fall. They hold at a sliver. Arrows do more holy damage.
   weight: 15
   order: 5
   requiresOrderCount: 4
@@ -28,4 +28,7 @@ MonoBehaviour:
     isPositive: 1
   - valueText: 2s
     labelText: UNTOUCHABLE BOTH
+    isPositive: 1
+  - valueText: +2
+    labelText: HOLY DAMAGE
     isPositive: 1

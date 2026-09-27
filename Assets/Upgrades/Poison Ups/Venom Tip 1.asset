@@ -23,8 +23,8 @@ MonoBehaviour:
   - valueText: 30%
     labelText: CHANCE
     isPositive: 1
-  - valueText: 5s
+  - valueText: 1s
     labelText: VENOM TRAIL
     isPositive: 1
   poisonChanceIncrease: 30
-  trailBubbleSeconds: 5
+  trailBubbleSeconds: 1

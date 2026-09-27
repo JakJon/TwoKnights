@@ -17,7 +17,7 @@ MonoBehaviour:
   description: Quilted linen, and rather more of it than is comfortable.
   effect: +20 maximum health.
   icon: {fileID: 5239063946753804525, guid: 7cc57322cfbedff478db55f09dc71c55, type: 3}
-  crystalCost: 2
+  crystalCost: 4
   stats:
   - valueText: +20
     labelText: MAX HEALTH
@@ -33,6 +33,13 @@ MonoBehaviour:
   igniteDpsBonus: 0
   startingIgniteChance: 0
   fireZoneRadiusBonus: 0
+  startingEchoFraction: 0
+  startingOrbHealMultiplier: 0
+  chillDurationMultiplier: 1
+  freezeDurationBonus: 0
+  startingFrostTip: 0
+  reflectDamageMultiplier: 1
+  startingLongSword: 0
   shadowArrowDamageBonus: 0
   phantomEchoBonus: 0
   startingShadowArrows: 0

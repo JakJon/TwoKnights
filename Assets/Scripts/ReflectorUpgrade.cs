@@ -45,7 +45,15 @@ public class ReflectorUpgrade : BaseUpgrade
 
         boost.SetReflector(rank);
 
+        // The same figure that sends a rock back sends this knight's arrows out.
+        // Projectile speed used to be a classless stat chain anybody could buy; it
+        // lives here now because "things leave your guard faster" is one idea, and
+        // the card can print one number for both halves of it.
+        PlayerShooter shooter = targetKnight.GetComponent<PlayerShooter>();
+        if (shooter != null) shooter.SetProjectileSpeedMultiplier(boost.ReflectSpeedMultiplier);
+
         Debug.Log($"Applied Reflector to {targetKnight.name}: rank {boost.ReflectorLevel}, " +
-                  $"{boost.ReflectChance:0}% of blocks, damage x{boost.ReflectDamageMultiplier:F2}");
+                  $"{boost.ReflectChance:0}% of blocks, damage x{boost.ReflectDamageMultiplier:F2}, " +
+                  $"speed x{boost.ReflectSpeedMultiplier:F2}");
     }
 }

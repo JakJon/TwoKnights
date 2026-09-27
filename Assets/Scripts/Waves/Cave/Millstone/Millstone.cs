@@ -174,6 +174,10 @@ public class Millstone : BaseWave
         // hang on it forever.
         MarkAmbushReleased();
 
+        // The whole shift is out: if the orb timer has not paid yet, it pays now,
+        // with the rings still full. See OrbRun.SendFirstIfWaiting.
+        orbs.SendFirstIfWaiting(spawner);
+
         // Started only now, with the whole shift out. Watching the rider count
         // while the ring was still filling would read the first cart of a
         // forty-strong shift as "one gnome left" and put the wheel into top gear

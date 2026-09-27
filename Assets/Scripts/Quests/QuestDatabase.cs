@@ -31,6 +31,14 @@ public static class QuestDatabase
     }
 
     /// <summary>Map ids in log order. Empty string is the camp group, shown last.</summary>
+    /// <summary>
+    /// The map shelves in the log, in reading order. The camp is deliberately NOT
+    /// one of them any more: quests with no map are Order business, and the log
+    /// files those under whoever brings them rather than under a place. See QuestLog.
+    /// </summary>
+    public static readonly string[] MapGroups = { QuestBuild.Forest, QuestBuild.Mine };
+
+    [System.Obsolete("Use QuestLog.Build — the log groups Order quests by NPC now, not by map id.")]
     public static readonly string[] Groups = { QuestBuild.Forest, QuestBuild.Mine, QuestBuild.Camp };
 
     public static Quest Get(string id)
@@ -61,6 +69,7 @@ public static class QuestDatabase
         _quests.AddRange(FrigidQuests.All());
         _quests.AddRange(DawnQuests.All());
         _quests.AddRange(GuardianQuests.All());
+        _quests.AddRange(ComboQuests.All());
 
         // A duplicated id would silently make one of the two uncompletable —
         // both would resolve to the same save record

@@ -56,7 +56,6 @@ public class PowderTrain : BaseWave
     [Tooltip("Held back until the train has closed the ring, so the knights meet the fence before they meet the fight")]
     [SerializeField] private float enemyStartDelay = 6f;
 
-    [SerializeField] private GameObject ratType;
 
     [Header("Rock")]
     [Tooltip("Cycled in order for the window below. THE FENCE ONLY WORKS ONE WAY — that is the wave's whole thesis, and rock is the sharpest statement of it: a cart eats the knights' arrows, but nothing stops a rock coming the other way through the ring. The guard has to answer while the gap it needed rotates past.")]
@@ -103,6 +102,10 @@ public class PowderTrain : BaseWave
             SpawnOutsider(spawner, i);
             if (i < enemyCount - 1) yield return new WaitForSeconds(interval);
         }
+
+        // Last outsider out: if the orb timer has not paid yet, it pays now,
+        // with the ring still full. See OrbRun.SendFirstIfWaiting.
+        orbs.SendFirstIfWaiting(spawner);
 
         if (train != null) yield return train;
         yield return shafts;
@@ -171,23 +174,18 @@ public class PowderTrain : BaseWave
         switch (index % 4)
         {
             case 0:
-                spawner.SpawnRat(spawner.leftOfLeftPlayer, RatPrefab(spawner), 0f, spawner.LeftPlayer);
+                spawner.SpawnRat(spawner.leftOfLeftPlayer, 0f, spawner.LeftPlayer);
                 break;
             case 1:
                 spawner.SpawnBat(spawner.topRightCorner, 0f);
                 break;
             case 2:
-                spawner.SpawnRat(spawner.rightOfRightPlayer, RatPrefab(spawner), 0f, spawner.RightPlayer);
+                spawner.SpawnRat(spawner.rightOfRightPlayer, 0f, spawner.RightPlayer);
                 break;
             default:
                 spawner.SpawnBat(spawner.topLeftCorner, 0f);
                 break;
         }
-    }
-
-    private GameObject RatPrefab(Spawner spawner)
-    {
-        return ratType != null ? ratType : spawner.greyRat;
     }
 
     // Held until the ring has finished landing: rock arriving through a fence

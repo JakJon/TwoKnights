@@ -20,6 +20,8 @@ public class FileSelectPanel : MonoBehaviour
     private const float RepeatDelay = 0.4f;
     private const float RepeatInterval = 0.12f;
     private const float EntryInputDelay = 0.25f;
+    // Short: this is a screen change, not a musical moment.
+    private const float FadeToFileSelect = 0.4f;
 
     // A file that has barely been opened has no play time worth reporting, and a
     // figure like "1m" on a bar reads as a failure rather than as a new file. Same
@@ -48,6 +50,12 @@ public class FileSelectPanel : MonoBehaviour
     /// <summary>Whether the camp should open on the file select rather than the menu.</summary>
     public static bool ShouldShowAtBoot => !_chosenThisSession;
 
+    // Static for the same reason ShouldShowAtBoot is one: the camp's music has to
+    // ask "is the file select up?" from GameSceneManager, which has no reference to
+    // this panel and is not in the camp scene's wiring at all.
+    /// <summary>Is the file select on screen right now? The camp plays no music while it is.</summary>
+    public static bool IsShowing { get; private set; }
+
     // Fires once per app run, before the first scene — never on the scene reload
     // that a file switch performs. That makes the flag correct whether or not the
     // editor is configured to reload the domain on entering play mode.
@@ -55,6 +63,7 @@ public class FileSelectPanel : MonoBehaviour
     private static void ResetForNewSession()
     {
         _chosenThisSession = false;
+        IsShowing = false;
     }
 
     [SerializeField] private UIDocument uiDocument;
@@ -115,15 +124,38 @@ public class FileSelectPanel : MonoBehaviour
             return;
         }
 
+        // Below the bail above on purpose: the missing-panel fallback drops straight
+        // through to the camp menu, and silencing on the way past would leave it
+        // quiet with nothing to turn it back on.
+        IsShowing = true;
+        AudioManager.Instance?.StopMusic(FadeToFileSelect);
+
         Populate();
         _panel.style.display = DisplayStyle.Flex;
         _inputReadyTime = Time.unscaledTime + EntryInputDelay;
         _heldVertical = 0;
     }
 
+    // Scene unload destroys this panel; a latched static must not outlive it. Cheap
+    // insurance against a future exit path that goes through neither Confirm nor
+    // Hide — the failure mode is silent, permanent, and only shows up a scene later.
+    private void OnDisable()
+    {
+        IsShowing = false;
+    }
+
     public void Hide()
     {
         if (_panel != null) _panel.style.display = DisplayStyle.None;
+        IsShowing = false;
+        // The camp's track starts HERE rather than on the scene load, because at
+        // boot the camp scene is already up behind this screen. Switching to a
+        // different file reloads the scene instead and never reaches this line —
+        // that path is GameSceneManager.OnSceneLoaded's, and by then the file has
+        // been chosen so the boot guard lets it through. Starting the tutorial
+        // returns before Hide() and leaves the camp silent, which is right: the
+        // Spawner puts the arena's own track on.
+        GameSceneManager.Instance?.PlayCampMusic();
     }
 
     private void Populate()
@@ -362,6 +394,15 @@ public class FileSelectPanel : MonoBehaviour
         int slot = _index + 1;
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.uiConfirm);
         _chosenThisSession = true;
+
+        // Cleared HERE, not in Hide(), because two of the ways out of this screen
+        // never reach Hide(): starting the tutorial leaves for the arena, and
+        // picking a different slot reloads the camp. Both used to leave this latched
+        // on, and since it is a static that outlives the reload — ResetForNewSession
+        // runs once per APP run, not per scene load — the camp's music guard then
+        // saw a file select that was open forever and stayed silent for the rest of
+        // the session.
+        IsShowing = false;
 
         // Slot 1 is what everything already loaded on the way to this screen, so
         // picking it changes nothing and the camp can simply carry on.

@@ -123,6 +123,24 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "LeftBackSwing",
+                    "type": "Button",
+                    "id": "4456eadf-bf2c-4b9f-82a0-d1d9377c6c42",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RightBackSwing",
+                    "type": "Button",
+                    "id": "b92de55e-796c-4c0b-9058-50e0bccf050f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "StartButton",
                     "type": "Button",
                     "id": "2bb3bdfe-196a-4180-9534-1250b9a6a805",
@@ -301,7 +319,40 @@
                 {
                     "name": "",
                     "id": "912a368b-8116-4961-99f4-400030e3dee7",
-                    "path": "<Gamepad>/leftStickPress",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "42414eca-7bea-451b-9e4c-3e546d287250",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1ccda499-ed29-46cb-83e8-408bb1fbd6f6",
+                    "path": "<Gamepad>/dpad/left",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ba87f3a6-007d-4b9a-a17b-acb49a6deec0",
+                    "path": "<Gamepad>/dpad/right",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -312,11 +363,66 @@
                 {
                     "name": "",
                     "id": "c42a98ed-ee02-4a27-8150-fc38d01505c7",
-                    "path": "<Gamepad>/rightStickPress",
+                    "path": "<Gamepad>/buttonSouth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "RightStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "889ed6c9-eb15-427d-bd34-1bcee65c6dcd",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6cfd1b29-3d59-4968-bb53-6d9035e863e9",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e407f76b-d4ce-450f-bd06-140a185491fd",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightStickIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "97484cac-3fb9-4302-aa3c-ea2f3a3ba2a9",
+                    "path": "<Gamepad>/leftStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "LeftBackSwing",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "12325054-6389-42e4-8903-fbfaa6cf14ab",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightBackSwing",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

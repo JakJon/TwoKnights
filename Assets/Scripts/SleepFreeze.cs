@@ -63,6 +63,35 @@ public class SleepFreeze : MonoBehaviour
         if (freeze != null) freeze.Thaw();
     }
 
+    /// <summary>
+    /// Hands its behaviour back to a body that was just CLONED off a held one —
+    /// the split slime, and nothing else in the game today.
+    ///
+    /// Instantiate copies what Unity serializes and nothing else, which cuts this
+    /// component in half: `enabled` is serialized, so the clone's EnemyBase arrives
+    /// switched OFF exactly as the parent's was, while the private `_frozen`/
+    /// `_wasEnabled` pair that knows to switch it back on does not come across at
+    /// all. The result is a half-slime with no Update, no Start and no way to ever
+    /// get either back — it stands where it was cut for the rest of the wave.
+    ///
+    /// Release cannot do this job: it asks whether the body is still held, and a
+    /// clone that was never frozen in its own right answers no and then finds
+    /// nothing to undo. So the clone has to be TOLD, unconditionally.
+    /// </summary>
+    public static void ClearOnClone(EnemyBase enemy)
+    {
+        if (enemy == null) return;
+
+        SleepFreeze freeze = enemy.GetComponent<SleepFreeze>();
+        if (freeze != null)
+        {
+            freeze._frozen = false;
+            freeze._enemy = enemy;
+        }
+
+        enemy.enabled = true;
+    }
+
     // Kept on the enemy once added rather than destroyed on waking, dormant
     // between naps. A component destroyed on Tuesday is still handed back by
     // GetComponent for the rest of the frame, so a dart landing on the same frame

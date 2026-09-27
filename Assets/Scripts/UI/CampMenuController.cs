@@ -17,6 +17,14 @@ public class CampMenuController : MonoBehaviour
     [SerializeField] private string questsButtonName = "quests-button";
     [SerializeField] private string equipmentButtonName = "equipment-button";
     [SerializeField] private string shopButtonName = "shop-button";
+    [SerializeField] private string settingsButtonName = "settings-button";
+
+    /// <summary>What the shop row reads once it is open for business.</summary>
+    private const string ShopButtonLabel = "Shop";
+    /// <summary>What it reads before then. Not blank: an empty row is a bug, "???" is a promise.</summary>
+    private const string ShopLockedLabel = "???";
+    /// <summary>Marks a row that is shown but cannot be chosen.</summary>
+    private const string LockedClass = "menu-button--locked";
     [SerializeField] private string statsButtonName = "stats-button";
     [SerializeField] private string resetButtonName = "reset-button";
     [SerializeField] private string exitButtonName = "exit-button";
@@ -29,6 +37,7 @@ public class CampMenuController : MonoBehaviour
     [SerializeField] private StatsPanel statsPanel;
     [SerializeField] private MapSelectPanel mapSelectPanel;
     [SerializeField] private EquipmentPanel equipmentPanel;
+    [SerializeField] private SettingsPanel settingsPanel;
     [SerializeField] private ShopPanel shopPanel;
     [SerializeField] private FileSelectPanel fileSelectPanel;
     [SerializeField] private string menuContainerName = "menu-container";
@@ -93,6 +102,8 @@ public class CampMenuController : MonoBehaviour
         // Added in code, like MapSelectPanel, so the camp scene needs no rewiring
         if (equipmentPanel == null) equipmentPanel = GetComponent<EquipmentPanel>();
         if (equipmentPanel == null) equipmentPanel = gameObject.AddComponent<EquipmentPanel>();
+        if (settingsPanel == null) settingsPanel = GetComponent<SettingsPanel>();
+        if (settingsPanel == null) settingsPanel = gameObject.AddComponent<SettingsPanel>();
         if (shopPanel == null) shopPanel = GetComponent<ShopPanel>();
         if (shopPanel == null) shopPanel = gameObject.AddComponent<ShopPanel>();
         if (fileSelectPanel == null) fileSelectPanel = GetComponent<FileSelectPanel>();
@@ -128,6 +139,7 @@ public class CampMenuController : MonoBehaviour
             mapSelectPanel.OnMapChosen += HandleMapChosen;
         }
         if (equipmentPanel != null) equipmentPanel.OnCloseRequested += HandleSubPanelClosed;
+        if (settingsPanel != null) settingsPanel.OnCloseRequested += HandleSubPanelClosed;
         if (shopPanel != null) shopPanel.OnCloseRequested += HandleSubPanelClosed;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (testModePanel != null) testModePanel.OnCloseRequested += HandleSubPanelClosed;
@@ -165,6 +177,7 @@ public class CampMenuController : MonoBehaviour
             mapSelectPanel.OnMapChosen -= HandleMapChosen;
         }
         if (equipmentPanel != null) equipmentPanel.OnCloseRequested -= HandleSubPanelClosed;
+        if (settingsPanel != null) settingsPanel.OnCloseRequested -= HandleSubPanelClosed;
         if (shopPanel != null) shopPanel.OnCloseRequested -= HandleSubPanelClosed;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (testModePanel != null) testModePanel.OnCloseRequested -= HandleSubPanelClosed;
@@ -292,6 +305,9 @@ public class CampMenuController : MonoBehaviour
                 case var name when name == shopButtonName:
                     handler = HandleShopClicked;
                     _shopButton = button;
+                    break;
+                case var name when name == settingsButtonName:
+                    handler = HandleSettingsClicked;
                     break;
                 case var name when name == exitButtonName:
                     handler = HandleExitClicked;
@@ -441,6 +457,9 @@ public class CampMenuController : MonoBehaviour
         if (equipmentPanel != null && equipmentPanel.IsVisible) return true;
         if (questPanel != null && questPanel.IsVisible) return true;
         if (shopPanel != null && shopPanel.IsVisible) return true;
+        // Settings is in that same group: left/right move the mix sliders, and the
+        // camp reading the stick underneath would walk the menu behind the panel.
+        if (settingsPanel != null && settingsPanel.IsVisible) return true;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         return testModePanel != null && testModePanel.IsVisible;
 #else
@@ -493,12 +512,14 @@ public class CampMenuController : MonoBehaviour
 
     // A button the player cannot see must not be steppable, or the highlight
     // vanishes on a hidden row and Confirm opens something that isn't there. The
-    // Shop is hidden before the first crystal, so this is a live case, not theory.
+    // Shop reads "???" before the crystals are in, so this is a live case, not
+    // theory — a locked row is drawn but is skipped the same way a hidden one is.
     private bool IsNavigable(int index)
     {
         if (index < 0 || index >= _menuButtons.Count) return false;
         var button = _menuButtons[index];
         if (button == null) return false;
+        if (button.ClassListContains(LockedClass)) return false;
         // Inline display is what this controller and the UXML actually set, and it
         // is true the instant it is assigned — resolvedStyle only catches up at the
         // next style resolution, which is too late when visibility changed this frame.
@@ -593,18 +614,22 @@ public class CampMenuController : MonoBehaviour
         RefreshBadges();
     }
 
-    // The shop is hidden outright until the first crystal is earned — a price list
-    // is noise to someone with no way to pay. Re-checked on every status refresh
+    // The shop sits in the list from the start but reads "???" until the player
+    // has earned enough crystals to shop with — a row of question marks says there
+    // is something here to find, where a missing row says nothing at all. Locked,
+    // it cannot be stepped onto or clicked. Re-checked on every status refresh
     // because a quest turned in from the log can pay out while the camp is open.
     private void RefreshShopVisibility()
     {
         if (_shopButton == null) return;
 
-        // Only ever hidden -> shown: the unlock is latched, so the highlight can
-        // never be sitting on the shop at the moment it disappears.
-        _shopButton.style.display = CampNotices.ShopUnlocked
-            ? DisplayStyle.Flex
-            : DisplayStyle.None;
+        bool unlocked = CampNotices.ShopUnlocked;
+        // Only ever locked -> unlocked: the unlock is latched, so the highlight can
+        // never be sitting on the shop at the moment it stops being selectable.
+        _shopButton.style.display = DisplayStyle.Flex;
+        _shopButton.text = unlocked ? ShopButtonLabel : ShopLockedLabel;
+        if (unlocked) _shopButton.RemoveFromClassList(LockedClass);
+        else _shopButton.AddToClassList(LockedClass);
     }
 
     // Each dot stays lit until the screen behind it has actually been opened, so a
@@ -664,8 +689,8 @@ public class CampMenuController : MonoBehaviour
     private void HandleCrystalsChanged(int crystals)
     {
         CrystalText.Fill(_crystalLine, crystals);
-        // The first crystal is what reveals the shop, so react here too rather than
-        // waiting for the next full status refresh
+        // Reaching the crystal threshold is what turns "???" into the Shop, so react
+        // here too rather than waiting for the next full status refresh
         RefreshShopVisibility();
         RefreshBadges();
     }
@@ -719,6 +744,13 @@ public class CampMenuController : MonoBehaviour
         questPanel.Show();
     }
 
+    private void HandleSettingsClicked()
+    {
+        if (settingsPanel == null) return;
+        SetMenuContainerVisible(false);
+        settingsPanel.Show();
+    }
+
     private void HandleEquipmentClicked()
     {
         if (equipmentPanel == null) return;
@@ -733,6 +765,8 @@ public class CampMenuController : MonoBehaviour
     private void HandleShopClicked()
     {
         if (shopPanel == null) return;
+        // The mouse can reach a locked row even though the stick cannot step onto it.
+        if (_shopButton != null && _shopButton.ClassListContains(LockedClass)) return;
         CampNotices.MarkShopSeen();
         RefreshBadges();
         SetMenuContainerVisible(false);

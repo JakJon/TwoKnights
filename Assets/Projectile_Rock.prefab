@@ -179,12 +179,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07137b75700fc1e4abe88f2bdaabadb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
+  damage: 5
   sourceName: rock
   poisonSprite: {fileID: -5597471910209729029, guid: d39c2cc8283e4b1c9731399a64ff91fe, type: 3}
   explosiveSprite: {fileID: -1353984318686622985, guid: 7227b73a77104cd99e33eafcd028cec5, type: 3}
-  explosiveDamage: 25
+  explosiveDamage: 20
   explosiveBlastRadius: 1.1
   poisonSourceName: a Poisoned Rock
   explosiveSourceName: a Powder Rock
   trailScale: 1.5
+  poisonTrailScale: 0.9
+  poisonTrailRateScale: 0.3
+  reflectedPoisonDamage: 2
+  reflectedPoisonDuration: 15
+  reflectedPoisonTickRate: 1

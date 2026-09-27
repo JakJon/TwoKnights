@@ -16,8 +16,8 @@ MonoBehaviour:
   weight: 600
   isUnlocked: 0
   waveDescription: Three shifts and the woods empty out. Hold, and hold, and hold.
-  unlockedAfterXWaves: 16
-  lockedAfterXWaves: 19
+  unlockedAfterXWaves: 17
+  lockedAfterXWaves: 20
   useEnemyTracking: 1
   pinnedKnight: 0
   anchorSequence: 00000000010000000200000000000000

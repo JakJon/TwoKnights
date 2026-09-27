@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e7e980ede186d0ad4bddf66dab42320, type: 3}
+  m_Name: NpcCatalog
+  m_EditorClassIdentifier: 
+  entries:
+  - id: 1
+    prefab: {fileID: -2253911629886400664, guid: 2776d4ae90bd96e4caec34fae8500d43, type: 3}
+    portrait: {fileID: -8123628045957638080, guid: 2776d4ae90bd96e4caec34fae8500d43, type: 3}
+    arrival: 0
+    voicePitch: 0.72
+    worldScale: 1.9
+    walkState: 
+    openState: 
+    closeState: 
+  - id: 2
+    prefab: {fileID: -2253911629886400664, guid: 3f7ea8a12cba8bb4f910b8ca89cdc1ce, type: 3}
+    portrait: {fileID: -3413578282874053475, guid: 3f7ea8a12cba8bb4f910b8ca89cdc1ce, type: 3}
+    arrival: 0
+    voicePitch: 1.25
+    worldScale: 1.6
+    walkState: Walk
+    openState: open map
+    closeState: close map
+  - id: 3
+    prefab: {fileID: -2253911629886400664, guid: c008a7ed07a6a414980072f7156e8a88, type: 3}
+    portrait: {fileID: -2705636012238906006, guid: c008a7ed07a6a414980072f7156e8a88, type: 3}
+    arrival: 1
+    voicePitch: 0.95
+    worldScale: 1.6
+    walkState: 
+    openState: 
+    closeState: 
+  - id: 4
+    prefab: {fileID: -2253911629886400664, guid: cb8865aed5161ae4399ca93b1b89fd11, type: 3}
+    portrait: {fileID: 3857427860252619573, guid: cb8865aed5161ae4399ca93b1b89fd11, type: 3}
+    arrival: 2
+    voicePitch: 1.45
+    worldScale: 1.6
+    walkState: walking
+    openState: 
+    closeState: 
+  - id: 5
+    prefab: {fileID: -2253911629886400664, guid: a00858e71270f1d42b56959e68650a0b, type: 3}
+    portrait: {fileID: -320891908174334228, guid: a00858e71270f1d42b56959e68650a0b, type: 3}
+    arrival: 3
+    voicePitch: 0.85
+    worldScale: 1.7
+    walkState: 
+    openState: 
+    closeState: 

@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: Pallid Keep
   m_EditorClassIdentifier: 
   mapId: pallid_keep
-  displayName: Pallid Keep
+  displayName: Forgotten Fortress
   unlockedByDefault: 0
   previewImage: {fileID: -4760992463451118159, guid: 874bf6ff8a6f8454c85ead115dc188b6, type: 3}
-  tagline: 
-  lockedHint: Defeat the Millstone
+  description: This fortress lies within the kingdom, and was sitting empty for decades.
+    It seems to have new inhabitants these days.
+  finalWaveNumber: 30
   completionMarkColor: {r: 0.4117647, g: 0.627451, b: 0.9215686, a: 1}
   waves:
   - {fileID: 11400000, guid: 83fc6163c0f15ed44ae751e0c19843da, type: 2}

@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: They come up two at a time, and every charge you want costs you both.
   unlockedAfterXWaves: 8
-  lockedAfterXWaves: 15
+  lockedAfterXWaves: 14
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: cde9e7a124d3c8fdbece04f50a2cb486, type: 2}
   shaftRun: 0
@@ -57,7 +57,6 @@ MonoBehaviour:
   stationHeight: 4.3
   stationLane: 3.2
   stationSpread: 0.8
-  holdStation: 1
   orbs:
     healthOrb: 1
     count: 1

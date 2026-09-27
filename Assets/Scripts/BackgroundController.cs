@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // Applies the arena backdrop for the stage the run is currently in (forest ->
 // deep forest once the rat king falls on wave 10, the mine -> the deep mine once
@@ -15,6 +15,16 @@ using UnityEngine;
 // run restarts are picked up automatically. Between waves the Spawner calls
 // Hold() so the swap waits behind the black curtain instead of popping on the
 // cleared arena — CurrentWaveNumber advances the instant WaveCompleted() runs.
+//
+// THE STAGE MAY ONLY TURN OVER OUT OF SIGHT. Hold()/ReleaseAndApply() is the
+// Spawner saying when that is, but the poll below enforces it on its own account
+// as well: once a stage is up, the backdrop will not change again unless the
+// venture curtain is black. Crossing into the deep forest is a reveal the game
+// spends a whole ceremony on — a line of prose over black, then the light coming
+// back up on somewhere new — and every way it has ever been spoiled has been some
+// path that let CurrentWaveNumber move while the player was still looking at the
+// arena. The first application is exempt: a run always begins by putting its own
+// map's stage up, and nothing has been revealed yet.
 [RequireComponent(typeof(SpriteRenderer))]
 public class BackgroundController : MonoBehaviour
 {
@@ -31,6 +41,14 @@ public class BackgroundController : MonoBehaviour
     private SpriteRenderer _foreground;
     private bool _held;
 
+    /// <summary>
+    /// Whether a stage has been put up at least once. Until it has, the poll applies
+    /// freely — that first pass is what dresses the arena for the map the run is on,
+    /// and it is the same pass a Test Mode jump or a restart rides in on, because
+    /// both of those go through a scene load and so through a fresh component.
+    /// </summary>
+    private bool _applied;
+
     void Awake()
     {
         Instance = this;
@@ -46,6 +64,9 @@ public class BackgroundController : MonoBehaviour
     void Update()
     {
         if (_held) return;
+        // Dressing the arena for the first time is always allowed; turning it over
+        // afterwards is allowed only behind black. See the header.
+        if (_applied && !VentureCurtain.IsBlack) return;
         ApplyCurrentStage();
     }
 
@@ -56,11 +77,26 @@ public class BackgroundController : MonoBehaviour
     }
 
     // Resume polling and swap immediately, so the caller can be sure the new
-    // backdrop is up before it lifts the curtain
+    // backdrop is up before it lifts the curtain. Only ever called from behind
+    // black — everywhere else wants Release().
     public void ReleaseAndApply()
     {
         _held = false;
         ApplyCurrentStage();
+    }
+
+    /// <summary>
+    /// Drops the hold WITHOUT swapping. For the paths that only need to stop
+    /// freezing the backdrop — a run ending, a quit to camp — where the arena is
+    /// still lit and in front of the player, and applying would be exactly the pop
+    /// the hold existed to prevent. The clearest case is a first gate clear: the
+    /// boss kill has already moved CurrentWaveNumber into the next stage, so a swap
+    /// here puts the deep forest up behind the victory banner and spoils the reveal
+    /// on the very run that earned it.
+    /// </summary>
+    public void Release()
+    {
+        _held = false;
     }
 
     private void ApplyCurrentStage()
@@ -79,6 +115,7 @@ public class BackgroundController : MonoBehaviour
 
         ApplyForeground(stage.foreground);
         ApplyLighting(stage.canopy);
+        _applied = true;
     }
 
     // The stage's light and shade, swapped in lockstep with its backdrop — both

@@ -83,6 +83,9 @@ public class PlayerSpecial : MonoBehaviour
         return null;
     }
 
+    // Whether time was stopped on the previous frame. See SpecialTriggerCheck.
+    private bool _pausedLastFrame;
+
     void Update()
     {
         SpecialTriggerCheck();
@@ -90,6 +93,17 @@ public class PlayerSpecial : MonoBehaviour
 
     private void SpecialTriggerCheck()
     {
+        // The specials sit on the d-pad (left knight) and the face buttons (right
+        // knight), which are also what every menu and dialogue box is driven with.
+        // A press made while time is stopped belongs to that menu, never to the
+        // knight. The frame AFTER a pause is refused too: input callbacks run
+        // before Update, so the press that closes a menu has already put time back
+        // to normal by the time this reads it, and would otherwise spend the bar.
+        bool paused = Time.timeScale <= 0f;
+        bool menuPress = paused || _pausedLastFrame;
+        _pausedLastFrame = paused;
+        if (menuPress) return;
+
         if (!InputEnabled || !specialBarFilled || specialAction == null)
             return;
 

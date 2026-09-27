@@ -8,7 +8,7 @@ using UnityEngine;
 public class SleepingDartUpgrade : BaseUpgrade
 {
     [Tooltip("Every Nth arrow leaves as a dart instead.")]
-    [SerializeField] private int shotsPerDart = 10;
+    [SerializeField] private int shotsPerDart = 5;
 
     [Tooltip("Seconds the enemy it hits stands still.")]
     [SerializeField] private float sleepSeconds = 5f;

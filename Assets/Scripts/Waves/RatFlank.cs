@@ -34,10 +34,7 @@ public class RatFlank
     [Tooltip("Seconds between one rat of this group arriving and the next")]
     public float interval = 1.2f;
 
-    [Tooltip("Cycled in order as the group is placed. Empty means no rats — the Spawner's grey is NOT assumed, because a wave that forgot to author a type should read as empty rather than quietly spawn something.")]
-    public List<GameObject> ratTypes = new List<GameObject>();
-
-    [Tooltip("How far above and below the knights the group holds station. 4.3 keeps a rat's whole pacing sweep near the edge of the view and never within four units of a knight.")]
+    [Tooltip("How far above and below the knights the group paces before it comes down. 4.3 keeps a rat's whole pacing sweep near the edge of the view and never within four units of a knight.")]
     public float stationHeight = 4.3f;
 
     [Tooltip("Horizontal gap between neighbours in the same group. The group is centred on the shaft, and the outermost pair is clamped inside the view however many there are.")]
@@ -55,13 +52,12 @@ public class RatFlank
     /// </summary>
     public IEnumerator Release(Spawner spawner, List<GameObject> roster)
     {
-        if (Total == 0 || ratTypes == null || ratTypes.Count == 0) yield break;
+        if (Total == 0) yield break;
 
         yield return new WaitForSeconds(Mathf.Max(0f, firstAt));
 
         float gap = Mathf.Max(0.1f, interval);
         int placed = 0;
-        int type = 0;
 
         for (int side = 0; side < 2; side++)
         {
@@ -83,12 +79,10 @@ public class RatFlank
                 // threat that eventually closes rather than scenery up top.
                 Transform knight = x < 0f ? spawner.LeftPlayer : spawner.RightPlayer;
 
-                GameObject prefab = ratTypes[type++ % ratTypes.Count];
-                if (prefab != null)
-                {
-                    spawner.SpawnRat(new Vector2(x, y), prefab, 0f, knight,
-                                     bypassStrengthGate: false, entryPoint: entry, roster: roster);
-                }
+                // Which rat is the map's call — see MapDefinition.RatPhase. This
+                // group says how many and where; depth says what.
+                spawner.SpawnRat(new Vector2(x, y), 0f, knight,
+                                 entryPoint: entry, roster: roster);
                 placed++;
             }
         }

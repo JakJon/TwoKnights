@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: The volleys never break. Every third one turns back on you.
   unlockedAfterXWaves: 16
-  lockedAfterXWaves: 19
+  lockedAfterXWaves: 20
   useEnemyTracking: 1
   pinnedKnight: 1
   anchorSequence: 00000000010000000200000000000000
@@ -29,8 +29,9 @@ MonoBehaviour:
   anchorRadius: 12
   tier: 4
   arcRadius: 12
-  wiperDegreesPerSecond: 38
-  secondsBetweenShots: 0.6
-  reverseEveryNShots: 5
+  secondsBetweenShots: 1.4
   patternSeconds: 60
   batCount: 4
+  ratCount: 2
+  slimeCount: 1
+  slimeSize: 2

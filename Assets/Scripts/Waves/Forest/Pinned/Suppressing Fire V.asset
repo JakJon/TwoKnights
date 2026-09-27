@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1f5162858ac1404ca117b4d454c8b5e, type: 3}
+  m_Name: Suppressing Fire V
+  m_EditorClassIdentifier: 
+  waveName: Suppressing Fire V
+  weight: 600
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 20
+  lockedAfterXWaves: 25
+  useEnemyTracking: 1
+  pinnedKnight: 1
+  anchorSequence: 00000000010000000200000000000000
+  anchorHoldSeconds: 15
+  switchGapSeconds: 0
+  secondsBetweenRocks: 0.5
+  pauseEveryNRocks: 0
+  pauseSeconds: 0
+  anchorRadius: 12
+  tier: 5
+  arcRadius: 12
+  secondsBetweenShots: 1.3
+  patternSeconds: 61
+  batCount: 6
+  ratCount: 2
+  slimeCount: 2
+  slimeSize: 2

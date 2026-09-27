@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: A third shift, and the wrecks of the first two still coming round.
   unlockedAfterXWaves: 4
-  lockedAfterXWaves: 11
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 40e9dc310ff2cf24a33b8d77298aa84c, type: 2}
   gnomeCarts:
@@ -54,10 +54,11 @@ MonoBehaviour:
     from: {x: 12, y: -5}
     to: {x: -12, y: -5}
   ogres:
-    label: 5 down and up the empty middle
-    count: 3
-    firstAt: 7
-    interval: 6
+    label: 2 with every shift, down and up the empty middle
+    count: 2
+    firstAt: 3
+    interval: 4
+    throwStagger: 0
     fireEveryNth: 3
     entries:
     - label: up the empty middle, right of centre

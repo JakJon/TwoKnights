@@ -2,94 +2,118 @@ using System.Collections.Generic;
 using static QuestBuild;
 
 /// <summary>
-/// The Frigid Order. Same shape as the Serpent and the Ember: a light trigger
-/// reveals the initiation, the initiation admits you, admission opens the two
-/// branches the Order actually argues about.
-///
-/// The argument is the one Shatter puts in front of the player on every frozen
-/// body — Rime says a stopped enemy is the point, Silence says a stopped enemy is
-/// a setup. The line lets you finish both, but it makes you notice you chose.
+/// The Order of the Frigid. The argument Shatter puts in front of the player on every
+/// frozen body: one branch holds that a stopped enemy is the point, the other that a
+/// stopped enemy is a setup. The line lets you finish both, but it makes you notice
+/// you chose.
 /// </summary>
 public static class FrigidQuests
 {
     public const string Initiation = "frigid_initiation";
-    public const string Rime1 = "frigid_rime_1";
-    public const string Rime2 = "frigid_rime_2";
-    public const string Silence1 = "frigid_silence_1";
-    public const string Silence2 = "frigid_silence_2";
+    public const string FrozenInTime = "frozen_in_time";
+    public const string BrittleThings = "brittle_things";
+    public const string FrozenFinalChances = "frozen_final_chances";
+    public const string FrigidFatalities = "frigid_fatalities";
 
     public static IEnumerable<Quest> All()
     {
         yield return new Quest(
             id: Initiation,
-            name: "Initiation: The Held Breath",
+            name: "Initiation: The Frosted Oath",
             description:
-                "The Order of the Frigid does not kill anything. This is stated plainly at the door, " +
-                "usually to someone who has arrived expecting otherwise. What they teach is how to " +
-                "take an evening away from something that was in a hurry, and they will want to watch " +
-                "you do it a great many times before they accept that you understood the distinction.",
+                "A wizard from the Frost Order is offering to let us undergo their initiation trials. Now "
+                + "and then between waves, ice orbs drift slowly along the top and bottom of the field. We "
+                + "have to shoot every one of them before it drifts away.",
+            mapId: Camp,
+            objectives: One("trials.frigid", 3, "frost trials passed"),
+            reward: Reward(crystals: 2),
+            unlocks: Gate(Stat("frigid.chilled", 60)),
+            cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
+            offer:
+                "Oh.. It seems that you may know how to handle frost magic.. That is very exciting!\n"
+                + "The Frost Order would like to see if you have what it takes to join our ranks!\n"
+                + "If you're able to handle these challenges, we will tell you more.\n"
+                + "The Frost Order will be sending you challenges from time to time.\n"
+                + "Keep an eye out for ice orbs, and be sure to shoot them all if you see any.",
+            completion:
+                "<fast>Brr! <fast> You have shown us that you understand how to stop enemies in their "
+                + "tracks, and are worthy of testing.\n"
+                + "<fast>Next we will go into a more specialized frost trials!\n"
+                + "<fast> You'll be rewarded with frost charms when you complete trials going forward.");
+
+        yield return new Quest(
+            id: FrozenInTime,
+            name: "Frozen in Time",
+            description:
+                "After being initiated into the frosted oath we are tasked to put our freezing abilities "
+                + "to use.",
+            mapId: Camp,
+            objectives: One(OrderStats.FrozenSecondsTotal, 300, "seconds taken from them"),
+            reward: Reward(equipmentId: "winters_tooth"),
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
+            offer:
+                "",
+            completion:
+                "Hoo. <fast>You stopped those creatures in their tracks!<fast> as a reward for your "
+                + "dedication to the fine art of frost we present you this trinket.\n"
+                + "As well as, another trial.\n"
+                + "Not only can frost freeze, it can fell an enemy too.");
+
+        yield return new Quest(
+            id: BrittleThings,
+            name: "Brittle Things",
+            description:
+                "Another trial from the Frost Order. This time we must deal massive damage with shatter "
+                + "damage.",
+            mapId: Camp,
+            objectives: One(OrderStats.ShatterDamageWaveMax, 300, "shatter damage in one wave"),
+            reward: Reward(equipmentId: "heart_of_ice"),
+            unlocks: Gate(After(FrozenInTime)),
+            cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
+            offer:
+                "",
+            completion:
+                "Hoh! Well done! You've shown that not only can you use the Frost Order's abilities well, "
+                + "but lethally.\n"
+                + "You have earned the title of a frost knight. Great work!");
+
+        yield return new Quest(
+            id: FrozenFinalChances,
+            name: "Frozen Final Chances",
+            description:
+                "After our Frost Order initiation we are undergoing a trial to freeze a number of enemies "
+                + "that have been chilled by our glacial ward within one run.",
+            mapId: Camp,
+            objectives: One(OrderStats.WardFrozenRunMax, 30, "caught by the ward in one run"),
+            reward: Reward(crystals: 2),
+            unlocks: Gate(After(Initiation)),
+            cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
+            offer:
+                "",
+            completion:
+                "Brr! You just barely managed to stop those creatures in time\n"
+                + "You are ready to undergo training with the Frost Order's most pain-inducing spell.");
+
+        yield return new Quest(
+            id: FrigidFatalities,
+            name: "Frigid Fatalities",
+            description:
+                "The Frost Order has offered us the chance to learn one of their most lethal frost "
+                + "spells.",
             mapId: Camp,
             objectives: new[]
             {
-                Obj("frigid.chilled", 100, "enemies chilled"),
-                Obj("frigid.frozen", 50, "enemies frozen"),
-                Obj("upgrades.order.frigid", 5, "frigid upgrades taken"),
+                Obj("upgrades.taken.permafrost", 1, "Take up Deep Freeze III", hideProgress: true),
+                Obj(OrderStats.FrozenTargetDamage, 100, "damage dealt into the ice"),
             },
-            reward: Reward(crystals: 2),
-            unlocks: Gate(Stat("frigid.chilled", 60)));
+            reward: Reward(equipmentId: "hoarfrost_band", upgradeSlug: "permafrost"),
+            unlocks: Gate(After(FrozenFinalChances)),
+            cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
+            offer:
+                "",
+            completion:
+                "Great job. You've now witnessed all that is capable within the Frost Order.");
 
-        // ---- Rime: the cold that holds ----
-
-        yield return new Quest(
-            id: Rime1,
-            name: "Take Their Evening",
-            description:
-                "Anyone can make a wolf slower. The Order's interest begins at the point where the wolf " +
-                "stops entirely and has to be walked around. Do that until it is unremarkable, then " +
-                "come back and they will find something else to be unimpressed by.",
-            mapId: Camp,
-            objectives: One("frigid.frozen", 200, "enemies frozen"),
-            reward: Reward(equipmentId: "hoarfrost_band"),
-            unlocks: Gate(After(Initiation)));
-
-        yield return new Quest(
-            id: Rime2,
-            name: "The Standing Field",
-            description:
-                "Four at once is the number the Order uses to settle arguments. Below it you are " +
-                "answering things one at a time, which is a skill but not this one. At four the field " +
-                "stops being a fight and starts being a room you are tidying at your own pace.",
-            mapId: Camp,
-            objectives: One(Feats.FrozenFour, 1,
-                            "Hold four enemies in ice at once", hideProgress: true),
-            reward: Reward(equipmentId: "winters_tooth"),
-            unlocks: Gate(After(Rime1)));
-
-        // ---- Silence: the cold that breaks ----
-
-        yield return new Quest(
-            id: Silence1,
-            name: "Brittle Things",
-            description:
-                "The other branch thinks holding is only half of it. Cold makes a body brittle, and a " +
-                "brittle body answers an arrow very differently to a warm one. Their complaint about " +
-                "the Rime branch is that it leaves the work undone and calls it mercy.",
-            mapId: Camp,
-            objectives: One("frigid.shattered", 100, "enemies shattered"),
-            reward: Reward(crystals: 1),
-            unlocks: Gate(After(Initiation)));
-
-        yield return new Quest(
-            id: Silence2,
-            name: "Nothing Moves",
-            description:
-                "The deepest rite of the Order is the admission the whole thing was always heading " +
-                "toward: enough time is the same as winning. Fifteen seconds is long enough that the " +
-                "field stops being ground you defend and becomes a row of things waiting their turn.",
-            mapId: Camp,
-            objectives: One("upgrades.taken.permafrost", 1,
-                            "Acquire Deep Freeze III, the deepest ice", hideProgress: true),
-            reward: Reward(equipmentId: "heart_of_ice"),
-            unlocks: Gate(After(Silence1)));
     }
 }

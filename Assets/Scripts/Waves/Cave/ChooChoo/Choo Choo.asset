@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: The gnomes work the loop in shifts, and the shafts spit rock.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: e1c92390a0694a84b96021c10a38891f, type: 2}
   entryRun: 0
@@ -60,7 +60,7 @@ MonoBehaviour:
     interval: 12
     from: {x: -12, y: -1.5}
     to: {x: 12, y: -1.5}
-  wardStones: 4
+  wardStones: 0
   wardStonePrefab: {fileID: 6821730625427352102, guid: e3a735aa259ad5e4b8fc19605975b243, type: 3}
   wardRadius: 0.9
   wardSpin: 120

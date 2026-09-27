@@ -2,17 +2,17 @@ using UnityEngine;
 
 // Sleeping Dart (Shadow + Serpent): every Nth arrow leaves the shield as a dart
 // that puts what it hits under. A COUNTER, not a roll - the player can count to
-// ten and put the dart into the thing that most needs to stop, which is the only
+// five and put the dart into the thing that most needs to stop, which is the only
 // reason a five second hold is worth a shot at all.
 //
 // The counter is only advanced by shots that could actually BE a dart: on a
 // frame where Ember has already claimed the arrow for a fireball, the tally
 // holds where it is and the dart arrives on the next shot instead. A promise
-// about "every tenth shot" that silently ate one to a fireball would be worse
+// about "every fifth shot" that silently ate one to a fireball would be worse
 // than no promise.
 public class SleepBoost : MonoBehaviour
 {
-    private int _shotsPerDart = 10;
+    private int _shotsPerDart = 5;
     private float _sleepSeconds = 5f;
     private int _shotCounter;
     private Sprite _dartSprite;

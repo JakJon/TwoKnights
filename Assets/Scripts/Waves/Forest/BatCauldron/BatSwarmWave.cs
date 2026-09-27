@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using UnityEngine;
 
@@ -11,11 +12,37 @@ public class BatSwarmWave : BaseWave
     [SerializeField] private int numberOfRings = 3;
     [SerializeField] private float delayBetweenRings = 15f;
     [SerializeField] private float ringRadius = 3f;
+    [Tooltip("LEGACY SHAPE, tiers I-IV: rocks in the corner stream. Ignored entirely once `volleys` has anything in it")]
     [SerializeField] private float projectileAmount = 3f;
+    [Tooltip("Legacy shape only: seconds between the rocks of that stream")]
     [SerializeField] private float projectileDelay = 4f;
+
+    [Header("Rock")]
+    [Tooltip("Cycled in order underneath the whole wave (see RockVolley). Leave EMPTY to keep the old corner streams, which alternate knights ring by ring - so only ever one knight has rock, from one corner, for the whole ring.")]
+    [SerializeField] private List<RockVolley> volleys = new List<RockVolley>();
+
+    [Tooltip("Seconds of rock from the start of the wave. Rings are delayBetweenRings apart, so four rings at 11 is about 44.")]
+    [SerializeField] private float projectileWindow = 0f;
+
+    [Tooltip("World units per second for this wave's rock. 0 leaves the prefab alone.")]
+    [SerializeField] private float rockSpeed = 0f;
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
+        // Orbs come in pairs here, so there is no clean per-ring slot to spread
+        // three across — the budget just stops the pairs at three. Local to the
+        // run: this is a ScriptableObject and a field would outlive the wave.
+        WaveOrbBudget.Budget orbs = new WaveOrbBudget.Budget();
+
+        // The rings are all laid down on this frame with their spacing carried as
+        // per-spawn delays, so the rock gets its own clock rather than being
+        // pinned to a ring index.
+        bool authored = volleys != null && volleys.Count > 0;
+        Coroutine shafts = authored
+            ? spawner.StartCoroutine(
+                RockVolley.WorkTheShafts(spawner, volleys, projectileWindow, rockSpeed))
+            : null;
+
         for (int ring = 1; ring <= numberOfRings; ring++)
         {
             float angleStep = 360f / batsPerRing;
@@ -32,15 +59,20 @@ public class BatSwarmWave : BaseWave
 
             if (ring % 2 == 0)
             {
-                spawner.SpawnProjectileStraight(spawner.topLeftCorner, spawner.LeftPlayer, projectileAmount, projectileDelay, (ring - 1) * delayBetweenRings);
-                spawner.SpawnOrb(new Vector2(8, 8), new Vector2(8, -8), false);
-                spawner.SpawnOrb(new Vector2(-8, 8), new Vector2(-8, -8), false);
+                if (!authored)
+                {
+                    spawner.SpawnProjectileStraight(spawner.topLeftCorner, spawner.LeftPlayer, projectileAmount, projectileDelay, (ring - 1) * delayBetweenRings);
+                }
+                if (orbs.TrySpend()) spawner.SpawnOrb(new Vector2(8, 8), new Vector2(8, -8), false);
+                if (orbs.TrySpend()) spawner.SpawnOrb(new Vector2(-8, 8), new Vector2(-8, -8), false);
             }
-            else if (ring % 2 != 0)
+            else if (ring % 2 != 0 && !authored)
             {
                 spawner.SpawnProjectileStraight(spawner.bottomRightCorner, spawner.RightPlayer, 3, 4, (ring - 1) * delayBetweenRings);
             }
         }
+
+        if (shafts != null) yield return shafts;
 
         // Mark spawning as complete so the wave knows to start checking for enemy deaths
         MarkSpawningComplete();

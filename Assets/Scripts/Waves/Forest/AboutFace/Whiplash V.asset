@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc4e5a463e033245b5c0a395e14e083, type: 3}
+  m_Name: Whiplash V
+  m_EditorClassIdentifier: 
+  waveName: Whiplash V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 24
+  lockedAfterXWaves: 27
+  useEnemyTracking: 1
+  burstCount: 5
+  pairsPerBurst: 6
+  flipWindow: 1.375
+  flipWindowRampFactor: 0.925
+  delayBetweenPairs: 3.25
+  delayBetweenBursts: 4.25
+  projectilesPerVolley: 3
+  angleJitter: 60
+  offscreenPadding: 0.5
+  minAngleFromHorizontal: 30
+  batsPerBurst: 4
+  wolfEscorts: 2
+  spawnManaOrb: 1

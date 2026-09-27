@@ -13,9 +13,21 @@ public class MapCatalog : ScriptableObject
     [Tooltip("Campaign order — this is the left-to-right order of the level select panes")]
     [SerializeField] private List<MapDefinition> maps = new List<MapDefinition>();
 
+    [Header("Music")]
+    // The camp's track lives here rather than on the AudioManager for the same
+    // reason the map roster does: BOTH scenes need it and there is no shared
+    // wiring point between them. It is worse than that for the AudioManager
+    // specifically — it is a DontDestroyOnLoad singleton that exists in Camp AND
+    // in Main, so the second one destroys itself on load and its inspector values
+    // are thrown away with it. A clip wired there would work or not depending on
+    // which scene the game happened to boot from.
+    [Tooltip("Plays in the camp and over the level select. Empty = the camp is silent.")]
+    [SerializeField] private AudioClip campMusic;
+
     private static MapCatalog _instance;
 
     public IReadOnlyList<MapDefinition> Maps => maps;
+    public AudioClip CampMusic => campMusic;
 
     public static MapCatalog Instance
     {

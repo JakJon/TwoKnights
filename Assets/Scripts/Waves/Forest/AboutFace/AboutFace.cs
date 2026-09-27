@@ -89,9 +89,15 @@ public class AboutFace : BaseWave
 
             if (burst < burstCount - 1)
             {
-                if (spawnManaOrb)
+                // At most three orbs per wave: the five-burst tiers have four gaps,
+                // so the orbs spread across them rather than filling the first three.
+                if (spawnManaOrb && WaveOrbBudget.SlotCarriesOrb(burst, burstCount - 1))
                 {
-                    spawner.SpawnOrb(new Vector2(0f, FieldY + 1f), Vector2.zero, false);
+                    // Enter above the field, leave below it. The end point is where
+                    // the orb takes itself off the board, so it has to be OFF the
+                    // field: Vector2.zero here had the orb stop dead and vanish at
+                    // the centre of the screen, in full view between the knights.
+                    spawner.SpawnOrb(new Vector2(0f, FieldY + 1f), new Vector2(0f, -FieldY - 1f), false);
                 }
                 yield return new WaitForSeconds(delayBetweenBursts);
             }

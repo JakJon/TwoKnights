@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08af284506c317e4787736b4b2348b1c, type: 3}
+  m_Name: Hold the Line VI
+  m_EditorClassIdentifier: 
+  waveName: Hold the Line VI
+  weight: 600
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 24
+  lockedAfterXWaves: 27
+  useEnemyTracking: 1
+  pinnedKnight: 0
+  anchorSequence: 0000000001000000020000000000000001000000
+  anchorHoldSeconds: 13
+  switchGapSeconds: 0
+  secondsBetweenRocks: 0.5
+  pauseEveryNRocks: 0
+  pauseSeconds: 0
+  anchorRadius: 12
+  tier: 6
+  wolfPaceSeconds: 9
+  wolfPaceStagger: 5.25
+  beatSpacingFactor: 0.925
+  volleys:
+  - label: crossings on the free knight
+    shape: 7
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.3
+    count: 5
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 5
+  - label: one crossing, under then over
+    shape: 3
+    rightKnight: 1
+    fromBelow: 1
+    spacing: 0.9
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 5
+  projectileWindow: 48
+  rockSpeed: 0

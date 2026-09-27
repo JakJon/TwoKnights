@@ -181,6 +181,15 @@
     scale: 1.04;
 }
 
+/* Shown but not yet open for business: the "???" shop. Dimmer than a secondary
+   row and with no selected state of its own, because the cursor never lands on
+   it — it is a placeholder telling the player there is a row here to earn. */
+.menu-button.menu-button--locked {
+    background-color: rgb(26, 21, 13);
+    border-color: rgb(45, 38, 23);
+    color: rgb(96, 88, 70);
+}
+
 /* quiet exit: recedes into the ground until focused */
 .menu-button.secondary {
     background-color: transparent;
@@ -419,12 +428,15 @@
 }
 
 /* ---------- level select ----------
-   Tall panes side by side: artwork on top, name plate beneath. The selected
-   pane is the only lit one — everything else drops toward the ground value so
-   the cursor is unmistakable at a glance across the room. */
+   The maps as a stack of cards. The one in focus is held up in the middle at
+   full size and full colour; the rest are tucked in behind it to either side —
+   narrower, shorter, dulled, and with a shadow falling on them from whatever
+   sits on top. Every slot's width, height and offset is written inline by
+   MapSelectPanel; what is here is everything that does not depend on how deep
+   in the stack a card happens to be. */
 
 /* Edge to edge, unlike the inset overlays around it. Picking where the run
-   happens is the last thing the camp asks, and the panes ARE the screen at that
+   happens is the last thing the camp asks, and the cards ARE the screen at that
    point — there is no title and nothing behind worth leaving a frame of. */
 .map-select-panel {
     padding: 20px 4% 24px 4%;
@@ -432,118 +444,227 @@
 
 /* Nothing left in the header but the close button, so it sits on the right on
    its own and the rule under it goes: a divider under an empty row is a line
-   drawn around nothing, and the panes want the height. */
+   drawn around nothing, and the cards want the height. */
 .map-select-header {
     justify-content: flex-end;
     padding-bottom: 0;
-    margin-bottom: 6px;
+    margin-bottom: 0;
     border-bottom-width: 0;
 }
 
-.map-pane-row {
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: center;
+/* Only a coordinate space: every slot inside is positioned absolutely. The top
+   margin is headroom for the stars, which hang off the focused card's upper
+   edge rather than taking a row inside it. */
+.map-card-stage {
     flex-grow: 1;
-    padding: 10px 0;
+    margin-top: 46px;
+    margin-bottom: 8px;
 }
 
-/* The panes share the row rather than sitting at a fixed width: full screen
-   only reads as full screen if they grow into it, and a fixed 260px left three
-   thin cards marooned in the middle. The 30% cap keeps two maps from becoming
-   billboards, and flex-grow keeps a fourth map fitting without wrapping. */
-.map-pane {
+/* Pinned to the middle of the stage and full height. The panel walks each slot
+   out to its place with a margin-left of (offset − half its own width), so
+   changing a card's width never drags its centre off the line. */
+.map-card-slot {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    justify-content: center;
+    transition-property: width, margin-left, opacity;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+
+/* The card's actual rectangle within that full-height slot, centred in it. It
+   exists so the shadows have something card-shaped to bleed out from — inset
+   against the slot they would stretch the whole height of the screen. */
+.map-card-body {
+    width: 100%;
+    transition-property: height;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+
+/* ---------- the drop shadow ----------
+   UI Toolkit has no box-shadow, so it is two dark rings bled out from under the
+   card: a wide faint one and a tight dark one, which together read as falloff.
+   One ring alone reads as a second card behind the first. */
+.map-card-shadow {
+    position: absolute;
+    border-radius: 14px;
+}
+
+.map-card-shadow--outer {
+    left: -15px;
+    right: -15px;
+    top: -8px;
+    bottom: -19px;
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+.map-card-shadow--inner {
+    left: -6px;
+    right: -6px;
+    top: -3px;
+    bottom: -9px;
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.map-card {
     flex-direction: column;
     align-items: stretch;
-    flex-basis: 0;
-    flex-grow: 1;
-    max-width: 30%;
-    margin: 0 12px;
-    padding: 10px;
-    background-color: rgb(28, 22, 14);
+    width: 100%;
+    height: 100%;
+    padding: 14px 16px 16px 16px;
+    background-color: rgb(34, 27, 17);
     border-width: 2px;
-    border-radius: 5px;
-    border-color: rgb(58, 50, 34);
-    transition-property: background-color, border-color, scale, opacity;
-    transition-duration: 0.15s;
+    border-radius: 10px;
+    border-color: rgb(66, 56, 38);
+    transition-property: background-color, border-color;
+    transition-duration: 0.16s;
     transition-timing-function: ease-out;
-    opacity: 0.72;
 }
 
-.map-pane--selected {
-    background-color: rgb(42, 33, 19);
+.map-card--focused {
+    background-color: rgb(46, 36, 21);
     border-color: rgb(212, 162, 74);
-    scale: 1.04;
-    opacity: 1;
 }
 
-/* the artwork well: recessed, and it owns most of the pane's height */
-.map-pane-image {
-    flex-grow: 1;
-    min-height: 180px;
+/* ---------- the three stars ----------
+   Straddling the top edge, drawn by Painter2D rather than typed. Only the card
+   in focus wears them: a card behind is cropped by its neighbour, and a row of
+   stars half-hidden under another card is worse than no row at all. */
+/* Anchored by its BOTTOM edge rather than sized by its contents: the row is a
+   fixed 40px ending 6px below the card's top, and the stars hang up out of it
+   from there. A taller star then rises higher on its own, which is what makes
+   the middle one read as a crest without any extra offset. */
+.map-card-stars {
+    position: absolute;
+    top: -34px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.map-star {
+    width: 34px;
+    height: 34px;
+    margin-left: -3px;
+    margin-right: -3px;
+}
+
+/* the middle star rides higher and larger, the way a crest does */
+.map-star--crown {
+    width: 46px;
+    height: 46px;
+}
+
+.map-card-title {
+    -unity-text-align: middle-center;
+    font-size: 21px;
+    color: rgb(242, 234, 217);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 1px;
+    white-space: normal;
     margin-bottom: 10px;
-    border-radius: 3px;
+}
+
+/* the artwork well: recessed, and it owns most of the card's height */
+.map-card-art {
+    flex-grow: 1;
+    min-height: 80px;
+    border-radius: 6px;
     background-color: rgb(22, 18, 12);
     -unity-background-scale-mode: scale-and-crop;
 }
 
+/* The line under the picture, off the concept art. It separates what the map IS
+   — its name and its face — from what the save has to say about it. */
+.map-card-rule {
+    height: 1px;
+    margin-top: 12px;
+    margin-bottom: 10px;
+    background-color: rgb(96, 80, 50);
+}
+
+.map-card-detail {
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.map-card-description {
+    font-size: 13px;
+    color: rgb(196, 183, 155);
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
+
+/* pushes the two counters down to the bottom of the card, wherever the
+   description happens to stop */
+.map-card-spacer {
+    flex-grow: 1;
+    min-height: 14px;
+}
+
+.map-card-stat {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.map-card-stat-label {
+    font-size: 12px;
+    color: rgb(150, 138, 110);
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+.map-card-stat-value {
+    font-size: 15px;
+    color: rgb(226, 190, 112);
+    -unity-font-style: bold;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
 /* ---------- locked maps ----------
-   Obscured, not hidden: the pane keeps its shape so the campaign's length stays
-   legible, but the art is drained behind a scrim and the frame stops promising
-   a destination. UI Toolkit has no greyscale filter, so "greyed out" is built
-   from a flat grey background tint (which multiplies the artwork's colour down
-   toward stone) plus the scrim over it. The tint is deliberate in place of
-   opacity: opacity cascades to children and would fade the padlock too. */
-.map-pane--locked .map-pane-image {
+   Obscured, not hidden: the card keeps its shape and keeps its picture, so the
+   campaign's length stays legible, but the name is withheld and everything the
+   save would have said about the place is simply absent. UI Toolkit has no
+   greyscale filter, so "greyed out" is a flat grey background tint — which
+   multiplies the artwork's colour down toward stone — plus the scrim over it.
+   The tint is deliberate in place of opacity: opacity cascades to children and
+   would fade the padlock along with the thing it is covering. */
+.map-card--locked .map-card-art {
     -unity-background-image-tint-color: rgb(58, 56, 52);
 }
 
-.map-pane--locked {
-    background-color: rgb(20, 18, 16);
-    border-color: rgb(44, 42, 38);
+.map-card--locked {
+    background-color: rgb(24, 21, 18);
+    border-color: rgb(50, 47, 42);
 }
 
-/* even under the cursor a locked pane never lights gold — that colour means "go" */
-.map-pane--locked.map-pane--selected {
-    background-color: rgb(29, 27, 24);
-    border-color: rgb(104, 99, 88);
-    scale: 1.02;
-    opacity: 0.88;
+/* even in focus a locked card never lights gold — that colour means "go" */
+.map-card--locked.map-card--focused {
+    background-color: rgb(31, 28, 24);
+    border-color: rgb(110, 104, 92);
 }
 
-/* ---------- the deep-run star ----------
-   Three bars crossed at sixty degrees. Built rather than typed for the same
-   reason the padlock is: no icon atlas, and no promise that the UI font ships
-   a star glyph on every platform. The halo behind it is what keeps it legible
-   over a bright patch of key art. */
-.map-star {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 30px;
-    height: 30px;
-    align-items: center;
-    justify-content: center;
+.map-card--locked .map-card-title {
+    color: rgb(132, 123, 98);
+    letter-spacing: 5px;
 }
 
-.map-star-halo {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    border-radius: 15px;
-    background-color: rgba(12, 10, 6, 0.55);
+.map-card--locked .map-card-rule {
+    background-color: rgb(58, 55, 48);
 }
 
-.map-star-ray {
-    position: absolute;
-    width: 24px;
-    height: 6px;
-    border-radius: 3px;
-    background-color: rgb(240, 205, 120);
-}
-
-
-.map-pane-scrim {
+.map-card-scrim {
     position: absolute;
     left: 0;
     right: 0;
@@ -552,9 +673,12 @@
     align-items: center;
     justify-content: center;
     background-color: rgba(10, 9, 7, 0.5);
-    border-radius: 3px;
+    border-radius: 6px;
 }
 
+/* A padlock built from two boxes. Same reasoning as the star being drawn: the
+   camp UI has no icon atlas, and a glyph would depend on the serif font
+   happening to ship one. */
 .map-lock {
     align-items: center;
     justify-content: center;
@@ -576,59 +700,6 @@
     height: 23px;
     border-radius: 3px;
     background-color: rgb(150, 140, 116);
-}
-
-.map-pane-name {
-    -unity-text-align: middle-center;
-    font-size: 18px;
-    color: rgb(217, 207, 184);
-    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
-    -unity-font-style: normal;
-    letter-spacing: 2px;
-    white-space: normal;
-}
-
-.map-pane--selected .map-pane-name {
-    color: rgb(242, 234, 217);
-}
-
-.map-pane--locked .map-pane-name {
-    color: rgb(141, 130, 102);
-}
-
-.map-pane-tagline {
-    -unity-text-align: middle-center;
-    font-size: 12px;
-    color: rgb(141, 130, 102);
-    margin-top: 4px;
-    white-space: normal;
-}
-
-.map-pane-status {
-    -unity-text-align: middle-center;
-    font-size: 12px;
-    color: rgb(212, 162, 74);
-    -unity-font-style: bold;
-    letter-spacing: 2px;
-    margin-top: 8px;
-    padding-top: 7px;
-    border-top-width: 1px;
-    border-top-color: rgb(45, 38, 23);
-}
-
-.map-pane-status--locked {
-    color: rgb(122, 112, 88);
-}
-
-.map-pane-status--cleared {
-    color: rgb(240, 205, 120);
-}
-
-.map-hint-line {
-    font-size: 11px;
-    color: rgb(141, 130, 102);
-    -unity-text-align: middle-center;
-    margin-top: 6px;
 }
 
 /* ---------- file select (three horizontal bars, one per save file) ----------
@@ -1459,4 +1530,124 @@
 .shop-tab--active {
     color: rgb(240, 205, 120);
     border-bottom-color: rgb(212, 162, 74);
+}
+
+/* ============================================================
+   Quest log — the NPC portrait and the Order subheadings.
+
+   The portrait sits INSIDE the heading row beside the quest's name
+   rather than above the body text, so a face and a title read as one
+   heading instead of as two stacked things. 48px: big enough for a
+   32x32 sprite to read at 1.5x without landing on a fractional scale.
+   ============================================================ */
+
+.quest-detail-heading {
+    flex-direction: row;
+    align-items: center;
+}
+
+.quest-detail-npc {
+    width: 48px;
+    height: 48px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* "Order of the Serpent" under the assassin. Quiet on purpose — it is a
+   label for the rows beneath it, not a row in its own right, and it is
+   deliberately not focusable so the stick never appears to stick on it. */
+.quest-subgroup {
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: rgb(138, 127, 104);
+    margin: 8px 0 2px 14px;
+}
+
+/* ---------- settings ----------
+   Two mix rows sharing the overlay chrome above. Focus is the same aged gold
+   every other interactive state in the Gilded Vigil palette uses, carried on the
+   row rather than on the bar so the label, the track and the percentage all move
+   together — a focused bar alone reads as "this one is loud", not "this one is
+   selected". */
+.settings-body {
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 18px;
+}
+
+.settings-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: rgb(45, 38, 23);
+    background-color: rgb(28, 23, 15);
+    transition-property: background-color, border-color;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+.settings-row--focused {
+    background-color: rgb(42, 33, 19);
+    border-color: rgb(212, 162, 74);
+}
+
+.settings-row-label {
+    width: 130px;
+    font-size: 18px;
+    color: rgb(141, 130, 102);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    letter-spacing: 1px;
+}
+
+.settings-row--focused .settings-row-label {
+    color: rgb(212, 162, 74);
+}
+
+/* The track. overflow:hidden keeps the fill inside the rounded ends at 100%. */
+.settings-bar {
+    flex-grow: 1;
+    height: 14px;
+    border-width: 1px;
+    border-radius: 3px;
+    border-color: rgb(58, 50, 34);
+    background-color: rgb(18, 14, 9);
+    overflow: hidden;
+}
+
+.settings-bar-fill {
+    height: 100%;
+    width: 50%;
+    background-color: rgb(110, 90, 48);
+}
+
+.settings-row--focused .settings-bar-fill {
+    background-color: rgb(212, 162, 74);
+}
+
+/* Fixed width so the bar does not twitch sideways as the number crosses 10% and
+   100% — the percentage is right-aligned into a column that never resizes. */
+.settings-row-value {
+    width: 62px;
+    -unity-text-align: middle-right;
+    font-size: 16px;
+    color: rgb(141, 130, 102);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+}
+
+.settings-row--focused .settings-row-value {
+    color: rgb(212, 162, 74);
+}
+
+.settings-hint {
+    -unity-text-align: middle-center;
+    font-size: 13px;
+    color: rgb(101, 92, 72);
+    padding-top: 6px;
+    letter-spacing: 1px;
 }

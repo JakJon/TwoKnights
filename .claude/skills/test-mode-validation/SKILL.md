@@ -50,7 +50,7 @@ var left = new System.Collections.Generic.List<BaseUpgrade>();
 var right = new System.Collections.Generic.List<BaseUpgrade>();
 // order names low tier -> high tier; Spawner applies in list order
 string[] leftNames = new string[] { "Shadow 1", "Shadow 2", "Shadow 3", "Damage 1", "Damage 2", "Damage 3" };
-string[] rightNames = new string[] { "Venom Tip 1", "Venom Tip 2", "Virulence 1", "Health Major 1", "Reload 1" };
+string[] rightNames = new string[] { "Venom Tip 1", "Venom Tip 2", "Airborne Virus 1", "Health Major 1", "Reload 1" };
 foreach (string n in leftNames) { foreach (var u in um.AllUpgrades) { if (u.name == n) { left.Add(u); break; } } }
 foreach (string n in rightNames) { foreach (var u in um.AllUpgrades) { if (u.name == n) { right.Add(u); break; } } }
 TestRunConfig.Set(12, left, right);
@@ -133,7 +133,7 @@ static yourself: `TestRunConfig.Map = MapCatalog.Instance.Find("mine")`.
   repeat across tiers). Families as of 2026-07-18: `Damage 1-4`, `Fire Speed 1-2`,
   `Reload 1-4`, `Health Minor/Mid/Major/Epic 1-4` (13 assets, DAG-linked),
   `Shadow 1-5`, `Killing Blow 1-2`, `Phantom Blade 1-2`, `Shuriken Fan 1-2`,
-  `Thousand Cuts`, `Venom Tip 1-3`, `Virulence 1-2`, `Miasma 1-2`,
+  `Thousand Cuts`, `Venom Tip 1-3`, `Airborne Virus 1-4`, `Miasma 1-2`,
   `Serpents Breath 1-3`, `Vial Throw 1-3`, `Acid Dagger` (Serpent capstone),
   `Plaguebringer` (Serpent + Guardian combo). Enumerate live from
   `Resources.Load<UpgradeManager>("UpgradeManager").AllUpgrades` rather than

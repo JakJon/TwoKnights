@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Seven loads, six beasts, and barely any road at all.
   unlockedAfterXWaves: 12
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 18
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: dd71bd9bb1b61790228eeb033eb6b897, type: 2}
   eastboundRun: 0

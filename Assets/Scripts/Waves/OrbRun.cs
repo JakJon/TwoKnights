@@ -36,12 +36,21 @@ public class OrbRun
     [Tooltip("Where it leaves. Keep the line clear of the track: an orb behind a rail is an orb whose arrows get eaten by the carts.")]
     public Vector2 to = new Vector2(12f, -1.5f);
 
+    // How many of this run's orbs have gone out on the current wave. Reset at the
+    // top of every Release: the run lives on a wave asset, and asset state
+    // outlives the run that set it.
+    private int _released;
+
     /// <summary>
     /// Release the run. Start it beside the wave rather than inside it — orbs do
     /// not gate anything, so a wave must never wait on one.
     /// </summary>
     public IEnumerator Release(Spawner spawner)
     {
+        // Before the first yield, so it has happened by the time StartCoroutine
+        // returns and a SendFirstIfWaiting later in the same frame counts right
+        _released = 0;
+
         // One frame before anything is decided, and it is load-bearing. A wave
         // starts this beside itself and stops it when it ends, but StartCoroutine
         // returns NULL for an enumerator that finishes without ever yielding — so
@@ -59,8 +68,33 @@ public class OrbRun
 
         for (int i = 0; i < count; i++)
         {
-            spawner.SpawnOrb(from, to, healthOrb);
+            // A slot SendFirstIfWaiting already paid for is skipped rather than
+            // sent again, so a hurried first orb takes the first slot's place
+            // instead of bunching up against it
+            if (_released <= i)
+            {
+                spawner.SpawnOrb(from, to, healthOrb);
+                _released++;
+            }
             if (i < count - 1) yield return new WaitForSeconds(Mathf.Max(0.1f, interval));
         }
+    }
+
+    /// <summary>
+    /// Sends the first orb now if the timer has not got to it yet. Every Mine
+    /// wave has an orb (owner, 2026-09-23), but most of them end when the players
+    /// kill what is out, so a quick clear could finish the wave before firstAt
+    /// and the stop at the end of the wave took the orb with it. Waves call this
+    /// as their LAST group goes out, which is the latest point an orb still
+    /// crosses a live board.
+    ///
+    /// Does nothing on a run authored with no orbs, or once one has gone out.
+    /// </summary>
+    public void SendFirstIfWaiting(Spawner spawner)
+    {
+        if (spawner == null || count <= 0 || _released > 0) return;
+
+        spawner.SpawnOrb(from, to, healthOrb);
+        _released++;
     }
 }

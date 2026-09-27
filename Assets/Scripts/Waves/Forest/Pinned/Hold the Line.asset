@@ -17,8 +17,8 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Stones rake the left knight from the treeline. The right knight
     answers the beasts alone.
-  unlockedAfterXWaves: 4
-  lockedAfterXWaves: 8
+  unlockedAfterXWaves: 7
+  lockedAfterXWaves: 11
   useEnemyTracking: 1
   pinnedKnight: 0
   anchorSequence: 00000000

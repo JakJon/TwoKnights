@@ -18,7 +18,7 @@ MonoBehaviour:
   waveDescription: They come in over your head. The loop is where they go to get
     away.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 1f509b24b78bdbb6893dc781c71bc8c5, type: 2}
   entryRun: 2

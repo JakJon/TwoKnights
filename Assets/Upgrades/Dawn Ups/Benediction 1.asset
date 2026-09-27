@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Benediction 1
   m_EditorClassIdentifier: 
   upgradeName: Benediction I
-  description: Spending your special heals BOTH knights, whatever your special is.
+  description: Spending your special heals BOTH knights, whatever it is. Arrows do more holy damage.
   weight: 65
   order: 5
   requiresOrderCount: 0
@@ -23,6 +23,9 @@ MonoBehaviour:
   stats:
   - valueText: +20 HP
     labelText: TO BOTH KNIGHTS
+    isPositive: 1
+  - valueText: +2
+    labelText: HOLY DAMAGE
     isPositive: 1
   healAmount: 20
   invulnerableSeconds: 0

@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Nothing crossing your patch is yours. Mind your neighbour.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: dd71bd9bb1b61790228eeb033eb6b897, type: 2}
   eastboundRun: 0
@@ -27,7 +27,7 @@ MonoBehaviour:
   crateCount: 4
   crateInterval: 5
   firstCrateAt: 1.5
-  wolves: 5
+  wolves: 2
   wolfInterval: 3.5
   firstWolfAt: 6
   packOrder:
@@ -45,8 +45,8 @@ MonoBehaviour:
     from: {x: -12, y: 0.5}
     to: {x: 12, y: 0.5}
   ogres:
-    label: 2 vertically across both haul roads
-    count: 2
+    label: 1 vertically across both haul roads
+    count: 1
     firstAt: 8
     interval: 7
     fireEveryNth: 3

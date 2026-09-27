@@ -82,19 +82,88 @@
 
 /* ---------- streak / multiplier line ---------- */
 
+/* "×N" on the left grows with the multiplier; "· STREAK n" never does.
+   Bottom-aligned so a bigger number grows upward, away from the vials. */
 .streak-line {
-    font-size: 13px;
-    color: rgb(255, 244, 214);
+    flex-direction: row;
+    align-items: flex-end;
+    margin-bottom: 1px;
+}
+
+/* one typeface for the whole line: the number only changes size and colour */
+.streak-mult,
+.streak-count {
     -unity-font-style: bold;
     letter-spacing: 3px;
-    margin-bottom: 1px;
+}
+
+.streak-count {
+    font-size: 13px;
+    color: rgb(255, 244, 214);
+    margin-left: 5px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
 }
 
 /* multiplier above x1 burns gold */
-.streak-line.streak--hot {
+.streak-line.streak--hot .streak-count {
     color: rgb(255, 190, 46);
     text-shadow: 0 0 8px rgba(255, 190, 46, 0.65);
+}
+
+/* Holds the number and, behind it, the StreakFlames SpecialBar adds in code */
+.streak-mult-box {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+/* black outline so every tier's number stands off its own flames. The THICK
+   outline is TextRim's ring of black copies (SpecialBar sets its width per tier);
+   this thin one only smooths the copies' edges. Each tier's glow below is drawn
+   by the copy under that ring, never by the number itself. */
+.streak-mult {
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
+    transform-origin: center bottom;
+    transition-property: scale;
+    transition-duration: 0.28s;
+    transition-timing-function: ease-out-back;
+}
+
+/* x1: tiny white. On x3 and x4 a negative bottom margin cancels the taller
+   descender space of the bigger size, so the number keeps the STREAK baseline. */
+.streak-mult--1 {
+    font-size: 10px;
+    color: rgb(255, 255, 255);
+}
+
+/* x2: medium yellow, small fire */
+.streak-mult--2 {
+    font-size: 16px;
+    color: rgb(255, 226, 64);
+    text-shadow: 0 0 6px rgba(255, 200, 40, 0.7);
+}
+
+/* x3: large frost blue (the frost damage number's hue, deepened), medium fire */
+.streak-mult--3 {
+    font-size: 22px;
+    color: rgb(64, 166, 242);
+    margin-bottom: -2px;
+    text-shadow: 0 0 8px rgba(64, 166, 242, 0.7);
+}
+
+/* x4: XL bright purple, blue-and-orange fire */
+.streak-mult--4 {
+    font-size: 30px;
+    color: rgb(212, 104, 255);
+    margin-bottom: -4px;
+    text-shadow: 0 0 10px rgba(196, 80, 255, 0.85);
+}
+
+/* tier-up punch: snaps big instantly, then the base transition eases it home */
+.streak-mult--pop {
+    scale: 1.5 1.5;
+    transition-duration: 0s;
 }
 
 /* ---------- vials ---------- */
@@ -149,6 +218,25 @@
 
 /* last quarter of health burns hotter */
 .health-fill.health--low { -unity-background-image-tint-color: rgb(255, 32, 16); }
+
+/* Low-health warning: a red halo behind the vial. The bar clips its children,
+   so the halo sits beside it in a holder instead, drawn first so the vial
+   covers its middle and only the rim glows. Hidden until PlayerHealth
+   drives its opacity — see HealthBar.SetWarningGlow. The texture is 34x32
+   with the pill's rounded ends in the outer 16px each side, so only the
+   centre column stretches along the bar. */
+.health-glow {
+    position: absolute;
+    left: -10px;
+    right: -10px;
+    top: -10px;
+    bottom: -10px;
+    background-image: url("HealthGlow.png");
+    -unity-background-image-tint-color: rgb(255, 36, 20);
+    -unity-slice-left: 16;
+    -unity-slice-right: 16;
+    opacity: 0;
+}
 
 .special-fill { -unity-background-image-tint-color: rgb(140, 92, 255); }
 

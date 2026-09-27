@@ -1,0 +1,461 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1797657f96f40129355167b5f7fd342, type: 3}
+  m_Name: Hot Potato V
+  m_EditorClassIdentifier: 
+  waveName: Hot Potato V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Four groups of seven fire ogres.
+  unlockedAfterXWaves: 16
+  lockedAfterXWaves: 22
+  useEnemyTracking: 1
+  crossings:
+  - label: 'group 1: 7 fire ogres, over the top first'
+    ogres:
+      label: 7 fire ogres at once, 4 on top and 3 below
+      count: 7
+      firstAt: 1.5
+      interval: 0
+      throwStagger: 1.429
+      fireEveryNth: 1
+      entries:
+      - label: over the top, right of centre, walking at the left knight
+        at: {x: 2, y: 6.5}
+        mark: 1
+      - label: over the top, left of centre, walking at the right knight
+        at: {x: -5.5, y: 6.5}
+        mark: 2
+      - label: up from under, in the middle, walking at the left knight
+        at: {x: 0, y: -7}
+        mark: 1
+      - label: up from under, left of centre, walking at the right knight
+        at: {x: -4.5, y: -7}
+        mark: 2
+      - label: over the top, right of centre, walking at the left knight
+        at: {x: 5.5, y: 6.5}
+        mark: 1
+      - label: over the top, left of centre, walking at the right knight
+        at: {x: -2, y: 6.5}
+        mark: 2
+      - label: up from under, right of centre, walking at the left knight
+        at: {x: 4.5, y: -7}
+        mark: 1
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    firstVolleyAt: 3
+    volleys:
+    - label: 'relay: the left knight, all the way round from over the top'
+      shape: 8
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 0.2
+    - label: 'relay: the right knight takes it, all the way round from underneath'
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights, mirrored, round and back
+      shape: 9
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: weave on the right knight
+      shape: 7
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 2
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights wobble along the low quarter
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.3
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 120
+      spiralPasses: 3
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+  - label: 'group 2: 7 fire ogres, up from under first'
+    ogres:
+      label: 7 fire ogres at once, 3 on top and 4 below
+      count: 7
+      firstAt: 1.5
+      interval: 0
+      throwStagger: 1.429
+      fireEveryNth: 1
+      entries:
+      - label: up from under, left of centre, walking at the right knight
+        at: {x: -5.5, y: -7}
+        mark: 2
+      - label: up from under, right of centre, walking at the left knight
+        at: {x: 2, y: -7}
+        mark: 1
+      - label: over the top, left of centre, walking at the right knight
+        at: {x: -4.5, y: 6.5}
+        mark: 2
+      - label: over the top, right of centre, walking at the left knight
+        at: {x: 4.5, y: 6.5}
+        mark: 1
+      - label: up from under, left of centre, walking at the right knight
+        at: {x: -2, y: -7}
+        mark: 2
+      - label: up from under, right of centre, walking at the left knight
+        at: {x: 5.5, y: -7}
+        mark: 1
+      - label: over the top, in the middle, walking at the right knight
+        at: {x: 0, y: 6.5}
+        mark: 2
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    firstVolleyAt: 3
+    volleys:
+    - label: 'relay: the right knight, all the way round from underneath'
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 0.2
+    - label: 'relay: the left knight takes it, all the way round from over the top'
+      shape: 8
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights, mirrored, round and back
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.3
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: weave on the left knight
+      shape: 7
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 2
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights wobble along the top quarter
+      shape: 9
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 120
+      spiralPasses: 3
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+  - label: 'group 3: 7 fire ogres, over the top first'
+    ogres:
+      label: 7 fire ogres at once, 4 on top and 3 below
+      count: 7
+      firstAt: 1.5
+      interval: 0
+      throwStagger: 1.429
+      fireEveryNth: 1
+      entries:
+      - label: over the top, right of centre, walking at the left knight
+        at: {x: 2, y: 6.5}
+        mark: 1
+      - label: over the top, left of centre, walking at the right knight
+        at: {x: -5.5, y: 6.5}
+        mark: 2
+      - label: up from under, in the middle, walking at the left knight
+        at: {x: 0, y: -7}
+        mark: 1
+      - label: up from under, left of centre, walking at the right knight
+        at: {x: -4.5, y: -7}
+        mark: 2
+      - label: over the top, right of centre, walking at the left knight
+        at: {x: 5.5, y: 6.5}
+        mark: 1
+      - label: over the top, left of centre, walking at the right knight
+        at: {x: -2, y: 6.5}
+        mark: 2
+      - label: up from under, right of centre, walking at the left knight
+        at: {x: 4.5, y: -7}
+        mark: 1
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    firstVolleyAt: 3
+    volleys:
+    - label: 'relay: the left knight, all the way round from over the top'
+      shape: 8
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 0.2
+    - label: 'relay: the right knight takes it, all the way round from underneath'
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights, mirrored, round and back
+      shape: 9
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: weave on the right knight
+      shape: 7
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 2
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights wobble along the low quarter
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.3
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 120
+      spiralPasses: 3
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+  - label: 'group 4: 7 fire ogres, up from under first'
+    ogres:
+      label: 7 fire ogres at once, 3 on top and 4 below
+      count: 7
+      firstAt: 1.5
+      interval: 0
+      throwStagger: 1.429
+      fireEveryNth: 1
+      entries:
+      - label: up from under, left of centre, walking at the right knight
+        at: {x: -5.5, y: -7}
+        mark: 2
+      - label: up from under, right of centre, walking at the left knight
+        at: {x: 2, y: -7}
+        mark: 1
+      - label: over the top, left of centre, walking at the right knight
+        at: {x: -4.5, y: 6.5}
+        mark: 2
+      - label: over the top, right of centre, walking at the left knight
+        at: {x: 4.5, y: 6.5}
+        mark: 1
+      - label: up from under, left of centre, walking at the right knight
+        at: {x: -2, y: -7}
+        mark: 2
+      - label: up from under, right of centre, walking at the left knight
+        at: {x: 5.5, y: -7}
+        mark: 1
+      - label: over the top, in the middle, walking at the right knight
+        at: {x: 0, y: 6.5}
+        mark: 2
+      startOnRight: 0
+      entryX: 11
+      entryY: -0.5
+      laneStep: 1.1
+    firstVolleyAt: 3
+    volleys:
+    - label: 'relay: the right knight, all the way round from underneath'
+      shape: 8
+      rightKnight: 1
+      fromBelow: 1
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 0.2
+    - label: 'relay: the left knight takes it, all the way round from over the top'
+      shape: 8
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 7
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 240
+      spiralPasses: 1
+      salvo: 4
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights, mirrored, round and back
+      shape: 9
+      rightKnight: 0
+      fromBelow: 1
+      spacing: 0.3
+      count: 5
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 2
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: weave on the left knight
+      shape: 7
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 1.2
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 180
+      spiralPasses: 1
+      salvo: 2
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+    - label: both knights wobble along the top quarter
+      shape: 9
+      rightKnight: 0
+      fromBelow: 0
+      spacing: 0.3
+      count: 4
+      fanDegrees: 60
+      weaveDegrees: 90
+      spiralDegrees: 120
+      spiralPasses: 3
+      salvo: 3
+      salvoSpread: 0.45
+      salvoStagger: 0.08
+      restAfter: 5
+  rockSpeed: 1.75
+  healthOrbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 12
+    interval: 12
+    from: {x: -12, y: 4}
+    to: {x: 12, y: 4}
+  manaOrbs:
+    healthOrb: 0
+    count: 2
+    firstAt: 30
+    interval: 20
+    from: {x: 12, y: -4}
+    to: {x: -12, y: -4}

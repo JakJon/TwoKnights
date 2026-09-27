@@ -24,7 +24,7 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 1.6
+  - valueText: 1.76
     labelText: HOMING RANGE
     isPositive: 1
   rank: 3

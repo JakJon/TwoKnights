@@ -27,6 +27,25 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class GuidedShot : MonoBehaviour
 {
+    // Whether this shot ever committed to a target, and whether it then arrived.
+    // Only a shot that locked is a guided shot at all, so only those resolve into
+    // the no-miss streak — an arrow that found nothing to chase was never aimed.
+    private bool _locked;
+    private bool _connected;
+
+    /// <summary>Called by PlayerProjectile the once, when this shot lands.</summary>
+    public void NoteConnected()
+    {
+        _connected = true;
+    }
+
+    private void OnDestroy()
+    {
+        // The end of the flight is the only moment that knows the answer. A lock
+        // says the shot chose; this says whether the choice paid.
+        if (_locked) GuidedAim.Resolve(_ownerTag, _connected);
+    }
+
     private float _radius;
     private bool _chaseOrbs = true;
     private string _ownerTag;
@@ -60,9 +79,16 @@ public class GuidedShot : MonoBehaviour
         _ownerTag = ownerTag;
     }
 
+    // A reflected rock flies over empty carts and kegs (see
+    // ProjectileSettings.ReflectedRockPassesOver), so it must not lock onto one
+    // either — a sticky target it can never strike would circle the cart until the
+    // rock timed out.
+    private bool _isRock;
+
     private void Awake()
     {
         _body = GetComponent<Rigidbody2D>();
+        _isRock = GetComponent<ProjectileSettings>() != null;
     }
 
     private void Update()
@@ -106,7 +132,7 @@ public class GuidedShot : MonoBehaviour
             // one of them turns up in this sweep. Naming the two things a shot is
             // allowed to chase is what keeps an arrow from homing onto the enemy
             // ammunition flying past it.
-            if (!IsChaseable(hit, _chaseOrbs)) continue;
+            if (!IsChaseable(hit, _chaseOrbs, _isRock)) continue;
 
             float distance = ((Vector2)hit.bounds.center - here).sqrMagnitude;
             if (distance >= bestDistance) continue;
@@ -130,6 +156,7 @@ public class GuidedShot : MonoBehaviour
             // already dead when it arrived is a different question.
             PlayerStats.Increment("guardian.guided");
             GuardianAwakening.NoteUse(_ownerTag);
+            _locked = true;
 
             // The rock's trail is built at three times the size: the rock prefab draws
             // at a quarter scale and parented art inherits the shrink, the same
@@ -152,10 +179,10 @@ public class GuidedShot : MonoBehaviour
         }
     }
 
-    private static bool IsChaseable(Collider2D hit, bool chaseOrbs)
+    private static bool IsChaseable(Collider2D hit, bool chaseOrbs, bool isRock)
     {
         EnemyBase enemy = hit.GetComponent<EnemyBase>();
-        if (enemy != null) return !enemy.IsDead;
+        if (enemy != null) return !enemy.IsDead && !(isRock && ProjectileSettings.ReflectedRockPassesOver(enemy));
 
         return chaseOrbs && hit.GetComponent<CollectibleOrb>() != null;
     }

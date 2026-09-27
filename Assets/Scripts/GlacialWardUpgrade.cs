@@ -15,7 +15,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GlacialWardUpgrade", menuName = "Upgrades/Glacial Ward")]
 public class GlacialWardUpgrade : BaseUpgrade
 {
-    [Tooltip("1 = 2.5u ring, 2 = 3.5u and enemy ammunition crossing it is halved.")]
+    [Tooltip("1 = 1.6u ring; 2 = 2.4u and enemy ammunition crossing it is halved; 3 = 3.9u, keeping the slow.")]
     [SerializeField] private int wardLevel = 1;
 
     public override string ChainName => "Glacial Ward";

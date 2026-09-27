@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f63b6399a5b391ce7a68be01483f175, type: 3}
+  m_Name: Bits and Pieces V
+  m_EditorClassIdentifier:
+  waveName: Bits and Pieces V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: One more rider on every shift. The kegs stay where they were.
+  unlockedAfterXWaves: 16
+  lockedAfterXWaves: 22
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: 40e9dc310ff2cf24a33b8d77298aa84c, type: 2}
+  gnomeCarts:
+  - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+  kegCart: {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  ambushes:
+  - label: shift 1 (5 riders, 3 kegs)
+    gnomesPerAmbush: 5
+    kegsPerAmbush: 3
+    leadIn: 0.75
+    releasePause: 1
+  - label: shift 2 (6 riders, 3 kegs)
+    gnomesPerAmbush: 6
+    kegsPerAmbush: 3
+    leadIn: 1.5
+    releasePause: 1
+  - label: shift 3 (6 riders, 4 kegs)
+    gnomesPerAmbush: 6
+    kegsPerAmbush: 4
+    leadIn: 1.5
+    releasePause: 1
+  - label: shift 4 (7 riders, 4 kegs)
+    gnomesPerAmbush: 7
+    kegsPerAmbush: 4
+    leadIn: 1.5
+    releasePause: 1
+  highOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 10
+    interval: 14
+    from: {x: -12, y: 4.3}
+    to: {x: 12, y: 4.3}
+  lowOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 20
+    interval: 14
+    from: {x: 12, y: -5}
+    to: {x: -12, y: -5}
+  ogres:
+    label: 5 with every shift, down and up the empty middle
+    count: 5
+    firstAt: 3
+    interval: 3
+    throwStagger: 0
+    fireEveryNth: 3
+    entries:
+    - label: up the empty middle, right of centre
+      at: {x: 4, y: -8}
+      mark: 2
+    - label: up the empty middle, left of centre
+      at: {x: -4, y: -8}
+      mark: 1
+    - label: down the empty middle, right of centre
+      at: {x: 4, y: 8}
+      mark: 2
+    - label: down the empty middle, left of centre
+      at: {x: -4, y: 8}
+      mark: 1
+    startOnRight: 0
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: wide spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.14
+    restAfter: 2.88
+    weaveDegrees: 90
+  - label: wide spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.75
+    count: 5
+    fanDegrees: 70
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.15
+    weaveDegrees: 90
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.2
+    restAfter: 2.7
+    weaveDegrees: 90
+  - label: spread up under the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 0.8
+    count: 4
+    fanDegrees: 60
+    salvo: 8
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3.15
+    weaveDegrees: 90
+  projectileWindow: 42
+  rockSpeed: 1.75

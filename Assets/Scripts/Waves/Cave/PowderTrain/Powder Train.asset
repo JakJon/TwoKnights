@@ -17,16 +17,16 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: A ring of powder turns tight around you. Shoot through the gaps.
   unlockedAfterXWaves: 0
-  lockedAfterXWaves: 7
+  lockedAfterXWaves: 6
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 9cc32b97993d4e538f6f1c49b5759748, type: 2}
   cartPattern:
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
   - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
-  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
-  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   repeats: 3

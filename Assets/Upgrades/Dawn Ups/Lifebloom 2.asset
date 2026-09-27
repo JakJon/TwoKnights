@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lifebloom 2
   m_EditorClassIdentifier: 
   upgradeName: Lifebloom II
-  description: The bloom comes sooner, and gives more.
+  description: The bloom comes sooner, and gives more. Arrows do more holy damage.
   weight: 60
   order: 5
   requiresOrderCount: 0
@@ -23,6 +23,9 @@ MonoBehaviour:
   stats:
   - valueText: +15 HP
     labelText: EVERY 10 KILLS
+    isPositive: 1
+  - valueText: +2
+    labelText: HOLY DAMAGE
     isPositive: 1
   killsPerHeal: 10
   healAmount: 15

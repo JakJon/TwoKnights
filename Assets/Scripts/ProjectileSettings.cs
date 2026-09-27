@@ -73,8 +73,28 @@ public class ProjectileSettings : MonoBehaviour
     // Reflector rank.
     private float _damageMultiplier = 1f;
 
+    // ---- Order trials ----
+
+    // Set on a rock thrown by the Paladin's trials (GuardTrial). Such a rock hurts
+    // nobody — a lost trial costs the trial, never the run — and it reports the
+    // knight it reached instead. Non-null IS "this is a trial rock".
+    private System.Action<GameObject> _trialStruck;
+
+    public bool IsTrialRock => _trialStruck != null;
+
+    /// <summary>
+    /// Makes this a trial rock. Call straight after Instantiate, before Start, so it
+    /// never joins the wave's projectile count — the trial runs between waves and
+    /// takes its own rocks off the board.
+    /// </summary>
+    public void MakeTrialRock(System.Action<GameObject> onKnightStruck)
+    {
+        _trialStruck = onKnightStruck;
+    }
+
     void Start()
     {
+        if (IsTrialRock) return;
         // Register this projectile with the wave tracking system
         BaseWave.RegisterProjectile(gameObject);
     }
@@ -178,9 +198,27 @@ public class ProjectileSettings : MonoBehaviour
         if (Reflected)
         {
             EnemyBase struck = other.GetComponent<EnemyBase>();
-            if (struck != null && !struck.IsDead)
+            if (struck != null && !struck.IsDead && !ReflectedRockPassesOver(struck))
             {
                 StrikeEnemy(struck);
+            }
+            return;
+        }
+
+        // A trial rock is a test, not a fight: a block is the sound and nothing
+        // else — no special charge, no Guardian tally, no rebound left flying round
+        // an arena with nothing in it to hit.
+        if (IsTrialRock)
+        {
+            if (other.CompareTag("Shield"))
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.Instance.projectileShield);
+                Destroy(gameObject);
+            }
+            else if (other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight"))
+            {
+                _trialStruck(other.gameObject);
+                Destroy(gameObject);
             }
             return;
         }
@@ -258,13 +296,13 @@ public class ProjectileSettings : MonoBehaviour
         _damageMultiplier = turn.DamageMultiplier;
         _ownerTag = turn.OwnerTag;
 
-        mover.Redirect(turn.Heading, GuardianBoost.ReflectedSpeedMultiplier);
+        mover.Redirect(turn.Heading, turn.SpeedMultiplier);
 
         // NO TELL HERE, deliberately (owner's call, 2026-09-08). The steel is the
         // HOMING tell and nothing else, so it appears the moment a shot commits to a
         // target and never before — see GuidedShot.Acquire. A rebound from a knight
         // without Guided Reflections therefore wears nothing, and is read by its
-        // speed and its heading instead: it leaves at two and a half times the pace
+        // speed and its heading instead: it leaves at up to two and a half times the pace
         // it arrived at, going the other way, which is not a shot anything on the
         // field could have thrown.
         //
@@ -284,6 +322,23 @@ public class ProjectileSettings : MonoBehaviour
         // into open sky forever, and without this the wave would never end.
         Destroy(gameObject, GuardianBoost.ReflectedLifetimeSeconds);
         return true;
+    }
+
+    /// <summary>
+    /// Whether a reflected rock flies straight over this body instead of striking it
+    /// (owner's call, 2026-09-25): an empty cart or a powder keg. Both are scenery on
+    /// the rail, and a rebound spent on one never reaches the thing that threw it —
+    /// on a keg it would also set the powder off for the player, which is the
+    /// player's shot to take. Riders and delivery carts are still struck: there is
+    /// something in them worth hitting.
+    ///
+    /// Exactly a plain cart, the same test the Overseer's ram uses — every other
+    /// cart subclasses EnemyMineCart.
+    /// </summary>
+    public static bool ReflectedRockPassesOver(EnemyBase enemy)
+    {
+        if (enemy == null) return false;
+        return enemy is EnemyKegCart || enemy.GetType() == typeof(EnemyMineCart);
     }
 
     /// <summary>What a reflected rock does to the body it finds. The rock keeps the

@@ -18,7 +18,7 @@ MonoBehaviour:
   waveDescription: Relentless point-blank flips from every direction while wolves
     and bats close in.
   unlockedAfterXWaves: 15
-  lockedAfterXWaves: -1
+  lockedAfterXWaves: 20
   useEnemyTracking: 1
   burstCount: 4
   pairsPerBurst: 5

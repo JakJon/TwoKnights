@@ -12,11 +12,19 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="left-hud" class="knight-hud hud-left" picking-mode="Ignore">
-            <ui:Label name="left-streak" class="streak-line" text="&#215;1 &#183; STREAK 0" picking-mode="Ignore" />
+            <ui:VisualElement name="left-streak" class="streak-line" picking-mode="Ignore">
+                <ui:VisualElement name="left-streak-mult-box" class="streak-mult-box" picking-mode="Ignore">
+                    <ui:Label name="left-streak-mult" class="streak-mult streak-mult--1" text="&#215;1" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="left-streak-count" class="streak-count" text="&#183; STREAK 0" picking-mode="Ignore" />
+            </ui:VisualElement>
             <ui:VisualElement class="bar-row" picking-mode="Ignore">
-                <ui:VisualElement class="bar" picking-mode="Ignore">
-                    <ui:VisualElement name="left-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
-                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                <ui:VisualElement class="bar-holder" picking-mode="Ignore">
+                    <ui:VisualElement name="left-health-glow" class="health-glow" picking-mode="Ignore" />
+                    <ui:VisualElement class="bar" picking-mode="Ignore">
+                        <ui:VisualElement name="left-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
+                        <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Label name="left-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
             </ui:VisualElement>
@@ -29,11 +37,19 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="right-hud" class="knight-hud hud-right" picking-mode="Ignore">
-            <ui:Label name="right-streak" class="streak-line" text="&#215;1 &#183; STREAK 0" picking-mode="Ignore" />
+            <ui:VisualElement name="right-streak" class="streak-line" picking-mode="Ignore">
+                <ui:VisualElement name="right-streak-mult-box" class="streak-mult-box" picking-mode="Ignore">
+                    <ui:Label name="right-streak-mult" class="streak-mult streak-mult--1" text="&#215;1" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="right-streak-count" class="streak-count" text="&#183; STREAK 0" picking-mode="Ignore" />
+            </ui:VisualElement>
             <ui:VisualElement class="bar-row" picking-mode="Ignore">
-                <ui:VisualElement class="bar" picking-mode="Ignore">
-                    <ui:VisualElement name="right-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
-                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                <ui:VisualElement class="bar-holder" picking-mode="Ignore">
+                    <ui:VisualElement name="right-health-glow" class="health-glow" picking-mode="Ignore" />
+                    <ui:VisualElement class="bar" picking-mode="Ignore">
+                        <ui:VisualElement name="right-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
+                        <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Label name="right-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
             </ui:VisualElement>

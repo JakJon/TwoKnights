@@ -45,6 +45,11 @@ using UnityEngine;
 // on their own cooldown for as long as they are up, so dawdling costs, which is
 // the debt every ambush wave owes the player.
 //
+// Every shift also sends ogres down the empty middle (owner, 2026-09-25), one
+// per tier: one a shift at tier I, seven at tier VII. They walk on their own
+// clock and do not hold the shift open, so a slow knight carries ogres from one
+// shift into the next.
+//
 // Nothing rolls dice (see the no-randomness pillar): the cart kinds come off a
 // rotation that carries across the wave and resets at the top of every run, and
 // the cadence is fixed. Note that a pause is a PERMANENT spacing on a loop —
@@ -107,12 +112,16 @@ public class BitsAndPieces : BaseWave
     [SerializeField] private float rockSpeed = 1.75f;
 
     [Header("Ogres")]
-    [Tooltip("Brutes walking in from the edges, alternating sides. They ignore everything this wave is about and come straight for whichever knight they entered nearest — see OgreBand. Leave the count at 0 for a tier that should not have any.")]
+    [Tooltip("Brutes sent WITH EVERY SHIFT (owner, 2026-09-25): count is how many come out each time a shift sets off, and the house rule is one per tier - I sends one a shift, VII sends seven. firstAt counts from the shift setting off. The entry list and the fire cadence carry on from shift to shift rather than starting over. They do not hold the shift open (EnemyOgre.JoinsAmbushes) - an ogre left walking is still walking when the next shift comes down - but the wave is not over until they are down.")]
     [SerializeField] private OgreBand ogres = new OgreBand();
 
-    // Every ogre this wave put out. Cleared as the band is released — the asset
+    // Every ogre this wave put out. Cleared at the top of the wave — the asset
     // is a ScriptableObject and outlives the run.
     private readonly List<GameObject> _ogres = new List<GameObject>();
+
+    // Shifts' ogre bands still walking in. The wave does not mark itself
+    // complete while one is, or the last shift's ogres would never come.
+    private int _ogreReleasesRunning;
 
     [Header("Orbs")]
     [Tooltip("The high crossing, over the top of the fight. Runs clear of both rails at y=4.3.")]
@@ -137,6 +146,8 @@ public class BitsAndPieces : BaseWave
     public override IEnumerator SpawnWave(Spawner spawner)
     {
         _gnome = 0;
+        _ogres.Clear();
+        _ogreReleasesRunning = 0;
 
         var rails = spawner.Rails;
         if (rails == null)
@@ -157,8 +168,9 @@ public class BitsAndPieces : BaseWave
         // run joined to the spawn phase would stretch or truncate with them
         Coroutine highRun = spawner.StartCoroutine(highOrbs.Release(spawner));
         Coroutine lowRun = spawner.StartCoroutine(lowOrbs.Release(spawner));
-        Coroutine brutes = spawner.StartCoroutine(ReleaseTheOgres(spawner));
         Coroutine shafts = spawner.StartCoroutine(WorkTheShafts(spawner));
+
+        int ogresSent = 0;
 
         for (int i = 0; i < ambushes.Count; i++)
         {
@@ -177,6 +189,14 @@ public class BitsAndPieces : BaseWave
             // already guards that, and this is the second lock on the same door.
             BeginAmbush(riders.Count);
 
+            // The shift's ogres set off with it, on their own clock beside the
+            // carts. Only the opening shift waits out the track, same as the carts.
+            if (ogres.Total > 0)
+            {
+                spawner.StartCoroutine(ReleaseTheOgres(spawner, ogresSent, layDuration));
+                ogresSent += ogres.Total;
+            }
+
             yield return spawner.StartCoroutine(Release(rails, powder, riders, ambush, layDuration));
 
             layDuration = 0f; // only the opening shift waits out the track
@@ -186,12 +206,18 @@ public class BitsAndPieces : BaseWave
             // released can never read as clear, and the wave would hang on it.
             MarkAmbushReleased();
 
+            // Last shift out: if a quick clear beat the orb timer, the orb goes
+            // now, with this shift still on the board. One run is enough to keep
+            // the promise, and hurrying both would clump two orbs together.
+            // See OrbRun.SendFirstIfWaiting.
+            if (i == ambushes.Count - 1) highOrbs.SendFirstIfWaiting(spawner);
+
             yield return WaitForAmbushClear();
         }
 
         // Orbs already on the board finish their crossing on their own; what stops
         // here is any that had not been released yet
-        yield return brutes;
+        while (_ogreReleasesRunning > 0) yield return null;
         yield return shafts;
 
         spawner.StopCoroutine(highRun);
@@ -274,13 +300,23 @@ public class BitsAndPieces : BaseWave
         return list[cursor++ % list.Count];
     }
 
-    // Beside the wave, never inside it. Ogres do not belong to any shift (see
-    // EnemyOgre.JoinsAmbushes) — they are a clock running underneath whatever
-    // else the wave is doing, and the wave is not finished until they are down.
-    private IEnumerator ReleaseTheOgres(Spawner spawner)
+    // One shift's ogres, beside the shift rather than inside it. They do not
+    // belong to it (see EnemyOgre.JoinsAmbushes), so the shift clears when its
+    // riders are down whatever the ogres are doing, and the wave is not finished
+    // until they are down too. `first` carries the band's rotation on from the
+    // shifts before.
+    private IEnumerator ReleaseTheOgres(Spawner spawner, int first, float trackDelay)
     {
-        _ogres.Clear();
-        yield return ogres.Release(spawner, _ogres);
+        _ogreReleasesRunning++;
+        try
+        {
+            if (trackDelay > 0f) yield return new WaitForSeconds(trackDelay);
+            yield return ogres.Release(spawner, _ogres, first);
+        }
+        finally
+        {
+            _ogreReleasesRunning--;
+        }
     }
 
     // Beside the wave, never inside it: the window is a fixed number of seconds

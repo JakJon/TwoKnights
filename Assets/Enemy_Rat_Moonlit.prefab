@@ -1,0 +1,219 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4782345698460343094
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -2253911629886400664, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_Name
+      value: Enemy_Rat_Moonlit
+      objectReference: {fileID: 0}
+    - target: {fileID: 1160356261127867848, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: -1493800286142780189, guid: 98e92027fc1a22e4aa45cc7ae6ec8e1f, type: 3}
+    - target: {fileID: 3626916397498700004, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 2508584831370735811, guid: 98e92027fc1a22e4aa45cc7ae6ec8e1f, type: 3}
+    - target: {fileID: 3626916397498700004, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 34fbda43bf7ac5e43930aafb3a8a6d4a, type: 2}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7878350319992209165, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7936479579678548355}
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6281195595738488341}
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3929089584159767746}
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6300956088689233888}
+  m_SourcePrefab: {fileID: -8435245712485981826, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+--- !u!1 &2514751607320038494 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -2253911629886400664, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+  m_PrefabInstance: {fileID: 4782345698460343094}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7936479579678548355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2514751607320038494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 748067a5a8920f44e8b4c98231dbda7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 40
+  specialOnHit: 5
+  specialOnDeath: 10
+  goldOnDeath: 1
+  shieldDamage: 10
+  staggerDuration: 0.2
+  staggerAnimation: {fileID: 3651350446308603674, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+  defaultAnimation: {fileID: -1610863427237328480, guid: 3bdf0dd73eca3a34698d18439cb7019e, type: 3}
+  staggerStateName: 
+  defaultStateName: 
+  damageTextPrefab: {fileID: 3743341822335282499, guid: 225900761027b3641860ebbbe4304136, type: 3}
+  damageTextOffset: {x: 0, y: 0, z: 0}
+  damageTextStackSeparation: 0.25
+  hurtSound:
+    clip: {fileID: 8300000, guid: 57d89140a9fce3e42b04ebe0e1d58f6f, type: 3}
+    volume: 1
+  deathSound:
+    clip: {fileID: 8300000, guid: 12e9190cc900dd547a3f4921325a83f6, type: 3}
+    volume: 1
+  attributes: 1
+  displayName: 
+  directionThreshold: 0.01
+  moveSpeed: 2.392
+  moveDistance: 3
+  damage: 20
+  spawnMoveDuration: 2
+--- !u!50 &6281195595738488341
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2514751607320038494}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
+--- !u!61 &3929089584159767746
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2514751607320038494}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.03356625, y: 0.22015266}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0}
+    oldSize: {x: 0.9375, y: 0.71875}
+    newSize: {x: 0.9375, y: 0.71875}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 0.83231986, y: 0.45704356}
+  m_EdgeRadius: 0
+--- !u!114 &6300956088689233888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2514751607320038494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 169a6f82813e78b4fa3dd707f5ef3707, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

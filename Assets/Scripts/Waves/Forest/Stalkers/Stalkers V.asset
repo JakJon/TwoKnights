@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ef0c20870917e141b3d94b83b14429c, type: 3}
+  m_Name: Stalkers V
+  m_EditorClassIdentifier: 
+  waveName: Stalkers V
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 25
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  ambushes:
+  - label: the first pass
+    wolfCount: 12
+    additionalCircles: 2
+    leadIn: 0
+    spawnInterval: 0.7
+    packOrder:
+    - 2
+    - 1
+    - 2
+  - label: the second pass
+    wolfCount: 14
+    additionalCircles: 1
+    leadIn: 2
+    spawnInterval: 0.65
+    packOrder:
+    - 2
+    - 2
+    - 1
+  - label: the last pass
+    wolfCount: 14
+    additionalCircles: 1
+    leadIn: 3
+    spawnInterval: 0.6
+    packOrder:
+    - 2
+    - 2
+    - 2
+  volleys:
+  - label: crossings, left
+    shape: 7
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.3
+    count: 5
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 4.5
+  - label: both sides at once
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 2
+    salvoSpread: 0.45
+    salvoStagger: 0.3
+    restAfter: 5
+  - label: crossings, right
+    shape: 7
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.3
+    count: 5
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 4.5
+  - label: both sides, then both back
+    shape: 6
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.9
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 5
+  projectileWindow: 60
+  rockSpeed: 0

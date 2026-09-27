@@ -19,6 +19,22 @@ public class EnemySlime : EnemyBase
     [Tooltip("Movement speed towards the target player")]
     public float moveSpeed = 1.5f;
 
+    // What separates a moonlit slime from an ordinary one. Everything a slime IS
+    // gets computed from `size` in InitializeSlime, so a variant cannot simply
+    // carry different numbers on its prefab — they would be overwritten a frame
+    // later. These are applied on top of that, which keeps size meaning what it
+    // has always meant: a wave still asks for a king and still gets a king.
+    //
+    // They ride the split for free: Split() instantiates this same gameObject, so
+    // the halves come out moonlit without anything being copied across by hand.
+    [Header("Variant")]
+    [Tooltip("Multiplies the size-derived health. The moonlit slime is 2 - twice the body at every tier.")]
+    [SerializeField] private float healthMultiplier = 1f;
+    [Tooltip("Multiplies the size-derived move speed. The moonlit slime is 2.")]
+    [SerializeField] private float speedMultiplier = 1f;
+    [Tooltip("Multiplies the size-derived scale. The moonlit slime is 0.75 - three quarters of the body, and a genuinely smaller target: the polygon collider is carried by this transform scale.")]
+    [SerializeField] private float scaleMultiplier = 1f;
+
     public Transform targetPlayer; // The player this slime will chase
 
     // Base collider points for size 1 slime
@@ -89,7 +105,7 @@ public class EnemySlime : EnemyBase
     public void InitializeSlime()
     {
         // Set health based on size
-        currentHealth = baseHealth * size;
+        currentHealth = Mathf.RoundToInt(baseHealth * size * healthMultiplier);
         health = currentHealth; // Update the base class health
 
         // Set move speed based on size
@@ -99,9 +115,10 @@ public class EnemySlime : EnemyBase
             moveSpeed = 0.35f;
         else
             moveSpeed = 0.5f;
+        moveSpeed *= speedMultiplier;
 
         // Scale the slime
-        transform.localScale = Vector3.one * size;
+        transform.localScale = Vector3.one * size * scaleMultiplier;
 
         UpdateCollider();
     }
@@ -149,6 +166,12 @@ public class EnemySlime : EnemyBase
         Vector2 leftEdge = center + Vector2.left * (slimeWidth / 2f);
         Vector2 rightEdge = center + Vector2.right * (slimeWidth / 2f);
 
+        // Read BEFORE the halves exist: the colour this slime was wearing under any
+        // frost tint. The tint is a multiply onto spriteRenderer.color and the
+        // untinted original lives in a field Instantiate does not copy, so without
+        // this the halves would keep the blue with nothing left to take it off.
+        Color untinted = UntintedSpriteColor;
+
         // Spawn two smaller slimes at the edges
         Vector2[] spawnPositions = { leftEdge, rightEdge };
         foreach (var spawnPosition in spawnPositions)
@@ -162,8 +185,11 @@ public class EnemySlime : EnemyBase
             slimeScript.isStaggered = false;
             // Instantiate copies the parent whole, so without this a slime cut in
             // half while frozen produces two pre-frozen halves wearing the tint
-            // and a shell that answers to nothing.
-            slimeScript.PurgeFrost();
+            // and a shell that answers to nothing — and, worse, two halves whose
+            // behaviour is still switched off by the parent's freeze, standing
+            // where they were cut for the rest of the wave. PurgeFrost cannot fix
+            // any of that on its own; see EnemyBase.PurgeFrostFromClone.
+            slimeScript.PurgeFrostFromClone(untinted);
             // Reset poison-related fields and stop any particle effects that may have been copied
             if (slimeScript.poisonBubbles != null)
             {

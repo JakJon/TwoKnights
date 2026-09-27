@@ -20,7 +20,7 @@ MonoBehaviour:
   lockedAfterXWaves: 8
   useEnemyTracking: 1
   delayTime: 6
-  projectilesPerArc: 4
+  projectilesPerArc: 3
   batsPerArc: 4
   kingSlimes: 1
   slimesPerArc: 1

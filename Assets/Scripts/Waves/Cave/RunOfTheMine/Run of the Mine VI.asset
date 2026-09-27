@@ -1,0 +1,204 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 999e9a662a0db23592693dce4d246088, type: 3}
+  m_Name: Run of the Mine VI
+  m_EditorClassIdentifier:
+  waveName: Run of the Mine VI
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Eleven relays of five wolves.
+  unlockedAfterXWaves: 20
+  lockedAfterXWaves: 26
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: e1c92390a0694a84b96021c10a38891f, type: 2}
+  entryRun: 2
+  trafficPattern:
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  trafficCarts: 14
+  trafficInterval: 0
+  firstCartDelay: 0.5
+  packLeadIn: 4
+  relays:
+  - label: first relay (five, the top edge and down the side)
+    courseRun: 0
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: second relay (five, the bottom edge and up the side)
+    courseRun: 2
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: third relay (five, the top edge and down the side)
+    courseRun: 0
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: first relay (five, the top edge and down the side) [pass 2]
+    courseRun: 2
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: second relay (five, the bottom edge and up the side) [pass 2]
+    courseRun: 0
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: third relay (five, the top edge and down the side) [pass 2]
+    courseRun: 2
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: first relay (five, the top edge and down the side) [pass 3]
+    courseRun: 0
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: second relay (five, the bottom edge and up the side) [pass 3]
+    courseRun: 2
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: third relay (five, the top edge and down the side) [pass 3]
+    courseRun: 0
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: first relay (five, the top edge and down the side) [pass 4]
+    courseRun: 0
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  - label: second relay (five, the bottom edge and up the side) [pass 4]
+    courseRun: 2
+    wolves: 5
+    wolfInterval: 1
+    leadIn: 1
+    courseDistance: 32
+  packOrder:
+  - 0
+  - 0
+  - 2
+  courseOffset: 1.2
+  courseLeadIn: 6
+  orbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 20
+    interval: 18
+    from: {x: -12, y: 1}
+    to: {x: 12, y: 1}
+  ogres:
+    label: 8 in through the ring's elbows
+    count: 6
+    firstAt: 5
+    interval: 4
+    fireEveryNth: 3
+    entries:
+    - label: in through the bottom-right elbow
+      at: {x: 12, y: -7}
+      mark: 2
+    - label: in through the bottom-left elbow
+      at: {x: -12, y: -7}
+      mark: 1
+    - label: in through the top-right elbow
+      at: {x: 12, y: 7}
+      mark: 2
+    - label: in through the top-left elbow
+      at: {x: -12, y: 7}
+      mark: 1
+    startOnRight: 1
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  volleys:
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.8
+    weaveDegrees: 90
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.15
+    restAfter: 2.4
+    weaveDegrees: 90
+  - label: both knights flip at once
+    shape: 6
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.13
+    restAfter: 2.64
+    weaveDegrees: 90
+  - label: two up under the left
+    shape: 1
+    rightKnight: 0
+    fromBelow: 1
+    spacing: 1.1
+    count: 3
+    fanDegrees: 60
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.8
+    weaveDegrees: 90
+  - label: spread on the right
+    shape: 4
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.8
+    count: 4
+    fanDegrees: 65
+    salvo: 9
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.8
+    weaveDegrees: 90
+  projectileWindow: 134
+  rockSpeed: 1.75

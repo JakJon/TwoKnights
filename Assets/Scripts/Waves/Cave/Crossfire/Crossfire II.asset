@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Longer lines, less time to turn, and the rim starts filling up.
   unlockedAfterXWaves: 4
-  lockedAfterXWaves: 11
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: b919f05bc00e21a5772d94a8a0eec42a, type: 2}
   entryRun: 2

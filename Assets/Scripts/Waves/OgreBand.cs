@@ -66,8 +66,11 @@ public class OgreBand
     [Tooltip("Seconds from the start of the wave before the first one enters. Held well back on purpose: an ogre in the opening beat is a body the players meet before they have read what the wave is.")]
     public float firstAt = 8f;
 
-    [Tooltip("Seconds between one entering and the next. THE REAL DIAL — 80 health at 0.75 units per second is about twelve seconds of one knight's whole output, so an interval under that is a band that arrives faster than it can be cleared.")]
+    [Tooltip("Seconds between one entering and the next. THE REAL DIAL — 80 health at 0.75 units per second is about twelve seconds of one knight's whole output, so an interval under that is a band that arrives faster than it can be cleared. 0 sends the whole band on the same frame, as one group.")]
     public float interval = 7f;
+
+    [Tooltip("Seconds added to each successive FIRE ogre's first throw: the first throws on its own clock, the second this much later, the third twice this. For a band sent together (interval 0), where every ogre's ten-second throw clock starts on the same frame. Throw interval / fire ogres spreads the band's fire evenly round the clock.")]
+    public float throwStagger;
 
     [Tooltip("0 = every ogre is the plain one. 3 = every third is the fire ogre, which throws at the knight it is NOT walking at. Counting, not rolling.")]
     public int fireEveryNth;
@@ -99,20 +102,30 @@ public class OgreBand
     /// Walks the band in. Every ogre is added to <paramref name="roster"/> so a
     /// wave can tell when its ogres in particular are down — a different
     /// question from whether the wave is over.
+    ///
+    /// <paramref name="first"/> is where in the band's rotation this release
+    /// starts: a wave that sends the band out in parts (Bits and Pieces, one part
+    /// per shift) passes the number already sent, so each part carries on round
+    /// the entry list and the fire cadence rather than starting both over.
     /// </summary>
-    public IEnumerator Release(Spawner spawner, List<GameObject> roster)
+    public IEnumerator Release(Spawner spawner, List<GameObject> roster, int first = 0)
     {
         int total = Total;
         if (total == 0) yield break;
 
         yield return new WaitForSeconds(Mathf.Max(0f, firstAt));
 
-        float gap = Mathf.Max(0.5f, interval);
+        // 0 is a group, sent on one frame. Anything else keeps the old
+        // half-second floor, so a queue is always a queue.
+        float gap = interval <= 0f ? 0f : Mathf.Max(0.5f, interval);
         bool authored = entries != null && entries.Count > 0;
+        int fireSoFar = 0;
 
-        for (int i = 0; i < total; i++)
+        for (int n = 0; n < total; n++)
         {
-            if (i > 0) yield return new WaitForSeconds(gap);
+            if (n > 0 && gap > 0f) yield return new WaitForSeconds(gap);
+
+            int i = first + n;
 
             Vector2 at;
             OgreMark mark;
@@ -131,7 +144,13 @@ public class OgreBand
             }
 
             bool fire = fireEveryNth > 0 && ((i + 1) % fireEveryNth) == 0;
-            spawner.SpawnOgre(at, 0f, fire, roster, KnightFor(spawner, mark));
+            float throwDelay = 0f;
+            if (fire)
+            {
+                throwDelay = fireSoFar * Mathf.Max(0f, throwStagger);
+                fireSoFar++;
+            }
+            spawner.SpawnOgre(at, 0f, fire, roster, KnightFor(spawner, mark), throwDelay);
         }
     }
 

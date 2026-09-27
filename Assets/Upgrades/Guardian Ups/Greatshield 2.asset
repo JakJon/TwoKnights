@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31a82f926086438c85d55f0248083db4, type: 3}
   m_Name: Greatshield 2
   m_EditorClassIdentifier: 
-  upgradeName: Dawn Shield II
-  description: Longer still, and its edges sweep further back.
-  weight: 14
+  upgradeName: Holy Shield II
+  description: Longer still, and its edges sweep further back. +25 max health.
+  weight: 55
   order: 3
   requiresOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: edf8c3841ed9402f9d44181d9bea55b7, type: 2}
   lockedBy: []
   stats:
+  - valueText: +25
+    labelText: MAX HEALTH
+    isPositive: 1
   - valueText: +50%
     labelText: SHIELD LENGTH
     isPositive: 1
@@ -29,3 +32,4 @@ MonoBehaviour:
     isPositive: 1
   lengthMultiplier: 1.8
   curveRadius: 1.9
+  healthIncrease: 25

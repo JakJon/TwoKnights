@@ -1,7 +1,8 @@
 using UnityEngine;
 
-// Frigid discipline: the sword door. A swing throws off a burst of cold around
-// the knight, dealing the sword's own damage to everything it catches.
+// Frigid discipline: the sword door. Every swing throws off a burst of cold
+// around the knight, dealing the sword's own damage plus frost damage to
+// everything it catches.
 //
 // Every Order hangs a discipline off the sword and each one does something
 // different with it - Serpent exhales a cloud, Shadow echoes the swing, Ember
@@ -15,7 +16,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "RimebladeUpgrade", menuName = "Upgrades/Rimeblade")]
 public class RimebladeUpgrade : BaseUpgrade
 {
-    [Tooltip("1 = 33% of swings at 1.6u. 2 = 60% at 2.3u. 3 = every swing.")]
+    [Tooltip("Every rank bursts on every swing. 1 = 1.6u, +5 frost. 2 = 2.3u, +10 frost. 3 = 3.0u, +15 frost.")]
     [SerializeField] private int bladeLevel = 1;
 
     public override string ChainName => "Rimeblade";
@@ -38,6 +39,6 @@ public class RimebladeUpgrade : BaseUpgrade
 
         boost.SetRimeblade(bladeLevel);
 
-        Debug.Log($"Applied Rimeblade {bladeLevel} to {targetKnight.name}: {boost.RimebladeChance}% of swings, {boost.RimebladeRadius}u");
+        Debug.Log($"Applied Rimeblade {bladeLevel} to {targetKnight.name}: every swing, {boost.RimebladeRadius}u, +{boost.RimebladeFrostDamage} frost");
     }
 }

@@ -13,7 +13,12 @@
         <ui:VisualElement name="quest-panel-body" class="quest-panel-body">
             <ui:ScrollView name="quest-list" class="quest-list" />
             <ui:VisualElement name="quest-details" class="quest-details">
-                <ui:Label name="quest-detail-name" text="Select a quest" class="quest-detail-name" />
+                <!-- Who brings this quest. Sits beside the name rather than above
+                     the text, so the face and the title read as one heading. -->
+                <ui:VisualElement name="quest-detail-heading" class="quest-detail-heading">
+                    <ui:VisualElement name="quest-detail-npc" class="quest-detail-npc" />
+                    <ui:Label name="quest-detail-name" text="Select a quest" class="quest-detail-name" />
+                </ui:VisualElement>
                 <ui:Label name="quest-detail-description" text="" class="quest-detail-description" />
                 <ui:Label name="quest-detail-progress" text="" class="quest-detail-progress" />
                 <ui:Label name="quest-detail-reward" text="REWARD" class="quest-detail-reward" />

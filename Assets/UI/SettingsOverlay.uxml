@@ -1,0 +1,36 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <!-- The settings screen, shared by the camp menu and the pause screen exactly
+         as QuestOverlay and EquipmentOverlay are. SettingsPanel finds these by name
+         inside whichever document instances the template, so a row added here
+         reaches both. The host element must carry .overlay-host — the panel inside
+         is absolutely positioned and a TemplateContainer of its own natural size
+         would give it nothing to fill. -->
+    <ui:VisualElement name="settings-panel" class="overlay-panel" style="display: none;">
+        <ui:VisualElement name="settings-panel-header" class="overlay-header">
+            <ui:Label text="Settings" class="overlay-title" />
+            <ui:Button name="settings-close-button" class="overlay-close-button" text="X" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="settings-body" class="settings-body">
+            <!-- Each row is label / bar / percentage. The fill's width is the only
+                 thing the panel writes at runtime; everything else is styling. -->
+            <ui:VisualElement name="settings-row-music" class="settings-row">
+                <ui:Label text="Music" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-music-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-music-value" text="25%" class="settings-row-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="settings-row-sfx" class="settings-row">
+                <ui:Label text="Sound" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-sfx-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-sfx-value" text="100%" class="settings-row-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label name="settings-hint" text="Left / Right to adjust" class="settings-hint" />
+    </ui:VisualElement>
+</ui:UXML>

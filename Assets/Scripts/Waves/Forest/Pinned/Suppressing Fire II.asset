@@ -29,8 +29,9 @@ MonoBehaviour:
   anchorRadius: 12
   tier: 2
   arcRadius: 12
-  wiperDegreesPerSecond: 20
-  secondsBetweenShots: 0.85
-  reverseEveryNShots: 0
+  secondsBetweenShots: 1.65
   patternSeconds: 44
   batCount: 3
+  ratCount: 1
+  slimeCount: 0
+  slimeSize: 1

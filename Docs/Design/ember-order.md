@@ -112,8 +112,9 @@ Rarity is weight-derived in `BaseUpgrade` (≥100 Common / ≥50 Rare / ≥20 Ep
 | Fireball I | 100 | Common | — (starting pick) |
 | Fireball II | 55 | Rare | Fireball I |
 | Fireball III | 26 | Epic | Fireball II |
-| Firebrand I | 55 | Rare | Fireball I |
+| Firebrand I | 55 | Rare | — (starting pick) |
 | Firebrand II | 24 | Epic | Firebrand I |
+| Firebrand III | 14 | Legendary | Firebrand II |
 | Fire Trail I | 55 | Rare | Ignited Tips I |
 | Fire Trail II | 26 | Epic | Fire Trail I |
 | Searing Panic I | 35 | Epic | Fire Trail I |
@@ -148,21 +149,29 @@ multiplies against the Reload line, and it turns Rapid Fire into a barrage.
 - **II** — every 4th shot.
 - **III** — every 3rd shot, blast radius 2.0u.
 
-### Firebrand I–II — the sword door
+### Firebrand I–III — the sword door
 
-A sword swing has a **low chance to hurl a spread of fireballs** along the shield facing.
-Rank II does not improve the odds — it adds a third fireball.
+**Every** sword swing lobs fire along the shield facing (owner's call, 2026-09-25). The
+catch is reach: the fireball is lobbed, not thrown, and it comes down and bursts a short
+step in front of the blade whether or not it met anything.
 
-That distinction is the whole design of the chain. Most second ranks make a thing happen
-more often; this one makes the same rare moment hit harder, so Firebrand stays a payoff
-you can't fish for. It also keeps the sword honest as a close-range panic button rather
-than becoming a primary fire delivery system.
+- **I** — 1 fireball, lands **0.5u** out.
+- **II** — the same fireball lobbed three times as far, **1.5u**.
+- **III** — a second fireball; the pair fan ±15°, both 1.5u.
 
-- **I** — 20% chance per swing, **2** fireballs fanned ±15°.
-- **II** — still 20%, **3** fireballs at −20° / 0° / +20°.
+The lob moves at 1.75 u/s (a quarter of the old 7 u/s) so the arc can be followed. The
+arc is drawn rather than simulated: the fireball travels flat, its sprite swells to 1.5x
+at the middle of the flight and shrinks back, and a near-black shadow drops below it and
+meets it again at the landing.
 
-These are real fireballs: they explode, ignite, and leave craters like any other. That
-makes the sword Ember's third ignition source, and the only one that works at melee range
+*Before 2026-09-25:* a 20% chance per swing for 1 / 2 / 3 fireballs that flew 7 u/s for
+four seconds and fizzled if they hit nothing.
+
+These are real fireballs: they explode, ignite, and leave craters — but smaller ones
+(owner's call, 2026-09-25). A lob's blast is **half** the Fireball chain's current blast
+radius (0.75u, or 1.0u with Fireball III), and its crater has a **0.5u** radius and
+burns **6s**, half of a shot fireball's 1.0u / 12s. Firebrand I is a starting pick of its
+own; it used to need Fireball I. That makes the sword Ember's third ignition source, and the only one that works at melee range
 when something has already closed the distance.
 
 Serpent and Shadow both hang a discipline off the sword too (Serpent's Breath, Phantom
@@ -472,7 +481,7 @@ Serpent retag risk.
 - `PlayerShooter` — shot counter + fireball spawn; ignite roll at all three existing spawn
   sites (main arrow, shurikens, shadow arrows), alongside the poison roll.
 - `PlayerProjectile` — ignite on hit.
-- `SwordSwing` — the Firebrand roll, mirroring where `TryExhaleSerpentsBreath` already
+- `SwordSwing` — the Firebrand roll, mirroring where `ExhaleSerpentsBreath` already
   hooks in. Note the knight is resolved via `GetComponentInParent<PlayerHealth>()` there,
   because sword attack objects are untagged children — the same lookup Firebrand needs to
   credit fireballs to the right knight.

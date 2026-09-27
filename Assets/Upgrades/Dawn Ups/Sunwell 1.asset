@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sunwell 1
   m_EditorClassIdentifier: 
   upgradeName: Sunwell I
-  description: Health orbs you catch give up more of their light.
+  description: Health and mana orbs you catch give up more of their light. Arrows do more holy damage.
   weight: 110
   order: 5
   requiresOrderCount: 0
@@ -23,6 +23,13 @@ MonoBehaviour:
   - valueText: +50%
     labelText: ORB HEALING
     isPositive: 1
+  - valueText: +50%
+    labelText: ORB MANA
+    isPositive: 1
+  - valueText: +2
+    labelText: HOLY DAMAGE
+    isPositive: 1
   orbHealMultiplier: 1.5
+  manaOrbMultiplier: 1.5
   manaOrbHeal: 0
   slowOrbs: 0

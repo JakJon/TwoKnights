@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ef0c20870917e141b3d94b83b14429c, type: 3}
+  m_Name: Stalkers IV
+  m_EditorClassIdentifier: 
+  waveName: Stalkers IV
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 20
+  lockedAfterXWaves: 25
+  useEnemyTracking: 1
+  ambushes:
+  - label: the first pass
+    wolfCount: 12
+    additionalCircles: 2
+    leadIn: 0
+    spawnInterval: 0.8
+    packOrder:
+    - 2
+    - 1
+    - 2
+  - label: the second pass
+    wolfCount: 14
+    additionalCircles: 2
+    leadIn: 2
+    spawnInterval: 0.7
+    packOrder:
+    - 2
+    - 2
+    - 1
+  - label: the last pass
+    wolfCount: 12
+    additionalCircles: 1
+    leadIn: 3
+    spawnInterval: 0.7
+    packOrder:
+    - 2
+    - 2
+    - 2

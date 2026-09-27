@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Serpents Breath 2
   m_EditorClassIdentifier: 
   upgradeName: Serpent's Breath II
-  description: Higher chance to exhale a longer-lasting cloud.
+  description: Every swing exhales three venom beads in a narrow fan.
   weight: 60
   order: 1
   requiresOrderCount: 0
@@ -21,9 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1a5202610e413aa37024e4b37e4899ec, type: 2}
   lockedBy: []
   stats:
-  - valueText: 50%
-    labelText: CHANCE
+  - valueText: 3 BEADS
+    labelText: NARROW FAN
     isPositive: 1
-  cloudChance: 50
-  cloudDuration: 5
-  largeCloud: 0
+  tier: 2

@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Second Wind 3
   m_EditorClassIdentifier: 
   upgradeName: Second Wind III
-  description: Every time you take 40 damage, you will become invincible for 10 seconds
-    and heal 15 health.
+  description: Take 40 damage and you turn invincible for 10 seconds, healing 15. Arrows do more holy damage.
   weight: 22
   order: 5
   requiresOrderCount: 0
@@ -30,6 +29,9 @@ MonoBehaviour:
     isPositive: 1
   - valueText: +15 HP
     labelText: EACH TIME
+    isPositive: 1
+  - valueText: +2
+    labelText: HOLY DAMAGE
     isPositive: 1
   damageToll: 40
   invulnerableSeconds: 10

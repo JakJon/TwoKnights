@@ -244,6 +244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   swordSwingAction: {fileID: -4458409286072618481, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
+  backSwingAction: {fileID: -3804863771619760476, guid: 685897456d350b849a5ce38c0a18d096, type: 3}
   swingDuration: 0.1
   totalEffectDuration: 0.2
   swingAngleRange: 90

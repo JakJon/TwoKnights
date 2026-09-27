@@ -17,7 +17,7 @@ MonoBehaviour:
   isUnlocked: 0
   waveDescription: Pickaxes on the near pass now. Nowhere on the loop is quiet.
   unlockedAfterXWaves: 4
-  lockedAfterXWaves: 11
+  lockedAfterXWaves: 10
   useEnemyTracking: 1
   railLayout: {fileID: 11400000, guid: 1f509b24b78bdbb6893dc781c71bc8c5, type: 2}
   entryRun: 2

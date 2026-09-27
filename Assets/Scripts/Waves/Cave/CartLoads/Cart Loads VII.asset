@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab9a3847f3ae2be9d7efe90b68d7754f, type: 3}
+  m_Name: Cart Loads VII
+  m_EditorClassIdentifier:
+  waveName: Cart Loads VII
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: Thirteen crates a shaft. The flanks never quite empty.
+  unlockedAfterXWaves: 24
+  lockedAfterXWaves: -1
+  useEnemyTracking: 1
+  railLayout: {fileID: 11400000, guid: 220095e03f60dd8c755e97e0d2400bdd, type: 2}
+  crateCarts:
+  - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
+  - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
+  outerShaftCrates: 13
+  innerShaftCrates: 13
+  leadIn: 1
+  releasePause: 0.9
+  flanks:
+  - label: five from each edge
+    fromTop: 7
+    fromBottom: 7
+    firstAt: 7
+    interval: 0.75
+    ratTypes:
+    - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
+    - {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
+    stationHeight: 4.3
+    laneSpacing: 2.6
+  freightWaitsOnTheVermin: 1
+  highOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 12
+    interval: 14
+    from: {x: -12, y: 4.3}
+    to: {x: 12, y: 4.3}
+  lowOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 24
+    interval: 14
+    from: {x: 12, y: -5}
+    to: {x: -12, y: -5}
+  volleys:
+  - label: both knights flip at once
+    shape: 6
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.1
+    weaveDegrees: 90
+  - label: weave, four shots crossing the dial
+    shape: 7
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.2
+    count: 4
+    fanDegrees: 60
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.1
+    weaveDegrees: 90
+  - label: both at once (mirrored)
+    shape: 5
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 1.96
+    weaveDegrees: 90
+  - label: spread on the left
+    shape: 4
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 0.8
+    count: 4
+    fanDegrees: 65
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 2.24
+    weaveDegrees: 90
+  - label: over and under, right
+    shape: 3
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 0.2
+    count: 3
+    fanDegrees: 60
+    salvo: 10
+    salvoSpread: 0.45
+    salvoStagger: 0.12
+    restAfter: 2.1
+    weaveDegrees: 90
+  projectileWindow: 50
+  rockSpeed: 1.75
