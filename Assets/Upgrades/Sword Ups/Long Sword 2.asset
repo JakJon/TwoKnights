@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Long Sword 2
   m_EditorClassIdentifier: 
   upgradeName: Long Sword II
-  description: Longer again, heavier again. Almost twice the stock reach.
+  description: Your blade reaches further, and deals more damage.
   weight: 15
   order: 3
   requiresOrderCount: 0
@@ -21,17 +21,12 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 94b5e096190a49e88ae8df34bf174252, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +16%
-    labelText: REACH
-    isPositive: 1
-  - valueText: 20
+  - valueText: +23
     labelText: SWORD DAMAGE
     isPositive: 1
-  - valueText: -20%
-    labelText: SWING SPEED
-    isPositive: 0
   lengthMultiplier: 1.268
   slowMultiplier: 1.25
-  baseDamage: 20
+  baseDamage: 23

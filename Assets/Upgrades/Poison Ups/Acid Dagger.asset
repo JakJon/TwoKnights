@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Acid Dagger
   m_EditorClassIdentifier: 
   upgradeName: Acid Dagger
-  description: A swift dagger jab follows up the swing of your sword, deals lethal
-    damage.
+  description: A swift dagger jab follows your sword. Deals lethal damage.
   weight: 10
   order: 1
   requiresOrderCount: 4

@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Bulwark
   m_EditorClassIdentifier: 
   upgradeName: Bulwark
-  description: Bodies that reach the guard are thrown off it. You pay nothing.
+  description: Your shield bounces back enemies. You no longer take damage from a
+    shield hit.
   weight: 12
   order: 3
   requiresOrderCount: 5
@@ -23,9 +24,6 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: NONE
+  - valueText: NO
     labelText: SHIELD DAMAGE
-    isPositive: 1
-  - valueText: 2
-    labelText: KNOCKBACK UNITS
     isPositive: 1

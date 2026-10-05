@@ -598,15 +598,9 @@ public class QuestPanel : MonoBehaviour
     }
 
     /// <summary>
-    /// One line per objective. Objectives that hide their progress show only
-    /// their prose — the whole point of a hidden objective is that the count
-    /// would give away what the quest is actually asking for.
-    ///
-    /// Record objectives (see QuestObjective.IsRecord) are prefixed "Best
-    /// attempt:". Their number is the furthest any single attempt has got, not a
-    /// total, and without the words in front of it a streak quest sitting at
-    /// 0/100 reads as a tracker that is broken rather than as a record nobody has
-    /// opened yet.
+    /// One line per objective, printed exactly as the objective's menu text is
+    /// written (QuestObjective.MenuLine). The text decides whether a counter shows
+    /// and where; this adds the tick and nothing else.
     /// </summary>
     private static string BuildChecklist(Quest quest)
     {
@@ -618,19 +612,7 @@ public class QuestPanel : MonoBehaviour
             bool met = objective.IsMet;
             if (i > 0) sb.Append('\n');
             sb.Append(met ? $"<color={GOLD}>✔</color> " : $"<color={DIM}>•</color> ");
-            if (objective.HideProgress)
-            {
-                sb.Append(objective.DisplayLabel);
-            }
-            else if (objective.CountAfter)
-            {
-                sb.Append($"{objective.DisplayLabel} {objective.Current} / {objective.Target}");
-            }
-            else
-            {
-                if (objective.IsRecord) sb.Append("Best attempt: ");
-                sb.Append($"{objective.Current}/{objective.Target} {objective.DisplayLabel}");
-            }
+            sb.Append(objective.MenuLine);
         }
         return sb.ToString();
     }

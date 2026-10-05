@@ -31,11 +31,12 @@ using UnityEngine;
 // bills every chilled body on the field at a rate the player raises by freezing.
 //
 // The ceiling, written down so it is known rather than so it gets tuned away: a
-// freeze lasts whatever chill was left plus 3s per Deep Freeze rank, so the longest
-// drafted freeze is Frost Tip III's 10s chill + Deep Freeze III's 9s = 19s, at 3 a
-// second = 57, and Frost Bite ticks never wear the ice down. That kills a bat, a rat
-// or a grey wolf outright and leaves a black wolf (60) just standing. Hoarfrost Band
-// doubles the chill, which makes it 29s and 87 - an ogre dies inside one freeze.
+// freeze lasts whatever chill was left plus 3s per Deep Freeze rank. Since
+// 2026-10-05 Deep Freeze carries the chill as well (see ColdRank), so the longest
+// drafted freeze is Deep Freeze III's 13s chill (3 + 10) + its 9s = 22s, at 3 a
+// second = 66, and Frost Bite ticks never wear the ice down. That kills a bat, a
+// rat, a grey wolf and a black wolf (60) outright. Hoarfrost Band doubles the
+// chill, which makes it 35s and 105 - an ogre dies inside one freeze.
 // Bosses are held half as long (BossFreezeMultiplier).
 //
 // A knight who got here spent most of a run on one idea and the board going quiet is
@@ -66,8 +67,12 @@ public class FrigidBoost : MonoBehaviour
     /// there will ever be is covered by it.</summary>
     public const float BossFreezeMultiplier = 0.5f;
 
-    /// <summary>Radius of the cold thrown off by a body Shatter II breaks.</summary>
-    public const float SplinterRadius = 1.8f;
+    // The three sizes a burst of cold comes in. Rimeblade walks all three, and a
+    // Shatter blast borrows the top two (owner, 2026-10-05: "same effect from
+    // rime blade"), so "large" on one card is the same ring as "large" on the other.
+    public const float FrostBlastSmall = 1.6f;
+    public const float FrostBlastLarge = 2.3f;
+    public const float FrostBlastExtraLarge = 3f;
 
     /// <summary>The ward sweeps on a fixed beat rather than every frame - one
     /// OverlapCircle per knight per quarter second, not sixty.</summary>
@@ -77,7 +82,7 @@ public class FrigidBoost : MonoBehaviour
     /// because standing in the ring is what is being paid for.</summary>
     public const float WardChillSeconds = 0.6f;
 
-    /// <summary>What the ward does to enemy ammunition crossing it at rank II.</summary>
+    /// <summary>What the ward does to enemy ammunition crossing it, at every rank.</summary>
     public const float WardProjectileSpeedMultiplier = 0.5f;
 
     /// <summary>Frost Bite: what a CHILLED body loses per second once the capstone
@@ -107,7 +112,7 @@ public class FrigidBoost : MonoBehaviour
 
     // Equipment adds time on separate fields rather than inflating a rank. Rank
     // also drives chill DEPTH and whether the knight can freeze at all, so a band
-    // that "gives you Frost Tip II" to buy two seconds would quietly hand over the
+    // that "gives you a rank of cold" to buy two seconds would quietly hand over the
     // slow as well. Same reason Ember keeps its zone dps bonus off its level.
     // Chill is scaled rather than topped up, because the chain's whole shape is in
     // how long the cold lasts - 3s to 6s to 10s. A flat two seconds would be most
@@ -157,15 +162,30 @@ public class FrigidBoost : MonoBehaviour
         return frozen ? FrostBiteFrozenDps : FrostBiteChilledDps;
     }
 
-    // How cold this knight is, full stop. Frost Tip is the chain that deepens it,
-    // but the depth carries to EVERYTHING the knight's cold touches - the ward and
-    // the blade get colder too. A knight who took only Glacial Ward still chills
-    // at rank one rather than at nothing, which is why this floors at 1.
+    // How cold this knight is, full stop. The depth carries to EVERYTHING the
+    // knight's cold touches - the ward and the blade get colder too. A knight who
+    // took only Glacial Ward still chills at rank one rather than at nothing,
+    // which is why this floors at 1.
+    //
+    // DEEP FREEZE IS THE CHAIN THAT DEEPENS IT (owner, 2026-10-05). Frost Tip used
+    // to: it had three ranks and they were the slow and the chill time. Frost Tip
+    // is now one card, the door into the Order - arrows chill at rank one and a
+    // second hit freezes, exactly as its rank I always did - and what its ranks II
+    // and III bought moved onto Deep Freeze II and III. Deep Freeze I sits at the
+    // same depth as the door: its card says -30%, which is rank one.
     //
     // The draft alone tops out at III. Rank IV exists only for equipment stacked on
-    // a full chain (Winter's Tooth + Frost Tip III), so that the last pick is never
-    // a dead one.
-    private int ColdRank { get { return Mathf.Clamp(Mathf.Max(TotalFrostTip, 1), 1, 4); } }
+    // a full chain (Winter's Tooth + Deep Freeze III), so that the last pick is
+    // never a dead one. Each Frost Tip rank an item grants is still one rank
+    // colder, as it was when the ranks were Frost Tip's own.
+    private int ColdRank
+    {
+        get
+        {
+            int deep = Mathf.Max(Mathf.Min(deepFreezeLevel, 3) - 1, 0);
+            return Mathf.Clamp(Mathf.Max(TotalFrostTip, 1) + deep, 1, 4);
+        }
+    }
 
     /// <summary>What a chilled body's movement is multiplied by: a third off, then
     /// half, then seventy percent at the top of the chain.
@@ -191,14 +211,37 @@ public class FrigidBoost : MonoBehaviour
 
     /// <summary>How long a chill lasts before it wears off. Without decay every
     /// body on screen is permanently chilled after one volley and the second
-    /// state stops being something the player earns.</summary>
+    /// state stops being something the player earns.
+    ///
+    /// Three seconds at the door, and Deep Freeze ADDS to it: +3s, +6s, +10s by
+    /// rank, which is what its cards say (owner, 2026-10-05). Those are the three
+    /// figures Frost Tip's ranks used to set outright, now stacked on the base
+    /// rather than replacing it, so a full chain chills for 13s where it was 10.
+    /// A Frost Tip rank beyond the first is worth three seconds, as rank I to II
+    /// was. Only equipment can supply one now: Winter's Tooth alone IS the first
+    /// rank and chills for the base three, and worn with Frost Tip it is a second.</summary>
     public float ChillSeconds
     {
         get
         {
-            if (ColdRank >= 3) return 10f * chillDurationMultiplier;
-            if (ColdRank == 2) return 6f * chillDurationMultiplier;
-            return 3f * chillDurationMultiplier;
+            int extraRanks = Mathf.Max(TotalFrostTip - 1, 0);
+            float seconds = BaseChillSeconds + DeepFreezeChillBonus + extraRanks * ChillSecondsPerItemRank;
+            return seconds * chillDurationMultiplier;
+        }
+    }
+
+    public const float BaseChillSeconds = 3f;
+    public const float ChillSecondsPerItemRank = 3f;
+
+    /// <summary>Seconds of chill a Deep Freeze rank adds: 3, 6, 10.</summary>
+    public float DeepFreezeChillBonus
+    {
+        get
+        {
+            if (deepFreezeLevel >= 3) return 10f;
+            if (deepFreezeLevel == 2) return 6f;
+            if (deepFreezeLevel == 1) return 3f;
+            return 0f;
         }
     }
 
@@ -242,10 +285,48 @@ public class FrigidBoost : MonoBehaviour
         }
     }
 
-    /// <summary>Rank II throws splinters. They CHILL and never freeze - see
-    /// pillar 2; this is the Order's only way to reach more than one body at once
-    /// and it stays inside the rule.</summary>
-    public bool ShatterSplinters { get { return shatterLevel >= 2; } }
+    /// <summary>How far the cold reaches when this knight breaks a frozen body:
+    /// Rimeblade's large ring at rank I, its extra large at rank II. Zero without
+    /// Shatter.
+    ///
+    /// Both ranks blast since 2026-10-05 (owner's call); before that only rank II
+    /// threw anything, and only off an arrow. The blast CHILLS and never freezes,
+    /// and it deals no damage - Shatter's damage is the multiplier on the blow and
+    /// nothing else (owner). It is still the Order's only way to reach more than
+    /// one body at once, and it stays inside pillar 2 by doing it with cold.</summary>
+    public float ShatterBlastRadius
+    {
+        get
+        {
+            if (shatterLevel >= 2) return FrostBlastExtraLarge;
+            if (shatterLevel == 1) return FrostBlastLarge;
+            return 0f;
+        }
+    }
+
+    /// <summary>
+    /// The frost blast off a body this knight just shattered: Rimeblade's burst and
+    /// ring, and a chill on everything else inside it. Never onto the thing that
+    /// was shattered - the blow that broke its ice deliberately leaves it free
+    /// rather than chilled, and cold landing back on it would undo that and let
+    /// one hit do the Order's whole cycle alone.
+    /// </summary>
+    public void ReleaseShatterBlast(Vector2 center, EnemyBase shattered)
+    {
+        float radius = ShatterBlastRadius;
+        if (radius <= 0f) return;
+
+        FrostFx.Burst(center, radius);
+        FrostFx.BurstRing(center, radius);
+
+        Collider2D[] caught = Physics2D.OverlapCircleAll(center, radius);
+        for (int i = 0; i < caught.Length; i++)
+        {
+            EnemyBase other = caught[i] != null ? caught[i].GetComponent<EnemyBase>() : null;
+            if (other == null || other == shattered || other.IsDead) continue;
+            TouchWithCold(other, false);
+        }
+    }
 
     // Tight, and tighter than it first shipped. The ward is a LAST line - the cold
     // a body walks into when it has already got close enough to be a problem. At
@@ -266,10 +347,11 @@ public class FrigidBoost : MonoBehaviour
         }
     }
 
-    /// <summary>Rank II slows enemy ammunition crossing the ring. Not damage and
-    /// not defence - it is time to get the shield there, which is the only
-    /// currency this Order deals in.</summary>
-    public bool WardSlowsProjectiles { get { return glacialWardLevel >= 2; } }
+    /// <summary>The ward slows enemy ammunition crossing the ring, from rank I
+    /// (owner, 2026-10-05; it used to start at rank II). Not damage and not
+    /// defence - it is time to get the shield there, which is the only currency
+    /// this Order deals in.</summary>
+    public bool WardSlowsProjectiles { get { return glacialWardLevel >= 1; } }
 
     /// <summary>Rimeblade's frost damage per rank, dealt ON TOP of the sword's own
     /// hit to everything the burst catches: 5, then 10, then 15.</summary>
@@ -283,9 +365,9 @@ public class FrigidBoost : MonoBehaviour
     {
         get
         {
-            if (rimebladeLevel >= 3) return 3f;
-            if (rimebladeLevel == 2) return 2.3f;
-            return 1.6f;
+            if (rimebladeLevel >= 3) return FrostBlastExtraLarge;
+            if (rimebladeLevel == 2) return FrostBlastLarge;
+            return FrostBlastSmall;
         }
     }
 

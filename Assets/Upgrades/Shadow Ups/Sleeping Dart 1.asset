@@ -13,19 +13,16 @@ MonoBehaviour:
   m_Name: Sleeping Dart 1
   m_EditorClassIdentifier: 
   upgradeName: Sleeping Dart I
-  description: Every fifth arrow leaves as a dart. What it hits stands still for
-    five seconds.
+  description: Every 5th arrow puts enemies to sleep.
   weight: 55
   order: 2
   requiresOrderCount: 2
   secondOrder: 1
   requiresSecondOrderCount: 2
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 1 in 5
-    labelText: SHOTS
-    isPositive: 1
   - valueText: 5s
     labelText: SLEEP
     isPositive: 1

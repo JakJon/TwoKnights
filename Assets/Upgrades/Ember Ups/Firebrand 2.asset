@@ -13,16 +13,19 @@ MonoBehaviour:
   m_Name: Firebrand 2
   m_EditorClassIdentifier: 
   upgradeName: Firebrand II
-  description: The fireball is lobbed three times as far.
+  description: Sword fireballs travel distance is increased significantly.
   weight: 24
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 7cf9696f11624e199520ef5dcce0bda2, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 3x
-    labelText: LOB DISTANCE
+  - valueText: TRIPLED
+    labelText: DISTANCE
     isPositive: 1
   rank: 2
   fireballPrefab: {fileID: 4271991971420557666, guid: 086b3c5d7a42ae942a4566a3f1caa667, type: 3}

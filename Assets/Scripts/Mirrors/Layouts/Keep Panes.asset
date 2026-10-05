@@ -17,13 +17,30 @@ MonoBehaviour:
   - color: 0
     frames:
     - {fileID: 4355810392257656996, guid: 4c0a4b06b9d89db469cce36043899ebe, type: 3}
+    - {fileID: 469889294461617862, guid: 4c0a4b06b9d89db469cce36043899ebe, type: 3}
+    - {fileID: 350346995255012615, guid: 4c0a4b06b9d89db469cce36043899ebe, type: 3}
+    - {fileID: 278775236823942115, guid: 4c0a4b06b9d89db469cce36043899ebe, type: 3}
+    - {fileID: 4122022347673701700, guid: 4c0a4b06b9d89db469cce36043899ebe, type: 3}
   - color: 1
     frames:
     - {fileID: -3432393070808269214, guid: 35ee5101404eb3c2f68080726f0d3f61, type: 3}
+    - {fileID: -3187892960130272882, guid: 35ee5101404eb3c2f68080726f0d3f61, type: 3}
+    - {fileID: -3617597555663579219, guid: 35ee5101404eb3c2f68080726f0d3f61, type: 3}
+    - {fileID: -175024343750103060, guid: 35ee5101404eb3c2f68080726f0d3f61, type: 3}
+    - {fileID: -2323288757279301246, guid: 35ee5101404eb3c2f68080726f0d3f61, type: 3}
   - color: 2
     frames:
     - {fileID: -3432393070808269214, guid: 1c0be3ba3056437c40ba0e91f63328be, type: 3}
+    - {fileID: 8943785629072798465, guid: 1c0be3ba3056437c40ba0e91f63328be, type: 3}
+    - {fileID: 5099517247380454608, guid: 1c0be3ba3056437c40ba0e91f63328be, type: 3}
+    - {fileID: 17053130308925733, guid: 1c0be3ba3056437c40ba0e91f63328be, type: 3}
+    - {fileID: 5694009018995596953, guid: 1c0be3ba3056437c40ba0e91f63328be, type: 3}
   - color: 3
     frames:
     - {fileID: -3432393070808269214, guid: 778252130faf5e6e73d31c6c553bf289, type: 3}
-  shimmerInterval: 0.18
+    - {fileID: -2318329409714345085, guid: 778252130faf5e6e73d31c6c553bf289, type: 3}
+    - {fileID: -7537074440412562257, guid: 778252130faf5e6e73d31c6c553bf289, type: 3}
+    - {fileID: -3656910749969674992, guid: 778252130faf5e6e73d31c6c553bf289, type: 3}
+    - {fileID: -8839814713826643934, guid: 778252130faf5e6e73d31c6c553bf289, type: 3}
+  shimmerInterval: 0.08
+  shimmerRest: 4.5

@@ -13,18 +13,21 @@ MonoBehaviour:
   m_Name: Serpents Breath 3
   m_EditorClassIdentifier: 
   upgradeName: Serpent's Breath III
-  description: An 8-second venom cloud rides out with the fan, and its beads last 6 seconds.
+  description: Every sword swing exhales three poison bubbles, and a poison cloud.
   weight: 10
   order: 1
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 9ef6b32b06a3b84e0362b8876eb05ae9, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +1 CLOUD
-    labelText: WITH THE FAN
+  - valueText: +1
+    labelText: CLOUD
     isPositive: 1
-  - valueText: 4s
+  - valueText: 6-8s
     labelText: LINGERS
     isPositive: 1
   tier: 3

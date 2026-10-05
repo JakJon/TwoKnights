@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Reflector 2
   m_EditorClassIdentifier: 
   upgradeName: Reflector II
-  description: Nothing lands unreturned, and it comes back harder. Your projectiles fly 2.5x faster.
+  description: All projectiles are reflected back at enemies.
   weight: 16
   order: 3
   requiresOrderCount: 0
@@ -25,7 +25,7 @@ MonoBehaviour:
   lockedBy: []
   stats:
   - valueText: 100%
-    labelText: BLOCKS REFLECT
+    labelText: REFLECT
     isPositive: 1
   - valueText: x2.5
     labelText: REFLECT DAMAGE

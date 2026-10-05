@@ -59,6 +59,7 @@ public class DawnBoost : MonoBehaviour
     private float orbHealMultiplier = 1f;
     private float manaOrbMultiplier = 1f;   // rank I+: mana orbs fill more of the bar
     private int manaOrbHeal = 0;
+    private int healthOrbSpecial = 0;       // rank II+: health orbs fill the special bar too
     private bool slowsOrbs = false;
 
     // Sunwell III slows orbs for BOTH knights — the orb is shared ground, so
@@ -137,6 +138,16 @@ public class DawnBoost : MonoBehaviour
     {
         manaOrbHeal = Mathf.Max(manaOrbHeal, amount);
     }
+
+    // Sunwell II crosses the two orbs over (owner, 2026-10-05): a health orb also
+    // fills some of the special bar, and a mana orb also heals. Both are flat
+    // amounts, stated on the card, and neither is scaled by the orb multipliers.
+    public void SetHealthOrbSpecial(int amount)
+    {
+        healthOrbSpecial = Mathf.Max(healthOrbSpecial, amount);
+    }
+
+    public int HealthOrbSpecial => healthOrbSpecial;
 
     // Sunwell pays on BOTH kinds of orb from rank I (owner's call, 2026-09-25):
     // a mana orb the knight shot is the same aim rewarded as a health orb, so
@@ -339,8 +350,8 @@ public class DawnBoost : MonoBehaviour
 
     /// <summary>
     /// The vigil this knight keeps over the OTHER one. Spends on success, so it
-    /// fires at most once — the charge lasts as long as this component does,
-    /// which is one map.
+    /// fires at most once per run — the charge lasts as long as this component
+    /// does, and the component is rebuilt at the start of every run.
     /// </summary>
     public bool TrySpendLastLight()
     {

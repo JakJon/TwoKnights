@@ -13,11 +13,14 @@ MonoBehaviour:
   m_Name: Lifebloom 1
   m_EditorClassIdentifier: 
   upgradeName: Lifebloom I
-  description: Every twelfth enemy you fell heals you. Count them. Arrows do more holy damage.
+  description: Every twelfth kill heals you. Increases arrow damage.
   weight: 105
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +10 HP

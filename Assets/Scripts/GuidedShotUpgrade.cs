@@ -14,7 +14,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GuidedShotUpgrade", menuName = "Upgrades/Guided Shot")]
 public class GuidedShotUpgrade : BaseUpgrade
 {
-    [Tooltip("Rank this tier grants: 1, 2 or 3. The radius itself lives on GuardianBoost so the chain tunes in one place.")]
+    [Tooltip("Rank this tier grants: 1 or 2 (rank 2 triples the radius). The radius itself lives on GuardianBoost so the chain tunes in one place.")]
     [SerializeField] private int rank = 1;
 
     public override string ChainName => "Guided Shot";

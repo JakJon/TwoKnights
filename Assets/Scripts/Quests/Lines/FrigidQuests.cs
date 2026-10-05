@@ -25,7 +25,9 @@ public static class FrigidQuests
                 + "and then between waves, ice orbs drift slowly along the top and bottom of the field. We "
                 + "have to shoot every one of them before it drifts away.",
             mapId: Camp,
-            objectives: One("trials.frigid", 3, "frost trials passed"),
+            objectives: One("trials.frigid", 3,
+                            menu: "{count} frost trials passed",
+                            npc: "Pass the frost trials"),
             reward: Reward(crystals: 2),
             unlocks: Gate(Stat("frigid.chilled", 60)),
             cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
@@ -48,7 +50,9 @@ public static class FrigidQuests
                 "After being initiated into the frosted oath we are tasked to put our freezing abilities "
                 + "to use.",
             mapId: Camp,
-            objectives: One(OrderStats.FrozenSecondsTotal, 300, "seconds taken from them"),
+            objectives: One(OrderStats.FrozenSecondsTotal, 300,
+                            menu: "Freeze enemies for a total of {count} seconds",
+                            npc: "Freeze enemies for {target} seconds"),
             reward: Reward(equipmentId: "winters_tooth"),
             unlocks: Gate(After(Initiation)),
             cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
@@ -67,7 +71,9 @@ public static class FrigidQuests
                 "Another trial from the Frost Order. This time we must deal massive damage with shatter "
                 + "damage.",
             mapId: Camp,
-            objectives: One(OrderStats.ShatterDamageWaveMax, 300, "shatter damage in one wave"),
+            objectives: One(OrderStats.ShatterDamageWaveMax, 300,
+                            menu: "Best attempt: {count} shatter damage in one wave",
+                            npc: "Deal {target} shatter damage in a wave"),
             reward: Reward(equipmentId: "heart_of_ice"),
             unlocks: Gate(After(FrozenInTime)),
             cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
@@ -85,7 +91,9 @@ public static class FrigidQuests
                 "After our Frost Order initiation we are undergoing a trial to freeze a number of enemies "
                 + "that have been chilled by our glacial ward within one run.",
             mapId: Camp,
-            objectives: One(OrderStats.WardFrozenRunMax, 30, "caught by the ward in one run"),
+            objectives: One(OrderStats.WardFrozenRunMax, 30,
+                            menu: "{count} enemies frozen in a frost ring in one run",
+                            npc: "Freeze {target} enemies within your frost ring in one run"),
             reward: Reward(crystals: 2),
             unlocks: Gate(After(Initiation)),
             cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
@@ -104,10 +112,13 @@ public static class FrigidQuests
             mapId: Camp,
             objectives: new[]
             {
-                Obj("upgrades.taken.permafrost", 1, "Take up Deep Freeze III", hideProgress: true),
-                Obj(OrderStats.FrozenTargetDamage, 100, "damage dealt into the ice"),
+                Obj("upgrades.taken.frost_bite", 1,
+                    menu: "Obtain frost bite"),
+                Obj(OrderStats.FrostDamage, 100,
+                    menu: "and deal {count} frost damage",
+                    npc: "and deal {target} frost damage"),
             },
-            reward: Reward(equipmentId: "hoarfrost_band", upgradeSlug: "permafrost"),
+            reward: Reward(equipmentId: "hoarfrost_band", upgradeSlug: "frost_bite"),
             unlocks: Gate(After(FrozenFinalChances)),
             cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
             offer:

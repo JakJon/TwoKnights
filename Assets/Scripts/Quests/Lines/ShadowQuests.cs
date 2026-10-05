@@ -24,7 +24,9 @@ public static class ShadowQuests
                 + "Between waves, the Order's ninja turns up at the edge of the field and vanishes again "
                 + "moments later. We have to land a shot on him every time he shows himself.",
             mapId: Camp,
-            objectives: One("trials.shadow", 3, "shadow trials passed"),
+            objectives: One("trials.shadow", 3,
+                            menu: "{count} shadow trials passed",
+                            npc: "Complete the shadow trials"),
             reward: Reward(crystals: 2),
             unlocks: Gate(Stat(Feats.ShadowArrowHits, 100)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
@@ -41,7 +43,9 @@ public static class ShadowQuests
             description:
                 "Land 75 shadow arrows in a single wave to prove yourself to the Shadow Order.",
             mapId: Camp,
-            objectives: One(OrderStats.ShadowArrowWaveMax, 75, "shadow arrows landed in one wave"),
+            objectives: One(OrderStats.ShadowArrowWaveMax, 75,
+                            menu: "Best attempt: {count} shadow arrows landed in one wave",
+                            npc: "Land {target} shadow arrows in one wave"),
             reward: Reward(equipmentId: "starless_quiver"),
             unlocks: Gate(After(Initiation)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
@@ -57,7 +61,9 @@ public static class ShadowQuests
             description:
                 "Land 75 shurikens in a single wave to prove yourself to the Shadow Order.",
             mapId: Camp,
-            objectives: One(OrderStats.ShurikenWaveMax, 75, "shurikens landed in one wave"),
+            objectives: One(OrderStats.ShurikenWaveMax, 75,
+                            menu: "Best attempt: {count} shurikens landed in one wave",
+                            npc: "Land {target} shurikens in one wave"),
             reward: Reward(equipmentId: "nightglass_shard"),
             unlocks: Gate(After(Symphony)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
@@ -77,8 +83,10 @@ public static class ShadowQuests
             objectives: new[]
             {
                 Obj(Feats.PhantomFullThree, 1,
-                    "Land a swing and both its phantom echoes", hideProgress: true),
-                Obj(OrderStats.PhantomKillsWaveMax, 6, "felled by echoes in one wave"),
+                    menu: "Land a sword swing and both its phantom echoes"),
+                Obj(OrderStats.PhantomKillsWaveMax, 6,
+                    menu: "Best attempt: {count} felled by echoes in one wave",
+                    npc: "Get {target} kills with a sword's phantom echo in one wave"),
             },
             reward: Reward(equipmentId: "echo_ribbon"),
             unlocks: Gate(After(Initiation)),
@@ -97,8 +105,12 @@ public static class ShadowQuests
             mapId: Camp,
             objectives: new[]
             {
-                Obj("upgrades.taken.thousand_cuts", 1, "Take up Thousand Cuts", hideProgress: true),
-                Obj(OrderStats.ThousandCutsActivations, 20, "times the cooldown fell away"),
+                Obj("upgrades.taken.thousand_cuts", 1,
+                    menu: "Take up Thousand Cuts",
+                    npc: "Obtain thousand cuts upgrade"),
+                Obj(OrderStats.ThousandCutsActivations, 20,
+                    menu: "{count} Thousand cuts triggers",
+                    npc: "Trigger Thousand Cuts {target} times"),
             },
             reward: Reward(crystals: 3, upgradeSlug: "thousand_cuts"),
             unlocks: Gate(After(BeastlyBlades)),

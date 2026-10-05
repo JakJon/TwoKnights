@@ -13,19 +13,20 @@ MonoBehaviour:
   m_Name: Second Wind 1
   m_EditorClassIdentifier: 
   upgradeName: Second Wind I
-  description: Take 60 damage and you turn invincible for 6 seconds. Arrows do more holy damage.
+  description: Every 60 damage taken you become temporarily invincible. Increases
+    arrow damage.
   weight: 90
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 0ae375c18bb54ccd98d2df4a92b01e29, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 6s
-    labelText: UNTOUCHABLE
-    isPositive: 1
-  - valueText: 60
-    labelText: DAMAGE TAKEN
+    labelText: INVINCIBLE
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE

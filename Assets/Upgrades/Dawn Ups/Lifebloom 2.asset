@@ -13,19 +13,22 @@ MonoBehaviour:
   m_Name: Lifebloom 2
   m_EditorClassIdentifier: 
   upgradeName: Lifebloom II
-  description: The bloom comes sooner, and gives more. Arrows do more holy damage.
+  description: Every 8th kill heals you. Increases arrow damage.
   weight: 60
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 7821fe7aa0b74e008b31962bdedfd3d6, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +15 HP
-    labelText: EVERY 10 KILLS
+    labelText: EVERY 8 KILLS
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE
     isPositive: 1
-  killsPerHeal: 10
+  killsPerHeal: 8
   healAmount: 15

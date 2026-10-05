@@ -13,11 +13,14 @@ MonoBehaviour:
   m_Name: Ignited Tips 1
   m_EditorClassIdentifier: 
   upgradeName: Ignited Tips I
-  description: Your arrows set what they strike alight.
+  description: Your arrows have a chance to be ignited, and set enemies on fire.
   weight: 110
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +30%

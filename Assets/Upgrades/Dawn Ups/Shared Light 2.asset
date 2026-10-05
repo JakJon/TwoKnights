@@ -13,19 +13,20 @@ MonoBehaviour:
   m_Name: Shared Light 2
   m_EditorClassIdentifier: 
   upgradeName: Shared Light II
-  description: More passes on, and healing wasted at full health goes across whole. Arrows do more holy damage.
+  description: Every heal now heals the other knight even more. If you heal at full
+    health, the surplus goes to the other knight. Increases arrow damage.
   weight: 55
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 0ae375c18bb54ccd98d2df4a92b01e29, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 80%
-    labelText: ECHOED TO PARTNER
-    isPositive: 1
-  - valueText: 100%
-    labelText: OVERHEAL ROUTED
+    labelText: TO PARTNER
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE

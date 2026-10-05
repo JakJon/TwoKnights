@@ -13,15 +13,21 @@ MonoBehaviour:
   m_Name: Serpents Breath 2
   m_EditorClassIdentifier: 
   upgradeName: Serpent's Breath II
-  description: Every swing exhales three venom beads in a narrow fan.
+  description: Every sword swing exhales three poison bubbles.
   weight: 60
   order: 1
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 1a5202610e413aa37024e4b37e4899ec, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 3 BEADS
-    labelText: NARROW FAN
+  - valueText: +3
+    labelText: BUBBLES
+    isPositive: 1
+  - valueText: +1
+    labelText: SECOND
     isPositive: 1
   tier: 2

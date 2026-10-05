@@ -17,6 +17,13 @@ MonoBehaviour:
   weight: 40
   order: 1
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 46f6a57d562150fdeb38380b67b6e7a9, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
+  stats:
+  - valueText: +1
+    labelText: POISON CLOUD
+    isPositive: 1

@@ -13,22 +13,23 @@ MonoBehaviour:
   m_Name: Greatshield 3
   m_EditorClassIdentifier: 
   upgradeName: Holy Shield III
-  description: A curved wall you can carry, and the frame to carry it. +50 max health.
+  description: The shield significantly increases your maximum health and is much
+    larger.
   weight: 16
   order: 3
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 5471bbcff7194b9c84f1b4cc14f87330, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +50
     labelText: MAX HEALTH
     isPositive: 1
-  - valueText: +80%
+  - valueText: +115%
     labelText: SHIELD LENGTH
-    isPositive: 1
-  - valueText: 80
-    labelText: ARC DEGREES
     isPositive: 1
   lengthMultiplier: 2.16
   curveRadius: 1.4

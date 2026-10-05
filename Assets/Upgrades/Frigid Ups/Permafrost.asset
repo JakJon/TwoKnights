@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Permafrost
   m_EditorClassIdentifier: 
   upgradeName: Deep Freeze III
-  description: Ice that barely notices a blow. Long enough to forget it was ever
-    a threat.
+  description: Enemies move slower, stay frozen and chilled longer and take more
+    damage to shatter when frozen.
   weight: 12
   order: 6
   requiresOrderCount: 0
@@ -22,6 +22,7 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 4cbfd1a9f3404a74ebdc16cce7315cbb, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +9s
@@ -29,5 +30,11 @@ MonoBehaviour:
     isPositive: 1
   - valueText: 35
     labelText: DAMAGE TO BREAK ICE
+    isPositive: 1
+  - valueText: -70%
+    labelText: SPEED
+    isPositive: 1
+  - valueText: +10s
+    labelText: CHILL
     isPositive: 1
   freezeLevel: 3

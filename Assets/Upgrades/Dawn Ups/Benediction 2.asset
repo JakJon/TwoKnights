@@ -13,22 +13,26 @@ MonoBehaviour:
   m_Name: Benediction 2
   m_EditorClassIdentifier: 
   upgradeName: Benediction II
-  description: The blessing doubles on both knights, and both are untouchable as it breaks. Arrows do more holy damage.
+  description: Specials make knights invincible temporarily, and double healing effects.
+    Increases arrow damage.
   weight: 35
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 03748a998119461685daa661efb8bea6, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +40 HP
     labelText: TO BOTH KNIGHTS
     isPositive: 1
-  - valueText: 1s
+  - valueText: 5s
     labelText: UNTOUCHABLE BOTH
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE
     isPositive: 1
   healAmount: 40
-  invulnerableSeconds: 1
+  invulnerableSeconds: 5

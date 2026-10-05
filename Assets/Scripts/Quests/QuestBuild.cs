@@ -12,22 +12,24 @@ public static class QuestBuild
     public const string Camp = "";
 
     /// <summary>
+    /// <paramref name="menu"/> is the line the quest menu prints and
+    /// <paramref name="npc"/> the line the NPC's card prints; both are templates
+    /// that take {count}, {current} and {target} — see QuestObjective.
+    ///
     /// <paramref name="lifetime"/> measures against the player's whole history
     /// instead of from the moment the quest opened. Almost nothing wants it — see
     /// QuestObjective.Lifetime.
     /// </summary>
-    public static QuestObjective Obj(string statKey, int target, string label = null,
-                                     bool hideProgress = false, bool lifetime = false,
-                                     bool countAfter = false)
+    public static QuestObjective Obj(string statKey, int target, string menu = null, string npc = null,
+                                     bool lifetime = false, bool hideOnNpcCard = false)
     {
-        return new QuestObjective(statKey, target, label, hideProgress, lifetime, countAfter);
+        return new QuestObjective(statKey, target, menu, npc, lifetime, hideOnNpcCard);
     }
 
-    public static QuestObjective[] One(string statKey, int target, string label = null,
-                                       bool hideProgress = false, bool lifetime = false,
-                                       bool countAfter = false)
+    public static QuestObjective[] One(string statKey, int target, string menu = null, string npc = null,
+                                       bool lifetime = false, bool hideOnNpcCard = false)
     {
-        return new[] { new QuestObjective(statKey, target, label, hideProgress, lifetime, countAfter) };
+        return new[] { new QuestObjective(statKey, target, menu, npc, lifetime, hideOnNpcCard) };
     }
 
     /// <summary>Gate on another quest being finished — the standard link in a chain.</summary>

@@ -13,17 +13,23 @@ MonoBehaviour:
   m_Name: Fireball 2
   m_EditorClassIdentifier: 
   upgradeName: Fireball II
-  description: The fireball comes around sooner.
+  description: Every 4th shot is a fireball.
   weight: 55
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 34155d56221c413493ae6c42c9ea5402, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 1 IN 4
-    labelText: SHOTS
+    labelText: 
+    isPositive: 1
+  - valueText: +33%
+    labelText: BLAST RADIUS
     isPositive: 1
   everyNShots: 4
-  blastRadius: 1.5
+  blastRadius: 2
   fireballPrefab: {fileID: 4271991971420557666, guid: 086b3c5d7a42ae942a4566a3f1caa667, type: 3}

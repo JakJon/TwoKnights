@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rimeblade 2
   m_EditorClassIdentifier: 
   upgradeName: Rimeblade II
-  description: The burst reaches further and bites harder.
+  description: Sword swings create a larger frigid blast and deal more frost damage.
   weight: 26
   order: 6
   requiresOrderCount: 0
@@ -21,10 +21,11 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 2817cf189f5052749bbfd17f2c3c6834, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 44%
-    labelText: LARGER BURST
+  - valueText: LARGE
+    labelText: FROST BLAST
     isPositive: 1
   - valueText: +10
     labelText: FROST DAMAGE

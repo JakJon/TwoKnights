@@ -398,23 +398,33 @@ public class QuestNotices : MonoBehaviour
         if (quest.HasObjectives)
         {
             card.Text("\n");
-            card.Text(quest.Objectives.Length == 1 ? "Objective" : "Objectives");
+            card.Text(CardLineCount(quest) == 1 ? "Objective" : "Objectives");
             for (int i = 0; i < quest.Objectives.Length; i++)
             {
                 var objective = quest.Objectives[i];
-                // The ask as it was written, not a counter. It is finished, so
-                // "500/500" is a number the player has to read to learn nothing.
-                string body = objective.HideProgress || objective.CountAfter
-                    ? objective.DisplayLabel
-                    : objective.Target + " " + objective.DisplayLabel;
+                if (objective == null || objective.HideOnNpcCard) continue;
+                // The ask as it was written for the card, not a counter. It is
+                // finished, so "500/500" is a number the player has to read to
+                // learn nothing.
                 card.Text("\n");
                 card.Tag("<i>" + ListItemOpen);
-                card.Text(body);
+                card.Text(objective.NpcLine);
                 card.Tag(ListItemClose + "</i>");
             }
         }
 
         return card;
+    }
+
+    // How many objectives the card will list - some leave themselves off it.
+    private static int CardLineCount(Quest quest)
+    {
+        int lines = 0;
+        for (int i = 0; i < quest.Objectives.Length; i++)
+        {
+            if (quest.Objectives[i] != null && !quest.Objectives[i].HideOnNpcCard) lines++;
+        }
+        return lines;
     }
 
     private static CardBuilder DescribeUnlocked(Quest quest)
@@ -431,15 +441,14 @@ public class QuestNotices : MonoBehaviour
             for (int i = 0; i < quest.Objectives.Length; i++)
             {
                 var objective = quest.Objectives[i];
+                if (objective == null || objective.HideOnNpcCard) continue;
                 // No counter. Progress on a quest revealed this second is either
                 // zero or an accident of a shared stat, and either way the words
-                // are a better first impression of the ask than "0/500".
-                string body = objective.HideProgress || objective.CountAfter
-                    ? objective.DisplayLabel
-                    : objective.Target + " " + objective.DisplayLabel;
+                // written for the card are a better first impression of the ask
+                // than "0/500".
                 card.Text("\n");
                 card.Tag("<i>" + ListItemOpen);
-                card.Text(body);
+                card.Text(objective.NpcLine);
                 card.Tag(ListItemClose + "</i>");
             }
         }

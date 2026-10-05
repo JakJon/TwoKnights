@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Bowsight 1
   m_EditorClassIdentifier: 
   upgradeName: Bowsight I
-  description: A red beam reads your line of fire, and burns what it rests on.
+  description: A laser sight to help aim. Does small amounts of damage.
   weight: 16
   order: 3
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 6
-    labelText: BEAM REACH
+  - valueText: MEDIUM
+    labelText: BEAM
     isPositive: 1
   - valueText: 2
     labelText: BEAM DPS

@@ -13,20 +13,23 @@ MonoBehaviour:
   m_Name: Fireball 3
   m_EditorClassIdentifier: 
   upgradeName: Fireball III
-  description: Fireballs arrive fast and burst wider.
+  description: Every 3rd shot is a fireball.
   weight: 26
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 0f8ec3671bd2463480e8f9ae1b93528d, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 1 IN 3
-    labelText: SHOTS
+    labelText: 
     isPositive: 1
   - valueText: +33%
     labelText: BLAST RADIUS
     isPositive: 1
   everyNShots: 3
-  blastRadius: 2
+  blastRadius: 2.667
   fireballPrefab: {fileID: 4271991971420557666, guid: 086b3c5d7a42ae942a4566a3f1caa667, type: 3}

@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Fire Trail 1
   m_EditorClassIdentifier: 
   upgradeName: Fire Trail I
-  description: Burning enemies leave fire in their wake.
+  description: Burning enemies create a trail of fire.
   weight: 55
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 121515026f02488493aa6156428d40f7, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: '0.5'
-    labelText: TRAIL SIZE
+  - valueText: FIRE
+    labelText: TRAILS
     isPositive: 1
   trailLevel: 1

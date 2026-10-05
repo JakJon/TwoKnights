@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: Firebrand 3
   m_EditorClassIdentifier: 
   upgradeName: Firebrand III
-  description: A second fireball is lobbed beside the first.
+  description: Two fireballs per swing.
   weight: 14
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 41fec2544e8b4febb284f47ce9fae1ae, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 2

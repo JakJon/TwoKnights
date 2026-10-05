@@ -36,6 +36,7 @@ public class MirrorPane : MonoBehaviour
     private MirrorRedirect _rule = MirrorRedirect.MirrorAboutFacing;
     private Sprite[] _frames;
     private float _shimmerInterval = 0.18f;
+    private float _shimmerRest = 4.5f;
     private float _shimmerAt;
     private int _frame;
     private BoxCollider2D _catcher;
@@ -77,7 +78,8 @@ public class MirrorPane : MonoBehaviour
     /// and the wide one.
     /// </summary>
     public void Configure(string label, MirrorColor color, MirrorFacing facing,
-                          MirrorRedirect rule, Sprite[] frames, float shimmerInterval)
+                          MirrorRedirect rule, Sprite[] frames, float shimmerInterval,
+                          float shimmerRest = 4.5f)
     {
         Label = label;
         PaneColor = color;
@@ -85,8 +87,9 @@ public class MirrorPane : MonoBehaviour
         _rule = rule;
         _frames = frames;
         _shimmerInterval = Mathf.Max(0.02f, shimmerInterval);
+        _shimmerRest = Mathf.Max(0f, shimmerRest);
         _frame = 0;
-        _shimmerAt = Time.time + _shimmerInterval;
+        _shimmerAt = Time.time + _shimmerRest;
 
         if (_catcher == null) _catcher = GetComponent<BoxCollider2D>();
         if (art == null) art = GetComponentInChildren<SpriteRenderer>();
@@ -121,6 +124,8 @@ public class MirrorPane : MonoBehaviour
             art.transform.localPosition = tall
                 ? new Vector3(0f, -drop, 0f)
                 : new Vector3(drop, 0f, 0f);
+            _restPosition = art.transform.localPosition;
+            art.transform.localScale = Vector3.one;
         }
 
         if (_catcher != null)
@@ -139,21 +144,66 @@ public class MirrorPane : MonoBehaviour
         Twin = twin;
     }
 
-    // The shimmer, on a fixed cadence. Dormant as the art stands: the mirrors are
-    // a single frame, so this returns immediately and a pane is simply still. Draw
-    // a second frame into the .aseprite and it starts working with no code change.
+    // The shimmer, on a fixed cadence. The first frame is the glass at rest and
+    // the others are a glint crossing it: the pane sits still for the rest, the
+    // glint runs through once, and it settles again. Played end to end without
+    // the rest it read as a strobe. A pane with a single frame is simply still.
     //
     // A counter rather than a roll, like every other cadence in the game (see the
     // no-randomness pillar) — two panes of the same colour laid in the same frame
     // stay in step with each other, which is part of reading them as one pair.
     private void Update()
     {
+        TickPulse();
+
         if (_frames == null || _frames.Length < 2 || art == null) return;
         if (Time.time < _shimmerAt) return;
 
-        _shimmerAt = Time.time + _shimmerInterval;
         _frame = (_frame + 1) % _frames.Length;
+        // Back on the resting frame: hold it before the next glint
+        _shimmerAt = Time.time + (_frame == 0 ? _shimmerRest : _shimmerInterval);
         art.sprite = _frames[_frame];
+    }
+
+    // A pane that has just taken a shot, or given one back, swells for a moment
+    // and settles. It is the pane's half of MirrorFx.Passage: the spray says
+    // where the shot went, this says which pane did it.
+    //
+    // The art hangs off its feet (see Configure), so the offset is scaled along
+    // with the sprite — otherwise the pane would grow away from its own centre.
+    private const float PulseSeconds = 0.2f;
+    private const float PulseSwell = 0.16f;
+    private float _pulseAt = -10f;
+    private bool _pulsing;
+    private Vector3 _restPosition;
+
+    public int SortingLayerId => art != null ? art.sortingLayerID : 0;
+    public int SortingOrder => art != null ? art.sortingOrder : 0;
+
+    public void Pulse()
+    {
+        _pulseAt = Time.time;
+    }
+
+    private void TickPulse()
+    {
+        if (art == null) return;
+
+        float t = (Time.time - _pulseAt) / PulseSeconds;
+        if (t >= 1f)
+        {
+            if (!_pulsing) return;
+            _pulsing = false;
+            art.transform.localScale = Vector3.one;
+            art.transform.localPosition = _restPosition;
+            return;
+        }
+
+        _pulsing = true;
+        // Out fast, back slow
+        float swell = 1f + PulseSwell * (1f - t) * (1f - t);
+        art.transform.localScale = new Vector3(swell, swell, 1f);
+        art.transform.localPosition = _restPosition * swell;
     }
 
     // Only projectiles go through. Enemies, knights and pickups are turned away
@@ -220,10 +270,16 @@ public class MirrorPane : MonoBehaviour
         float push = (Twin.HalfThickness + Clearance) / squareness;
 
         Vector2 exit = Twin.Center + exitTangent * along + exitDirection * push;
+        Vector2 entry = shot.transform.position;
 
         shot.transform.position = new Vector3(exit.x, exit.y, shot.transform.position.z);
         WriteFlight(shot, exitDirection, speed, body);
         passenger.NoteExit(Twin);
+
+        // Said at both ends, in the pair's colour, so the trip can be read
+        MirrorFx.Passage(this, entry, direction, Twin, exit, exitDirection);
+        Pulse();
+        Twin.Pulse();
     }
 
     // Where a shot is going and how fast. Two families of projectile fly in this

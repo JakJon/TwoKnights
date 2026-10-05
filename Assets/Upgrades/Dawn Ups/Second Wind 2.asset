@@ -13,26 +13,27 @@ MonoBehaviour:
   m_Name: Second Wind 2
   m_EditorClassIdentifier: 
   upgradeName: Second Wind II
-  description: Take 40 damage and you turn invincible for 6 seconds, healing 10. Arrows do more holy damage.
+  description: Every 40 damage taken you become invincible and receive a minor heal.
+    Increases arrow damage.
   weight: 45
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 17d79d9640304af0b28e61785cff7501, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 6s
-    labelText: UNTOUCHABLE
+  - valueText: 8s
+    labelText: INVINCIBLE
     isPositive: 1
-  - valueText: 40
-    labelText: DAMAGE TAKEN
-    isPositive: 1
-  - valueText: +10 HP
-    labelText: EACH TIME
+  - valueText: +10
+    labelText: HP
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE
     isPositive: 1
   damageToll: 40
-  invulnerableSeconds: 6
+  invulnerableSeconds: 8
   healAmount: 10

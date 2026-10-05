@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Shatter 2
   m_EditorClassIdentifier: 
   upgradeName: Shatter II
-  description: It comes apart harder, and the pieces chill whatever is nearby.
+  description: When you shatter a frozen enemy deal triple damage, and cause a larger
+    frost blast.
   weight: 24
   order: 6
   requiresOrderCount: 0
@@ -21,9 +22,13 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 094c6dfbda3242842b28307f0da60f00, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: x3
-    labelText: DAMAGE ON FROZEN
+    labelText: SHATTER DAMAGE
+    isPositive: 1
+  - valueText: EXTRA LARGE
+    labelText: FROST BLAST
     isPositive: 1
   shatterLevel: 2

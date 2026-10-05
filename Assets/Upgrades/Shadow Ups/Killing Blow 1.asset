@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Killing Blow 1
   m_EditorClassIdentifier: 
   upgradeName: Killing Blow I
-  description: An arrow kills a weakened enemy the moment it lands. Bosses resist this effect.
+  description: Enemies below 25% health die instantly when arrows hit. Bosses immune.
   weight: 50
   order: 2
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: a4721a1389389ba41970067eefe58f94, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 25%
-    labelText: HEALTH THRESHOLD
+  - valueText: <25%
+    labelText: INSTA DEATH
     isPositive: 1
   executeThreshold: 0.25

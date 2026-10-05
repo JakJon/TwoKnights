@@ -13,14 +13,17 @@ MonoBehaviour:
   m_Name: Fire Sight
   m_EditorClassIdentifier: 
   upgradeName: Fire Sight
-  description: The beam sets alight anything it touches.
+  description: Your bow's laser sight now sets enemies on fire.
   weight: 8
   order: 4
   requiresOrderCount: 5
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 3461bd371c5c4b088936cbc7ea3645c9, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: IGNITES
-    labelText: BEAM
+  - valueText: FIRE
+    labelText: BEAM!
     isPositive: 1

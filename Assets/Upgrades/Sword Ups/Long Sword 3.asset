@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Long Sword 3
   m_EditorClassIdentifier: 
   upgradeName: Long Sword III
-  description: Longer and heavier still. A slow, enormous arc.
+  description: Your blade reaches further, and deals more damage.
   weight: 10
   order: 3
   requiresOrderCount: 0
@@ -24,15 +24,9 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +19%
-    labelText: REACH
-    isPositive: 1
-  - valueText: 26
+  - valueText: +35
     labelText: SWORD DAMAGE
     isPositive: 1
-  - valueText: -20%
-    labelText: SWING SPEED
-    isPositive: 0
   lengthMultiplier: 1.2811
   slowMultiplier: 1.25
-  baseDamage: 26
+  baseDamage: 35

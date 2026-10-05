@@ -13,24 +13,22 @@ MonoBehaviour:
   m_Name: Long Sword 1
   m_EditorClassIdentifier: 
   upgradeName: Long Sword I
-  description: A longer, heavier blade. It reaches further and bites harder, but comes round slower.
+  description: Your blade reaches further, and deals more damage.
   weight: 30
   order: 3
   requiresOrderCount: 0
   secondOrder: 0
   requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +48%
+  - valueText: +DOUBLE
     labelText: REACH
     isPositive: 1
   - valueText: 15
     labelText: SWORD DAMAGE
     isPositive: 1
-  - valueText: -20%
-    labelText: SWING SPEED
-    isPositive: 0
   lengthMultiplier: 2.129
   slowMultiplier: 1.25
   baseDamage: 15

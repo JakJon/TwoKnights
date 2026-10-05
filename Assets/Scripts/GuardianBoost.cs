@@ -164,18 +164,27 @@ public class GuardianBoost : MonoBehaviour
     /// onto it. Zero while the knight has no Guided Shot, which is what keeps the
     /// steering component off every arrow in a run with no Guardian picks.
     ///
-    /// Widened on 2026-09-25 (owner's call): rank I by 15%, ranks II and III by
-    /// 10%, from 0.5 / 1.0 / 1.6. Guided Reflections keeps the old radii.</summary>
+    /// Widened on 2026-09-25 (owner's call): rank I by 15%, from 0.5.
+    ///
+    /// TWO RANKS since 2026-10-05 (owner's call): the old middle rank was cut and
+    /// the old rank III became rank II. Its card says the range is tripled, so it
+    /// is exactly three times rank I rather than a number that is nearly that.</summary>
     public float GuidedShotRadius
     {
         get
         {
-            if (guidedShotLevel >= 3) return 1.76f;
-            if (guidedShotLevel == 2) return 1.1f;
-            if (guidedShotLevel == 1) return 0.575f;
+            if (guidedShotLevel >= 2) return GuidedShotRankOneRadius * GuidedRankTwoMultiplier;
+            if (guidedShotLevel == 1) return GuidedShotRankOneRadius;
             return 0f;
         }
     }
+
+    private const float GuidedShotRankOneRadius = 0.575f;
+    private const float GuidedReflectionRankOneRadius = 0.5f;
+
+    // What rank II of either guided chain does to rank I's radius. Both cards
+    // read "tripled".
+    private const float GuidedRankTwoMultiplier = 3f;
 
     /// <summary>The radii for the rock coming back. Deliberately
     /// a separate chain rather than a rider on Guided Shot: the arrow and the rebound
@@ -184,9 +193,8 @@ public class GuardianBoost : MonoBehaviour
     {
         get
         {
-            if (guidedReflectionsLevel >= 3) return 1.6f;
-            if (guidedReflectionsLevel == 2) return 1f;
-            if (guidedReflectionsLevel == 1) return 0.5f;
+            if (guidedReflectionsLevel >= 2) return GuidedReflectionRankOneRadius * GuidedRankTwoMultiplier;
+            if (guidedReflectionsLevel == 1) return GuidedReflectionRankOneRadius;
             return 0f;
         }
     }

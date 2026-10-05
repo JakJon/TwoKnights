@@ -14,7 +14,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GuidedReflectionsUpgrade", menuName = "Upgrades/Guided Reflections")]
 public class GuidedReflectionsUpgrade : BaseUpgrade
 {
-    [Tooltip("Rank this tier grants: 1, 2 or 3. Radii match Guided Shot's, deliberately — it is the same steering, bought again for the rock.")]
+    [Tooltip("Rank this tier grants: 1 or 2 (rank 2 triples the radius). The steering is Guided Shot's, deliberately — it is the same steering, bought again for the rock.")]
     [SerializeField] private int rank = 1;
 
     public override string ChainName => "Guided Reflections";

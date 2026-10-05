@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: Searing Panic 2
   m_EditorClassIdentifier: 
   upgradeName: Searing Panic II
-  description: Panic drives them harder and the lanes spread wider still.
+  description: Ignited enemies move even faster, fire areas are bigger, and do more
+    damage.
   weight: 22
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 89c80dd029db4fbd83599fbb89e7e8f3, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +0.5

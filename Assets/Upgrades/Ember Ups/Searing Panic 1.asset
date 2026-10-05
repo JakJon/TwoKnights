@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: Searing Panic 1
   m_EditorClassIdentifier: 
   upgradeName: Searing Panic I
-  description: Burning enemies flee faster, and lay wider, hotter trails.
+  description: Ignited enemies movement speed increased, fire areas are bigger, and
+    do more damage.
   weight: 35
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 960e78131f3642b5bc71f2a480f8d0e8, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +0.25

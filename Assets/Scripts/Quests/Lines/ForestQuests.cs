@@ -21,10 +21,8 @@ public static class ForestQuests
     public const string Explorer2 = "one_with_the_woods";
     public const string TargetPractice = "target_practice";
 
-    // Depth is one measure with one phrasing everywhere: the furthest wave reached
-    // on the map, described as venturing into it.
+    // Depth is one measure everywhere: the furthest wave reached on the map.
     public const string DepthStat = "maps.camp_fields.furthest_wave";
-    public const string DepthLabel = "waves into the forest";
 
     /// <summary>
     /// How deep the TUTORIAL run got, kept apart from the lifetime mark by
@@ -34,8 +32,9 @@ public static class ForestQuests
     /// </summary>
     public const string TutorialDepthStat = "maps.camp_fields.tutorial_wave";
 
+    // The first explorer quest asks for a flat 40 wave types (owner, 2026-10-05);
+    // the second is still a share of however many exist - see ExplorePercent.
     private static string ExploreStat => WaveExploration.DistinctStatKey(Forest);
-    private const string ExploreLabel = "forest wave types met";
 
     public static IEnumerable<Quest> All()
     {
@@ -50,7 +49,7 @@ public static class ForestQuests
                 + "has wound up.",
             mapId: Forest,
             objectives: One("maps.camp_fields.gate_cleared", 1,
-                            "Venture further into the forest", hideProgress: true),
+                            menu: "Venture further into the forest"),
             reward: Reward(equipmentId: "gnawed_crown", unlocksMapId: Mine),
             // Either counter will do. The tutorial run is where this normally
             // opens, and it keeps its depth separately; the lifetime mark is the
@@ -80,7 +79,9 @@ public static class ForestQuests
                 "There is more to do in the forest according to the king. We should return, and venture "
                 + "deeper than before.",
             mapId: Forest,
-            objectives: One(DepthStat, 12, DepthLabel),
+            objectives: One(DepthStat, 12,
+                            menu: "Best attempt: {count} waves into the forest",
+                            npc: "Reach wave {target} in the forest"),
             reward: Reward(crystals: 2),
             unlocks: Gate(After(Ruckus)),
             cast: King,
@@ -102,7 +103,7 @@ public static class ForestQuests
                 + "care of the beasts.",
             mapId: Forest,
             objectives: One("maps.camp_fields.true_cleared", 1,
-                            "Answer what waits beyond the treeline", hideProgress: true),
+                            menu: "Defeat the glowing duo deep in the forest"),
             reward: Reward(extraSlot: true),
             unlocks: Gate(After(DeepWoods), Stat(DepthStat, 11)),
             cast: King,
@@ -127,7 +128,9 @@ public static class ForestQuests
                 "The cartographer needs help thinning out the creatures of the forest so that he can "
                 + "complete his expedition.",
             mapId: Forest,
-            objectives: One("kills.map.camp_fields", 500),
+            objectives: One("kills.map.camp_fields", 500,
+                            menu: "{count} slain in the wood",
+                            npc: "Slay {target} monsters in the forest"),
             reward: Reward(crystals: 1),
             unlocks: Gate(Stat(DepthStat, 5)),
             cast: Mapmaker,
@@ -147,7 +150,9 @@ public static class ForestQuests
                 "The cartographer needs even more help thinning out the creatures of the forest so that "
                 + "he can complete his expedition.",
             mapId: Forest,
-            objectives: One("kills.map.camp_fields", 2000),
+            objectives: One("kills.map.camp_fields", 2000,
+                            menu: "{count} slain in the wood",
+                            npc: "Slay {target} monsters in the forest"),
             reward: Reward(crystals: 3),
             unlocks: Gate(After(Cleanup1)),
             cast: Mapmaker,
@@ -166,9 +171,11 @@ public static class ForestQuests
                 + "equipped for some reason... NOTE: Make sure your special slots are empty.",
             mapId: Forest,
             objectives: One(Feats.RatKingBare, 1,
-                            "Defeat the Rat King with no equipment or special equipped", hideProgress: true),
+                            menu: "Defeat the Rat King with no equipment or special equipped"),
             reward: Reward(crystals: 2),
-            unlocks: Gate(After(CrimsonTwins), Since(CrimsonTwins, "kills.ratking", 3)),
+            // The third Rat King kill ever, with no story gate (owner, 2026-10-05).
+            // It used to wait for The Crimson Twins and then three MORE kills.
+            unlocks: Gate(Stat("kills.ratking", 3)),
             cast: Mapmaker,
             offer:
                 "Wow! You sure have gotten good at getting past him. I've been studying the Rat King's "
@@ -188,7 +195,7 @@ public static class ForestQuests
                 + "specials equipped... NOTE: Make sure your special slots are empty.",
             mapId: Forest,
             objectives: One(Feats.TwinsBare, 1,
-                            "Defeat the Crimson Twins with no equipment or special equipped", hideProgress: true),
+                            menu: "Defeat the Crimson Twins with no equipment or special equipped"),
             reward: Reward(crystals: 4),
             unlocks: Gate(After(WreckingRatKing)),
             cast: Mapmaker,
@@ -205,7 +212,10 @@ public static class ForestQuests
             description:
                 "Explore more routes within the forest.",
             mapId: Forest,
-            objectives: One(ExploreStat, ExplorePercent(60), ExploreLabel, lifetime: true),
+            objectives: One(ExploreStat, 40,
+                            menu: "{count} Forest Waves Discovered",
+                            npc: "Discover {target} different forest waves",
+                            lifetime: true),
             reward: Reward(crystals: 2),
             unlocks: Gate(Stat(ExploreStat, ExplorePercent(33))),
             cast: Mapmaker,
@@ -223,7 +233,10 @@ public static class ForestQuests
             description:
                 "Discover every route within the forest.",
             mapId: Forest,
-            objectives: One(ExploreStat, ExplorePercent(75), ExploreLabel, lifetime: true),
+            objectives: One(ExploreStat, ExplorePercent(75),
+                            menu: "{count} Forest Waves Discovered",
+                            npc: "Discover {target} different forest waves",
+                            lifetime: true),
             reward: Reward(equipmentId: "wolfsbane_pendant"),
             unlocks: Gate(After(Explorer1)),
             cast: Mapmaker,
@@ -245,8 +258,9 @@ public static class ForestQuests
                 + "with any of them that we see.",
             mapId: Forest,
             objectives: One(TargetRange.PatternsStat, TargetRange.Patterns.Length,
-                            "Complete all 5 different target range patterns successfully.",
-                            lifetime: true, countAfter: true),
+                            menu: "Complete all 5 different target range patterns successfully. {current} / {target}",
+                            npc: "Complete all the target ranges successfully",
+                            lifetime: true),
             reward: Reward(crystals: 3),
             unlocks: Gate(Stat(TargetRange.PatternsStat, 1)),
             cast: Mapmaker,

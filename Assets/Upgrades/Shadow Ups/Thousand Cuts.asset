@@ -13,9 +13,16 @@ MonoBehaviour:
   m_Name: Thousand Cuts
   m_EditorClassIdentifier: 
   upgradeName: Thousand Cuts
-  description: Kills reset your firing cooldown and chain into more arrows.
+  description: Instantly reload after a mob dies.
   weight: 10
   order: 2
   requiresOrderCount: 4
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
+  stats:
+  - valueText: +INSTA
+    labelText: RELOAD
+    isPositive: 1

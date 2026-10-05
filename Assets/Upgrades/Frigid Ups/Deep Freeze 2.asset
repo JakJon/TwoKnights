@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Deep Freeze 2
   m_EditorClassIdentifier: 
   upgradeName: Deep Freeze II
-  description: What you stop stays stopped, and shrugs off harder blows.
+  description: Enemies move slower, stay frozen and chilled longer and take more
+    damage to shatter when frozen.
   weight: 26
   order: 6
   requiresOrderCount: 0
@@ -21,6 +22,7 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 6ac294184cf70044a88a042623326b3a, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +6s
@@ -28,5 +30,11 @@ MonoBehaviour:
     isPositive: 1
   - valueText: 25
     labelText: DAMAGE TO BREAK ICE
+    isPositive: 1
+  - valueText: -50%
+    labelText: SPEED
+    isPositive: 1
+  - valueText: +6s
+    labelText: CHILL
     isPositive: 1
   freezeLevel: 2

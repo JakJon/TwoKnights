@@ -77,7 +77,9 @@ yield return new Quest(
                  "different hour. The tally board by the mess tent has been wiped " +
                  "down and started again. The quartermaster insists this is normal.",
     mapId:       Forest,                    // Forest | Mine | Camp ("" — Order lines, camp business)
-    objectives:  One("kills.map.camp_fields", 1000),
+    objectives:  One("kills.map.camp_fields", 1000,
+                     menu: "{count} slain in the wood",
+                     npc: "Slay {target} monsters in the forest"),
     reward:      Reward(crystals: 2),
     unlocks:     Gate(After("camp_cleanup_1")));
 ```
@@ -87,35 +89,41 @@ yield return new Quest(
 `One(...)` for the common case, `new[] { Obj(...), Obj(...) }` when a quest needs several
 met **together** — that is what the Order initiations are for.
 
+**Each objective has two texts, one per screen** (owner, 2026-10-05). The quest MENU
+prints `menu:`; the NPC's offer and completion CARD prints `npc:`. Both print exactly
+as written - nothing is added in front. Leave `npc:` out and the card reuses the menu's
+words with the counter replaced by the goal.
+
 ```csharp
 objectives: new[]
 {
-    Obj("applied.poison", 100, "enemies poisoned"),
-    Obj("kills.poisoned",  50, "slain by venom"),
-    Obj("upgrades.order.serpent", 5, "serpent upgrades taken"),
+    Obj("upgrades.taken.acid_dagger", 1,
+        menu: "Obtain acid dagger upgrade"),
+    Obj(OrderStats.AcidDaggerKills, 5,
+        menu: "{count} felled by the dagger",        // menu: "3/5 felled by the dagger"
+        npc: "and slay {target} enemies with it"),   // card: "and slay 5 enemies with it"
 },
 ```
 
-The third argument overrides the stat's own short label. The fourth, `hideProgress: true`,
-suppresses the counter — use it whenever `0/1` would give the answer away:
+Both are templates:
 
-```csharp
-objectives: One("maps.camp_fields.gate_cleared", 1,
-                "Venture further into the forest", hideProgress: true),
-```
+| Token | Prints |
+|---|---|
+| `{count}` | progress as `12/100` in the menu; on the card, just the goal |
+| `{current}` | the progress number alone |
+| `{target}` | the goal number alone - use it instead of typing the number |
 
-That quest is "beat wave 10" and must never say so.
+A text with no `{count}` shows no counter. That is how an objective hides its number
+("Venture further into the forest" is "beat wave 10" and must never say so). The menu
+no longer adds "Best attempt:" to record objectives either; a line that wants those
+words carries them: `menu: "Best attempt: {count} shadow arrows landed in one wave"`.
 
-`countAfter: true` is for a label that is a whole sentence with the target already in
-it. The log prints the count after the label instead of in front of it, and the offer
-and completion cards show the label alone:
+`hideOnNpcCard: true` leaves an objective off the card, for a quest whose first card
+line already says the whole ask (The Last Light).
 
-```csharp
-objectives: One(TargetRange.PatternsStat, 5,
-                "Complete all 5 different target range patterns successfully.",
-                lifetime: true, countAfter: true),
-// quest log: "Complete all 5 different target range patterns successfully. 2 / 5"
-```
+**The owner writes this text.** It was rewritten by hand in the doc "Quest Objective
+Text"; write new lines the same plain way ("Slay 300 enemies with poison"), and never
+restyle existing ones.
 
 ### Unlock gating
 
@@ -186,9 +194,8 @@ scouts whose maps disagree, the Orders finding you rather than the reverse.
 > someone upstream has been dumping something. Neither of them has been far enough in for
 > their opinion to be worth much.
 
-Keep objective labels consistent with what already exists. Depth is always
-`maps.<id>.furthest_wave` phrased "N waves into the forest/mine" — never mix in the
-lifetime counter for depth.
+Keep objective text consistent with what already exists. Depth is always
+`maps.<id>.furthest_wave` — never mix in the lifetime counter for depth.
 
 ---
 

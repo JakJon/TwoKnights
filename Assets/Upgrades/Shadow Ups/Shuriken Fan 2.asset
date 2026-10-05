@@ -13,13 +13,19 @@ MonoBehaviour:
   m_Name: Shuriken Fan 2
   m_EditorClassIdentifier: 
   upgradeName: Shuriken Fan II
-  description: More shurikens join the fan at a wider angle.
+  description: Two more shurikens at a wider angle.
   weight: 30
   order: 2
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 14b8585b046b11f8ee646a688b71cdc4, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
-  stats: []
+  stats:
+  - valueText: +2
+    labelText: SHURIKENS
+    isPositive: 1
   fanLevel: 2
   shurikenPrefab: {fileID: 7501425619058086919, guid: 6ee4cc9dc2732444b86362471c3e3433, type: 3}

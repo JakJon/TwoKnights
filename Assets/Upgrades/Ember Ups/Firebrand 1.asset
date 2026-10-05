@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: Firebrand 1
   m_EditorClassIdentifier: 
   upgradeName: Firebrand I
-  description: Every sword swing lobs a fireball a short way ahead of the blade.
+  description: Sword swings create a short range fireball.
   weight: 55
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: EVERY
-    labelText: SWING
-    isPositive: 1
   - valueText: 1
     labelText: FIREBALL
     isPositive: 1

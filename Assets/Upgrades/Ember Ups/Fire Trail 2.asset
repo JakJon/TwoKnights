@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: Fire Trail 2
   m_EditorClassIdentifier: 
   upgradeName: Fire Trail II
-  description: Their trails burn wider and linger far longer.
+  description: Fire trails are bigger, last longer, and do more damage.
   weight: 26
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 960e78131f3642b5bc71f2a480f8d0e8, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +0.25

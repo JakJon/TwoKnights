@@ -24,7 +24,9 @@ public static class SerpentQuests
                 + "of it. Between waves, the Serpent Order sends poison orbs looping across the field. "
                 + "Each one has to be struck once, and only once, before it slips away for good.",
             mapId: Camp,
-            objectives: One("trials.serpent", 3, "venom trials passed"),
+            objectives: One("trials.serpent", 3,
+                            menu: "{count} venom trials passed",
+                            npc: "Complete the venom trials"),
             reward: Reward(crystals: 2),
             unlocks: Gate(Stat("applied.poison", 60)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Serpent),
@@ -46,7 +48,9 @@ public static class SerpentQuests
             description:
                 "We're challenged by the Serpent Order to have 11 creatures poisoned simultaneously.",
             mapId: Camp,
-            objectives: One(OrderStats.PoisonSimultaneousMax, 11, "at once, carrying venom"),
+            objectives: One(OrderStats.PoisonSimultaneousMax, 11,
+                            menu: "Best attempt: {count} at the same time, carrying venom",
+                            npc: "Have {target} enemies poisoned at the same time"),
             reward: Reward(equipmentId: "serpents_eye"),
             unlocks: Gate(After(Initiation)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Serpent),
@@ -62,7 +66,9 @@ public static class SerpentQuests
             description:
                 "We're challenged by the Serpent Order to deal 100 poison damage at once.",
             mapId: Camp,
-            objectives: One(OrderStats.PoisonTickMax, 100, "damage from one tick of venom"),
+            objectives: One(OrderStats.PoisonTickMax, 100,
+                            menu: "Best attempt: {count} damage from one tick of venom",
+                            npc: "Deal {target} poison damage in one tick"),
             reward: Reward(equipmentId: "fangbone_charm"),
             unlocks: Gate(After(DeadlyAroma)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Serpent),
@@ -77,7 +83,9 @@ public static class SerpentQuests
             description:
                 "We're being challenged by the Serpent Order to slay 300 enemies using poison.",
             mapId: Camp,
-            objectives: One("kills.poisoned", 300, "slain by venom"),
+            objectives: One("kills.poisoned", 300,
+                            menu: "{count} slain by venom",
+                            npc: "Slay {target} enemies with poison"),
             reward: Reward(equipmentId: "hollow_fang"),
             unlocks: Gate(After(Initiation)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Serpent),
@@ -96,8 +104,11 @@ public static class SerpentQuests
             mapId: Camp,
             objectives: new[]
             {
-                Obj("upgrades.taken.acid_dagger", 1, "Take up the Acid Dagger", hideProgress: true),
-                Obj(OrderStats.AcidDaggerKills, 5, "felled by the dagger"),
+                Obj("upgrades.taken.acid_dagger", 1,
+                    menu: "Obtain acid dagger upgrade"),
+                Obj(OrderStats.AcidDaggerKills, 5,
+                    menu: "{count} felled by the dagger",
+                    npc: "and slay {target} enemies with it"),
             },
             reward: Reward(crystals: 2, upgradeSlug: "acid_dagger"),
             unlocks: Gate(After(SlowWork)),

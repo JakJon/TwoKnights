@@ -13,27 +13,29 @@ MonoBehaviour:
   m_Name: Sunwell 2
   m_EditorClassIdentifier: 
   upgradeName: Sunwell II
-  description: Orbs give more still, and mana orbs heal a little. Arrows do more holy damage.
+  description: Health orbs now also give special, and mana orbs also give health.
+    Increases arrow damage.
   weight: 70
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 0829af1f24d84b6dad3e47c7cc56a0c9, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +100%
-    labelText: ORB HEALING
+  - valueText: +20
+    labelText: HP
     isPositive: 1
-  - valueText: +100%
-    labelText: ORB MANA
-    isPositive: 1
-  - valueText: +5
-    labelText: FROM MANA ORBS
+  - valueText: +150
+    labelText: MANA
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE
     isPositive: 1
   orbHealMultiplier: 2
   manaOrbMultiplier: 2
-  manaOrbHeal: 5
+  manaOrbHeal: 20
+  healthOrbSpecial: 150
   slowOrbs: 0

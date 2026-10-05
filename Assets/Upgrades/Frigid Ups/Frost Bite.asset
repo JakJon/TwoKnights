@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Frost Bite
   m_EditorClassIdentifier: 
   upgradeName: Frost Bite
-  description: The cold stops waiting. What you slow bleeds, and what you stop bleeds
-    faster.
+  description: Chilled or frozen enemies take frost damage.
   weight: 12
   order: 6
   requiresOrderCount: 4

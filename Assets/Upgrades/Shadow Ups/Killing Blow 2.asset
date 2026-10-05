@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Killing Blow 2
   m_EditorClassIdentifier: 
   upgradeName: Killing Blow II
-  description: Killing Blow reaches enemies with more health left.
+  description: Enemies below 40% health die instantly when arrows hit. Bosses immune.
   weight: 25
   order: 2
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 555ba42459e27d70dc2b8f8eb06985c6, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 40%
-    labelText: HEALTH THRESHOLD
+  - valueText: <40%
+    labelText: INSTA DEATH
     isPositive: 1
   executeThreshold: 0.4

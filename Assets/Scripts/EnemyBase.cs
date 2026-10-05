@@ -2219,6 +2219,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         peakHealth = Mathf.Max(peakHealth, health);
         health -= damage;
         ShowDamageText(damage, new Color(0.55f, 0.85f, 1f)); // pale ice
+        QuestTally.Total(OrderStats.FrostDamage, damage);
 
         if (health > 0) return;
 

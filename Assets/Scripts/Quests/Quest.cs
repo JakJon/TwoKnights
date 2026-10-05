@@ -12,23 +12,42 @@ public class QuestObjective
 {
     public string StatKey;
     public int Target;
-    /// <summary>
-    /// Prose shown in place of the stat's own label. This is where a quest hides
-    /// its mechanism: "Venture further into the forest" rather than
-    /// "1/1 camp fields gate cleared".
-    /// </summary>
-    public string Label;
-    /// <summary>Suppresses the "0/1" counter, for objectives where the number would give the answer away.</summary>
-    public bool HideProgress;
+
+    // TWO TEXTS, ONE PER SCREEN (owner, 2026-10-05). An objective used to carry a
+    // single label that both screens dressed up differently: the quest menu put a
+    // counter in front of it (and "Best attempt:" in front of that, for records),
+    // and the NPC's card put the goal number in front of it. That made every line
+    // a fragment written to survive two prefixes - "slain by venom", "at once,
+    // carrying venom" - instead of a sentence. Now each screen has its own text
+    // and prints it as written. Nothing is added automatically.
+    //
+    // Both are templates. The tokens:
+    //   {count}    progress, printed "12/100" (on the NPC card: just the goal)
+    //   {current}  the progress number alone
+    //   {target}   the goal number alone - use it instead of typing the number,
+    //              so the words cannot drift from the Target beside them
+    // A text with no {count} shows no counter, which is how an objective keeps its
+    // number to itself ("Venture further into the forest").
 
     /// <summary>
-    /// For a label that is a whole sentence with the target already in it:
-    /// "Complete all 5 different target range patterns successfully. 2 / 5".
-    /// The log puts the count AFTER the label instead of in front of it, and the
-    /// offer and completion cards show the label alone, since "5 Complete all 5..."
-    /// says the number twice.
+    /// The line the quest MENU prints for this objective, as a template (see the
+    /// tokens above). Empty falls back to "{count} " plus the stat's short label.
     /// </summary>
-    public bool CountAfter;
+    public string MenuText;
+
+    /// <summary>
+    /// The line the NPC's CARD prints, when the quest is offered and again when it
+    /// is finished. No counter belongs here: it is the ask, said once. Empty means
+    /// the menu's words with the counter replaced by the goal.
+    /// </summary>
+    public string NpcText;
+
+    /// <summary>
+    /// Leaves this objective off the NPC's card. For a quest whose first line
+    /// already says the whole ask ("Obtain then activate the Last Light upgrade"),
+    /// so a second line would repeat it. The menu still lists it.
+    /// </summary>
+    public bool HideOnNpcCard;
 
     /// <summary>
     /// Measure this against the player's whole history rather than from the moment
@@ -49,15 +68,15 @@ public class QuestObjective
     /// </summary>
     public string OwnerQuestId = "";
 
-    public QuestObjective(string statKey, int target, string label = null,
-                          bool hideProgress = false, bool lifetime = false, bool countAfter = false)
+    public QuestObjective(string statKey, int target, string menu = null, string npc = null,
+                          bool lifetime = false, bool hideOnNpcCard = false)
     {
         StatKey = statKey;
         Target = target;
-        Label = label;
-        HideProgress = hideProgress;
+        MenuText = menu;
+        NpcText = npc;
         Lifetime = lifetime;
-        CountAfter = countAfter;
+        HideOnNpcCard = hideOnNpcCard;
     }
 
     /// <summary>
@@ -73,20 +92,33 @@ public class QuestObjective
     /// This objective asks for a best attempt — the biggest wave, the longest
     /// streak, the deepest run — rather than for a total that only ever climbs.
     ///
-    /// It changes nothing about how the objective is judged and everything about
-    /// how it reads. "0/100 guided shots without a miss" looks like a counter that
-    /// is not counting, when what it actually means is that no attempt has yet
-    /// gone further than zero; the log says "Best attempt:" in front of these so
-    /// the number is understood as a record being chased.
+    /// It changes nothing about how the objective is judged. The menu used to put
+    /// "Best attempt:" in front of these on its own; since 2026-10-05 the menu
+    /// prints MenuText as written, so a line that wants those words carries them.
     /// </summary>
     public bool IsRecord => StatsDatabase.IsRecord(StatKey);
 
     public int Current => Mathf.Min(PlayerStats.Get(MeterKey), Target);
     public bool IsMet => PlayerStats.Get(MeterKey) >= Target;
 
-    /// <summary>The stat's short label unless the quest overrode it.</summary>
-    public string DisplayLabel =>
-        !string.IsNullOrEmpty(Label) ? Label : StatsDatabase.GetShortLabel(StatKey);
+    private string MenuTemplate =>
+        !string.IsNullOrEmpty(MenuText) ? MenuText : "{count} " + StatsDatabase.GetShortLabel(StatKey);
+
+    /// <summary>What the quest menu prints for this objective right now.</summary>
+    public string MenuLine => Fill(MenuTemplate, withProgress: true);
+
+    /// <summary>What the NPC's card prints for this objective.</summary>
+    public string NpcLine => Fill(string.IsNullOrEmpty(NpcText) ? MenuTemplate : NpcText, withProgress: false);
+
+    private string Fill(string template, bool withProgress)
+    {
+        if (string.IsNullOrEmpty(template)) return "";
+        string goal = Target.ToString();
+        return template
+            .Replace("{count}", withProgress ? Current + "/" + goal : goal)
+            .Replace("{current}", Current.ToString())
+            .Replace("{target}", goal);
+    }
 }
 
 /// <summary>A stat threshold that has to be true before a quest is even visible.</summary>

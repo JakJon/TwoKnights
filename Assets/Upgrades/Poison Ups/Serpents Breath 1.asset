@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: Serpents Breath 1
   m_EditorClassIdentifier: 
   upgradeName: Serpent's Breath I
-  description: Every sword swing exhales a venom bead down the facing.
+  description: Every sword swing exhales a poison bubble.
   weight: 100
   order: 1
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 1 BEAD
-    labelText: EVERY SWING
-    isPositive: 1
-  - valueText: 3s
-    labelText: LINGERS
+  - valueText: +1
+    labelText: POISON BUBBLE
     isPositive: 1
   tier: 1

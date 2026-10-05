@@ -13,16 +13,19 @@ MonoBehaviour:
   m_Name: Shuriken Fan 1
   m_EditorClassIdentifier: 
   upgradeName: Shuriken Fan I
-  description: Your shot splits into shurikens that fan out. Flammable, poisonable.
+  description: Two shurikens widen every shot. Flammable, poisonable.
   weight: 60
   order: 2
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: a4721a1389389ba41970067eefe58f94, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 35%
-    labelText: DAMAGE
+  - valueText: +2
+    labelText: SHURIKENS
     isPositive: 1
   fanLevel: 1
   shurikenPrefab: {fileID: 7501425619058086919, guid: 6ee4cc9dc2732444b86362471c3e3433, type: 3}

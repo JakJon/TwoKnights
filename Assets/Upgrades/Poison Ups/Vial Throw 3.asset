@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Vial Throw 3
   m_EditorClassIdentifier: 
   upgradeName: Vial Throw III
-  description: A third vial flies further out, and the throw comes round sooner.
+  description: Every 4th shot throws three vials.
   weight: 15
   order: 1
   requiresOrderCount: 0
@@ -21,6 +21,7 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 7b4c71e35fea46a42b5eb65613dd4829, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 3

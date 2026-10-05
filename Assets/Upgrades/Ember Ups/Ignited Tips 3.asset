@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: Ignited Tips 3
   m_EditorClassIdentifier: 
   upgradeName: Ignited Tips III
-  description: Every arrow you loose carries flame.
+  description: Every arrow is ignited.
   weight: 30
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: d306f4aafd7547f5955bdadfdc582755, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 100%

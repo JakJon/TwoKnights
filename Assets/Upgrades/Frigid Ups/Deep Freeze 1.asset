@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Deep Freeze 1
   m_EditorClassIdentifier: 
   upgradeName: Deep Freeze I
-  description: The ice holds longer and takes more to crack.
+  description: Enemies move slower, stay frozen and chilled longer and take more
+    damage to shatter when frozen.
   weight: 55
   order: 6
   requiresOrderCount: 0
@@ -21,6 +22,7 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 0939341d5e063e848b2fca3a7ce19c9e, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +3s
@@ -28,5 +30,11 @@ MonoBehaviour:
     isPositive: 1
   - valueText: 15
     labelText: DAMAGE TO BREAK ICE
+    isPositive: 1
+  - valueText: -30%
+    labelText: SPEED
+    isPositive: 1
+  - valueText: +3s
+    labelText: CHILL
     isPositive: 1
   freezeLevel: 1

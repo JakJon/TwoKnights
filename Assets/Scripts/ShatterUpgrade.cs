@@ -39,6 +39,6 @@ public class ShatterUpgrade : BaseUpgrade
 
         boost.SetShatter(shatterLevel);
 
-        Debug.Log($"Applied Shatter {shatterLevel} to {targetKnight.name}: x{boost.ShatterMultiplier} on frozen bodies, splinters {boost.ShatterSplinters}");
+        Debug.Log($"Applied Shatter {shatterLevel} to {targetKnight.name}: x{boost.ShatterMultiplier} on frozen bodies, frost blast {boost.ShatterBlastRadius}u");
     }
 }

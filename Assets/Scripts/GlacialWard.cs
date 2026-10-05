@@ -92,7 +92,7 @@ public class GlacialWard : MonoBehaviour
             }
 
             // Everything else that moves and can be slowed: an orb drifting past,
-            // and - at rank two - the ammunition on its way in.
+            // and the ammunition on its way in.
             IChillable chillable = hit.GetComponent<IChillable>();
             if (chillable == null) continue;
 

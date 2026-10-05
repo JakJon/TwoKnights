@@ -13,21 +13,21 @@ MonoBehaviour:
   m_Name: Greatshield 1
   m_EditorClassIdentifier: 
   upgradeName: Holy Shield I
-  description: The shield lengthens and bows around you. +25 max health.
+  description: The shield increases your maximum health and is much larger.
   weight: 100
   order: 3
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +25
     labelText: MAX HEALTH
     isPositive: 1
-  - valueText: +25%
+  - valueText: +50%
     labelText: SHIELD LENGTH
-    isPositive: 1
-  - valueText: 28
-    labelText: ARC DEGREES
     isPositive: 1
   lengthMultiplier: 1.5
   curveRadius: 2.6

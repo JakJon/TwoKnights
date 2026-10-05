@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Guided Shot 2
   m_EditorClassIdentifier: 
   upgradeName: Guided Shot II
-  description: It finds its mark from further out.
-  weight: 30
+  description: The homing range for arrows is tripled!
+  weight: 16
   order: 3
   requiresOrderCount: 0
   secondOrder: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 1.1
+  - valueText: TRIPLED
     labelText: HOMING RANGE
     isPositive: 1
   rank: 2

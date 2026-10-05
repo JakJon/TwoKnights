@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Guided Reflections 1
   m_EditorClassIdentifier: 
   upgradeName: Guided Reflections I
-  description: Rocks you send back go looking for a body.
+  description: Reflected projectiles are guided tracking nearby enemies.
   weight: 30
   order: 3
   requiresOrderCount: 0
@@ -25,7 +25,7 @@ MonoBehaviour:
   requiresAllUnlocks: 1
   lockedBy: []
   stats:
-  - valueText: 0.5
-    labelText: REBOUND HOMING
+  - valueText: HOMING
+    labelText: ROCKS
     isPositive: 1
   rank: 1

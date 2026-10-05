@@ -13,16 +13,19 @@ MonoBehaviour:
   m_Name: Venom Tip 3
   m_EditorClassIdentifier: 
   upgradeName: Venom Tip III
-  description: Nearly every arrow drips venom, and its trail lingers far longer.
+  description: Every arrow poisons.
   weight: 50
   order: 1
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 424a1fcf13016f1390393846f746f090, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +40%
-    labelText: CHANCE
+  - valueText: +100%
+    labelText: POISON CHANCE
     isPositive: 1
   - valueText: 5s
     labelText: VENOM TRAIL

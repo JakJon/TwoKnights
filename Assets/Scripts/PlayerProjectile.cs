@@ -166,20 +166,16 @@ public class PlayerProjectile : MonoBehaviour
             if (shattered)
             {
                 Vector2 breakPoint = enemy.transform.position;
-                FrostFx.Burst(breakPoint, FrigidBoost.SplinterRadius);
                 PlayerStats.Increment("frigid.shattered");
                 if (AudioManager.Instance != null)
                 {
                     AudioManager.Instance.PlaySFX(AudioManager.Instance.frostShatter);
                 }
 
-                // Shatter II throws splinters. They CHILL and never freeze - the
-                // Order's only way to reach more than one body at a time, and it
-                // stays inside pillar 2 by doing it with cold rather than a blow.
-                if (ownerFrigidBoost.ShatterSplinters)
-                {
-                    SpreadSplinters(breakPoint, enemy);
-                }
+                // Every rank of Shatter throws a frost blast off the break (owner,
+                // 2026-10-05). It CHILLS and never freezes, and deals no damage -
+                // see FrigidBoost.ReleaseShatterBlast.
+                ownerFrigidBoost.ReleaseShatterBlast(breakPoint, enemy);
             }
 
             if (!_countedHit)
@@ -256,18 +252,4 @@ public class PlayerProjectile : MonoBehaviour
         // No more fallback code needed - all enemies have been migrated to EnemyBase
     }
 
-    // Cold thrown off a body coming apart. Chill only, and never onto the thing
-    // that was shattered - the arrow that broke its ice deliberately leaves it
-    // free rather than chilled, and splinters landing back on it would undo that
-    // and let one shot do the Order's whole cycle alone.
-    private void SpreadSplinters(Vector2 center, EnemyBase shatteredEnemy)
-    {
-        Collider2D[] caught = Physics2D.OverlapCircleAll(center, FrigidBoost.SplinterRadius);
-        for (int i = 0; i < caught.Length; i++)
-        {
-            EnemyBase other = caught[i] != null ? caught[i].GetComponent<EnemyBase>() : null;
-            if (other == null || other == shatteredEnemy || other.IsDead) continue;
-            ownerFrigidBoost.TouchWithCold(other, false);
-        }
-    }
 }

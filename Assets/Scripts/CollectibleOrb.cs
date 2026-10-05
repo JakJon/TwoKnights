@@ -108,6 +108,12 @@ public class CollectibleOrb : MonoBehaviour, IChillable
                     // below instead of firing on the same frame
                     playerHealth.Heal(amount, true, HealSource.Orb);
                 }
+
+                // Sunwell II: a health orb also fills some of the special bar
+                if (dawn != null && dawn.HealthOrbSpecial > 0)
+                {
+                    player.GetComponent<PlayerSpecial>()?.AddSpecialFromOrb(dawn.HealthOrbSpecial);
+                }
             }
             else // Mana
             {
@@ -118,7 +124,7 @@ public class CollectibleOrb : MonoBehaviour, IChillable
                     playerSpecial.AddSpecialFromOrb(amount);
                 }
 
-                // Sunwell II: even the mana orbs carry a little light
+                // Sunwell II: a mana orb also heals
                 if (dawn != null && dawn.ManaOrbHeal > 0)
                 {
                     player.GetComponent<PlayerHealth>()?.Heal(dawn.ManaOrbHeal, true, HealSource.Orb);

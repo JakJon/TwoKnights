@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Last Light
   m_EditorClassIdentifier: 
   upgradeName: Last Light
-  description: Once per map the other knight cannot fall. They hold at a sliver. Arrows do more holy damage.
+  description: One knight comes back to life after dying once. Increases arrow damage.
   weight: 15
   order: 5
   requiresOrderCount: 4
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: ONCE
-    labelText: PER MAP
+    labelText: PER RUN
     isPositive: 1
   - valueText: +25 HP
     labelText: TO PARTNER

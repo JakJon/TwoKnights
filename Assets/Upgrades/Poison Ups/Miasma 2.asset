@@ -17,6 +17,16 @@ MonoBehaviour:
   weight: 30
   order: 1
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 8e2c2b13dd2774030db3c3e9fd2820f7, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
+  stats:
+  - valueText: +LARGER
+    labelText: CLOUDS
+    isPositive: 1
+  - valueText: +7
+    labelText: SECOND DURATION
+    isPositive: 1

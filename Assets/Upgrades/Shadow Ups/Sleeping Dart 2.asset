@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sleeping Dart 2
   m_EditorClassIdentifier: 
   upgradeName: Sleeping Dart II
-  description: The dart comes round sooner and holds them longer.
+  description: Every 4th arrow puts enemies to sleep twice as long.
   weight: 30
   order: 2
   requiresOrderCount: 2
@@ -21,12 +21,13 @@ MonoBehaviour:
   requiresSecondOrderCount: 2
   unlockedBy:
   - {fileID: 11400000, guid: 0b118be0f64348329b54b589506d9864, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 1 in 4
-    labelText: SHOTS
+  - valueText: 20%
+    labelText: FREQUENCY
     isPositive: 1
-  - valueText: 10s
+  - valueText: +10s
     labelText: SLEEP
     isPositive: 1
   shotsPerDart: 4

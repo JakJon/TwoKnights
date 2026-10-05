@@ -11,9 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8c1b80ff56a4084bfa1612f7fce9785e, type: 3}
   m_Name: Glacial Ward 3
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   upgradeName: Glacial Ward III
-  description: The ring spreads wider still, out past anything you could reach yourself.
+  description: Your frost ring grows EVEN larger.
   weight: 25
   order: 6
   requiresOrderCount: 0
@@ -21,9 +21,10 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 4bc287300df6b4143a71f038afb7b503, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +63%
-    labelText: LARGER WARD
+  - valueText: EXTRA LARGE
+    labelText: FROST RING
     isPositive: 1
   wardLevel: 3

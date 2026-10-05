@@ -466,10 +466,18 @@ public class SwordSwing : MonoBehaviour
             float reach = owningKnight != null
                 ? Vector2.Distance(owningKnight.transform.position, enemy.transform.position)
                 : 0f;
+            Vector2 where = enemy.transform.position;
 
             enemy.TakeDamage(blow, carrier);
             // Counted only when this blow actually broke the ice.
-            if (shatterHit && !enemy.IsFrozen) PlayerStats.Increment("frigid.shattered");
+            if (shatterHit && !enemy.IsFrozen)
+            {
+                PlayerStats.Increment("frigid.shattered");
+                // A burst that breaks ice is a shatter like any other, so it throws
+                // Shatter's frost blast too. That blast only chills, so it cannot
+                // set off another one.
+                boost.ReleaseShatterBlast(where, enemy);
+            }
 
             // The frost rides on the blow as its own pale-blue number. Flat: Shatter
             // multiplies the blow, not this, and it never wears down ice - it is
@@ -805,8 +813,10 @@ public class SwordSwing : MonoBehaviour
             // The burst and tally belong to the blow that actually broke the ice.
             if (frigidShatter && !enemyBase.IsFrozen)
             {
-                FrostFx.Burst(hitPoint, FrigidBoost.SplinterRadius);
                 PlayerStats.Increment("frigid.shattered");
+                // The same frost blast an arrow's shatter throws. A blade used to
+                // break ice with a puff and nothing else.
+                frigid.ReleaseShatterBlast(hitPoint, enemyBase);
             }
 
             // "A safe distance" (Guardian): a kill landed at the sword's own furthest

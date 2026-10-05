@@ -13,22 +13,22 @@ MonoBehaviour:
   m_Name: Greatshield 2
   m_EditorClassIdentifier: 
   upgradeName: Holy Shield II
-  description: Longer still, and its edges sweep further back. +25 max health.
+  description: The shield increases your maximum health and is much larger.
   weight: 55
   order: 3
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: edf8c3841ed9402f9d44181d9bea55b7, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +25
     labelText: MAX HEALTH
     isPositive: 1
-  - valueText: +50%
+  - valueText: +80%
     labelText: SHIELD LENGTH
-    isPositive: 1
-  - valueText: 47
-    labelText: ARC DEGREES
     isPositive: 1
   lengthMultiplier: 1.8
   curveRadius: 1.9

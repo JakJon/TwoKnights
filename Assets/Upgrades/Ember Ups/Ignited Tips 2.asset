@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: Ignited Tips 2
   m_EditorClassIdentifier: 
   upgradeName: Ignited Tips II
-  description: Fire takes hold far more readily.
+  description: Doubles your arrows ignition chance.
   weight: 70
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 121515026f02488493aa6156428d40f7, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: +60%

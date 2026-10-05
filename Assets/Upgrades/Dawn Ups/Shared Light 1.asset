@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Shared Light 1
   m_EditorClassIdentifier: 
   upgradeName: Shared Light I
-  description: Part of every heal you receive passes to the other knight. Arrows do more holy damage.
+  description: Every heal now heals the other knight as well. Increases arrow damage.
   weight: 100
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 40%
-    labelText: ECHOED TO PARTNER
+    labelText: TO PARTNER
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE

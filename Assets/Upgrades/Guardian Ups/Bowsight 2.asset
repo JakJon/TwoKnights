@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Bowsight 2
   m_EditorClassIdentifier: 
   upgradeName: Bowsight II
-  description: The beam runs clean off the screen, and bites twice as hard.
+  description: Your laser sight extends fully and does double the damage.
   weight: 14
   order: 3
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 89042badb83f44ceb696d480de302e32, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 12
+  - valueText: LONG
     labelText: BEAM REACH
     isPositive: 1
   - valueText: 4

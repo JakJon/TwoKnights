@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Reflector 1
   m_EditorClassIdentifier: 
   upgradeName: Reflector I
-  description: The guard sends back what is thrown at you. Your projectiles fly 1.5x faster.
+  description: Projectiles may be reflected back at enemies.
   weight: 60
   order: 3
   requiresOrderCount: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   lockedBy: []
   stats:
   - valueText: 50%
-    labelText: BLOCKS REFLECT
+    labelText: REFLECT
     isPositive: 1
   - valueText: x2
     labelText: REFLECT DAMAGE

@@ -13,27 +13,28 @@ MonoBehaviour:
   m_Name: Sunwell 3
   m_EditorClassIdentifier: 
   upgradeName: Sunwell III
-  description: Orbs blaze, and drift slowly enough for both knights to aim. Arrows do more holy damage.
+  description: Orbs move significantly slower and heal more. Increases arrow damage.
   weight: 40
   order: 5
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: c155b468db3745ca8bb325362fabab4f, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +150%
+  - valueText: +100%
     labelText: ORB HEALING
     isPositive: 1
-  - valueText: +150%
-    labelText: ORB MANA
-    isPositive: 1
-  - valueText: -35%
-    labelText: ORB SPEED
+  - valueText: SLOW
+    labelText: ORBS
     isPositive: 1
   - valueText: +2
     labelText: HOLY DAMAGE
     isPositive: 1
-  orbHealMultiplier: 2.5
-  manaOrbMultiplier: 2.5
-  manaOrbHeal: 5
+  orbHealMultiplier: 2
+  manaOrbMultiplier: 2
+  manaOrbHeal: 20
+  healthOrbSpecial: 150
   slowOrbs: 1

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Vial Throw 2
   m_EditorClassIdentifier: 
   upgradeName: Vial Throw II
-  description: A second vial goes out behind you, where your bow cannot reach.
+  description: A second vial goes out behind you.
   weight: 100
   order: 1
   requiresOrderCount: 0
@@ -21,13 +21,11 @@ MonoBehaviour:
   requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 34f62b4ab4ff82c48808cb3ad10b14f3, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 2
     labelText: VIALS
-    isPositive: 1
-  - valueText: EVERY 5TH SHOT
-    labelText: CADENCE
     isPositive: 1
   tier: 2
   shotsPerVial: 5

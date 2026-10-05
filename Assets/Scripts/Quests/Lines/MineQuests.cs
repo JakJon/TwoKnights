@@ -19,10 +19,10 @@ public static class MineQuests
     public const string OutdoneOverseer = "outdone_overseer";
 
     public const string DepthStat = "maps.mine.furthest_wave";
-    public const string DepthLabel = "waves into the mine";
 
+    // The first explorer quest asks for a flat 40 wave types (owner, 2026-10-05);
+    // the second is still a share of however many exist - see ExplorePercent.
     private static string ExploreStat => WaveExploration.DistinctStatKey(Mine);
-    private const string ExploreLabel = "mine wave types met";
 
     public static IEnumerable<Quest> All()
     {
@@ -36,7 +36,7 @@ public static class MineQuests
                 + "investigate rumors of an overseer that may be orchestrating the chaos.",
             mapId: Mine,
             objectives: One("maps.mine.gate_cleared", 1,
-                            "Follow the rails to the bottom", hideProgress: true),
+                            menu: "Travel deeper into the mine"),
             reward: Reward(crystals: 1, unlocksMapId: Keep),
             unlocks: Gate(After(ForestQuests.Ruckus), Stat(DepthStat, 3)),
             cast: King,
@@ -63,7 +63,7 @@ public static class MineQuests
                 "Go deeper into the mines find the overseer, and put an end to his malice.",
             mapId: Mine,
             objectives: One("maps.mine.true_cleared", 1,
-                            "Put down whatever rides the gold cart", hideProgress: true),
+                            menu: "Defeat the mine's overseer"),
             reward: Reward(extraSpecialSlot: true),
             unlocks: Gate(Stat("maps.mine.gate_cleared")),
             cast: King,
@@ -88,7 +88,9 @@ public static class MineQuests
                 "The abandoned empty mine carts have made navigating the mines troublesome. Destroy empty "
                 + "mine carts to clear the cartographers path.",
             mapId: Mine,
-            objectives: One(MineStats.EmptyCartsBroken, 300, "empty carts broken"),
+            objectives: One(MineStats.EmptyCartsBroken, 300,
+                            menu: "{count} empty carts broken",
+                            npc: "Destroy {target} empty carts"),
             reward: Reward(crystals: 2),
             unlocks: Gate(Stat(MineStats.EmptyCartsBroken, 10)),
             cast: Mapmaker,
@@ -108,7 +110,9 @@ public static class MineQuests
                 "The cartographer has been rigging the carts in the mine with explosives. He wants us to "
                 + "put these explosives to use and finish off some creatures with them.",
             mapId: Mine,
-            objectives: One("kills.blasted", 150),
+            objectives: One("kills.blasted", 150,
+                            menu: "{count} slain by blast",
+                            npc: "Slay {target} monsters with explosive mine carts"),
             reward: Reward(crystals: 2),
             unlocks: Gate(Stat(MineStats.PowderCartsDetonated, 20)),
             cast: Mapmaker,
@@ -129,7 +133,10 @@ public static class MineQuests
                 "The cartographer has recruited you to scout out the many shafts within the mines. "
                 + "Continue to explore different mines shafts.",
             mapId: Mine,
-            objectives: One(ExploreStat, ExplorePercent(66), ExploreLabel, lifetime: true),
+            objectives: One(ExploreStat, 40,
+                            menu: "{count} mine waves discovered",
+                            npc: "Discover {target} different mine waves",
+                            lifetime: true),
             reward: Reward(crystals: 2),
             unlocks: Gate(Stat(ExploreStat, ExplorePercent(30))),
             cast: Mapmaker,
@@ -148,7 +155,10 @@ public static class MineQuests
                 "You have almost fully charted every single shaft within the mines. Continue your "
                 + "exploration until it is complete.",
             mapId: Mine,
-            objectives: One(ExploreStat, ExplorePercent(75), ExploreLabel, lifetime: true),
+            objectives: One(ExploreStat, ExplorePercent(75),
+                            menu: "{count} mine waves discovered",
+                            npc: "Discover {target} different mine waves",
+                            lifetime: true),
             reward: Reward(crystals: 4),
             unlocks: Gate(After(Explorer1)),
             cast: Mapmaker,
@@ -166,7 +176,7 @@ public static class MineQuests
                 + "equipped...",
             mapId: Mine,
             objectives: One(Feats.OverseerBare, 1,
-                            "Defeat the Overseer with no equipment or special equipped", hideProgress: true),
+                            menu: "Defeat the Overseer with no equipment or special equipped"),
             reward: Reward(equipmentId: "cart_detonator"),
             unlocks: Gate(After(ForestQuests.WreckingRatKing), Stat("kills.overseer", 1)),
             cast: Mapmaker,

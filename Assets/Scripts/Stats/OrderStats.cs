@@ -76,6 +76,10 @@ public static class OrderStats
     /// <summary>Total damage dealt to targets while they were frozen.</summary>
     public const string FrozenTargetDamage = "frigid.frozen_damage";
 
+    /// <summary>Total frost damage dealt: Frost Bite's ticks and Rimeblade's burst,
+    /// the pale-blue numbers. Counted where they are dealt, EnemyBase.ApplyFrostDamage.</summary>
+    public const string FrostDamage = "frigid.frost_damage";
+
     // ---- Guardian ----
 
     /// <summary>Most damage dealt by reflected projectiles within one wave.</summary>

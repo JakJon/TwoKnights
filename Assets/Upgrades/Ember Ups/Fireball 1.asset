@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: Fireball 1
   m_EditorClassIdentifier: 
   upgradeName: Fireball I
-  description: Your shots cycle into a bursting fireball.
+  description: Every 5th shot is a fireball.
   weight: 100
   order: 4
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 1 IN 5
-    labelText: SHOTS
+    labelText: 
     isPositive: 1
   everyNShots: 5
   blastRadius: 1.5

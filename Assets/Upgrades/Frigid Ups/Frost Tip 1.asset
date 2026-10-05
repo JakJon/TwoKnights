@@ -12,21 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2333aa7a0484e69f3fc8640929a3783, type: 3}
   m_Name: Frost Tip 1
   m_EditorClassIdentifier: 
-  upgradeName: Frost Tip I
-  description: Your arrows carry cold. What they hit slows down, and a second hit
-    freezes it for as long as the chill had left.
+  upgradeName: Frost Tip
+  description: Every arrow carries frost. First hit chills an enemy, the second hit
+    freezes them in their tracks.
   weight: 110
   order: 6
   requiresOrderCount: 0
   secondOrder: 0
   requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: -30%
-    labelText: ENEMY SPEED
-    isPositive: 1
-  - valueText: 3s
-    labelText: CHILL LASTS
+  - valueText: 100%
+    labelText: FROST CHANCE
     isPositive: 1
   tipLevel: 1

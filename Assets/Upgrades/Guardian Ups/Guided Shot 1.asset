@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Guided Shot 1
   m_EditorClassIdentifier: 
   upgradeName: Guided Shot I
-  description: Your arrow leans toward whatever it passes close to.
+  description: Your arrows begin tracking nearby enemies.
   weight: 60
   order: 3
   requiresOrderCount: 0

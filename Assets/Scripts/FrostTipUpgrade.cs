@@ -15,7 +15,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "FrostTipUpgrade", menuName = "Upgrades/Frost Tip")]
 public class FrostTipUpgrade : BaseUpgrade
 {
-    [Tooltip("1 = half speed for 3s, 2 = a fifth for 6s, 3 = a tenth for 10s.")]
+    [Tooltip("Always 1. Frost Tip is a single card since 2026-10-05: arrows chill (-30% for 3s) and a second hit freezes. The deeper slow and the longer chill its ranks II and III used to give are on Deep Freeze II and III now.")]
     [SerializeField] private int tipLevel = 1;
 
     public override string ChainName => "Frost Tip";

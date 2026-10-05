@@ -7,7 +7,8 @@ using UnityEngine;
 // is a real, readable, stationary piece of the board rather than something the
 // player has to carry around, and it needs no aim at all.
 //
-// Rank two is the clearest statement of what the Order is for. The core loop here
+// Slowing ammunition is the clearest statement of what the Order is for, and every
+// rank does it (owner, 2026-10-05; it used to start at rank two). The core loop here
 // is rotating a shield to intercept things; halving the speed of an incoming rock
 // is not damage and not defence, it is time to get the shield there.
 //
@@ -15,7 +16,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GlacialWardUpgrade", menuName = "Upgrades/Glacial Ward")]
 public class GlacialWardUpgrade : BaseUpgrade
 {
-    [Tooltip("1 = 1.6u ring; 2 = 2.4u and enemy ammunition crossing it is halved; 3 = 3.9u, keeping the slow.")]
+    [Tooltip("Ring size: 1 = 1.6u, 2 = 2.4u, 3 = 3.9u. Every rank halves the speed of enemy ammunition crossing it.")]
     [SerializeField] private int wardLevel = 1;
 
     public override string ChainName => "Glacial Ward";

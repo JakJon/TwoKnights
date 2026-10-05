@@ -11,21 +11,21 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6299f799a84fece41b0981d7fb4b7694, type: 3}
   m_Name: Venom Tip 2
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   upgradeName: Venom Tip II
-  description: More arrows carry venom, and the beads linger three times as long.
+  description: 60% of arrows carry poison.
   weight: 80
   order: 1
   requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
   unlockedBy:
   - {fileID: 11400000, guid: 46f6a57d562150fdeb38380b67b6e7a9, type: 2}
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: +30%
-    labelText: CHANCE
-    isPositive: 1
-  - valueText: 60%
-    labelText: ARROWS
+  - valueText: +60%
+    labelText: POISON CHANCE
     isPositive: 1
   - valueText: 3s
     labelText: VENOM TRAIL

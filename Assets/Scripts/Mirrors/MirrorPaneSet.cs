@@ -30,8 +30,12 @@ public class MirrorPaneSet : ScriptableObject
     [Tooltip("Seconds a shimmer frame is held. Shared by every pane so a pair stays in step.")]
     [SerializeField] private float shimmerInterval = 0.18f;
 
+    [Tooltip("Seconds the glass sits still on its first frame between one glint and the next. Shared by every pane, for the same reason the interval is.")]
+    [SerializeField] private float shimmerRest = 4.5f;
+
     public GameObject PanePrefab => panePrefab;
     public float ShimmerInterval => Mathf.Max(0.02f, shimmerInterval);
+    public float ShimmerRest => Mathf.Max(0f, shimmerRest);
 
     /// <summary>The art for one colour, or null if the set has none for it.</summary>
     public Sprite[] FramesFor(MirrorColor color)

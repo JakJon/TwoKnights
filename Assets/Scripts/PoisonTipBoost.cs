@@ -135,8 +135,10 @@ public class PoisonTipBoost : MonoBehaviour
         {
             breathBeads = 3;
             breathCloud = false;
-            breathSecondsMin = 4.5f;
-            breathSecondsMax = 4.5f;
+            // A second longer than rank I's (owner, 2026-10-05). It used to be the
+            // same 4.5s, so the rank bought count and nothing else.
+            breathSecondsMin = 5.5f;
+            breathSecondsMax = 5.5f;
         }
         else
         {

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Guided Reflections 2
   m_EditorClassIdentifier: 
   upgradeName: Guided Reflections II
-  description: The rebound finds its mark from further out.
-  weight: 16
+  description: The homing range for reflected projectiles is tripled!
+  weight: 12
   order: 3
   requiresOrderCount: 0
   secondOrder: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 1.0
-    labelText: REBOUND HOMING
+  - valueText: TRIPLED
+    labelText: HOMING RANGE
     isPositive: 1
   rank: 2

@@ -17,11 +17,12 @@ using UnityEngine;
 // time starts converting at once — which is why the capstone slot is the right home
 // for it and why nothing below it should ever grow a tick of its own.
 //
-// The combination to watch: Frost Tip III + Deep Freeze III + Frost Bite is a 19s
-// hold (10s chill left + 9s) at 3 a second = 57, and Frost Bite ticks never wear the
-// ice down, so none of it interrupts itself. A bat, a rat or a grey wolf (45) dies
-// inside one hold; a black wolf (60) walks out on 3 HP and an ogre (80) walks out
-// alive. With Hoarfrost Band doubling the chill it is 29s and 87 - the ogre dies.
+// The combination to watch: Frost Tip + Deep Freeze III + Frost Bite is a 22s
+// hold (13s chill left + 9s) at 3 a second = 66, and Frost Bite ticks never wear the
+// ice down, so none of it interrupts itself. A bat, a rat, a grey wolf (45) or a
+// black wolf (60) dies inside one hold; an ogre (80) walks out alive. With Hoarfrost
+// Band doubling the chill it is 35s and 105 - the ogre dies. (Figures from
+// 2026-10-05, when Deep Freeze took over the chill time and added to it.)
 // Bosses are held half as long, so ~28 into 1500-2500: nothing.
 //
 // The reason a second freeze is always available is that the thaw reprieve was

@@ -13,20 +13,18 @@ MonoBehaviour:
   m_Name: Vial Throw 1
   m_EditorClassIdentifier: 
   upgradeName: Vial Throw I
-  description: Every 5th shot also throws a vial that bursts into venom.
+  description: Every 5th shot throws a poison vial.
   weight: 100
   order: 1
   requiresOrderCount: 0
   secondOrder: 0
   requiresSecondOrderCount: 0
   unlockedBy: []
+  requiresAllUnlocks: 0
   lockedBy: []
   stats:
   - valueText: 1
-    labelText: VIALS
-    isPositive: 1
-  - valueText: EVERY 5TH SHOT
-    labelText: CADENCE
+    labelText: VIAL
     isPositive: 1
   tier: 1
   shotsPerVial: 5

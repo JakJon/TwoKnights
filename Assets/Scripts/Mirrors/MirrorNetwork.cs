@@ -107,7 +107,7 @@ public class MirrorNetwork : MonoBehaviour
             }
 
             pane.Configure(entry.label, entry.color, entry.facing, layout.Redirect,
-                           frames, set.ShimmerInterval);
+                           frames, set.ShimmerInterval, set.ShimmerRest);
             _live.Add(pane);
         }
 

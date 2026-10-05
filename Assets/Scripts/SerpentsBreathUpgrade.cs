@@ -9,7 +9,7 @@ using UnityEngine;
 //
 // The ranks, and why they are shaped this way:
 //   I   one venom bead down the facing, 4.5s
-//   II  three beads in a narrow fan, 4.5s
+//   II  three beads in a narrow fan, 5.5s
 //   III the same three beads at 6s, and an 8s venom cloud out with them
 //
 // Every rank throws the same object the Venom Tip trail is made of - a bead, spent
