@@ -24,6 +24,10 @@ The pieces (all paths relative to `Assets/Scripts/`):
 | `UI/CampMenuController.cs` | reveal combo: LT+RT+LB+RB or F9 on the camp menu, `static _hiddenButtonsUnlocked` |
 | `UI/TestWavePicker.cs` + `Spawner.PickNextWaveThenStart()` | per-wave picker: during a test run, every wave start pauses and lists the scheduled boss + all playable pool waves (with real odds) to choose from |
 | `TestRunConfig.AutoPickWave` | static string that bypasses the picker UI (see below) |
+| `UI/PauseMenu.cs` → **Skip Wave**, **Change Upgrades** | test runs only; see "In-run tools" below |
+| `Spawner.SkipCurrentWave()` / `CanSkipWave` | ends the wave in progress and runs the normal after-wave flow |
+| `BetweenWaveEvents.TestChoices` + `TestWavePicker.ShowEvents` | after a wave, lists the events due in the gap for the tester to pick |
+| `TestModePanel.InRun` | the camp panel reused mid-run (pause menu and death screen) to change upgrades |
 | `TestRunConfig.Map` | the map the run plays on; `MapSelection.Resolve()` honours it while the config is `Pending` (see below) |
 
 While a test run is active (`TestRunConfig.ActiveRun`), `furthestWave` is NOT saved,
@@ -103,6 +107,30 @@ will silently skip the picker they asked for.
 The picker is also the fastest human repro loop: to see one specific wave under
 a loadout, set the loadout in the camp panel and pick the wave by hand each time.
 
+## In-run tools (2026-10-09)
+
+All three only exist inside a test run (`TestRunConfig.ActiveRun`) in a dev build.
+
+- **Skip Wave** (pause menu, shown only while a wave is running). Stops the wave's
+  spawning, destroys what is on the field without paying kills or drops, then runs
+  the ordinary after-wave flow. The wave counts as COMPLETED: a skipped boss counts
+  as beaten (the clear is saved, and a boss that ends the run ends it). Over the
+  bridge: `FindFirstObjectByType<Spawner>().SkipCurrentWave()` with the game unpaused.
+- **The event list.** After "Wave Survived", if anything is due in the gap, a list
+  of it comes up and the tester picks one or "No event". **`AutoPickWave` set = no
+  list**, so an unattended run is not stalled by it. Details in the `event-authoring`
+  skill's Testing section.
+- **Change Upgrades** (pause menu and death screen). Opens the camp's upgrade list
+  loaded with what the knights hold. Applying calls `TestRunConfig.Set` with the
+  current wave number and the new picks, sets `RetryWave` to the wave in progress,
+  and reloads Main — so the wave restarts from its beginning. Upgrades cannot be
+  taken off a live knight, which is why it is a restart and not a live swap. The
+  wave-budget rule from camp still applies, except a knight may always keep as many
+  as they already hold.
+
+The wave list and the event list are the same `TestWavePicker` object, and the pause
+menu will not open while either is up (`TestWavePicker.IsOpen`).
+
 ## Choosing the map
 
 The camp panel has a Map row right under Starting Wave (◄►, wraps, defaults to
@@ -117,8 +145,10 @@ static yourself: `TestRunConfig.Map = MapCatalog.Instance.Find("mine")`.
   "Try Wave Again" re-fight on the same ground. Null it out when you hand the
   editor back.
 - Null/unset = the normal chain (level-select pick → save → first unlocked map).
-- The gate/true boss wave numbers are per map (Camp Fields 10/20, Mine 15/25 as of
-  2026-07-26), so pick the map before choosing a starting wave.
+- The gate/true boss wave numbers are per map (Camp Fields 10/20, Mine 10/20 as of
+  2026-10-20 — the Overseer moved from 25 to 20 that day), so pick the map before
+  choosing a starting wave. Read `MapDefinition.GateBossWaveNumber` /
+  `TrueBossWaveNumber` rather than trusting this line.
 
 ## Choosing loadouts that mean something
 

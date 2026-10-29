@@ -29,14 +29,62 @@ public class RailPieceSet : ScriptableObject
     [Tooltip("Planted over every drop point a layout declares. Track furniture rather than a direction, but it lives here for the same reason the rest does — so it can be wired without opening a scene.")]
     [SerializeField] private GameObject dropFlagPrefab;
 
+    [Header("Switch track (cart sorting)")]
+    [Tooltip("The pieces in red, for the corner of a fork that the red lever turns. Only the corners are needed. See RailSwitchColor.")]
+    [SerializeField] private List<Entry> redPieces = new List<Entry>();
+
+    [Tooltip("The pieces in blue, for the corner of a fork that the blue lever turns.")]
+    [SerializeField] private List<Entry> bluePieces = new List<Entry>();
+
+    [Tooltip("The flag for a drop point marked Red")]
+    [SerializeField] private GameObject redFlagPrefab;
+
+    [Tooltip("The flag for a drop point marked Blue")]
+    [SerializeField] private GameObject blueFlagPrefab;
+
+    [Tooltip("The flag for a drop point marked Green")]
+    [SerializeField] private GameObject greenFlagPrefab;
+
+    [Tooltip("The flag for a drop point marked Yellow")]
+    [SerializeField] private GameObject yellowFlagPrefab;
+
     public GameObject DropFlagPrefab => dropFlagPrefab;
 
     /// <summary>The prefab for <paramref name="kind"/>, or null if unmapped.</summary>
     public GameObject For(RailPieceKind kind)
     {
-        for (int i = 0; i < pieces.Count; i++)
+        return Find(pieces, kind);
+    }
+
+    /// <summary>
+    /// The prefab for <paramref name="kind"/> in a switch colour. A colour with no
+    /// piece of its own gets the ordinary one, so the track still lays — it just
+    /// cannot be told from the rest of the rail.
+    /// </summary>
+    public GameObject For(RailPieceKind kind, RailSwitchColor color)
+    {
+        GameObject colored = color == RailSwitchColor.Red ? Find(redPieces, kind)
+                           : color == RailSwitchColor.Blue ? Find(bluePieces, kind)
+                           : null;
+        return colored != null ? colored : Find(pieces, kind);
+    }
+
+    /// <summary>The flag for a drop point of this colour; the ordinary flag for None or an unwired colour.</summary>
+    public GameObject DropFlagFor(CartColor color)
+    {
+        GameObject colored = color == CartColor.Red ? redFlagPrefab
+                           : color == CartColor.Blue ? blueFlagPrefab
+                           : color == CartColor.Green ? greenFlagPrefab
+                           : color == CartColor.Yellow ? yellowFlagPrefab
+                           : null;
+        return colored != null ? colored : dropFlagPrefab;
+    }
+
+    private static GameObject Find(List<Entry> table, RailPieceKind kind)
+    {
+        for (int i = 0; i < table.Count; i++)
         {
-            if (pieces[i].kind == kind && pieces[i].prefab != null) return pieces[i].prefab;
+            if (table[i].kind == kind && table[i].prefab != null) return table[i].prefab;
         }
         return null;
     }

@@ -2,13 +2,12 @@
     <ui:Style src="PlayerHUD.uss" />
     <ui:VisualElement name="player-hud" class="player-hud" picking-mode="Ignore">
         <ui:VisualElement name="boss-hud" class="boss-hud" picking-mode="Ignore">
-            <ui:Label name="boss-title" class="boss-title" text="THE RAT KING" picking-mode="Ignore" />
-            <ui:VisualElement class="bar-row" picking-mode="Ignore">
-                <ui:VisualElement class="bar boss-bar" picking-mode="Ignore">
-                    <ui:VisualElement name="boss-health-fill" class="bar-fill boss-health-fill" picking-mode="Ignore" />
-                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+            <ui:VisualElement class="boss-block" picking-mode="Ignore">
+                <ui:VisualElement class="boss-head" picking-mode="Ignore">
+                    <ui:Label name="boss-title" class="boss-title" text="THE RAT KING" picking-mode="Ignore" />
+                    <ui:Label name="boss-health-amount" class="boss-health-amount" text="3000 / 3000" picking-mode="Ignore" />
                 </ui:VisualElement>
-                <ui:Label name="boss-health-amount" class="bar-side-label boss-health-amount" text="3000 / 3000" picking-mode="Ignore" />
+                <ui:VisualElement name="boss-health-bar" class="pixel-bar boss-pixel-bar" picking-mode="Ignore" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="left-hud" class="knight-hud hud-left" picking-mode="Ignore">
@@ -21,17 +20,14 @@
             <ui:VisualElement class="bar-row" picking-mode="Ignore">
                 <ui:VisualElement class="bar-holder" picking-mode="Ignore">
                     <ui:VisualElement name="left-health-glow" class="health-glow" picking-mode="Ignore" />
-                    <ui:VisualElement class="bar" picking-mode="Ignore">
-                        <ui:VisualElement name="left-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
-                        <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
-                    </ui:VisualElement>
+                    <ui:VisualElement name="left-health-bar" class="pixel-bar" picking-mode="Ignore" />
                 </ui:VisualElement>
                 <ui:Label name="left-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
             </ui:VisualElement>
             <ui:VisualElement name="left-special-row" class="bar-row" picking-mode="Ignore">
-                <ui:VisualElement class="bar" picking-mode="Ignore">
-                    <ui:VisualElement name="left-special-fill" class="bar-fill special-fill" picking-mode="Ignore" />
-                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                <ui:VisualElement class="bar-holder" picking-mode="Ignore">
+                    <ui:VisualElement name="left-special-glow" class="special-glow" picking-mode="Ignore" />
+                    <ui:VisualElement name="left-special-bar" class="pixel-bar" picking-mode="Ignore" />
                 </ui:VisualElement>
                 <ui:Label name="left-special-label" class="bar-side-label" text="0 / 1000" picking-mode="Ignore" />
             </ui:VisualElement>
@@ -46,17 +42,14 @@
             <ui:VisualElement class="bar-row" picking-mode="Ignore">
                 <ui:VisualElement class="bar-holder" picking-mode="Ignore">
                     <ui:VisualElement name="right-health-glow" class="health-glow" picking-mode="Ignore" />
-                    <ui:VisualElement class="bar" picking-mode="Ignore">
-                        <ui:VisualElement name="right-health-fill" class="bar-fill health-fill" picking-mode="Ignore" />
-                        <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
-                    </ui:VisualElement>
+                    <ui:VisualElement name="right-health-bar" class="pixel-bar" picking-mode="Ignore" />
                 </ui:VisualElement>
                 <ui:Label name="right-health-label" class="bar-side-label" text="100 / 100" picking-mode="Ignore" />
             </ui:VisualElement>
             <ui:VisualElement name="right-special-row" class="bar-row" picking-mode="Ignore">
-                <ui:VisualElement class="bar" picking-mode="Ignore">
-                    <ui:VisualElement name="right-special-fill" class="bar-fill special-fill" picking-mode="Ignore" />
-                    <ui:VisualElement class="bar-sheen" picking-mode="Ignore" />
+                <ui:VisualElement class="bar-holder" picking-mode="Ignore">
+                    <ui:VisualElement name="right-special-glow" class="special-glow" picking-mode="Ignore" />
+                    <ui:VisualElement name="right-special-bar" class="pixel-bar" picking-mode="Ignore" />
                 </ui:VisualElement>
                 <ui:Label name="right-special-label" class="bar-side-label" text="0 / 1000" picking-mode="Ignore" />
             </ui:VisualElement>

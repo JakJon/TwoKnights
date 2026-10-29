@@ -29,10 +29,13 @@ using UnityEngine;
 ///           |
 ///          270
 ///
-/// This drives SpriteRenderer.sprite directly. It is safe today because the knights'
-/// Animators point at a controller no current import produces, so nothing else writes
-/// that field — but if PlayerMan.aseprite ever goes back to being multi-frame, the
-/// regenerated controller will key the sprite too and fight this for it.
+/// This drives SpriteRenderer.sprite directly, and nothing else writes that field. The
+/// front poses are two-frame files now (frame 2 is the "blood thirst" face), so their
+/// imports generate an Animator controller again — harmless only because the knight
+/// prefabs carry no Animator. Adding one back would key the sprite and fight this.
+///
+/// While Blood Tithe is open (<see cref="BloodThirst"/>) each pose swaps for its blood
+/// thirst frame. The back poses hide the visor, so they have none and stay as they are.
 /// </remarks>
 [RequireComponent(typeof(SpriteRenderer))]
 public class KnightFacing : MonoBehaviour
@@ -58,6 +61,14 @@ public class KnightFacing : MonoBehaviour
     [Tooltip("Shield held low and to the right — from straight down round past 0 to the horizon boundary.")]
     [SerializeField] private Sprite frontRight;
 
+    [Header("Blood Tithe")]
+    [Tooltip("The 'blood thirst' frame of each pose, worn while Blood Tithe is open. " +
+             "A pose left empty keeps its normal sprite.")]
+    [SerializeField] private Sprite bloodBackRight;
+    [SerializeField] private Sprite bloodBackLeft;
+    [SerializeField] private Sprite bloodFrontLeft;
+    [SerializeField] private Sprite bloodFrontRight;
+
     [Header("Shape")]
     [Tooltip("Width in degrees of EACH back sector. The two front sectors split whatever is " +
              "left over, so 50 here gives 130 to each front pose. 90 gives four even " +
@@ -73,8 +84,13 @@ public class KnightFacing : MonoBehaviour
     // Seeded to a value no quadrant maps to, so the first evaluation always paints
     // rather than trusting whatever pose the prefab happened to be saved wearing.
     private Facing _current = (Facing)(-1);
+    private bool _paintedBloodThirst;
 
     public Facing CurrentFacing => _current;
+
+    /// <summary>True while the knight wears his blood thirst frames. Held by
+    /// BloodTitheWindow for exactly as long as the window is open.</summary>
+    public bool BloodThirst { get; set; }
 
     private void Awake()
     {
@@ -89,12 +105,19 @@ public class KnightFacing : MonoBehaviour
         if (shield == null) return;
 
         Facing wanted = FacingFor(shield.CurrentAngle, backSectorDegrees);
-        if (wanted == _current) return;
+        if (wanted == _current && BloodThirst == _paintedBloodThirst) return;
 
         Sprite pose = PoseFor(wanted);
         if (pose == null) return; // an unassigned pose holds the last good one
 
+        if (BloodThirst)
+        {
+            Sprite blood = BloodPoseFor(wanted);
+            if (blood != null) pose = blood;
+        }
+
         _current = wanted;
+        _paintedBloodThirst = BloodThirst;
         _renderer.sprite = pose;
     }
 
@@ -126,6 +149,17 @@ public class KnightFacing : MonoBehaviour
             case Facing.BackLeft: return backLeft;
             case Facing.FrontLeft: return frontLeft;
             default: return frontRight;
+        }
+    }
+
+    private Sprite BloodPoseFor(Facing facing)
+    {
+        switch (facing)
+        {
+            case Facing.BackRight: return bloodBackRight;
+            case Facing.BackLeft: return bloodBackLeft;
+            case Facing.FrontLeft: return bloodFrontLeft;
+            default: return bloodFrontRight;
         }
     }
 }

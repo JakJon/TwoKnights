@@ -22,7 +22,8 @@ MonoBehaviour:
   delayTime: 1.125
   projectilesPerArc: 5
   batsPerArc: 17
-  kingSlimes: 5
+  kingSlimes: 3
+  closingMediumSlimes: 2
   slimesPerArc: 3
   slimesSize: 2
   arcCount: 11

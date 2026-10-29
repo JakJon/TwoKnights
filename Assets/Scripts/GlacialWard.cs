@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // Glacial Ward (Frigid Order): a standing ring of cold around a knight.
@@ -30,6 +31,10 @@ public class GlacialWard : MonoBehaviour
     // second is a garbage collection the player can feel.
     private static readonly Collider2D[] Hits = new Collider2D[64];
 
+    // Every ward on the board, for the Frost Order quest that counts freezes made
+    // inside a ring (see Encloses).
+    private static readonly List<GlacialWard> Live = new List<GlacialWard>();
+
     private void Awake()
     {
         _boost = GetComponent<FrigidBoost>();
@@ -38,12 +43,45 @@ public class GlacialWard : MonoBehaviour
         _centerOffset = body != null ? new Vector3(0f, body.offset.y, 0f) : Vector3.zero;
     }
 
+    private void OnEnable() { Live.Add(this); }
+    private void OnDisable() { Live.Remove(this); }
+
+    /// <summary>
+    /// Whether this body is standing in either knight's frost ring right now. The
+    /// same reach the sweep uses: a body counts once any part of it is over the
+    /// ring, not only its middle.
+    /// </summary>
+    public static bool Encloses(EnemyBase enemy)
+    {
+        if (enemy == null || UpgradeHold.Held) return false;
+        Collider2D body = enemy.GetComponent<Collider2D>();
+
+        for (int i = 0; i < Live.Count; i++)
+        {
+            GlacialWard ward = Live[i];
+            if (ward == null || ward._boost == null) continue;
+            float radius = ward._boost.WardRadius;
+            if (radius <= 0f) continue;
+
+            Vector2 center = ward.transform.TransformPoint(ward._centerOffset);
+            Vector2 nearest = body != null ? body.ClosestPoint(center) : (Vector2)enemy.transform.position;
+            if ((nearest - center).sqrMagnitude <= radius * radius) return true;
+        }
+        return false;
+    }
+
     private void Update()
     {
         if (_boost == null) return;
 
         float radius = _boost.WardRadius;
         if (radius <= 0f) return;
+
+        // Upgrades held (cart sorting): the ring goes with the rest and comes back
+        // when they do.
+        bool shown = !UpgradeHold.Held;
+        if (_ring != null && _ring.gameObject.activeSelf != shown) _ring.gameObject.SetActive(shown);
+        if (!shown) return;
 
         // The tell, rebuilt only when the ring actually changes size - a knight
         // who takes rank two mid-run widens the ring they already have rather
@@ -82,17 +120,16 @@ public class GlacialWard : MonoBehaviour
             {
                 // isBlow: false. The ward is not a hit the knight landed, so it
                 // physically cannot freeze - the boost signs that promise, not a
-                // comment here.
-                bool wasFrozen = enemy.IsFrozen;
+                // comment here. Which is why the ring quest counts in
+                // EnemyBase.Freeze instead: the knight's blow does the freezing,
+                // the ring only decides whether it counts.
                 _boost.TouchWithCold(enemy, false);
-                // Only the ones the ward itself stopped — a body that walked in
-                // already frozen was somebody else's work.
-                if (!wasFrozen && enemy.IsFrozen) QuestTally.Run(OrderStats.WardFrozenRunMax);
                 continue;
             }
 
             // Everything else that moves and can be slowed: an orb drifting past,
-            // and the ammunition on its way in.
+            // and the ammunition on its way in — except rocks, which no rank slows
+            // (owner, 2026-10-15; see ProjectileMovement).
             IChillable chillable = hit.GetComponent<IChillable>();
             if (chillable == null) continue;
 
@@ -106,7 +143,7 @@ public class GlacialWard : MonoBehaviour
             else if (slowsAmmo)
             {
                 // A flat half rather than the knight's own chill depth, because a
-                // rock at a tenth speed would simply hang in the air and stop
+                // bomb at a tenth speed would simply hang in the air and stop
                 // being a threat the player has to answer at all.
                 _boost.TouchWithCold(chillable, FrigidBoost.WardProjectileSpeedMultiplier);
             }

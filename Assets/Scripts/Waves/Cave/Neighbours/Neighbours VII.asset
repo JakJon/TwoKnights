@@ -15,7 +15,7 @@ MonoBehaviour:
   waveName: Neighbours VII
   weight: 1000
   isUnlocked: 0
-  waveDescription: Ten crates and thirteen wolves. Everyone moves in.
+  waveDescription: Seven crates and nine wolves. Everyone moves in.
   unlockedAfterXWaves: 24
   lockedAfterXWaves: -1
   useEnemyTracking: 1
@@ -25,23 +25,23 @@ MonoBehaviour:
   crates:
   - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
-  crateCount: 10
-  crateInterval: 2.75
+  crateCount: 7
+  crateInterval: 4.13
   firstCrateAt: 1
-  wolves: 13
-  wolfInterval: 2.05
+  wolves: 9
+  wolfInterval: 3.08
   firstWolfAt: 5
   packOrder:
   - 0
   - 2
-  courseDistance: 17
+  courseDistance: 25
   courseOffset: 1.2
   courseLeadIn: 6
   courseReversals: 0
   flanks:
-  - label: five from each edge
-    fromTop: 5
-    fromBottom: 5
+  - label: three from the top, two from the bottom
+    fromTop: 3
+    fromBottom: 2
     firstAt: 6
     interval: 0.75
     ratTypes:
@@ -58,9 +58,9 @@ MonoBehaviour:
     to: {x: 12, y: 0.5}
   ogres:
     label: 8 vertically across both haul roads
-    count: 7
+    count: 5
     firstAt: 5
-    interval: 3.75
+    interval: 5.63
     fireEveryNth: 3
     entries:
     - label: up across both haul roads, right

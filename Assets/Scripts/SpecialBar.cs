@@ -2,8 +2,10 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 // UI Toolkit adapter: PlayerSpecial pushes values in and this paints the
-// Gilded Vigil special bar + streak line in PlayerHUD.uxml for one knight.
-// Gold owns the charged state: a full bar brightens and reads READY.
+// special bar + streak line in PlayerHUD.uxml for one knight. The bar itself
+// is a PixelBar: deep purple at the first pixel through to deep blue at the
+// last. A full bar reads READY, and a halo in the bar's colour pulses behind
+// it for as long as it stays full.
 // The streak line splits in two: the "×N" grows, recolours and catches fire
 // with the multiplier, while "· STREAK n" beside it stays put.
 public class SpecialBar : MonoBehaviour
@@ -12,8 +14,10 @@ public class SpecialBar : MonoBehaviour
     [SerializeField] private string sidePrefix = "left";
 
     private VisualElement _row;
-    private VisualElement _fill;
+    private PixelBar _bar;
     private Label _label;
+    private TextRim _labelRim;
+    private VisualElement _glow;
     private VisualElement _streakLine;
     private Label _streakMult;
     private Label _streakCount;
@@ -26,6 +30,14 @@ public class SpecialBar : MonoBehaviour
     private int _current;
     private int _multiplier = 1;
     private int _streak;
+    private bool _painted;
+    private float _glowStrength;
+
+    // The halo behind a full bar (owner, 2026-10-13): one swell and fade every
+    // this many seconds, never fully dark in between, the way the low-health
+    // halo never is. No sound goes with it.
+    private const float ReadyPulseSeconds = 1.2f;
+    private const float ReadyGlowLow = 0.3f;
 
     public void Initialize(int maxSpecial)
     {
@@ -58,33 +70,71 @@ public class SpecialBar : MonoBehaviour
     }
 
     // rootVisualElement can be null while the panel is still initializing —
-    // Update retries the bind with the latest cached values, then stops ticking
+    // Update retries the bind with the latest cached values. After that it only
+    // ticks while the bar is full, to move the halo; Apply wakes it for that.
     private void Update()
     {
-        if (EnsureUI())
+        if (!EnsureUI()) return;
+
+        if (!_painted)
         {
+            _painted = true;
             ApplyVisibility();
             Apply();
             ApplyStreak();
-            enabled = false;
         }
+
+        if (!TickReadyPulse()) enabled = false;
+    }
+
+    /// <summary>
+    /// Moves the halo behind a full bar. False when there is nothing to move:
+    /// the bar is not full, or it is hidden because the knight carries no
+    /// special. Scaled time, so the pulse holds still behind the pause and
+    /// upgrade menus like everything else. Both knights read the same clock, so
+    /// two full bars pulse together.
+    /// </summary>
+    private bool TickReadyPulse()
+    {
+        if (_glow == null) return false;
+
+        if (!_visible || _current < _max)
+        {
+            SetGlow(0f);
+            return false;
+        }
+
+        float pulse = 0.5f + 0.5f * Mathf.Cos(Time.time / ReadyPulseSeconds * 2f * Mathf.PI);
+        SetGlow(Mathf.Lerp(ReadyGlowLow, 1f, pulse));
+        return true;
+    }
+
+    private void SetGlow(float strength)
+    {
+        if (Mathf.Approximately(strength, _glowStrength)) return;
+        _glowStrength = strength;
+        _glow.style.opacity = strength;
     }
 
     private bool EnsureUI()
     {
-        if (_row != null && _fill != null && _label != null && _streakFlames != null) return true;
+        if (_row != null && _bar != null && _labelRim != null && _streakFlames != null) return true;
         if (hudDocument == null) return false;
         var root = hudDocument.rootVisualElement;
         if (root == null) return false;
         _row = root.Q<VisualElement>($"{sidePrefix}-special-row");
-        _fill = root.Q<VisualElement>($"{sidePrefix}-special-fill");
+        var holder = root.Q<VisualElement>($"{sidePrefix}-special-bar");
         _label = root.Q<Label>($"{sidePrefix}-special-label");
+        // Optional: the bar still works in a HUD built without the halo
+        _glow = root.Q<VisualElement>($"{sidePrefix}-special-glow");
         _streakLine = root.Q<VisualElement>($"{sidePrefix}-streak");
         _streakMult = root.Q<Label>($"{sidePrefix}-streak-mult");
         _streakCount = root.Q<Label>($"{sidePrefix}-streak-count");
         var multBox = root.Q<VisualElement>($"{sidePrefix}-streak-mult-box");
-        if (_row == null || _fill == null || _label == null || _streakLine == null
+        if (_row == null || holder == null || _label == null || _streakLine == null
             || _streakMult == null || _streakCount == null || multBox == null) return false;
+
+        _bar = new PixelBar(holder, PixelBar.SpecialRamp, sidePrefix == "right");
 
         // First child, so the number draws over its own flames
         _streakFlames = new StreakFlames();
@@ -94,24 +144,28 @@ public class SpecialBar : MonoBehaviour
         // text and classes go through the rims, which keep the copies in step.
         _streakMultRim = new TextRim(_streakMult, MultRimPixels[1]);
         _streakCountRim = new TextRim(_streakCount, CountRimPixels);
+        _labelRim = new TextRim(_label, CountRimPixels);
         return true;
     }
 
     private void Apply()
     {
         if (!EnsureUI()) return;
-        float fraction = (float)_current / _max;
         bool full = _current >= _max;
-        _fill.style.width = Length.Percent(fraction * 100f);
-        _fill.EnableInClassList("special--full", full);
-        _label.text = full ? "READY" : $"{_current} / {_max}";
-        _label.EnableInClassList("bar-label--ready", full);
+        _bar.SetFill((float)_current / _max);
+        _labelRim.SetText(full ? "READY" : $"{_current} / {_max}");
+        _labelRim.EnableInClassList("bar-label--ready", full);
+
+        // Update is what moves the halo. It takes the halo off and goes back to
+        // sleep by itself on the first frame the bar is no longer full.
+        if (full && _visible) enabled = true;
     }
 
     private void ApplyVisibility()
     {
         if (!EnsureUI()) return;
         _row.style.display = _visible ? DisplayStyle.Flex : DisplayStyle.None;
+        if (_visible && _current >= _max) enabled = true;
     }
 
     private static readonly string[] TierClasses = { null, "streak-mult--1", "streak-mult--2", "streak-mult--3", "streak-mult--4" };
@@ -121,7 +175,9 @@ public class SpecialBar : MonoBehaviour
     // The multiplier's grows with its tier, so a big x4 is outlined as heavily,
     // for its size, as the tiny x1.
     private static readonly float[] MultRimPixels = { 0f, 1.5f, 2f, 2.5f, 3f };
-    private const float CountRimPixels = 1.5f;
+    // "· STREAK n". The numbers beside both bars wear the same one (owner,
+    // 2026-10-14), so HealthBar reads it from here.
+    public const float CountRimPixels = 1.5f;
 
     private void ApplyStreak()
     {

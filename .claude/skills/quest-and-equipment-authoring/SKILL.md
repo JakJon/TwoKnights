@@ -283,7 +283,8 @@ the item. Give the boost a separate equipment field instead (see
 
 **Damage bonuses go through `EquipmentBoost.ScaleHit(damage, enemy, knightTag)`** at
 every place a knight's projectile or blade hurts an enemy — arrows, fireball blasts,
-guard rebounds and their bursts, the sword and Rimeblade. A new knight projectile that
+guard rebounds and their bursts, and the sword. (Rimeblade's burst deals no damage, and
+the flat frost damage its blade adds does not use it.) A new knight projectile that
 skips it silently ignores every bane item. Damage-over-time ticks (poison, burn, fire
 ground, Shield Sight beam) deliberately do not use it.
 
@@ -306,7 +307,6 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   id: padded_gambeson
   displayName: Padded Gambeson
-  description: 'Quilted linen, and rather more of it than is comfortable.'
   effect: '+20 maximum health.'
   icon: {fileID: 21300000, guid: <the png's meta guid>, type: 3}
   crystalCost: 2          # 0 = quest reward only, never sold
@@ -325,14 +325,15 @@ Unity adopts it on refresh. **A Single-mode sprite's sub-asset fileID is always
 Omitted fields keep their C# initializer defaults, so an asset only needs the lines it
 cares about.
 
-### description vs effect
+### effect is the only text
 
-- `description` — flavor. One sentence, second person, **no numbers**.
-- `effect` — exactly what it does, **with** the numbers.
+- `effect` — exactly what it does, **with** the numbers. The shop and the equipment
+  screen show this line and nothing else.
 
-`ItemText.Detail` renders both (effect plain on top, flavor dimmed and italic below) in the
-shop and the equipment screen. Never put mechanics in `description`; several early items
-did and read as instructions rather than colour.
+There is no `description` (flavor) field on equipment or specials any more — the owner
+removed it on 2026-10-05 as not needed. Do not add one back or write flavor for a new
+item. Older `.asset` files may still carry a leftover `description:` line; Unity ignores
+it and drops it the next time it saves the asset.
 
 ### Never print world units to the player
 

@@ -11,6 +11,10 @@ public class PlayerShooter : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float projectileSpeed = 10f;
     [SerializeField] private float projectileLifetime = 4f;
+
+    /// <summary>Seconds a shot flies before it is taken away. Read by MirrorCopy so
+    /// a mirror's copy ends when its original would.</summary>
+    public float ProjectileLifetime => projectileLifetime;
     [SerializeField] private InputActionReference shootAction;
     
     private bool _canShoot = true;
@@ -48,6 +52,10 @@ public class PlayerShooter : MonoBehaviour
         _noCooldownUntil = Mathf.Max(_noCooldownUntil, Time.time + duration);
     }
 
+    // Every upgrade this bow reads off its knight comes through here, so that
+    // cart sorting can take them all off at once — see UpgradeHold.
+    private T Upgrade<T>() where T : Component => UpgradeHold.Of<T>(this);
+
     private void OnEnable()
     {
         shootAction.action.performed += _ => _isHoldingButton = true;
@@ -71,7 +79,7 @@ public class PlayerShooter : MonoBehaviour
 
     private void UpdateFireballChargeFx()
     {
-        EmberBoost emberBoost = GetComponent<EmberBoost>();
+        EmberBoost emberBoost = Upgrade<EmberBoost>();
         bool shouldCharge = emberBoost != null && emberBoost.NextShotIsFireball;
 
         if (shouldCharge && _fireballChargeFx == null && shield != null)
@@ -101,7 +109,7 @@ public class PlayerShooter : MonoBehaviour
     // the shield shows BOTH, because both are going to happen.
     private void UpdateDartChargeFx()
     {
-        SleepBoost sleepBoost = GetComponent<SleepBoost>();
+        SleepBoost sleepBoost = Upgrade<SleepBoost>();
         if (sleepBoost == null || shield == null) return;
 
         // SleepFx owns the lifetime: it raises the Zs when the dart is next and
@@ -119,7 +127,7 @@ public class PlayerShooter : MonoBehaviour
 
     private void UpdateVialChargeFx()
     {
-        PoisonVialBoost vialBoost = GetComponent<PoisonVialBoost>();
+        PoisonVialBoost vialBoost = Upgrade<PoisonVialBoost>();
         bool shouldCharge = vialBoost != null && vialBoost.NextShotIsVial;
 
         if (shouldCharge && _vialChargeFx == null && shield != null)
@@ -168,7 +176,7 @@ public class PlayerShooter : MonoBehaviour
         // Ember: the deterministic fireball cadence. Every Nth shot leaves the
         // shield as a fireball instead of an arrow — a counter, not a roll, so the
         // player can count to five and time the big one into a cluster.
-        EmberBoost emberBoost = GetComponent<EmberBoost>();
+        EmberBoost emberBoost = Upgrade<EmberBoost>();
         bool isFireball = emberBoost != null && emberBoost.AdvanceShotAndCheckFireball();
         GameObject prefabToFire = playerProjectilePrefab;
         if (isFireball && emberBoost.FireballPrefab != null)
@@ -184,7 +192,7 @@ public class PlayerShooter : MonoBehaviour
         // When they land on the same shot the shield fires one of each - the
         // fireball is the shot that was already leaving, and the dart goes out
         // beside it rather than waiting its turn.
-        SleepBoost sleepBoost = GetComponent<SleepBoost>();
+        SleepBoost sleepBoost = Upgrade<SleepBoost>();
         bool isDart = sleepBoost != null && sleepBoost.AdvanceShotAndCheckDart();
         if (isDart && !isFireball)
         {
@@ -200,14 +208,14 @@ public class PlayerShooter : MonoBehaviour
         //
         // Added only when the knight owns the chain, so a run with no Guardian picks
         // never puts a per-frame search on an arrow.
-        GuardianBoost guardianBoost = GetComponent<GuardianBoost>();
+        GuardianBoost guardianBoost = Upgrade<GuardianBoost>();
         if (guardianBoost != null && guardianBoost.GuidedShotRadius > 0f)
         {
             projectile.AddComponent<GuidedShot>().Configure(guardianBoost.GuidedShotRadius, true, gameObject.tag);
         }
 
         // Check if this projectile should be poisoned
-        PoisonTipBoost poisonTipBoost = GetComponent<PoisonTipBoost>();
+        PoisonTipBoost poisonTipBoost = Upgrade<PoisonTipBoost>();
         if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
         {
             // Add PoisonProjectile component to make this projectile poisonous
@@ -217,23 +225,28 @@ public class PlayerShooter : MonoBehaviour
 
     // (Moved shadow spawn below after computing final damage)
 
+        // Upgrades held (cart sorting): the arrow leaves at the speed and with the
+        // damage the bow had before any upgrade, and reloads at that pace below.
+        bool upgradesHeld = UpgradeHold.Held;
+
         // Set velocity — a fireball lobs slower so the player can read it coming
-        float launchSpeed = isFireball ? projectileSpeed * FireballSpeedFactor : projectileSpeed;
+        float arrowSpeed = upgradesHeld && _baseProjectileSpeed >= 0f ? _baseProjectileSpeed : projectileSpeed;
+        float launchSpeed = isFireball ? arrowSpeed * FireballSpeedFactor : arrowSpeed;
         projectile.GetComponent<Rigidbody2D>().linearVelocity = shield.Direction * launchSpeed;
 
         // Apply damage bonus to the projectile
-        NinjaBoost ninjaBoost = GetComponent<NinjaBoost>();
+        NinjaBoost ninjaBoost = Upgrade<NinjaBoost>();
         PlayerProjectile playerProjectileComponent = projectile.GetComponent<PlayerProjectile>();
         if (playerProjectileComponent != null)
         {
-            playerProjectileComponent.damage += damageBonus;
+            if (!upgradesHeld) playerProjectileComponent.damage += damageBonus;
             playerProjectileComponent.ownerNinjaBoost = ninjaBoost;
         }
 
         // Dawn: holy damage, worth +2 for every Dawn upgrade this knight owns. It
         // is added HERE rather than folded into damageBonus because the echoes are
         // paid a different share of it, and that needs two numbers to exist at once.
-        DawnBoost dawnBoost = GetComponent<DawnBoost>();
+        DawnBoost dawnBoost = Upgrade<DawnBoost>();
         int holyDamage = dawnBoost != null ? dawnBoost.HolyDamage : 0;
         int echoHolyDamage = dawnBoost != null ? dawnBoost.EchoHolyDamage : 0;
 
@@ -258,7 +271,7 @@ public class PlayerShooter : MonoBehaviour
         // Frigid: every shot a Frigid knight fires carries the sheet. There is no
         // roll and no counter - the Order is the one with no dice in it, so the
         // only question is whether the knight has bought the arrow chain yet.
-        FrigidBoost frigidBoost = GetComponent<FrigidBoost>();
+        FrigidBoost frigidBoost = Upgrade<FrigidBoost>();
         if (playerProjectileComponent != null && frigidBoost != null)
         {
             playerProjectileComponent.ownerFrigidBoost = frigidBoost;
@@ -298,7 +311,7 @@ public class PlayerShooter : MonoBehaviour
         }
 
         // Check if shadow arrow(s) should be spawned
-        ShadowArrowBoost shadowArrowBoost = GetComponent<ShadowArrowBoost>();
+        ShadowArrowBoost shadowArrowBoost = Upgrade<ShadowArrowBoost>();
         if (!echoesHeld && shadowArrowBoost != null && shadowArrowBoost.GetShadowArrowPrefab() != null)
         {
             // Spawn chain asynchronously with small delay between spawns so they don't all appear at once
@@ -321,7 +334,7 @@ public class PlayerShooter : MonoBehaviour
         // Its own counter, advanced on every shot and independent of Ember's and
         // the dart's, for the reason SleepBoost states: three cadences that could
         // eat each other are three promises the player cannot rely on.
-        PoisonVialBoost vialBoost = GetComponent<PoisonVialBoost>();
+        PoisonVialBoost vialBoost = Upgrade<PoisonVialBoost>();
         if (vialBoost != null && vialBoost.AdvanceShotAndCheckVial())
         {
             ThrowVials(vialBoost, spawnPosition);
@@ -331,16 +344,17 @@ public class PlayerShooter : MonoBehaviour
         StartCoroutine(DestroyProjectile(projectile));
 
         // Gradual cooldown with fill amount updates
+        float reload = upgradesHeld ? cooldownTime / _upgradeCooldownFactor : cooldownTime;
         float elapsed = 0f;
-    while (elapsed < cooldownTime)
+    while (elapsed < reload)
     {
             elapsed += Time.deltaTime;
             // An open no-cooldown window collapses the cooldown to its floor
-            if (Time.time < _noCooldownUntil && elapsed >= _noCooldownFloor)
+            if (!upgradesHeld && Time.time < _noCooldownUntil && elapsed >= _noCooldownFloor)
             {
                 break;
             }
-            float progress = elapsed / cooldownTime;
+            float progress = elapsed / reload;
             float remainingFill = 1f - progress; // Start at 1, go to 0
             shield.SetReloadBarFill(remainingFill);
             yield return null;
@@ -427,13 +441,13 @@ public class PlayerShooter : MonoBehaviour
             component.damage = Mathf.Max(1, arrowDamage);
             // The dart is paid the arrow's damage holy and all (see above), so it
             // carries the same holy share for the split number over the body
-            component.holyDamage = GetComponent<DawnBoost>() != null
-                ? GetComponent<DawnBoost>().HolyDamage : 0;
+            component.holyDamage = Upgrade<DawnBoost>() != null
+                ? Upgrade<DawnBoost>().HolyDamage : 0;
             component.ownerNinjaBoost = ninjaBoost;
             // The main shot is the one that drinks from the field; a second
             // projectile absorbing the same cloud would pay the build twice
             component.absorbsFieldEffects = false;
-            component.ownerFrigidBoost = GetComponent<FrigidBoost>();
+            component.ownerFrigidBoost = Upgrade<FrigidBoost>();
         }
 
         // Its own poison roll, exactly as each shuriken gets one
@@ -446,7 +460,7 @@ public class PlayerShooter : MonoBehaviour
             .Configure(sleepBoost.SleepSeconds, sleepBoost.DartSprite);
 
         // The dart is paid the arrow's damage, holy and all, so it wears the tell
-        DawnBoost dartDawn = GetComponent<DawnBoost>();
+        DawnBoost dartDawn = Upgrade<DawnBoost>();
         if (dartDawn != null && dartDawn.HolyDamage > 0) DawnFx.AttachArrowTrail(dart, dartDawn.DawnPicks);
 
         StartCoroutine(DestroyProjectile(dart));
@@ -460,7 +474,7 @@ public class PlayerShooter : MonoBehaviour
     {
         get
         {
-            DawnBoost boost = GetComponent<DawnBoost>();
+            DawnBoost boost = Upgrade<DawnBoost>();
             return boost != null ? boost.DawnPicks : 0;
         }
     }
@@ -512,7 +526,7 @@ public class PlayerShooter : MonoBehaviour
             }
 
             // Frigid rides every projectile the knight puts out, this one included
-            FrigidBoost shurikenFrigid = GetComponent<FrigidBoost>();
+            FrigidBoost shurikenFrigid = Upgrade<FrigidBoost>();
 
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
@@ -569,7 +583,8 @@ public class PlayerShooter : MonoBehaviour
             FireballProjectile fireball = projectile.GetComponent<FireballProjectile>();
             if (fireball != null) fireball.MarkBurnedOut();
 
-            Destroy(projectile);
+            // Fades out rather than vanishing (see ShotFade)
+            ShotFade.Begin(projectile);
         }
     }
 
@@ -604,7 +619,7 @@ public class PlayerShooter : MonoBehaviour
             shadowArrow.tag = projectileTag;
 
             // Independent poison chance per arrow
-            FrigidBoost shadowFrigid = GetComponent<FrigidBoost>();
+            FrigidBoost shadowFrigid = Upgrade<FrigidBoost>();
 
             if (poisonTipBoost != null && poisonTipBoost.ShouldApplyPoison())
             {
@@ -626,7 +641,7 @@ public class PlayerShooter : MonoBehaviour
                 // Dawn's holy, at the echo share and flat on top of the scaling —
                 // see SpawnShurikens for why it is not scaled with the rest
                 int scaledShadowDamage = Mathf.RoundToInt(mainProjectileFinalDamage * shadowMultiplier) + holyDamage;
-                var shadowNinjaBoost = GetComponent<NinjaBoost>();
+                var shadowNinjaBoost = Upgrade<NinjaBoost>();
                 var shadowProjComponents = shadowArrow.GetComponentsInChildren<PlayerProjectile>(true);
                 // One ignite roll for the arrow, applied to all its components, so a
                 // multi-part shadow arrow can't roll ignite several times over
@@ -681,8 +696,16 @@ public class PlayerShooter : MonoBehaviour
     /// </summary>
     public void MultiplyCooldown(float multiplier)
     {
-        cooldownTime *= Mathf.Clamp(multiplier, 0.05f, 1f);
+        multiplier = Mathf.Clamp(multiplier, 0.05f, 1f);
+        cooldownTime *= multiplier;
+        _upgradeCooldownFactor *= multiplier;
     }
+
+    // Everything upgrades have taken off the reload so far, as one number, so the
+    // reload without them can be worked back out while they are held (see
+    // UpgradeHold). Equipment writes cooldownTime directly and is not in here,
+    // so a held knight keeps what their equipment gives them.
+    private float _upgradeCooldownFactor = 1f;
 
     
     // Method for damage upgrades to increase damage

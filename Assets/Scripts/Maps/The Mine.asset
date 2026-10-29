@@ -125,7 +125,7 @@ MonoBehaviour:
   gateBossRepeats: 0
   gateBossEndsRun: 0
   trueBoss: {fileID: 11400000, guid: 5d7bd7d9013d7cd4faa97df4421b4f59, type: 2}
-  trueBossWaveNumber: 25
+  trueBossWaveNumber: 20
   trueBossEndsRun: 0
   strongerEnemiesFromWave: 1
   ratPhases:
@@ -141,14 +141,26 @@ MonoBehaviour:
     fromWaveNumber: 1
     backdrop: {fileID: -5880325612201789645, guid: c6a3eadded97e7a4d8c7d1a8f37e6d8e, type: 3}
     foreground: {fileID: 0}
+    foregroundOverArena: 0
     canopy: {fileID: 11400000, guid: 34f96c8cb20be5c47bc21aaa15629d12, type: 2}
+    gemGlow: {fileID: 11400000, guid: 3eadc3671f396e444a3b9358c757779d, type: 2}
     ventureLine: 
   - label: Deep Mine
     fromWaveNumber: 11
-    backdrop: {fileID: 2335080058012798373, guid: 56b8e1b55ed0c3a46b702f4d4fdfedcf, type: 3}
-    foreground: {fileID: -5368810055853492662, guid: 56b8e1b55ed0c3a46b702f4d4fdfedcf, type: 3}
-    canopy: {fileID: 11400000, guid: a2473eeed0abb5c40b46636c88748527, type: 2}
+    backdrop: {fileID: 2335080058012798373, guid: ab74092231e09ddfc4cf15cf0375ae88, type: 3}
+    foreground: {fileID: -5368810055853492662, guid: ab74092231e09ddfc4cf15cf0375ae88, type: 3}
+    foregroundOverArena: 0
+    canopy: {fileID: 11400000, guid: 34f96c8cb20be5c47bc21aaa15629d12, type: 2}
+    gemGlow: {fileID: 11400000, guid: 3eadc3671f396e444a3b9358c757779d, type: 2}
     ventureLine: The knights wander further into the cave.
+  - label: Deep Mine, darker
+    fromWaveNumber: 21
+    backdrop: {fileID: 2335080058012798373, guid: ab74092231e09ddfc4cf15cf0375ae88, type: 3}
+    foreground: {fileID: -5368810055853492662, guid: ab74092231e09ddfc4cf15cf0375ae88, type: 3}
+    foregroundOverArena: 0
+    canopy: {fileID: 11400000, guid: f105460a71be7e84cb3fa3d50645286a, type: 2}
+    gemGlow: {fileID: 11400000, guid: 3eadc3671f396e444a3b9358c757779d, type: 2}
+    ventureLine: 
   explorationMusic: {fileID: 8300000, guid: 374d718c2e5394d429d7a79e11628cdf, type: 3}
   intenseMusic: {fileID: 8300000, guid: 761f33fbd26d6c84b9902832dae4aee1, type: 3}
   intenseMusicFromWave: 11

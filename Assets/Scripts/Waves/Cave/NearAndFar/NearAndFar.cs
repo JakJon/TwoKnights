@@ -131,11 +131,20 @@ public class NearAndFar : BaseWave
     private int _crate;
     private int _bat;
 
+    // When the shafts may next fire, and how far the last volley's rocks had to
+    // fly. Carried across shifts, because the rock from one shift is still
+    // falling when the next one starts — see ChooChoo, which had the same hole.
+    // Reset with the rotations.
+    private float _shaftsRestUntil;
+    private float _lastFlight;
+
     public override IEnumerator SpawnWave(Spawner spawner)
     {
         _gnome = 0;
         _crate = 0;
         _bat = 0;
+        _shaftsRestUntil = 0f;
+        _lastFlight = 0f;
 
         var rails = spawner.Rails;
         if (rails == null)
@@ -401,9 +410,25 @@ public class NearAndFar : BaseWave
 
         while (!IsAmbushClear())
         {
-            RockVolley volley = volleys[shot++ % volleys.Count];
+            RockVolley volley = volleys[shot % volleys.Count];
+
+            // Not before the last volley's rest is over, even when that volley
+            // was fired for an earlier shift, and not until it has had time to
+            // land: Near and Far VII's weave leaves from twice as far out as the
+            // mirrored pair after it, and used to arrive with it.
+            float due = _shaftsRestUntil + RockVolley.LandingLag(spawner, _lastFlight, volley, rockSpeed);
+            if (Time.time < due)
+            {
+                // Looped rather than fired straight after, so a shift cleared
+                // during the wait leaves this volley unfired.
+                yield return new WaitForSeconds(due - Time.time);
+                continue;
+            }
+
+            shot++;
             float busy = RockVolley.Fire(spawner, volley, rockSpeed);
-            yield return new WaitForSeconds(busy + wait);
+            _lastFlight = RockVolley.FlightDistance(spawner, volley);
+            _shaftsRestUntil = Time.time + busy + wait;
         }
     }
 }

@@ -182,9 +182,23 @@ public class GuidedShot : MonoBehaviour
     private static bool IsChaseable(Collider2D hit, bool chaseOrbs, bool isRock)
     {
         EnemyBase enemy = hit.GetComponent<EnemyBase>();
-        if (enemy != null) return !enemy.IsDead && !(isRock && ProjectileSettings.ReflectedRockPassesOver(enemy));
+        if (enemy != null)
+        {
+            return !enemy.IsDead && !IsBareIron(enemy) &&
+                   !(isRock && ProjectileSettings.ReflectedRockPassesOver(enemy));
+        }
 
         return chaseOrbs && hit.GetComponent<CollectibleOrb>() != null;
+    }
+
+    // A cart is only worth bending a shot onto when something alive rides in it:
+    // a gnome, or the creatures caged in a delivery cart (owner, 2026-10-20).
+    // Empty carts and wrecks, powder kegs and the Overseer's crimson carts are
+    // never chased. A shot flown straight into one still stops on it, as any
+    // arrow does — this only keeps the guidance from choosing it.
+    private static bool IsBareIron(EnemyBase enemy)
+    {
+        return enemy is EnemyMineCart && !(enemy is EnemyGnomeCart) && !(enemy is EnemyDeliveryCart);
     }
 
     private void Steer()

@@ -12,6 +12,17 @@ public interface IIncoming
 }
 
 /// <summary>
+/// A shot in the air that knows who threw it, so that thrower can ask whether a
+/// slot is clear of everything ELSE (IncomingLedger.IsClear's ignore) — the
+/// Overseer throws a dozen axes at one knight a tenth of a second apart, and they
+/// must not count as being in each other's way.
+/// </summary>
+public interface IOwnedIncoming : IIncoming
+{
+    object IncomingOwner { get; }
+}
+
+/// <summary>
 /// Which projectiles are on their way to which knight, and when each one lands.
 ///
 /// It exists for one question, asked by anything that throws on its own clock:
@@ -37,6 +48,7 @@ public static class IncomingLedger
     {
         public Transform Knight;
         public float ArrivesAt;
+        public object Owner;
     }
 
     private static readonly List<IIncoming> Live = new List<IIncoming>();
@@ -63,8 +75,19 @@ public static class IncomingLedger
     /// <summary>Holds a slot for a shot that has been decided but not yet released.</summary>
     public static void Book(Transform knight, float arrivesAt)
     {
+        Book(knight, arrivesAt, null);
+    }
+
+    /// <summary>
+    /// Book a slot on behalf of <paramref name="owner"/>, so the same thrower can
+    /// later ask whether its slot is still clear of everything ELSE (IsClear's
+    /// ignore). The Overseer books his axes before he throws them, and has to be
+    /// able to tell his own booking from a gnome's.
+    /// </summary>
+    public static void Book(Transform knight, float arrivesAt, object owner)
+    {
         if (knight == null) return;
-        Bookings.Add(new Booking { Knight = knight, ArrivesAt = arrivesAt });
+        Bookings.Add(new Booking { Knight = knight, ArrivesAt = arrivesAt, Owner = owner });
     }
 
     /// <summary>
@@ -72,6 +95,12 @@ public static class IncomingLedger
     /// <paramref name="clearance"/> seconds either side of <paramref name="arrivesAt"/>.
     /// </summary>
     public static bool IsClear(Transform knight, float arrivesAt, float clearance)
+    {
+        return IsClear(knight, arrivesAt, clearance, null);
+    }
+
+    /// <summary>IsClear, not counting bookings made by <paramref name="ignoreOwner"/>.</summary>
+    public static bool IsClear(Transform knight, float arrivesAt, float clearance, object ignoreOwner)
     {
         if (knight == null) return true;
 
@@ -85,6 +114,7 @@ public static class IncomingLedger
                 Bookings.RemoveAt(i);
                 continue;
             }
+            if (ignoreOwner != null && booking.Owner == ignoreOwner) continue;
             if (booking.Knight == knight && Mathf.Abs(booking.ArrivesAt - arrivesAt) < clearance) return false;
         }
 
@@ -98,6 +128,7 @@ public static class IncomingLedger
             }
 
             if (shot.IncomingTarget != knight) continue;
+            if (ignoreOwner != null && shot is IOwnedIncoming owned && owned.IncomingOwner == ignoreOwner) continue;
 
             float eta = shot.SecondsToArrival;
             if (float.IsInfinity(eta)) continue;

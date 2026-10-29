@@ -35,7 +35,7 @@ MonoBehaviour:
     - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
     - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
     - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    fallbackSlots: 44
+    fallbackSlots: 46
   outerRing:
     label: outer wheel
     entryRun: 0
@@ -45,7 +45,7 @@ MonoBehaviour:
     - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
     - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
     - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    fallbackSlots: 52
+    fallbackSlots: 54
   firstCartDelay: 0.5
   betweenRings: 1
   projectileInterval: 6

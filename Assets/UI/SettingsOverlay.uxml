@@ -29,6 +29,68 @@
                 </ui:VisualElement>
                 <ui:Label name="settings-sfx-value" text="100%" class="settings-row-value" />
             </ui:VisualElement>
+
+            <!-- The knights' bars (HudLayout): how big, how far in from the sides,
+                 how far up. In a run the screen turns see-through while one of
+                 these is selected, so the bars can be watched moving. -->
+            <ui:VisualElement name="settings-row-hud-size" class="settings-row">
+                <ui:Label text="Bar Size" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-hud-size-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-hud-size-value" text="100%" class="settings-row-value" />
+            </ui:VisualElement>
+
+            <!-- The bars alone, longer: not the text, not their height -->
+            <ui:VisualElement name="settings-row-hud-width" class="settings-row">
+                <ui:Label text="Bar Width" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-hud-width-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-hud-width-value" text="100%" class="settings-row-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="settings-row-hud-inward" class="settings-row">
+                <ui:Label text="Bars Inward" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-hud-inward-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-hud-inward-value" text="0%" class="settings-row-value" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="settings-row-hud-upward" class="settings-row">
+                <ui:Label text="Bars Upward" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-hud-upward-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-hud-upward-value" text="0%" class="settings-row-value" />
+            </ui:VisualElement>
+
+            <!-- How see-through the bars, numbers and streak line are: 0% solid, 100% gone -->
+            <ui:VisualElement name="settings-row-hud-transparency" class="settings-row">
+                <ui:Label text="Transparency" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-hud-transparency-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-hud-transparency-value" text="0%" class="settings-row-value" />
+            </ui:VisualElement>
+
+            <!-- How strongly enemy rocks glow: 0% no rim at all, 100% as built, 200% double -->
+            <ui:VisualElement name="settings-row-rock-glow" class="settings-row">
+                <ui:Label text="Rock Glow" class="settings-row-label" />
+                <ui:VisualElement class="settings-bar">
+                    <ui:VisualElement name="settings-rock-glow-fill" class="settings-bar-fill" />
+                </ui:VisualElement>
+                <ui:Label name="settings-rock-glow-value" text="100%" class="settings-row-value" />
+            </ui:VisualElement>
+
+            <!-- Leaves the file for the file select. Hidden unless the host gives it
+                 a job (SettingsPanel.SetExitAction): the campfire camp does, because
+                 its ring has no Exit of its own; the pause screen never does. -->
+            <ui:VisualElement name="settings-row-exit" class="settings-row settings-row--action" style="display: none;">
+                <ui:Label text="Exit" class="settings-row-label" />
+                <ui:Label text="Back to the file select" class="settings-row-note" />
+            </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:Label name="settings-hint" text="Left / Right to adjust" class="settings-hint" />

@@ -33,6 +33,7 @@ public class SheepsClothing : BaseWave
     private const float WolfPeelX = 7f;             // wolf abandons cover here and lunges
     private const float RoundSeconds = 7.5f;
     private const float BreatherSeconds = 2f;
+    private const int RoundCount = 2;               // the two walls SpawnWave runs
 
     public override IEnumerator SpawnWave(Spawner spawner)
     {
@@ -92,9 +93,14 @@ public class SheepsClothing : BaseWave
         }
 
         // Mana orb sweeps the off knight's side; health orb threads behind the wall late,
-        // so collecting it means shooting through a gap in the (split) slime line
+        // so collecting it means shooting through a gap in the (split) slime line.
+        // The health orb is the second wall's only (owner, 2026-10-14): one each
+        // round was two health and four orbs a wave, over both the one-health
+        // rule and the three-orb cap. The last round keeps it, as WaveOrbBudget
+        // always keeps the last slot.
         spawner.SpawnOrb(new Vector2(-side * 8f, -9f), new Vector2(-side * 8f, 9f), false, 8f);
-        spawner.SpawnOrb(new Vector2(side * 8f, -9f), new Vector2(side * 8f, 9f), true, 6f);
+        if (round == RoundCount - 1)
+            spawner.SpawnOrb(new Vector2(side * 8f, -9f), new Vector2(side * 8f, 9f), true, 6f);
 
         // Fixed hold: the gap between the two ambushes never moves, no matter
         // how long the wolf's pacing stalk is tuned

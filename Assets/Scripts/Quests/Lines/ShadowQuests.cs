@@ -28,7 +28,7 @@ public static class ShadowQuests
                             menu: "{count} shadow trials passed",
                             npc: "Complete the shadow trials"),
             reward: Reward(crystals: 2),
-            unlocks: Gate(Stat(Feats.ShadowArrowHits, 100)),
+            unlocks: Gate(Stat(Feats.ShadowArrowHits, 200)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Shadow),
             offer:
                 "You seem to have no shortage of arrows..\n"

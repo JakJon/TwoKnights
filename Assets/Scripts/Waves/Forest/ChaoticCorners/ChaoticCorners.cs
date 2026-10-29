@@ -16,6 +16,8 @@ public class ChaoticCorners : BaseWave
     [SerializeField] private int projectilesPerArc = 8;
     [SerializeField] private int batsPerArc = 3;
     [SerializeField] private int kingSlimes = 1;
+    [Tooltip("Medium slimes in the closing group, sent after the kings in the same row. The deep tiers swap kings for these (owner, 2026-10-19): V is five mediums, VI three mediums and two kings, VII two mediums and three kings - five kings landing on one knight at once was the heaviest slime moment in the deep forest.")]
+    [SerializeField] private int closingMediumSlimes = 0;
     [SerializeField] private int slimesPerArc;
     [SerializeField] private int slimesSize = 1;
     [SerializeField] private int arcCount = 5;
@@ -26,7 +28,7 @@ public class ChaoticCorners : BaseWave
     [Tooltip("Reverse the sweep on every repeat instead of replaying it in the same direction. The repeats are identical without this, so the guard learns one drag of the stick and then performs it ten times; with it the stick has to turn round at the top of every sweep.")]
     [SerializeField] private bool alternateArcDirection = false;
 
-    [Tooltip("Mirror every sweep onto the other knight at the same time, so both guards are being walked around their own dial at once instead of one knight working while the other waits out the phase.")]
+    [Tooltip("After every sweep, repeat it on the other knight once the first has finished, so each phase puts both guards through the dial in turn. Never at the same time.")]
     [SerializeField] private bool mirrorArcs = false;
 
     public override IEnumerator SpawnWave(Spawner spawner)
@@ -70,12 +72,14 @@ public class ChaoticCorners : BaseWave
 
         FireSweep(spawner, rightKnight: true, fromBelow: false);
 
-        for (int i = 0; i < kingSlimes; i++)
+        int closing = kingSlimes + closingMediumSlimes;
+        for (int i = 0; i < closing; i++)
         {
-            spawner.SpawnSlime(3, new Vector2(-11 + (i * 3), -6), 0f, spawner.RightPlayer);
+            int size = i < kingSlimes ? 3 : 2;
+            spawner.SpawnSlime(size, new Vector2(-11 + (i * 3), -6), 0f, spawner.RightPlayer);
         }
 
-        if (slimesPerArc > 0 && kingSlimes > 0)
+        if (slimesPerArc > 0 && closing > 0)
         {
             spawner.SpawnOrb(new Vector2(0, -6), new Vector2(0, 6), true);
         }
@@ -105,7 +109,15 @@ public class ChaoticCorners : BaseWave
         // Mirrored onto the other knight from the SAME side of the board. Each
         // half still sweeps outward into its own knight's territory, so the pair
         // opens away from each other and neither can reach the other's guard.
-        if (mirrorArcs) Sweep(spawner, !rightKnight, fromBelow);
+        // The mirror waits for the first sweep to finish: both knights must never
+        // be under fire at the same moment.
+        if (mirrorArcs) spawner.StartCoroutine(MirrorAfterSweep(spawner, !rightKnight, fromBelow));
+    }
+
+    private IEnumerator MirrorAfterSweep(Spawner spawner, bool rightKnight, bool fromBelow)
+    {
+        yield return new WaitForSeconds(arcDelay * arcCount);
+        Sweep(spawner, rightKnight, fromBelow);
     }
 
     private void Sweep(Spawner spawner, bool rightKnight, bool fromBelow)
@@ -181,4 +193,4 @@ public class ChaoticCorners : BaseWave
     // frame.
     private const float ArcRadius = 12f;
     private const float SweepDegrees = 90f;
-}
+}

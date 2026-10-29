@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7983c8a4cc707d241b06d90d3b08f9c4, type: 3}
+  m_Name: Between the Mirrors II
+  m_EditorClassIdentifier: 
+  waveName: Between the Mirrors II
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 4
+  lockedAfterXWaves: 10
+  useEnemyTracking: 1
+  mirrorLayout: {fileID: 11400000, guid: daad12b8b0f2a7446b18535256125419, type: 2}
+  topGap: 3
+  middleGap: 0
+  bottomGap: -3
+  spawnX: 12
+  entryX: 8.3
+  centreSpawnY: 7
+  centreEntryY: 3.9
+  skeletonPrefab: {fileID: 6858484398065915977, guid: 20a892ea2f8ab8a42a86c6ba1ceb8c41, type: 3}
+  gates: 000000000500000006000000
+  groups: 2
+  memberStagger: 1
+  nextGroupAt: 0.75
+  volleys:
+  - label: left, top corner then bottom
+    shape: 3
+    rightKnight: 0
+    fromBelow: 0
+    origin: 1
+    spacing: 0.8
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3
+  - label: right, bottom corner then top
+    shape: 3
+    rightKnight: 1
+    fromBelow: 1
+    origin: 1
+    spacing: 0.8
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
+    salvo: 3
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3
+  projectileWindow: 12
+  rockSpeed: 1.75
+  manaOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 6
+    interval: 12
+    from: {x: -12, y: 2.8}
+    to: {x: 12, y: 2.8}
+  healthOrbs:
+    healthOrb: 1
+    count: 1
+    firstAt: 12
+    interval: 12
+    from: {x: 12, y: -2.8}
+    to: {x: -12, y: -2.8}

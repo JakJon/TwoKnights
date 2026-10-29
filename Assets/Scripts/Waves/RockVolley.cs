@@ -2,6 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>Where a shaft volley's rock is thrown from. The values line up with the
+/// old fromCorners bool (false = Column, true = Corner), which this replaced.</summary>
+public enum RockOrigin
+{
+    Column = 0, // straight above or below the knight
+    Corner = 1, // the corner of the screen on the knight's own side
+    Centre = 2  // the top or bottom middle of the screen (Back to Back: over the wall)
+}
+
 /// <summary>The shape one volley of rock arrives in.</summary>
 public enum VolleyShape
 {
@@ -62,6 +71,10 @@ public class RockVolley
     [Tooltip("Mirror the volley to come up from underneath. Flip uses both sides whatever this says, but it still sets which one it OPENS on — false is over then under, true is under then over.")]
     public bool fromBelow;
 
+    [Tooltip("Where the shaft shapes (Single, Pair, Split, Flip, Mirror, Scissors) come from. Column: straight down (or up) the knight's own column. Corner: the corner of the screen on his own side, about 35 degrees off flat. Centre: the top (or bottom) middle of the screen, about 16 degrees off straight down, from the inside. 'Above' is the top one, 'below' the bottom one.")]
+    [UnityEngine.Serialization.FormerlySerializedAs("fromCorners")]
+    public RockOrigin origin = RockOrigin.Column;
+
     [Tooltip("Seconds between shots inside the volley — used by Pair, Flip, Fan, Weave and the spirals. Because flight time is identical for every shot, this is also the gap between their ARRIVALS.")]
     public float spacing = 1f;
 
@@ -105,6 +118,7 @@ public class RockVolley
 
         float until = Time.time + Mathf.Max(0f, window);
         int index = 0;
+        float lastFlight = 0f;
 
         while (Time.time < until)
         {
@@ -112,7 +126,15 @@ public class RockVolley
             index++;
             if (volley == null) continue;
 
+            float lag = LandingLag(spawner, lastFlight, volley, rockSpeed);
+            if (lag > 0f)
+            {
+                yield return new WaitForSeconds(lag);
+                if (Time.time >= until) yield break;
+            }
+
             float busy = Fire(spawner, volley, rockSpeed);
+            lastFlight = FlightDistance(spawner, volley);
             yield return new WaitForSeconds(busy + Mathf.Max(0f, volley.restAfter));
         }
     }
@@ -145,11 +167,55 @@ public class RockVolley
     /// first shot to its last, so a caller can rest AFTER the volley rather than
     /// during it.
     /// </summary>
+    /// <summary>One rock a volley would release: who it is for, when it leaves
+    /// (seconds after the volley starts), and from where.</summary>
+    public struct PlannedShot
+    {
+        public Transform Knight;
+        public float Release;
+        public Vector2 From;
+    }
+
+    // Set only for the length of a Plan call: Salvo writes the shots here
+    // instead of releasing them
+    private static List<PlannedShot> _planning;
+
+    /// <summary>
+    /// Everything Fire would release for <paramref name="volley"/>, without
+    /// releasing any of it, and the same busy time Fire would return. For a
+    /// caller that has to know when a volley's rock LANDS before it decides when
+    /// to send it — the Overseer, whose axes share one timeline with his rock.
+    /// </summary>
+    public static float Plan(Spawner spawner, RockVolley volley, float rockSpeed, List<PlannedShot> into)
+    {
+        if (into == null) return 0f;
+        _planning = into;
+        try
+        {
+            return Fire(spawner, volley, rockSpeed);
+        }
+        finally
+        {
+            _planning = null;
+        }
+    }
+
+    /// <summary>Seconds after the volley starts that a planned shot reaches its knight.</summary>
+    public static float LandingOffset(Spawner spawner, PlannedShot shot, float rockSpeed)
+    {
+        float speed = spawner.RockFlightSpeed(rockSpeed);
+        if (speed <= 0.0001f || shot.Knight == null) return shot.Release;
+
+        // The same aim point Spawner.BookArrival measures to
+        Vector2 aim = (Vector2)shot.Knight.position + AimOffset;
+        return shot.Release + Vector2.Distance(shot.From, aim) / speed;
+    }
+
     public static float Fire(Spawner spawner, RockVolley volley, float rockSpeed)
     {
         Transform knight = volley.rightKnight ? spawner.RightPlayer : spawner.LeftPlayer;
-        Vector2 above = volley.rightKnight ? spawner.aboveRightPlayer : spawner.aboveLeftPlayer;
-        Vector2 below = volley.rightKnight ? spawner.belowRightPlayer : spawner.belowLeftPlayer;
+        Vector2 above = volley.rightKnight ? Above(spawner, volley, true) : Above(spawner, volley, false);
+        Vector2 below = volley.rightKnight ? Below(spawner, volley, true) : Below(spawner, volley, false);
         Vector2 from = volley.fromBelow ? below : above;
         float spacing = Mathf.Max(0.05f, volley.spacing);
 
@@ -186,9 +252,9 @@ public class RockVolley
                 // nudge whatever the rake is doing.
                 const float half = MinStagger * 0.5f;
                 Salvo(spawner, volley, spawner.LeftPlayer,
-                    volley.fromBelow ? spawner.belowLeftPlayer : spawner.aboveLeftPlayer, 0f, rockSpeed);
+                    volley.fromBelow ? Below(spawner, volley, false) : Above(spawner, volley, false), 0f, rockSpeed);
                 Salvo(spawner, volley, spawner.RightPlayer,
-                    volley.fromBelow ? spawner.belowRightPlayer : spawner.aboveRightPlayer, half, rockSpeed);
+                    volley.fromBelow ? Below(spawner, volley, true) : Above(spawner, volley, true), half, rockSpeed);
                 return salvoBusy + half;
             }
 
@@ -257,9 +323,9 @@ public class RockVolley
                 // gets the other one.
                 const float half = MinStagger * 0.5f;
                 Salvo(spawner, volley, spawner.LeftPlayer,
-                    volley.fromBelow ? spawner.belowLeftPlayer : spawner.aboveLeftPlayer, 0f, rockSpeed);
+                    volley.fromBelow ? Below(spawner, volley, false) : Above(spawner, volley, false), 0f, rockSpeed);
                 Salvo(spawner, volley, spawner.RightPlayer,
-                    volley.fromBelow ? spawner.aboveRightPlayer : spawner.belowRightPlayer, half, rockSpeed);
+                    volley.fromBelow ? Above(spawner, volley, true) : Below(spawner, volley, true), half, rockSpeed);
                 return salvoBusy + half;
             }
 
@@ -272,10 +338,10 @@ public class RockVolley
                 // changes, so it is a rehearsal problem rather than a reaction one.
                 const float half = MinStagger * 0.5f;
 
-                Vector2 leftOpen  = volley.fromBelow ? spawner.belowLeftPlayer  : spawner.aboveLeftPlayer;
-                Vector2 leftShut  = volley.fromBelow ? spawner.aboveLeftPlayer  : spawner.belowLeftPlayer;
-                Vector2 rightOpen = volley.fromBelow ? spawner.aboveRightPlayer : spawner.belowRightPlayer;
-                Vector2 rightShut = volley.fromBelow ? spawner.belowRightPlayer : spawner.aboveRightPlayer;
+                Vector2 leftOpen  = volley.fromBelow ? Below(spawner, volley, false)  : Above(spawner, volley, false);
+                Vector2 leftShut  = volley.fromBelow ? Above(spawner, volley, false)  : Below(spawner, volley, false);
+                Vector2 rightOpen = volley.fromBelow ? Above(spawner, volley, true) : Below(spawner, volley, true);
+                Vector2 rightShut = volley.fromBelow ? Below(spawner, volley, true) : Above(spawner, volley, true);
 
                 Salvo(spawner, volley, spawner.LeftPlayer,  leftOpen,  0f,          rockSpeed);
                 Salvo(spawner, volley, spawner.RightPlayer, rightOpen, half,        rockSpeed);
@@ -377,6 +443,47 @@ public class RockVolley
                 Salvo(spawner, volley, knight, from, 0f, rockSpeed);
                 return salvoBusy;
         }
+    }
+
+    /// <summary>
+    /// How far this volley's rocks fly to reach their knight. Most shapes leave
+    /// from the shaft mouths, seven units out; Weave and the spirals leave from
+    /// WeaveRadius, nearly twice as far, so the same release lands about three
+    /// seconds later. A caller lining volleys up back to back needs this: timed
+    /// by release alone, a shaft volley sent after a weave lands on top of it.
+    /// </summary>
+    public static float FlightDistance(Spawner spawner, RockVolley volley)
+    {
+        switch (volley.shape)
+        {
+            case VolleyShape.Weave:
+            case VolleyShape.Spiral:
+            case VolleyShape.TwinSpiral:
+                return WeaveRadius;
+
+            default:
+                Transform knight = volley.rightKnight ? spawner.RightPlayer : spawner.LeftPlayer;
+                Vector2 above = volley.rightKnight ? Above(spawner, volley, true) : Above(spawner, volley, false);
+                return Vector2.Distance(above, ArcCentreFor(spawner, knight));
+        }
+    }
+
+    /// <summary>
+    /// How long to hold <paramref name="next"/> after the previous volley's rest
+    /// so it does not land on top of that volley. Weave and the spirals leave
+    /// from WeaveRadius, almost twice as far out as a shaft, so a shaft volley
+    /// timed off their release alone arrives with them: on Delivery VII the
+    /// right knight took a weave shot from below and the fan from above in the
+    /// same instant. Holding by the difference in flight keeps the rest as the
+    /// gap between ARRIVALS, which is what it already is for every shaft-to-shaft
+    /// pair. <paramref name="lastFlight"/> is FlightDistance of the volley before
+    /// (0 for the first). Every loop that fires volleys back to back needs this.
+    /// </summary>
+    public static float LandingLag(Spawner spawner, float lastFlight, RockVolley next, float rockSpeed)
+    {
+        float speed = spawner.RockFlightSpeed(rockSpeed);
+        if (speed <= 0f) return 0f;
+        return Mathf.Max(0f, lastFlight - FlightDistance(spawner, next)) / speed;
     }
 
     // The band a Weave is allowed to cross, measured either side of the knight's
@@ -564,7 +671,7 @@ public class RockVolley
 
         if (count == 1 || knight == null)
         {
-            spawner.SpawnProjectile(knight, from, delay, rockSpeed);
+            Shoot(spawner, knight, from, delay, rockSpeed);
             return;
         }
 
@@ -583,9 +690,20 @@ public class RockVolley
         // sweeping and hold the facing through it.
         for (int i = 0; i < count; i++)
         {
-            spawner.SpawnProjectile(knight, from + across * (first + i * step),
-                                    delay + i * stagger, rockSpeed);
+            Shoot(spawner, knight, from + across * (first + i * step),
+                  delay + i * stagger, rockSpeed);
         }
+    }
+
+    // The one place a volley's rock leaves — or, while planning, is written down
+    private static void Shoot(Spawner spawner, Transform knight, Vector2 from, float delay, float rockSpeed)
+    {
+        if (_planning != null)
+        {
+            _planning.Add(new PlannedShot { Knight = knight, Release = delay, From = from });
+            return;
+        }
+        spawner.SpawnProjectile(knight, from, delay, rockSpeed);
     }
 
     // Rocks are aimed half a unit above the knight's transform
@@ -600,4 +718,37 @@ public class RockVolley
     {
         return (knight == spawner.LeftPlayer) ? new Vector2(-2f, 0f) : new Vector2(2f, 0f);
     }
+
+    // Where a shaft volley comes from (its `origin`): straight above or below the
+    // knight, out of the corner of the screen on his OWN side, or from the top or
+    // bottom middle of the screen. None of them crosses the partner (rule 2). A
+    // per-volley choice, because a wave's rock is that wave's own — Between the
+    // Mirrors uses the corners, Back to Back comes over its wall, the other castle
+    // waves come down the columns. Everything that measures a shaft flight goes
+    // through here too, so landing times move with it.
+    private static Vector2 Above(Spawner spawner, RockVolley volley, bool rightKnight)
+    {
+        switch (volley.origin)
+        {
+            case RockOrigin.Corner: return new Vector2(rightKnight ? CornerX : -CornerX, EdgeY);
+            case RockOrigin.Centre: return new Vector2(0f, EdgeY);
+            default: return rightKnight ? spawner.aboveRightPlayer : spawner.aboveLeftPlayer;
+        }
+    }
+
+    private static Vector2 Below(Spawner spawner, RockVolley volley, bool rightKnight)
+    {
+        switch (volley.origin)
+        {
+            case RockOrigin.Corner: return new Vector2(rightKnight ? CornerX : -CornerX, -EdgeY);
+            case RockOrigin.Centre: return new Vector2(0f, -EdgeY);
+            default: return rightKnight ? spawner.belowRightPlayer : spawner.belowLeftPlayer;
+        }
+    }
+
+    // Just past the corner of the view (x 10, y 5.625), at the spawn bounds. The
+    // line from a corner to a knight comes in about 35 degrees off flat; from the
+    // middle, about 16 degrees off straight down (or up), from the inside.
+    private const float CornerX = 12f;
+    private const float EdgeY = 7f;
 }

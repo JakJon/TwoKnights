@@ -248,7 +248,7 @@ ScriptedImporter:
       cellRect:
         x: 0
         y: 0
-        width: 30
+        width: 32
         height: 32
       spriteId: 46d4f97161b24ae99082b31ea25001b9
     - name: Frame_1
@@ -257,7 +257,7 @@ ScriptedImporter:
       cellRect:
         x: 0
         y: 0
-        width: 30
+        width: 32
         height: 32
       spriteId: f65f5deeebcc47308c47f6e1545ad505
     - name: Frame_2
@@ -266,7 +266,7 @@ ScriptedImporter:
       cellRect:
         x: 0
         y: 0
-        width: 30
+        width: 32
         height: 32
       spriteId: 29694d9d2f514d99a046e5d929c11656
     - name: Frame_3
@@ -275,7 +275,7 @@ ScriptedImporter:
       cellRect:
         x: 0
         y: 0
-        width: 30
+        width: 32
         height: 32
       spriteId: b29a80a9cdfa45bfa5b7865e9ebd3878
     - name: Frame_4
@@ -284,7 +284,7 @@ ScriptedImporter:
       cellRect:
         x: 0
         y: 0
-        width: 30
+        width: 32
         height: 32
       spriteId: bb3aff95b4faea045b3c1f4bbef24c90
     linkedCells: []

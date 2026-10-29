@@ -59,8 +59,7 @@ public class TextRim
         var copy = new Label(_label.text) { pickingMode = PickingMode.Ignore };
         foreach (string className in _label.GetClasses()) copy.AddToClassList(className);
         copy.style.position = Position.Absolute;
-        copy.style.left = 0f;
-        copy.style.bottom = 0f;
+        Pin(copy, 0f, 0f);
         copy.style.color = Color.black;
         box.Add(copy);
         return copy;
@@ -93,8 +92,22 @@ public class TextRim
         for (int i = 0; i < _rim.Length; i++)
         {
             float angle = i * Mathf.PI * 2f / _rim.Length;
-            _rim[i].style.left = Mathf.Cos(angle) * pixels;
-            _rim[i].style.bottom = Mathf.Sin(angle) * pixels;
+            Pin(_rim[i], Mathf.Cos(angle) * pixels, Mathf.Sin(angle) * pixels);
         }
+    }
+
+    // Every side of the copy is pinned, so it is exactly the label's own box,
+    // moved (x, y). Pinned only on the left and the foot, a copy was as big as
+    // its text, and that is not always the label's size: the numbers beside the
+    // bars sit in 15px rows, which squeeze the label to 15px with its text
+    // centred in it, so the full-height copies drew their ring half a line
+    // higher than the number (owner's screenshot, 2026-10-14). The streak line
+    // has no fixed height, so there the two sizes happened to agree.
+    private static void Pin(Label copy, float x, float y)
+    {
+        copy.style.left = x;
+        copy.style.right = -x;
+        copy.style.bottom = y;
+        copy.style.top = -y;
     }
 }

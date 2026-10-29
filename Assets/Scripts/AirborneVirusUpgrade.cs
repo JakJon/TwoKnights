@@ -6,7 +6,7 @@ using UnityEngine;
 // This one gives a poisoned enemy something to DO: every few seconds it breathes
 // venom beads out around itself, and whatever those touch is poisoned too.
 //
-//   I   two beads, left and right, every 6s
+//   I   two beads, left and right, every 5s
 //   II  five beads in a pentagon, every 5s
 //   III eight beads in a ring, every 4s
 //   IV  ten beads in a ring, every 2s

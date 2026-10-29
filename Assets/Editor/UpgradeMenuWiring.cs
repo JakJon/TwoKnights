@@ -3,9 +3,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 
-// Fills in the two references the upgrade menu cannot carry as hand-authored YAML:
+// Fills in the references the upgrade menu cannot carry as hand-authored YAML:
 // the card-entrance sound clips on the scene's AudioManager, and the knight portrait
-// sprites on UpgradeMenu. The clips are wired but no longer played — the upgrade menu
+// sprites and backdrop tiles on UpgradeMenu. The clips are wired but no longer played — the upgrade menu
 // is silent until a pick is confirmed — and are kept assigned so the knock can be put
 // back by uncommenting one call.
 //
@@ -31,15 +31,20 @@ public static class UpgradeMenuWiring
     private const string ClickPath = "Assets/Sounds/card_click.wav";
     private const string SettlePath = "Assets/Sounds/card_settle.wav";
 
-    // Left knight wears the red plume, right knight the blue — matching the sprites
-    // on Player_Knight_Left / Player_Knight_Right.
+    // Left knight wears the red plume, right knight the blue. The right one uses the
+    // left-facing pose so the two portraits face each other across the menu.
     private const string LeftPortraitPath = "Assets/Graphics/PlayerMan.aseprite";
-    private const string RightPortraitPath = "Assets/Graphics/PlayerMan_Blue.aseprite";
+    private const string RightPortraitPath = "Assets/Graphics/PlayerMan_Front_Left_Blue.aseprite";
+
+    // The stone slabs the backdrop repeats behind the whole menu, and the finer lattice
+    // inside its frames (see UpgradeBackdrop).
+    private const string BackdropTilePath = "Assets/Graphics/UpgradeGranite.aseprite";
+    private const string PanelTilePath = "Assets/Graphics/UpgradePanel.aseprite";
 
     // Bumped whenever this file changes what it writes, so an already-wired project is
     // swept again instead of being skipped by the "nothing is null" check.
     private const string VersionKey = "TwoKnights.UpgradeMenuWiring.Version";
-    private const int Version = 2;
+    private const int Version = 5;
 
     [InitializeOnLoadMethod]
     private static void Hook()
@@ -50,6 +55,20 @@ public static class UpgradeMenuWiring
             if (SweepAllScenes(false)) EditorPrefs.SetInt(VersionKey, Version);
         };
         EditorSceneManager.sceneOpened += (_, __) => Wire(false);
+
+        // The sweep above skips itself whenever play mode is starting, and a script reload
+        // often lands just as Play is pressed - so a newly added sprite could stay unlinked
+        // for play session after play session, and the menu quietly drew plain ground in
+        // its place. Fill any empty link on the way into play mode instead. This runs
+        // before the scene is copied for play, so the session gets the links; the scene is
+        // left marked unsaved, for the user to save. Wire() itself refuses to run while
+        // play mode is starting, so call its two halves directly.
+        EditorApplication.playModeStateChanged += state =>
+        {
+            if (state != PlayModeStateChange.ExitingEditMode) return;
+            bool changed = WireAudio(false) | WirePortraits(false);
+            if (changed) Debug.Log("[UpgradeMenuWiring] Filled empty upgrade-menu links before play. Save the scene to keep them.");
+        };
     }
 
     [MenuItem("Tools/Two Knights/Wire Upgrade Menu")]
@@ -77,7 +96,12 @@ public static class UpgradeMenuWiring
             Scene scene = EditorSceneManager.OpenScene(entry.path, OpenSceneMode.Single);
             if (!scene.IsValid()) continue;
 
-            if (WireAudio(verbose) | WirePortraits(verbose))
+            // Opening the scene has already run the sceneOpened hook below, which fills
+            // any empty link in memory and leaves the scene unsaved - so by this line there
+            // is often nothing left to change, and checking only for changes here meant the
+            // links never reached the file. A scene left unsaved by wiring is saved too.
+            bool changed = WireAudio(verbose) | WirePortraits(verbose);
+            if (changed || scene.isDirty)
             {
                 EditorSceneManager.SaveScene(scene);
                 wired++;
@@ -169,6 +193,8 @@ public static class UpgradeMenuWiring
         bool changed = false;
         changed |= AssignSprite(so, "leftKnightPortrait", LeftPortraitPath);
         changed |= AssignSprite(so, "rightKnightPortrait", RightPortraitPath);
+        changed |= AssignSprite(so, "backdropTile", BackdropTilePath);
+        changed |= AssignSprite(so, "panelTile", PanelTilePath);
 
         if (changed)
         {

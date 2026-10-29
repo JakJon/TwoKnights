@@ -52,13 +52,15 @@ public class PoisonTrailBubble : MonoBehaviour
     // Drawn part-transparent (owner, 2026-09-16). A bead is vapour shaken off an
     // arrow, and at full opacity a trail read as a row of solid green dots sitting
     // on top of the board rather than hanging in it. Half-and-a-bit keeps it
-    // readable as a lane without hiding what is walking through it.
-    private const float BeadAlpha = 0.55f;
+    // readable as a lane without hiding what is walking through it. Then halved
+    // (owner, 2026-10-24: "50% more transparent"): 0.55 x 0.5.
+    private const float BeadAlpha = 0.275f;
 
     // Serpent's Breath beads are a quarter more see-through again (owner,
-    // 2026-09-23): 0.55 x 0.75. A swing throws three at a time from rank II, so
-    // they sit over the fight in a way a trail's scattered dots do not.
-    private const float BreathBeadAlpha = 0.41f;
+    // 2026-09-23): BeadAlpha x 0.75, halved with it on 2026-10-24. A swing throws
+    // three at a time from rank II, so they sit over the fight in a way a trail's
+    // scattered dots do not.
+    private const float BreathBeadAlpha = 0.21f;
 
     // Off the board and it is nobody's problem — the same bounds PoisonCloud uses
     private const float OffscreenX = 13f;

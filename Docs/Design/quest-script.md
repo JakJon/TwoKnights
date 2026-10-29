@@ -348,7 +348,7 @@ DELETE CAMP CLEANUP III
 
 **OFFER** — the NPC says this when the quest appears
 
-> Welcome to the mines! > We have had to pause our operations within these caves, since the gnomes have taken hold of them. Their overseer is said to be holed up deep within. > Please put an end to this madness so we can once again put the mines to use.
+> Welcome to the mines! > We have had to pause our operations within these caves, since the gnomes have taken hold of them. Their overseer is said to be holed up deep within. > Please put an end to this madness so we can once again put the mines to use. > The gnomes are known for hurling pick axes. Worry not, your sword swing should send pick axes back from where they came!
 
 **IN PROGRESS** — the quest log body *(current text; edit freely)*
 

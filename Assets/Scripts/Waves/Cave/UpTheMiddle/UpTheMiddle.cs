@@ -191,6 +191,9 @@ public class UpTheMiddle : BaseWave
     [Tooltip("Brutes walking in from the edges, alternating sides. They ignore everything this wave is about and come straight for whichever knight they entered nearest — see OgreBand. Leave the count at 0 for a tier that should not have any.")]
     [SerializeField] private OgreBand ogres = new OgreBand();
 
+    [Tooltip("A second band, sent once every ogre of the first is dead — an ambush of ogres, so the wave does not go quiet into rats and bats once the first band is down (owner, 2026-10-20, on tier IV). Its firstAt counts from the moment the last of the first band falls. Leave the count at 0 for a tier with only the one band.")]
+    [SerializeField] private OgreBand secondOgres = new OgreBand();
+
     // Every ogre this wave put out. Cleared as the band is released — the asset
     // is a ScriptableObject and outlives the run.
     private readonly List<GameObject> _ogres = new List<GameObject>();
@@ -456,6 +459,14 @@ public class UpTheMiddle : BaseWave
     {
         _ogres.Clear();
         yield return ogres.Release(spawner, _ogres);
+
+        if (secondOgres.Total == 0) yield break;
+
+        // Every ogre of the first band is on the roster by now: SpawnOgre at no
+        // delay adds it on the frame it is called. So an empty roster here really
+        // is the first band dead, not a band still walking in.
+        while (!OgreBand.AllDead(_ogres)) yield return null;
+        yield return secondOgres.Release(spawner, _ogres);
     }
 
     // Beside the wave, never inside it: the window is a fixed number of seconds

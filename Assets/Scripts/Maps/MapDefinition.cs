@@ -21,24 +21,32 @@ public class MapDefinition : ScriptableObject
     // A stretch of the map with its own backdrop, entered at fromWaveNumber.
     // Crossing into a stage that carries a ventureLine earns the full curtain
     // ceremony between waves (VentureCurtain); the backdrop — and the optional
-    // foreground that draws over the arena — are applied by BackgroundController,
-    // which hands the canopy to ArenaLighting in the same breath.
+    // foreground laid over it — are applied by BackgroundController, which hands
+    // the canopy to ArenaLighting in the same breath.
     [System.Serializable]
     public class MapStage
     {
         public string label;
         [Min(1)] public int fromWaveNumber = 1;
         public Sprite backdrop;
-        [Tooltip("Optional overlay drawn IN FRONT of every sprite in the arena — knights, enemies, projectiles. " +
-                 "The near lip of a cave mouth, a rock overhang: the knights walk BEHIND it. Usually the second " +
-                 "layer of the backdrop's .aseprite, imported with Layer Import Mode = Individual Layers. " +
-                 "Empty = a flat backdrop with nothing in front.")]
+        [Tooltip("Optional second picture laid over the backdrop: the Deep Mine's rim and rocks, the forest's tree " +
+                 "canopy. Usually the second layer of the backdrop's .aseprite, imported with Layer Import Mode = " +
+                 "Individual Layers. Whether it draws under or over the knights and enemies is Foreground Over " +
+                 "Arena below. Empty = a flat backdrop with nothing laid over it.")]
         public Sprite foreground;
+        [Tooltip("Off: the foreground lies on the floor UNDER every game sprite — the Deep Mine's rim and rocks, " +
+                 "which the track, the carts, the knights and the enemies all draw over. On: it draws OVER the " +
+                 "knights and enemies — the forest's tree canopy, which everything walks underneath.")]
+        public bool foregroundOverArena;
         [Tooltip("Optional light and shade laid over the arena — the canopy the Camp Fields fights under, " +
                  "thinning to a glade over the knights, or the slow breathing dark of the Mine. Drawn live " +
                  "by ArenaLighting rather than painted into the backdrop, so it falls on enemies and " +
                  "projectiles too and moves. Empty = the stage is lit by its backdrop art alone.")]
         public CanopyProfile canopy;
+        [Tooltip("Optional soft glow around the gems and ore painted into this stage's backdrop and foreground. " +
+                 "GemGlow finds every pixel of the profile's colours in the art each time the stage goes up, so a " +
+                 "gem moved in Aseprite takes its glow with it. Empty = nothing glows.")]
+        public GemGlowProfile gemGlow;
         [Tooltip("Shown over black between waves when the run first enters this stage. Empty = no ceremony, just the short fade.")]
         [TextArea] public string ventureLine;
     }

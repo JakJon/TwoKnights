@@ -27,10 +27,32 @@ public class EnemyWolf : EnemyBase
     private Transform _targetKnight;
     private bool _hasPlayedChaseSFX = false;
 
+    /// <summary>
+    /// The least warning a wolf gives (owner, 2026-10-14): it never reaches a
+    /// knight or a shield less than this many seconds after coming on screen.
+    /// Every wolf wave's paths and timings are tuned to it. In the editor and in
+    /// dev builds a wolf that strikes sooner says so in the log, with the wave it
+    /// came from, so a new wave or a retuned tier that breaks it shows up the
+    /// first time it is played.
+    /// </summary>
+    public const float MinSecondsOnScreen = 6f;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private float _onScreenSince = -1f;
+    private bool _strikeChecked;
+    private Collider2D _body;
+#endif
+
     // Setters called by Spawner before Start
     public void SetWolfType(WolfType type) => wolfType = type;
     public void SetWaypoints(List<Vector3> waypoints) => _waypoints = waypoints != null ? new List<Vector3>(waypoints) : new List<Vector3>();
     public void SetTarget(Transform target) => _targetKnight = target;
+
+    // Speed along the authored path only; 0 keeps the type's own. A pack that
+    // runs one path in a line (Wolf Invaders) holds its spacing on it this way,
+    // then each wolf charges at its own pace once the path is done.
+    private float _pathSpeed;
+    public void SetPathSpeed(float speed) => _pathSpeed = Mathf.Max(0f, speed);
 
     private void Start()
     {
@@ -79,6 +101,17 @@ public class EnemyWolf : EnemyBase
 
     private void Update()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // When the body first shows. The middle of its box rather than its feet,
+        // so a wolf half over the edge does not count yet.
+        if (_onScreenSince < 0f)
+        {
+            if (_body == null) _body = GetComponent<Collider2D>();
+            Vector2 middle = _body != null ? (Vector2)_body.bounds.center : (Vector2)transform.position;
+            if (Spawner.IsInView(middle)) _onScreenSince = Time.time;
+        }
+#endif
+
         // Pause movement during stagger
         if (IsStaggered) return;
 
@@ -117,7 +150,8 @@ public class EnemyWolf : EnemyBase
 
         Vector3 target = _waypoints[_currentWaypointIndex];
 
-        transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
+        float speed = _pathSpeed > 0f ? _pathSpeed : moveSpeed;
+        transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
         UpdateSpriteDirection(transform.position, target);
 
         if (Vector3.Distance(transform.position, target) <= waypointReachThreshold)
@@ -130,6 +164,29 @@ public class EnemyWolf : EnemyBase
             }
         }
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // The warning-time check. Only the first knight or shield it touches counts:
+    // a wolf a Bulwark shield throws back has already given its warning.
+    protected override void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!isDead && !_strikeChecked &&
+            (other.CompareTag("Shield") || other.CompareTag("PlayerLeft") || other.CompareTag("PlayerRight")))
+        {
+            _strikeChecked = true;
+            float onScreen = _onScreenSince < 0f ? 0f : Time.time - _onScreenSince;
+            if (onScreen < MinSecondsOnScreen)
+            {
+                var wave = WaveManager.ActiveInstance != null ? WaveManager.ActiveInstance.CurrentWave : null;
+                Debug.LogWarning($"[Wolves] {(wave != null ? wave.WaveName : "no wave")}: a {wolfType} wolf struck " +
+                                 $"{onScreen:0.0}s after coming on screen. The floor is {MinSecondsOnScreen:0}s " +
+                                 $"(EnemyWolf.MinSecondsOnScreen) - lengthen its path or its wait.", this);
+            }
+        }
+
+        base.OnTriggerEnter2D(other);
+    }
+#endif
 
     private void ChaseTarget()
     {

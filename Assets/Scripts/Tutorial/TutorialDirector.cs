@@ -13,8 +13,9 @@ using UnityEngine;
 /// to be able to sweep the sky and start over when the player misses, and it
 /// cannot do that with rocks it never held.
 ///
-/// The knight is untouchable throughout. Failing a lesson costs the player the
-/// lesson again, never the run.
+/// The knights are untouchable until the second-to-last lesson, which is the one
+/// about being hit: each of them takes a single rock there, on purpose. Failing
+/// any other lesson costs the player the lesson again, never the run.
 /// </summary>
 public class TutorialDirector : MonoBehaviour
 {
@@ -49,6 +50,22 @@ public class TutorialDirector : MonoBehaviour
     // ProjectileMovement aims here relative to the knight's origin; the rock
     // speeds have to be worked out against the same point it is flying at.
     private const float RockAimOffsetY = 0.5f;
+
+    // ---- the rocks that are meant to land ----------------------------------
+    private const string HurtLine =
+        "If a rock gets past your shield you'll take damage.\n" +
+        "If an enemy gets past your shield you'll take more damage than if they were to hit your shield.";
+    // A rock from behind a shield starts on this box, wherever on it "behind"
+    // points. It is the box the Spawner's own origins sit on (12 out to the
+    // sides, 7 above and below), all of it out of view.
+    private const float RockOriginX = 12f;
+    private const float RockOriginY = 7f;
+    // Straight behind one knight's shield can be straight through the other
+    // knight, and a rock stops at the first knight or shield it touches. So a
+    // rock is never thrown from closer round to the other knight than this.
+    // The knights stand four units apart, which makes it pass two units clear
+    // of the other one, and it still arrives well behind the shield it is for.
+    private const float ClearOfOtherKnightDegrees = 30f;
 
     // ---- slimes ---------------------------------------------------------
     private const int SlimeSize = 1;                // smallest: 10 health, and it does not split
@@ -86,6 +103,7 @@ public class TutorialDirector : MonoBehaviour
 
     private Spawner _spawner;
     private Transform _leftKnight;
+    private Transform _rightKnight;
     private TutorialText _text;
     // A second line that can appear UNDER the first without taking it down, for
     // when a lesson needs to add something rather than replace what it said.
@@ -122,6 +140,7 @@ public class TutorialDirector : MonoBehaviour
     {
         _spawner = spawner;
         _leftKnight = spawner.LeftPlayer;
+        _rightKnight = spawner.RightPlayer;
 
         _stage = new TutorialStage(
             spawner.LeftPlayer != null ? spawner.LeftPlayer.gameObject : null,
@@ -201,15 +220,19 @@ public class TutorialDirector : MonoBehaviour
         yield return Lesson("Press the d-pad to use your special.", SpecialLesson(), "special");
 
         yield return _text.Say("This is all of the basic controls.", LongLine);
-        yield return _text.Say("They all apply to your right knight as well.", LongLine);
-        yield return _text.Say("Its special is on the face buttons.", LongLine);
 
-        yield return _text.Raise("Good luck!");
-        yield return BringEverythingBack();
-        // A beat on the finished picture — both knights, both sets of bars — before
-        // the last line goes and the wave banner takes the screen
+        // The second knight arrives under the line that introduces it. It is
+        // standing where the lines have been going, so from here to the end they
+        // go over the middle of the board instead.
+        yield return _text.RaiseOverBothKnights("They all apply to your right knight as well.");
+        yield return BringRightKnightIn();
         yield return new WaitForSeconds(LongLine);
         yield return _text.Lower();
+
+        yield return HurtLesson();
+        yield return HealLesson();
+
+        yield return _text.SayOverBothKnights("Good luck!", LongLine);
 
         TutorialRun.MarkComplete();
         _spawner.BeginFirstWave();
@@ -272,7 +295,7 @@ public class TutorialDirector : MonoBehaviour
 
             for (int i = 0; i < origins.Length; i++)
             {
-                volley.Add(SpawnRock(origins[i]));
+                volley.Add(SpawnRock(_leftKnight, origins[i]));
                 yield return WaitUntilHitOrSeconds(RockSpacing);
                 if (_knightWasHit) break;
             }
@@ -359,6 +382,70 @@ public class TutorialDirector : MonoBehaviour
         while (AnyAlive(slimes)) yield return null;
     }
 
+    // The one lesson the player is meant to lose. Both shields stop where they
+    // are pointing and a rock comes at each knight from behind it, so the first
+    // time a health bar drops it is here, with the reason on screen, and not in
+    // the middle of wave one.
+    //
+    // The line is two sentences and stays up for all of it: a short line's hold
+    // before the rocks leave, their flight, and a long line's hold after they
+    // land. About eight and a half seconds for twenty-nine words.
+    private IEnumerator HurtLesson()
+    {
+        _stage.FreezeShieldsAndAllowDamage();
+
+        yield return _text.RaiseOverBothKnights(HurtLine);
+        yield return new WaitForSeconds(ShortLine);
+
+        yield return RunWithTimeout(RocksFromBehind(), "damage");
+        ClearSpawned();
+
+        // The point is made the moment they land, so the shields come straight
+        // back. From here both knights are the player's for good.
+        _stage.RestoreEverything();
+
+        yield return new WaitForSeconds(LongLine);
+        yield return _text.Lower();
+    }
+
+    // Thrown together and timed to land together. A rock only ever ends on a
+    // knight or on a shield, so both of them being gone is both of them landed.
+    private IEnumerator RocksFromBehind()
+    {
+        var rocks = new List<GameObject>();
+        if (_leftKnight != null) rocks.Add(SpawnRock(_leftKnight, OriginBehindShield(_leftKnight, _rightKnight)));
+        if (_rightKnight != null) rocks.Add(SpawnRock(_rightKnight, OriginBehindShield(_rightKnight, _leftKnight)));
+
+        while (AnyAlive(rocks)) yield return null;
+    }
+
+    // The right knight's special, on a bar the tutorial fills for it. The rocks
+    // have just given the player something to heal.
+    private IEnumerator HealLesson()
+    {
+        var special = _rightKnight != null ? _rightKnight.GetComponent<PlayerSpecial>() : null;
+        string specialName = special != null ? special.SpecialName : null;
+        // A knight carrying no special has nothing to press the buttons for, and a
+        // line asking for it would never come down. A new file always carries one.
+        if (specialName == null) yield break;
+
+        // The orb's door, not updateSpecial: that one counts towards the streak,
+        // and a whole bar at once would light the multiplier up to x4.
+        special.AddSpecialFromOrb(special.MaxSpecial);
+
+        yield return _text.RaiseOverBothKnights(
+            "Now use the right face buttons on your controller to use your right knight's special, " +
+            specialName + ".");
+        yield return RunWithTimeout(WaitUntilSpent(special), "heal");
+        yield return new WaitForSeconds(BeatAfterLesson);
+        yield return _text.Lower();
+    }
+
+    private static IEnumerator WaitUntilSpent(PlayerSpecial special)
+    {
+        while (special != null && special.specialBarFilled) yield return null;
+    }
+
     // ---- the handover ----------------------------------------------------
 
     private IEnumerator FadeLeftHudIn()
@@ -374,9 +461,9 @@ public class TutorialDirector : MonoBehaviour
         _stage.SetLeftHudOpacity(1f);
     }
 
-    // The second knight arrives under the last line, so the player reads "good
-    // luck" while the board fills out around it.
-    private IEnumerator BringEverythingBack()
+    // The second knight and its bars fade in under the line that says the
+    // controls are its as well, so the board fills out while the player reads.
+    private IEnumerator BringRightKnightIn()
     {
         const float seconds = 1.2f;
         float elapsed = 0f;
@@ -389,14 +476,14 @@ public class TutorialDirector : MonoBehaviour
             yield return null;
         }
 
-        // Not just alpha 1: this is also what gives both knights their controls
-        // back and takes the untouchable scaffolding down.
-        _stage.RestoreEverything();
+        // Not just alpha 1: this is also what makes it solid and gives it its
+        // controls, so the line it arrived under is true the moment it is read.
+        _stage.SeatRightKnight();
     }
 
     // ---- spawning --------------------------------------------------------
 
-    private GameObject SpawnRock(Vector2 origin)
+    private GameObject SpawnRock(Transform knight, Vector2 origin)
     {
         GameObject rock = Instantiate(_spawner.projectilePrefab);
         _spawned.Add(rock);
@@ -404,12 +491,57 @@ public class TutorialDirector : MonoBehaviour
         var mover = rock.GetComponent<ProjectileMovement>();
         if (mover != null)
         {
-            Vector2 aim = (Vector2)_leftKnight.position + new Vector2(0f, RockAimOffsetY);
-            float speed = Vector2.Distance(origin, aim) / RockFlightSeconds;
-            mover.Initialize(_leftKnight, origin, speed);
+            float speed = Vector2.Distance(origin, AimPoint(knight)) / RockFlightSeconds;
+            mover.Initialize(knight, origin, speed);
         }
 
         return rock;
+    }
+
+    private static Vector2 AimPoint(Transform knight)
+    {
+        return (Vector2)knight.position + new Vector2(0f, RockAimOffsetY);
+    }
+
+    // Where the rock that is meant to land on a knight is thrown from: out of
+    // view, on the far side of the knight from its shield. Read off where the
+    // shield IS rather than off its rotation, because that is the thing the
+    // rock has to come in behind.
+    private static Vector2 OriginBehindShield(Transform knight, Transform otherKnight)
+    {
+        Vector2 centre = AimPoint(knight);
+
+        Vector2 fromBehind = Vector2.up;
+        var orbit = knight.GetComponentInChildren<ShieldOrbit>(true);
+        if (orbit != null)
+        {
+            Vector2 toShield = (Vector2)orbit.transform.position - centre;
+            if (toShield.sqrMagnitude < 1e-4f) toShield = orbit.transform.right;
+            fromBehind = -toShield.normalized;
+        }
+
+        // Swung round, to whichever side it already leans, until it is clear of
+        // the other knight — see ClearOfOtherKnightDegrees
+        if (otherKnight != null)
+        {
+            Vector2 toOther = (AimPoint(otherKnight) - centre).normalized;
+            float round = Vector2.SignedAngle(toOther, fromBehind);
+            if (Mathf.Abs(round) < ClearOfOtherKnightDegrees)
+            {
+                float side = round < 0f ? -1f : 1f;
+                fromBehind = Quaternion.Euler(0f, 0f, side * ClearOfOtherKnightDegrees) * toOther;
+            }
+        }
+
+        // Out along that line to whichever edge of the origin box comes first
+        float toSide = Mathf.Abs(fromBehind.x) > 1e-4f
+            ? (Mathf.Sign(fromBehind.x) * RockOriginX - centre.x) / fromBehind.x
+            : float.PositiveInfinity;
+        float toTopOrBottom = Mathf.Abs(fromBehind.y) > 1e-4f
+            ? (Mathf.Sign(fromBehind.y) * RockOriginY - centre.y) / fromBehind.y
+            : float.PositiveInfinity;
+
+        return centre + fromBehind * Mathf.Min(toSide, toTopOrBottom);
     }
 
     // moveSpeed of 0 or less keeps the prefab's own walk, which is what the two

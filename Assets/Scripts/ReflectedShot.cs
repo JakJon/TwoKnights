@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// What a piece of enemy ammunition BECOMES once the guard has turned it around.
+/// What a piece of enemy ammunition BECOMES once the guard has turned it around, or a
+/// sword has batted it back (GuardianReflect.TryBat).
 ///
 /// It rides on the object it was thrown as, so a returned pickaxe is still the same
 /// pickaxe — same sprite, same collider, same size — and the player reads it by its
@@ -30,6 +31,10 @@ public class ReflectedShot : MonoBehaviour
     private float _blastRadius;
     private bool _spent;
 
+    // Turned by the guard rather than batted back by a sword. Only the guard's
+    // count toward the reflect quest and feat - see GuardianReflect.Turn.ByShield.
+    private bool _byShield;
+
     /// <summary>
     /// Turn <paramref name="host"/> into the knight's ammunition. The caller is
     /// responsible for switching off whatever was flying it first.
@@ -54,6 +59,7 @@ public class ReflectedShot : MonoBehaviour
         shot._damage = Mathf.Max(1, Mathf.CeilToInt(damage * turn.DamageMultiplier));
         shot._ownerTag = turn.OwnerTag;
         shot._blastRadius = Mathf.Max(0f, blastRadius);
+        shot._byShield = turn.ByShield;
 
         float degrees = Mathf.Atan2(turn.Heading.y, turn.Heading.x) * Mathf.Rad2Deg;
         host.transform.rotation = Quaternion.AngleAxis(degrees, Vector3.forward);
@@ -88,6 +94,14 @@ public class ReflectedShot : MonoBehaviour
         if (struck == null || struck.IsDead) return;
 
         _spent = true;
+
+        // A carried guard stops the rebound outright, burst and all
+        if (struck.TryBlockShot(transform.position, transform.right))
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Strike(struck);
     }
 
@@ -107,7 +121,7 @@ public class ReflectedShot : MonoBehaviour
 
         int dealt = EquipmentBoost.ScaleHit(_damage, enemy, _ownerTag);
         enemy.TakeDamage(dealt, carrier);
-        QuestTally.Wave(OrderStats.ReflectDamageWaveMax, dealt);
+        if (_byShield) QuestTally.Wave(OrderStats.ReflectDamageWaveMax, dealt);
         if (carrier != null) Destroy(carrier);
 
         Burst(enemy);
@@ -133,13 +147,15 @@ public class ReflectedShot : MonoBehaviour
 
         for (int i = 0; i < victims.Count; i++)
         {
+            // Only a gnome's bomb has a burst, so this is always a returned bomb,
+            // which breaks the empty carts it catches as well (owner, 2026-10-15)
             int splash = EquipmentBoost.ScaleHit(_damage, victims[i], _ownerTag);
-            victims[i].ApplyBlastDamage(splash, _ownerTag);
+            victims[i].ApplyBlastDamage(splash, _ownerTag, true);
             // A powder rock turned back is still damage the knight sent back, so
             // everything the blast reaches counts toward the same wave record.
-            QuestTally.Wave(OrderStats.ReflectDamageWaveMax, splash);
+            if (_byShield) QuestTally.Wave(OrderStats.ReflectDamageWaveMax, splash);
         }
 
-        if (victims.Count + 1 >= 3) Feats.Record(Feats.ReflectThree);
+        if (_byShield && victims.Count + 1 >= 3) Feats.Record(Feats.ReflectThree);
     }
 }

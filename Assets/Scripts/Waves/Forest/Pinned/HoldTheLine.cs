@@ -230,6 +230,7 @@ public class HoldTheLine : PinnedWave
         spawner.SpawnSlime(3, new Vector2(side * 11f, -3f), 0.6f, knight);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 5.5f), 1.2f);
         spawner.SpawnBat(new Vector2(this.BatSpawnX(12f), -5.5f), 2.2f);
+        spawner.SpawnBat(new Vector2(this.BatSpawnX(11f), 3.5f), 3.2f);
     }
 
     // Tier 6 — no warmup. It opens on the pairing every other tier saves for its

@@ -50,6 +50,14 @@ public class CanopyProfile : ScriptableObject
     private static readonly int ShaftSharpId = Shader.PropertyToID("_ShaftSharp");
     private static readonly int ShaftStrengthId = Shader.PropertyToID("_ShaftStrength");
 
+    private static readonly int MistColorId = Shader.PropertyToID("_MistColor");
+    private static readonly int MistStrengthId = Shader.PropertyToID("_MistStrength");
+    private static readonly int MistScaleId = Shader.PropertyToID("_MistScale");
+    private static readonly int MistDetailId = Shader.PropertyToID("_MistDetail");
+    private static readonly int MistStretchId = Shader.PropertyToID("_MistStretch");
+    private static readonly int MistCoverageId = Shader.PropertyToID("_MistCoverage");
+    private static readonly int MistInDarkId = Shader.PropertyToID("_MistInDark");
+
     private static readonly int WindAngleId = Shader.PropertyToID("_WindAngle");
     private static readonly int WindSpeedId = Shader.PropertyToID("_WindSpeed");
 
@@ -154,6 +162,33 @@ public class CanopyProfile : ScriptableObject
              "point at a beam is exactly what made an earlier pass look wrong.")]
     [Range(0f, 0.2f)][SerializeField] private float shaftStrength = 0.002f;
 
+    [Header("Mist — pale patches drifting over the floor")]
+    [Tooltip("What the mist is made of. The frame is lerped TOWARD this where a patch lies, so it reads " +
+             "as white haze rather than as a light being shone on the floor.")]
+    [SerializeField] private Color mistColor = new Color(0.86f, 0.9f, 0.96f, 1f);
+
+    [Tooltip("How far toward the mist colour the thickest patch takes the frame. Zero is no mist at all — " +
+             "the forest and the Mine. The project renders Linear, so a lerp toward white is strong on a " +
+             "dark floor: the useful range is small.")]
+    [Range(0f, 0.5f)][SerializeField] private float mistStrength = 0f;
+
+    [Tooltip("Size of the mist patches, in cycles per world unit. HIGHER means SMALLER patches.")]
+    [Range(0.05f, 4f)][SerializeField] private float mistScale = 0.35f;
+
+    [Tooltip("How much a finer second octave breaks up the patches' edges.")]
+    [Range(0f, 1f)][SerializeField] private float mistDetail = 0.35f;
+
+    [Tooltip("How far the patches are drawn out along the wind. 1 is round clouds; lower pulls them into " +
+             "long banks, which is what makes them read as mist.")]
+    [Range(0.1f, 1f)][SerializeField] private float mistStretch = 0.5f;
+
+    [Tooltip("Fraction of the floor the mist covers. Higher = more of it, and fewer clear gaps between.")]
+    [Range(0.05f, 0.95f)][SerializeField] private float mistCoverage = 0.5f;
+
+    [Tooltip("How much the mist thins under the dark edge of the frame. Zero lets it lie over the dark " +
+             "just as thick, which lifts the corners and greys the whole frame out.")]
+    [Range(0f, 1f)][SerializeField] private float mistInDark = 0.5f;
+
     [Header("Wind")]
     [Tooltip("Direction the whole canopy travels, in radians. It travels this way and ONLY this way: an " +
              "oscillating sway gives itself away the moment it turns around, and the arena stops reading " +
@@ -212,6 +247,14 @@ public class CanopyProfile : ScriptableObject
         material.SetFloat(ShaftScaleId, shaftScale);
         material.SetFloat(ShaftSharpId, shaftSharpness);
         material.SetFloat(ShaftStrengthId, shaftStrength);
+
+        material.SetColor(MistColorId, ToRenderSpace(mistColor));
+        material.SetFloat(MistStrengthId, mistStrength);
+        material.SetFloat(MistScaleId, mistScale);
+        material.SetFloat(MistDetailId, mistDetail);
+        material.SetFloat(MistStretchId, mistStretch);
+        material.SetFloat(MistCoverageId, mistCoverage);
+        material.SetFloat(MistInDarkId, mistInDark);
 
         material.SetFloat(WindAngleId, windAngle);
         material.SetFloat(WindSpeedId, windSpeed);

@@ -16,12 +16,22 @@ using UnityEngine;
 /// line the player skims and forgets. Each gets its own box, its own chime and its
 /// own press, which is the Pokemon rule and the reason anybody remembers what they
 /// were given.
+///
+/// EVERY REWARD STANDS IN A FRAME OF ITS OWN (owner's sketch, 2026-10-13). A
+/// line of gold round it, and what kind of thing it is written across the top
+/// of that line: New Map, Equipment, Crystals. A new quest's card lists what the
+/// quest pays as a row of these along its foot, and the card that later hands
+/// one over shows that same frame by itself, so the thing promised and the thing
+/// given are the same picture. Before this they were lines of text under the
+/// word "Reward", and a map, an item and its effect read as one paragraph.
 /// </summary>
 public class QuestNotices : MonoBehaviour
 {
     private static readonly Color Gold = new Color(0.957f, 0.667f, 0.212f, 1f);
 
     private const string SortingLayer = "Default";
+    /// <summary>The line round a reward: over the plate (596) and under the words.</summary>
+    private const int FrameOrder = 597;
     private const int SortingOrder = 600;
     private const int IconOrder = 601;
     private const float FadeSeconds = 0.25f;
@@ -33,11 +43,9 @@ public class QuestNotices : MonoBehaviour
     /// </summary>
     private const float MinimumRewardHold = 1.4f;
 
-    /// <summary>Size of an objective or reward entry, relative to the card's body text.</summary>
+    /// <summary>Size of an objective entry, relative to the card's body text.</summary>
     private const int ListItemSizePercent = 78;
 
-    // The same wrapper ListItem applies, in two halves, for the card that has to
-    // write the words between them a piece at a time (see CardBuilder).
     // static readonly rather than const: an int spliced into a string is not a
     // compile-time constant in C#, and spelling the 78 twice is how the two drift.
     private static readonly string ListItemOpen = "<size=" + ListItemSizePercent + "%>";
@@ -50,91 +58,123 @@ public class QuestNotices : MonoBehaviour
     /// </summary>
     private const float StampSizeFraction = ListItemSizePercent / 100f;
 
+    // ---- how big the words are: how many of the art's pixels one of the font's covers ----
+
+    /// <summary>The card's own words fit themselves between these. The serif's 1.8 to 3.2, scaled so the capitals are the height they were.</summary>
+    private const float BodyScaleMin = 0.375f;
+    private const float BodyScaleMax = 2f / 3f;
+
+    /// <summary>A reward's name: the size the body tops out at, two screen pixels to the font's one at 1080p.</summary>
+    private const float NameScale = 2f / 3f;
+
+    /// <summary>The word on a frame's top edge, and an item's effect under its name.</summary>
+    private const float SmallScale = 0.5f;
+
+    // ---- a reward's frame, in the art's pixels ----
+
+    /// <summary>Between one frame and the next.</summary>
+    private const int FrameGap = 6;
+
+    /// <summary>Between the frame's line and what is inside it: at each side, over the name, under the last line.</summary>
+    private const int FramePadX = 6;
+    private const int FramePadTop = 3;
+    private const int FramePadBottom = 2;
+
+    /// <summary>
+    /// How far the effect is pulled up under the name. A line of this font keeps
+    /// three pixels clear under its letters' feet, and a second line stacked
+    /// straight below that reads as a separate paragraph.
+    /// </summary>
+    private const int EffectLift = 2;
+
+    /// <summary>The line stops this far short of the word written across it, either side.</summary>
+    private const int LegendClear = 3;
+    /// <summary>The least line left between a corner and that word, so the top edge always reads as an edge.</summary>
+    private const int CornerRun = 4;
+    private const int LegendHeight = 12;
+
+    /// <summary>
+    /// How tall an icon stands. The icons are drawn 32 pixels tall (a few 16),
+    /// and this is 32 of the SCREEN's pixels at 1080p, so one of the icon's
+    /// pixels lands on one of the screen's (or on two by two).
+    /// </summary>
+    private const float IconHeight = 32f / 3f;
+    private const int IconGap = 3;
+
+    /// <summary>The words over a row of frames end this far above the row's top line.</summary>
+    private const int HeadingGap = 2;
+    /// <summary>The quest's own words end at least this far above the "Reward:" under them.</summary>
+    private const int WordsGap = 1;
+
+    /// <summary>
+    /// A label is given this much more room than its words measured, so a line
+    /// that fits exactly is not broken in two by a rounding error.
+    /// </summary>
+    private const float Slack = 0.5f;
+
     private TextMeshPro _label;
     /// <summary>The "New Quest!" mark in the card's top right corner.</summary>
     private TextMeshPro _stamp;
+    /// <summary>"Reward:", over the row of frames on a new quest's card.</summary>
+    private TextMeshPro _heading;
     private QuestBackdrop _backdrop;
-    private readonly List<SpriteRenderer> _icons = new List<SpriteRenderer>();
-    /// <summary>What new icon renderers are parented to — the body label's object,
-    /// so an icon is positioned in the same local space the glyphs are measured in.</summary>
-    private GameObject _iconHost;
+    private int _plateWidth;
 
-    /// <summary>One piece of art on a card, and the character it hangs off.</summary>
-    private struct IconPlacement
-    {
-        public Sprite Icon;
+    /// <summary>One for each reward on the card, made the first time a card needs that many.</summary>
+    private readonly List<RewardFrame> _frames = new List<RewardFrame>();
+    /// <summary>How tall one line of a reward's name is, in the art's pixels. Measured with each row.</summary>
+    private float _nameLine;
 
-        /// <summary>
-        /// Index into the card's PLAIN text — every rich-text tag stripped out — of
-        /// the character the icon sits after. Plain rather than the string that was
-        /// handed to TMP because TMP_TextInfo.characterInfo, which is what the icon
-        /// is actually measured against, indexes the parsed text.
-        /// </summary>
-        public int AfterCharacter;
-    }
-
-    /// <summary>One entry in a quest card's reward list.</summary>
+    /// <summary>One thing a quest pays, as its frame shows it.</summary>
     private struct RewardLine
     {
-        /// <summary>The thing's name. The icon, if it has one, hangs off the end of this.</summary>
-        public string Name;
+        /// <summary>Written across the frame's top edge: what kind of thing this is.</summary>
+        public string Kind;
 
-        /// <summary>Its effect line, drawn italic after the name. Equipment only.</summary>
-        public string Effect;
-
-        public Sprite Icon;
-    }
-
-    /// <summary>
-    /// A card being written: the rich string TMP is handed, and, kept in step with
-    /// it, a count of the plain characters TMP will actually lay out.
-    ///
-    /// The two have to be tracked apart because an icon is placed against a laid-out
-    /// GLYPH, and TMP indexes those by parsed text with every tag stripped. Counting
-    /// into the rich string instead would walk the icons further and further right
-    /// of where they belong as the markup piled up. Line breaks DO count — TMP keeps
-    /// them in characterInfo as ordinary (invisible) characters.
-    /// </summary>
-    private sealed class CardBuilder
-    {
-        private readonly StringBuilder _rich = new StringBuilder();
-        private readonly List<IconPlacement> _icons = new List<IconPlacement>();
-        private int _plainLength;
-
-        /// <summary>Markup. TMP eats it and draws nothing, so it counts for nothing.</summary>
-        public void Tag(string tag) { _rich.Append(tag); }
-
-        /// <summary>Words the player sees. These are what an icon anchor counts.</summary>
-        public void Text(string text)
-        {
-            if (string.IsNullOrEmpty(text)) return;
-            _rich.Append(text);
-            _plainLength += text.Length;
-        }
-
-        /// <summary>Hangs an icon off the last character written. Null art is a no-op.</summary>
-        public void IconAfterLast(Sprite icon)
-        {
-            if (icon == null || _plainLength == 0) return;
-            _icons.Add(new IconPlacement { Icon = icon, AfterCharacter = _plainLength - 1 });
-        }
-
-        public string Body { get { return _rich.ToString(); } }
-        public List<IconPlacement> Icons { get { return _icons; } }
-    }
-
-    /// <summary>
-    /// One thing a quest handed over. Split out of QuestReward because a reward is
-    /// a record — several fields on one object — and a presentation is a sequence.
-    /// </summary>
-    private struct Grant
-    {
-        /// <summary>"Obtained" for a thing you now hold, "Unlocked" for a place you may now go.</summary>
+        /// <summary>The word over the frame when it is handed over: "Obtained" for a thing you now hold, "Unlocked" for a place you may now go.</summary>
         public string Verb;
+
         public string Name;
-        public Sprite Icon;
-        /// <summary>The item's own effect line, if it has one. Drawn under the name, italic.</summary>
+
+        /// <summary>Its effect line, in smaller letters under the name. Equipment only.</summary>
         public string Effect;
+
+        public Sprite Icon;
+
+        /// <summary>The icon follows the name instead of leading it. Crystals: the count, then the crystal.</summary>
+        public bool IconLast;
+    }
+
+    /// <summary>
+    /// What one reward's frame is drawn with, and the sizes worked out for it on
+    /// the card being shown. Sizes are in the art's pixels.
+    /// </summary>
+    private sealed class RewardFrame
+    {
+        public GameObject Root;
+        public SpriteRenderer Line;
+        public SpriteRenderer Icon;
+        public TextMeshPro Legend;
+        public TextMeshPro Name;
+        public TextMeshPro Effect;
+
+        public float LegendWidth;
+        public float NameWidth;
+        /// <summary>The icon and the gap beside it. Nothing when there is no icon.</summary>
+        public float IconWidth;
+        public bool HasEffect;
+
+        /// <summary>The narrowest the inside may be, and what it would take to put the effect on one line.</summary>
+        public float Least;
+        public float Want;
+        /// <summary>What it was given.</summary>
+        public float Inner;
+
+        public float NameHeight;
+        public float EffectHeight;
+
+        public float NameRoom => Mathf.Max(1f, Inner - IconWidth);
+        public float ContentHeight => NameHeight + (HasEffect ? EffectHeight - EffectLift : 0f);
     }
 
     public static QuestNotices Create(WaveName banner)
@@ -145,70 +185,104 @@ public class QuestNotices : MonoBehaviour
         // the conversation continuing.
         go.transform.position = new Vector3(0f, QuestBackdrop.CenterY, 0f);
         var notices = go.AddComponent<QuestNotices>();
-        notices.Build(banner);
+        notices.Build();
         return notices;
     }
 
-    private void Build(WaveName banner)
+    private void Build()
     {
+        _plateWidth = QuestBackdrop.WidthPixels;
         _backdrop = QuestBackdrop.Create(transform);
 
-        var block = new Vector2(QuestBackdrop.TextWidth, QuestBackdrop.TextHeight);
-        var bodyGo = new GameObject("Notice Body");
-        bodyGo.transform.SetParent(transform, false);
-        bodyGo.transform.localPosition = QuestBackdrop.TopLeft(block);
+        int pad = QuestBackdrop.PaddingPixels;
+        var block = new Vector2(_plateWidth - pad * 2, QuestBackdrop.HeightPixels - pad * 2) * QuestBackdrop.Pixel;
 
-        _label = bodyGo.AddComponent<TextMeshPro>();
-        var bannerText = banner != null ? banner.GetComponent<TMP_Text>() : null;
-        if (bannerText != null && bannerText.font != null) _label.font = bannerText.font;
-
+        // The card's own words, hung from the plate's top left corner. Its block
+        // is as wide as the plate allows; how TALL it is depends on what else the
+        // card carries, and is set for each card — see LayOut.
+        _label = MakeLabel("Notice Body", transform, TextAlignmentOptions.TopLeft, new Vector2(0f, 1f));
+        _label.transform.localPosition = At(pad, pad);
         _label.rectTransform.sizeDelta = block;
-        _label.alignment = TextAlignmentOptions.TopLeft;
         _label.enableAutoSizing = true;
-        _label.fontSizeMin = 1.8f;
-        _label.fontSizeMax = 3.2f;
-        _label.color = Gold;
-        _label.richText = true;
-        _label.text = "";
-        _label.alpha = 0f;
+        _label.fontSizeMin = RunFont.WorldSize(BodyScaleMin);
+        _label.fontSizeMax = RunFont.WorldSize(BodyScaleMax);
 
-        var mesh = bodyGo.GetComponent<MeshRenderer>();
+        // The corner mark, in its own object. Sharing the body label would mean
+        // fighting TMP for a right-aligned run on a left-aligned line; a second
+        // label hung from the top right corner lands there exactly, and cannot
+        // push the words below it around.
+        _stamp = MakeLabel("Notice Stamp", transform, TextAlignmentOptions.TopRight, new Vector2(1f, 1f));
+        _stamp.transform.localPosition = At(_plateWidth - pad, pad);
+        _stamp.rectTransform.sizeDelta = block;
+        _stamp.fontStyle = FontStyles.Italic;
+
+        // Stood on its bottom left corner, because where it goes is counted up
+        // from the row of frames under it.
+        _heading = MakeLabel("Notice Reward Heading", transform, TextAlignmentOptions.BottomLeft, new Vector2(0f, 0f));
+
+        // The rewards' frames are made on demand in Frame: a reward card shows
+        // one, a quest card shows one for each thing the quest pays, and neither
+        // number is known here.
+    }
+
+    /// <summary>
+    /// A point on the plate, counted in the art's pixels from its left edge and
+    /// down from its top edge, in this object's own coordinates.
+    /// </summary>
+    private Vector3 At(float fromLeft, float fromTop)
+    {
+        return new Vector3((-_plateWidth * 0.5f + fromLeft) * QuestBackdrop.Pixel,
+                           (QuestBackdrop.HeightPixels * 0.5f - fromTop) * QuestBackdrop.Pixel,
+                           0f);
+    }
+
+    /// <summary>A length TMP measured, in the art's pixels.</summary>
+    private static float Pixels(float world)
+    {
+        return world / QuestBackdrop.Pixel;
+    }
+
+    /// <summary>
+    /// A label in the run's pixel font, like the dialogue box these cards follow.
+    /// <paramref name="pivot"/> is the corner of its block it is positioned by.
+    /// </summary>
+    private static TextMeshPro MakeLabel(string name, Transform parent, TextAlignmentOptions align, Vector2 pivot)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+
+        var label = go.AddComponent<TextMeshPro>();
+        RunFont.Apply(label);
+
+        label.rectTransform.pivot = pivot;
+        label.alignment = align;
+        label.enableAutoSizing = false;
+        label.textWrappingMode = TextWrappingModes.Normal;
+        label.color = Gold;
+        label.richText = true;
+        label.text = "";
+        label.alpha = 0f;
+
+        var mesh = go.GetComponent<MeshRenderer>();
         if (mesh != null)
         {
             mesh.sortingLayerName = SortingLayer;
             mesh.sortingOrder = SortingOrder;
         }
+        return label;
+    }
 
-        // The corner mark, in its own object over the same block. Sharing the body
-        // label would mean fighting TMP for a right-aligned run on a left-aligned
-        // line; a second label with TopRight alignment over the same rect lands in
-        // the corner exactly, and cannot push the words below it around.
-        var stampGo = new GameObject("Notice Stamp");
-        stampGo.transform.SetParent(bodyGo.transform, false);
-        _stamp = stampGo.AddComponent<TextMeshPro>();
-        if (_label.font != null) _stamp.font = _label.font;
-        _stamp.rectTransform.sizeDelta = block;
-        _stamp.alignment = TextAlignmentOptions.TopRight;
-        _stamp.enableAutoSizing = false;
-        _stamp.fontStyle = FontStyles.Italic;
-        _stamp.color = Gold;
-        _stamp.richText = true;
-        _stamp.text = "";
-        _stamp.alpha = 0f;
+    private static SpriteRenderer MakeRenderer(string name, Transform parent, int order)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
 
-        var stampMesh = stampGo.GetComponent<MeshRenderer>();
-        if (stampMesh != null)
-        {
-            stampMesh.sortingLayerName = SortingLayer;
-            stampMesh.sortingOrder = SortingOrder;
-        }
-
-        // The rewards' own art, parked beside their names. SpriteRenderers rather
-        // than TMP sprite tags because that would need a TMP sprite asset built
-        // from every icon in the game, kept in step with the catalog by hand.
-        // Made on demand in IconSlot: a reward box shows one, a quest card shows
-        // one per thing the quest pays, and neither number is known here.
-        _iconHost = bodyGo;
+        var renderer = go.AddComponent<SpriteRenderer>();
+        renderer.sortingLayerName = SortingLayer;
+        renderer.sortingOrder = order;
+        renderer.color = new Color(1f, 1f, 1f, 0f);
+        renderer.enabled = false;
+        return renderer;
     }
 
     /// <summary>
@@ -219,19 +293,15 @@ public class QuestNotices : MonoBehaviour
     /// </summary>
     public IEnumerator ShowReward(Quest quest)
     {
-        var grants = Describe(quest != null ? quest.Reward : null);
-        for (int i = 0; i < grants.Count; i++)
+        var rewards = Describe(quest != null ? quest.Reward : null, handedOver: true);
+        var one = new List<RewardLine>(1);
+        for (int i = 0; i < rewards.Count; i++)
         {
-            var grant = grants[i];
-            string headline = grant.Verb + " " + grant.Name;
-            var body = new StringBuilder(headline);
-            if (!string.IsNullOrEmpty(grant.Effect)) body.Append("\n<i>").Append(grant.Effect).Append("</i>");
-
-            // The icon goes after the last character of the HEADLINE, which is
-            // plain text and so indexes one-for-one into the laid-out characters.
-            // Reading "the end of the first line" instead would drop the icon into
-            // the middle of a long name that had wrapped.
-            yield return Raise(body.ToString(), grant.Icon, headline.Length - 1);
+            // The word, and under it the same frame the quest's card promised
+            // this in: its name, its art, and what it does.
+            one.Clear();
+            one.Add(rewards[i]);
+            yield return Raise(rewards[i].Verb, null, one);
 
             var jingle = AudioManager.Instance != null ? AudioManager.Instance.rewardJingle : null;
             float hold = MinimumRewardHold;
@@ -266,8 +336,7 @@ public class QuestNotices : MonoBehaviour
     {
         if (quest == null) yield break;
 
-        var card = DescribeCompleted(quest);
-        yield return Raise(card.Body, card.Icons, stamp: "Quest Complete!");
+        yield return Raise(DescribeCompleted(quest), "Quest Complete!");
 
         float readyAt = Time.unscaledTime + 0.25f;
         while (Time.unscaledTime < readyAt) yield return null;
@@ -286,8 +355,12 @@ public class QuestNotices : MonoBehaviour
     {
         for (int i = 0; i < quests.Count; i++)
         {
-            var card = DescribeUnlocked(quests[i]);
-            yield return Raise(card.Body, card.Icons, stamp: "New Quest!");
+            // What it pays, in the same order the reward boxes hand it over and
+            // in the same frames, so the card that promises a thing and the box
+            // that hands it over show the same picture.
+            var rewards = Describe(quests[i].Reward, handedOver: false);
+            yield return Raise(DescribeUnlocked(quests[i]), "New Quest!", rewards,
+                               rewards.Count == 1 ? "Reward:" : "Rewards:");
 
             float readyAt = Time.unscaledTime + 0.25f;
             while (Time.unscaledTime < readyAt) yield return null;
@@ -307,25 +380,40 @@ public class QuestNotices : MonoBehaviour
     ///
     /// Crystals go LAST because they are the consolation half of a mixed reward —
     /// leading with them buries the item behind a number.
+    ///
+    /// <paramref name="handedOver"/> is whether this is the reward being given
+    /// (the boxes after a finished quest) or being promised (a new quest's card).
     /// </summary>
-    private static List<Grant> Describe(QuestReward reward)
+    private static List<RewardLine> Describe(QuestReward reward, bool handedOver)
     {
-        var grants = new List<Grant>();
-        if (reward == null) return grants;
+        var lines = new List<RewardLine>();
+        if (reward == null) return lines;
+
+        var catalog = EquipmentCatalog.Instance;
 
         // "Unlocked", not "Obtained". A map is somewhere you may now go, and a
         // player told they obtained a mine will look for it in their bags.
         if (reward.UnlocksMap)
         {
-            grants.Add(new Grant { Verb = "Unlocked", Name = reward.DescribeMapUnlock() });
+            lines.Add(new RewardLine
+            {
+                Kind = "New Map",
+                Verb = "Unlocked",
+                // By NAME on the quest's card, open or not. That card is the
+                // quest's introduction, so the map is by definition not open
+                // yet, and naming the place you are being sent is the point of
+                // the line. Handed over, the reward's own wording is used, which
+                // is the name once the map is open.
+                Name = handedOver ? reward.DescribeMapUnlock() : MapName(reward.UnlocksMapId),
+            });
         }
 
         if (reward.GrantsEquipment)
         {
-            var catalog = EquipmentCatalog.Instance;
             var def = catalog != null ? catalog.Find(reward.EquipmentId) : null;
-            grants.Add(new Grant
+            lines.Add(new RewardLine
             {
+                Kind = "Equipment",
                 Verb = "Obtained",
                 Name = def != null ? def.DisplayName : reward.EquipmentId,
                 Icon = def != null ? def.Icon : null,
@@ -338,30 +426,31 @@ public class QuestNotices : MonoBehaviour
 
         if (reward.ExtraEquipmentSlot)
         {
-            var catalog = EquipmentCatalog.Instance;
-            grants.Add(new Grant
+            lines.Add(new RewardLine
             {
+                Kind = "New Slot",
                 Verb = "Obtained",
-                Name = "another equipment slot",
+                Name = "Another equipment slot",
                 Icon = catalog != null ? catalog.EquipmentSlotIcon : null,
             });
         }
 
         if (reward.ExtraSpecialSlot)
         {
-            var catalog = EquipmentCatalog.Instance;
-            grants.Add(new Grant
+            lines.Add(new RewardLine
             {
+                Kind = "New Slot",
                 Verb = "Obtained",
-                Name = "another special slot",
+                Name = "Another special slot",
                 Icon = catalog != null ? catalog.SpecialSlotIcon : null,
             });
         }
 
         if (reward.RevealsUpgrade)
         {
-            grants.Add(new Grant
+            lines.Add(new RewardLine
             {
+                Kind = "New Upgrade",
                 Verb = "Obtained",
                 Name = QuestUpgradeReveals.DisplayName(reward.UpgradeSlug),
             });
@@ -369,18 +458,19 @@ public class QuestNotices : MonoBehaviour
 
         if (reward.Crystals > 0)
         {
-            var catalog = EquipmentCatalog.Instance;
             // The count then the icon, never the word — the same form CrystalText
-            // draws everywhere else in the game.
-            grants.Add(new Grant
+            // draws everywhere else in the game. The word is on the frame.
+            lines.Add(new RewardLine
             {
+                Kind = "Crystals",
                 Verb = "Obtained",
                 Name = reward.Crystals.ToString(),
                 Icon = catalog != null ? catalog.CrystalIcon : null,
+                IconLast = true,
             });
         }
 
-        return grants;
+        return lines;
     }
 
     /// <summary>
@@ -388,17 +478,15 @@ public class QuestNotices : MonoBehaviour
     /// offer card showed, under an "Objective" label so the player reads it as
     /// what they did rather than as a fresh thing to go and do.
     /// </summary>
-    private static CardBuilder DescribeCompleted(Quest quest)
+    private static string DescribeCompleted(Quest quest)
     {
-        var card = new CardBuilder();
-        card.Tag("<size=125%><u>");
-        card.Text(quest.Name);
-        card.Tag("</u></size>");
+        var card = new StringBuilder();
+        card.Append("<size=125%><u>").Append(quest.Name).Append("</u></size>");
 
         if (quest.HasObjectives)
         {
-            card.Text("\n");
-            card.Text(CardLineCount(quest) == 1 ? "Objective" : "Objectives");
+            card.Append('\n');
+            card.Append(CardLineCount(quest) == 1 ? "Objective" : "Objectives");
             for (int i = 0; i < quest.Objectives.Length; i++)
             {
                 var objective = quest.Objectives[i];
@@ -406,14 +494,14 @@ public class QuestNotices : MonoBehaviour
                 // The ask as it was written for the card, not a counter. It is
                 // finished, so "500/500" is a number the player has to read to
                 // learn nothing.
-                card.Text("\n");
-                card.Tag("<i>" + ListItemOpen);
-                card.Text(objective.NpcLine);
-                card.Tag(ListItemClose + "</i>");
+                card.Append('\n');
+                card.Append("<i>").Append(ListItemOpen);
+                card.Append(objective.NpcLine);
+                card.Append(ListItemClose).Append("</i>");
             }
         }
 
-        return card;
+        return card.ToString();
     }
 
     // How many objectives the card will list - some leave themselves off it.
@@ -427,14 +515,16 @@ public class QuestNotices : MonoBehaviour
         return lines;
     }
 
-    private static CardBuilder DescribeUnlocked(Quest quest)
+    /// <summary>
+    /// A new quest's own words: its name and what it asks. What it pays is not
+    /// in here — that is drawn under these as a row of frames.
+    /// </summary>
+    private static string DescribeUnlocked(Quest quest)
     {
-        var card = new CardBuilder();
+        var card = new StringBuilder();
         // The name is the heading of the card, so it is sized and underlined as
-        // one. Everything below it is the ask and the payment, in plain weight.
-        card.Tag("<size=125%><u>");
-        card.Text(quest.Name);
-        card.Tag("</u></size>");
+        // one. Everything below it is the ask, in plain weight.
+        card.Append("<size=125%><u>").Append(quest.Name).Append("</u></size>");
 
         if (quest.HasObjectives)
         {
@@ -446,113 +536,14 @@ public class QuestNotices : MonoBehaviour
                 // zero or an accident of a shared stat, and either way the words
                 // written for the card are a better first impression of the ask
                 // than "0/500".
-                card.Text("\n");
-                card.Tag("<i>" + ListItemOpen);
-                card.Text(objective.NpcLine);
-                card.Tag(ListItemClose + "</i>");
+                card.Append('\n');
+                card.Append("<i>").Append(ListItemOpen);
+                card.Append(objective.NpcLine);
+                card.Append(ListItemClose).Append("</i>");
             }
         }
 
-        // One reward per line under the heading. Run together on a single line,
-        // a quest paying a map AND an item read as one muddled sentence with a
-        // comma in it rather than as two things being handed over.
-        var rewards = DescribeRewardLines(quest);
-        if (rewards.Count > 0)
-        {
-            card.Text("\n");
-            card.Text(rewards.Count == 1 ? "Reward:" : "Rewards:");
-            for (int i = 0; i < rewards.Count; i++)
-            {
-                card.Text("\n");
-                card.Tag(ListItemOpen);
-                card.Text(rewards[i].Name);
-
-                // Against the NAME, and the reason the effect line below is a
-                // LINE rather than the ": does a thing" tail it used to be: the
-                // icon is parked immediately after the last letter of the name,
-                // so anything still sitting there would be drawn underneath it.
-                // The reward boxes already break the effect off this way, which
-                // is why they could carry art and this card could not.
-                card.IconAfterLast(rewards[i].Icon);
-                card.Tag(ListItemClose);
-
-                if (!string.IsNullOrEmpty(rewards[i].Effect))
-                {
-                    card.Text("\n");
-                    card.Tag(ListItemOpen + "<i>");
-                    card.Text(rewards[i].Effect);
-                    card.Tag("</i>" + ListItemClose);
-                }
-            }
-        }
-        return card;
-    }
-
-    /// <summary>
-    /// Everything the quest pays, one entry per line, in the same order the
-    /// reward boxes hand them over — and with the same art on it, so the card that
-    /// promises a thing and the box that hands it over show the same picture.
-    /// </summary>
-    private static List<RewardLine> DescribeRewardLines(Quest quest)
-    {
-        var lines = new List<RewardLine>();
-        var reward = quest.Reward;
-        if (reward == null) return lines;
-
-        var catalog = EquipmentCatalog.Instance;
-
-        // The map by NAME. This used to read "A new map" whenever the map was
-        // still locked, which is every time this card is shown — the card is the
-        // quest's introduction, so the map is by definition not open yet. Naming
-        // the place you are being sent is the point of the line.
-        if (reward.UnlocksMap) lines.Add(new RewardLine { Name = MapName(reward.UnlocksMapId) });
-
-        if (reward.GrantsEquipment)
-        {
-            var def = catalog != null ? catalog.Find(reward.EquipmentId) : null;
-            lines.Add(new RewardLine
-            {
-                Name = def != null ? def.DisplayName : reward.EquipmentId,
-                // The item's own effect line, italic, exactly as the shop and the
-                // equipment screen render it. A reward the player cannot evaluate is
-                // a reward they cannot want.
-                Effect = def != null ? def.Effect : null,
-                Icon = def != null ? def.Icon : null,
-            });
-        }
-
-        if (reward.ExtraEquipmentSlot)
-        {
-            lines.Add(new RewardLine
-            {
-                Name = "Another equipment slot",
-                Icon = catalog != null ? catalog.EquipmentSlotIcon : null,
-            });
-        }
-
-        if (reward.ExtraSpecialSlot)
-        {
-            lines.Add(new RewardLine
-            {
-                Name = "Another special slot",
-                Icon = catalog != null ? catalog.SpecialSlotIcon : null,
-            });
-        }
-
-        if (reward.RevealsUpgrade)
-        {
-            lines.Add(new RewardLine { Name = QuestUpgradeReveals.DisplayName(reward.UpgradeSlug) });
-        }
-
-        if (reward.Crystals > 0)
-        {
-            lines.Add(new RewardLine
-            {
-                Name = reward.Crystals + (reward.Crystals == 1 ? " crystal" : " crystals"),
-                Icon = catalog != null ? catalog.CrystalIcon : null,
-            });
-        }
-        return lines;
+        return card.ToString();
     }
 
     /// <summary>The map's real name, open or not, falling back to its id.</summary>
@@ -566,34 +557,88 @@ public class QuestNotices : MonoBehaviour
     // ---------- drawing one box ----------
 
     /// <summary>
-    /// Lays a box out and fades it up with the plate behind it. The plate never
+    /// Lays a card out and fades it up with the plate behind it. The plate never
     /// resizes — it is the same fixed panel the dialogue speaks from, so a reward
     /// and the line that earned it are one surface rather than two.
     /// </summary>
-    private IEnumerator Raise(string body, List<IconPlacement> icons, string stamp = null)
+    private IEnumerator Raise(string words, string stamp = null,
+                              List<RewardLine> rewards = null, string rowHeading = null)
     {
-        _label.text = body;
-        // Forces the layout now, so the icons below are placed against THIS text
-        // rather than against whatever stood here last.
-        _label.ForceMeshUpdate();
-
-        SetStamp(stamp);
-        PlaceIcons(icons);
+        LayOut(words, stamp, rewards, rowHeading);
         yield return Fade(1f);
     }
 
-    /// <summary>A box carrying at most one piece of art — what a reward box is.</summary>
-    private IEnumerator Raise(string body, Sprite icon, int iconAfterCharacter = -1, string stamp = null)
+    /// <summary>
+    /// Puts a card's pieces where they go. Three kinds of card come through here:
+    ///
+    ///   words only                    a finished quest. The words have the whole plate.
+    ///   words, heading and rewards    a new quest. The frames stand in a row on the
+    ///                                 plate's foot with "Reward:" over them, and the
+    ///                                 quest's words fit themselves into what is left
+    ///                                 above.
+    ///   a word and one reward         a reward being handed over. The frame sits
+    ///                                 straight under the word.
+    ///
+    /// The frames are measured FIRST, because they do not shrink: a reward's name
+    /// is the same size on every card. The quest's words are what give way.
+    /// </summary>
+    private void LayOut(string words, string stamp, List<RewardLine> rewards, string rowHeading)
     {
-        List<IconPlacement> icons = null;
-        if (icon != null)
+        int pad = QuestBackdrop.PaddingPixels;
+        float textWidth = _plateWidth - pad * 2;
+        float textHeight = QuestBackdrop.HeightPixels - pad * 2;
+
+        for (int i = 0; i < _frames.Count; i++) _frames[i].Root.SetActive(false);
+
+        int count = rewards != null ? rewards.Count : 0;
+        int rowHeight = count > 0 ? MeasureRow(rewards, textWidth) : 0;
+        bool onFoot = count > 0 && !string.IsNullOrEmpty(rowHeading);
+
+        float rowTop = 0f;
+        float wordsHeight = textHeight;
+        float headingHeight = 0f;
+
+        if (onFoot)
         {
-            icons = new List<IconPlacement>(1)
-            {
-                new IconPlacement { Icon = icon, AfterCharacter = iconAfterCharacter }
-            };
+            rowTop = QuestBackdrop.HeightPixels - pad - rowHeight;
+
+            // Room is kept for the heading at the biggest the body can be. It is
+            // then set at whatever size the body came out, so the two are one
+            // size; if that is smaller it simply stands lower in its room.
+            _heading.fontSize = _label.fontSizeMax;
+            headingHeight = Pixels(_heading.GetPreferredValues(rowHeading).y);
+            wordsHeight = rowTop - HeadingGap - headingHeight - WordsGap - pad;
         }
-        return Raise(body, icons, stamp);
+        else if (count > 0)
+        {
+            // Measured before the words are set, as TMP measures with the label
+            // itself. One word at the body's biggest size, which is what it gets.
+            float used = string.IsNullOrEmpty(words)
+                ? 0f
+                : Pixels(_label.GetPreferredValues(words, textWidth * QuestBackdrop.Pixel, 1000f).y);
+            rowTop = Mathf.Ceil(pad + used + HeadingGap);
+        }
+
+        _label.rectTransform.sizeDelta = new Vector2(textWidth, Mathf.Max(1f, wordsHeight)) * QuestBackdrop.Pixel;
+        _label.text = words ?? "";
+        // Forces the layout now, so the stamp and the heading below are sized
+        // off THIS text rather than off whatever stood here last.
+        _label.ForceMeshUpdate();
+
+        SetStamp(stamp);
+
+        _heading.text = onFoot ? rowHeading : "";
+        if (onFoot)
+        {
+            _heading.fontSize = _label.fontSize;
+            _heading.rectTransform.sizeDelta = new Vector2(textWidth, headingHeight) * QuestBackdrop.Pixel;
+            _heading.transform.localPosition = At(pad, rowTop - HeadingGap);
+        }
+
+        if (count > 0) PlaceRow(rewards, pad, rowTop, rowHeight);
+
+        // Whatever was made after the last fade is still at its starting alpha.
+        SetAlpha(_label.alpha);
     }
 
     /// <summary>
@@ -615,122 +660,214 @@ public class QuestNotices : MonoBehaviour
         yield return Fade(0f);
         _label.text = "";
         if (_stamp != null) _stamp.text = "";
-        for (int i = 0; i < _icons.Count; i++) _icons[i].enabled = false;
+        if (_heading != null) _heading.text = "";
+        // Switched off rather than destroyed — the next card usually wants them back.
+        for (int i = 0; i < _frames.Count; i++) _frames[i].Root.SetActive(false);
     }
 
+    // ---------- the rewards' frames ----------
+
     /// <summary>
-    /// Lays every icon this card asked for against the text that has just been
-    /// measured, and switches off any left over from the card before it.
+    /// The nth frame, made on demand. A pool rather than one, because a quest's
+    /// card lists everything the quest pays.
     /// </summary>
-    private void PlaceIcons(List<IconPlacement> placements)
+    private RewardFrame Frame(int index)
     {
-        int used = 0;
-        if (placements != null)
+        while (_frames.Count <= index)
         {
-            var info = _label.textInfo;
-            for (int i = 0; i < placements.Count; i++)
-            {
-                if (PlaceIcon(IconSlot(used), placements[i], info)) used++;
-            }
-        }
+            var root = new GameObject("Notice Reward " + _frames.Count);
+            root.transform.SetParent(transform, false);
 
-        // Anything the pool still holds beyond what this card needed. Disabled
-        // rather than destroyed — the next card usually wants them back.
-        for (int i = used; i < _icons.Count; i++) _icons[i].enabled = false;
+            var frame = new RewardFrame { Root = root };
+            frame.Line = MakeRenderer("Reward Frame", root.transform, FrameOrder);
+
+            // A SpriteRenderer rather than a TMP sprite tag, because that would
+            // need a TMP sprite asset built from every icon in the game, kept in
+            // step with the catalog by hand.
+            frame.Icon = MakeRenderer("Reward Icon", root.transform, IconOrder);
+
+            // Centred on the frame's top line by its capitals, as the speaker's
+            // name is on the dialogue box's tab.
+            frame.Legend = MakeLabel("Reward Kind", root.transform, TextAlignmentOptions.Capline, new Vector2(0.5f, 0.5f));
+            frame.Legend.fontSize = RunFont.WorldSize(SmallScale);
+            frame.Legend.textWrappingMode = TextWrappingModes.NoWrap;
+
+            frame.Name = MakeLabel("Reward Name", root.transform, TextAlignmentOptions.TopLeft, new Vector2(0f, 1f));
+            frame.Name.fontSize = RunFont.WorldSize(NameScale);
+
+            frame.Effect = MakeLabel("Reward Effect", root.transform, TextAlignmentOptions.TopLeft, new Vector2(0f, 1f));
+            frame.Effect.fontSize = RunFont.WorldSize(SmallScale);
+
+            _frames.Add(frame);
+        }
+        return _frames[index];
     }
 
     /// <summary>
-    /// The nth icon renderer, made on demand. A pool rather than one renderer,
-    /// because a quest card lists everything the quest pays and several of those
-    /// entries have art — which is the whole reason the detail card used to show
-    /// no icons at all while the reward boxes after it showed theirs.
-    /// </summary>
-    private SpriteRenderer IconSlot(int index)
-    {
-        while (_icons.Count <= index)
-        {
-            var go = new GameObject("Notice Icon " + _icons.Count);
-            go.transform.SetParent(_iconHost.transform, false);
-            var renderer = go.AddComponent<SpriteRenderer>();
-            renderer.sortingLayerName = SortingLayer;
-            renderer.sortingOrder = IconOrder;
-            renderer.enabled = false;
-            _icons.Add(renderer);
-        }
-        return _icons[index];
-    }
-
-    /// <summary>
-    /// Parks one icon immediately after its anchor character, on that character's
-    /// own line. False when there was nothing to draw or nowhere to draw it.
+    /// Works out how wide each reward's frame is, and returns how tall the row of
+    /// them stands, in the art's pixels.
     ///
-    /// The position is read off the laid-out glyph rather than computed from the
-    /// string, because autosizing means the font size — and therefore where the
-    /// name ends — is not known until the text has been laid out. Same reason the
-    /// icon's size comes from the measured line height: at font size 1.8 a fixed
-    /// scale would tower over the words, at 3.2 it would be lost in them.
+    /// A frame is as wide as what is in it and no wider: its name with its icon,
+    /// or the word on its top edge if that is longer. One with an effect would
+    /// like to be wide enough to put the effect on a single line, and gets as
+    /// much of that as the row has left; the effect wraps inside whatever it was
+    /// given. So crystals come out narrow, and an item takes the room.
+    ///
+    /// Every frame in a row is the same height, the tallest one's.
     /// </summary>
-    private static bool PlaceIcon(SpriteRenderer renderer, IconPlacement placement, TMP_TextInfo info)
+    private int MeasureRow(List<RewardLine> rewards, float rowWidth)
     {
-        renderer.sprite = placement.Icon;
-        renderer.enabled = false;
-        if (placement.Icon == null) return false;
+        int count = rewards.Count;
+        float room = rowWidth - FrameGap * (count - 1) - FramePadX * 2 * count;
+        float leastTotal = 0f;
+        float extraTotal = 0f;
 
-        int afterCharacter = placement.AfterCharacter;
-        if (info == null || afterCharacter < 0 ||
-            afterCharacter >= info.characterCount || afterCharacter >= info.characterInfo.Length)
+        // One line of a name, for standing an icon level with it — see PlaceRow.
+        _nameLine = Pixels(Frame(0).Name.GetPreferredValues("H").y);
+
+        for (int i = 0; i < count; i++)
         {
-            return false;
+            RewardFrame frame = Frame(i);
+            RewardLine reward = rewards[i];
+            frame.Root.SetActive(true);
+
+            frame.LegendWidth = Mathf.Ceil(Pixels(frame.Legend.GetPreferredValues(reward.Kind ?? "").x));
+            frame.NameWidth = Mathf.Ceil(Pixels(frame.Name.GetPreferredValues(reward.Name ?? "").x));
+            frame.IconWidth = reward.Icon != null ? IconWidth(reward.Icon) + IconGap : 0f;
+            frame.HasEffect = !string.IsNullOrEmpty(reward.Effect);
+
+            // The word on the top edge needs the line to carry on a little
+            // either side of it, or the frame has no top.
+            float legendNeeds = frame.LegendWidth + (LegendClear + CornerRun) * 2 - FramePadX * 2;
+            frame.Least = Mathf.Ceil(Mathf.Max(frame.IconWidth + frame.NameWidth, legendNeeds));
+            frame.Want = frame.HasEffect
+                ? Mathf.Max(frame.Least, Mathf.Ceil(Pixels(frame.Effect.GetPreferredValues(reward.Effect).x)))
+                : frame.Least;
+
+            leastTotal += frame.Least;
+            extraTotal += frame.Want - frame.Least;
         }
 
-        var last = info.characterInfo[afterCharacter];
+        float spare = room - leastTotal;
+        float tallest = 0f;
 
-        // Measured against the LINE, never against the anchor glyph's own quad.
-        // topRight/bottomRight are tight to the letter's ink, so "1 crystal" (ends
-        // on a full-height l) and "3 crystals" (ends on a tail-less s) put their
-        // midpoints in two different places, and BOTH sat above the words - which
-        // is why the crystal floated over the line instead of standing in it.
-        //
-        // Baseline to ascender is the band the capitals occupy. Sizing the art to
-        // that band and centring it on the same band is what "inline" means: the
-        // icon is as tall as the text beside it and shares its middle.
-        int lineNumber = Mathf.Clamp(last.lineNumber, 0, Mathf.Max(0, info.lineCount - 1));
-        float baseline = last.baseLine;
-        float band = last.ascender - baseline;
-        if (info.lineInfo != null && lineNumber < info.lineInfo.Length)
+        for (int i = 0; i < count; i++)
         {
-            var line = info.lineInfo[lineNumber];
-            baseline = line.baseline;
-            band = line.ascender - baseline;
-        }
-        if (band <= 0f) band = last.ascender - last.descender;
+            RewardFrame frame = _frames[i];
+            RewardLine reward = rewards[i];
 
-        float ppu = placement.Icon.pixelsPerUnit;
-        Vector2 size = placement.Icon.rect.size / ppu;
-        float scale = size.y > 0f ? band / size.y : 1f;
+            if (spare >= extraTotal) frame.Inner = frame.Want;
+            else if (spare > 0f) frame.Inner = frame.Least + Mathf.Floor((frame.Want - frame.Least) * spare / extraTotal);
+            // More names than the plate is wide. Nothing in the game does this;
+            // if something ever does, every frame gives up its share and the
+            // names wrap.
+            else frame.Inner = Mathf.Max(1f, Mathf.Floor(frame.Least * room / leastTotal));
+
+            frame.NameHeight = Pixels(frame.Name.GetPreferredValues(
+                reward.Name ?? "", (frame.NameRoom + Slack) * QuestBackdrop.Pixel, 1000f).y);
+            frame.EffectHeight = frame.HasEffect
+                ? Pixels(frame.Effect.GetPreferredValues(
+                    reward.Effect, (frame.Inner + Slack) * QuestBackdrop.Pixel, 1000f).y)
+                : 0f;
+
+            tallest = Mathf.Max(tallest, frame.ContentHeight);
+        }
+
+        return Mathf.CeilToInt(FramePadTop + tallest + FramePadBottom);
+    }
+
+    /// <summary>
+    /// Draws the row <see cref="MeasureRow"/> measured, its top left corner at
+    /// <paramref name="left"/>, <paramref name="top"/> on the plate.
+    /// </summary>
+    private void PlaceRow(List<RewardLine> rewards, float left, float top, int height)
+    {
+        float x = left;
+        for (int i = 0; i < rewards.Count; i++)
+        {
+            RewardFrame frame = _frames[i];
+            RewardLine reward = rewards[i];
+
+            int width = Mathf.RoundToInt(frame.Inner) + FramePadX * 2;
+            int gapWidth = Mathf.Clamp(Mathf.RoundToInt(frame.LegendWidth) + LegendClear * 2, 0, Mathf.Max(0, width - CornerRun * 2));
+            int gapFrom = (width - gapWidth) / 2;
+
+            // A sprite is drawn from its middle, and a frame may be an odd
+            // number of pixels across, so the middle is placed on a half pixel
+            // to keep the line on whole ones.
+            frame.Line.sprite = QuestBackdrop.Outline(width, height, gapFrom, gapWidth);
+            QuestBackdrop.Unlight(frame.Line);
+            frame.Line.transform.localPosition = At(x + width * 0.5f, top + height * 0.5f);
+            frame.Line.enabled = true;
+
+            // The middle of its capitals on the middle of the line.
+            frame.Legend.rectTransform.sizeDelta = new Vector2(gapWidth, LegendHeight) * QuestBackdrop.Pixel;
+            frame.Legend.transform.localPosition = At(x + gapFrom + gapWidth * 0.5f, top + 0.5f);
+            frame.Legend.text = reward.Kind ?? "";
+
+            // What is inside stands in the middle of the frame's height, so a
+            // name alone sits level in a row made tall by its neighbour's effect.
+            float inside = height - FramePadTop - FramePadBottom;
+            float contentTop = Mathf.Round(top + FramePadTop + (inside - frame.ContentHeight) * 0.5f);
+
+            // And a name alone stands in the middle of its width too. Under an
+            // effect it starts at the left, on the same edge the effect does.
+            float nameShown = Mathf.Min(frame.NameWidth, frame.NameRoom);
+            float headWidth = frame.IconWidth + nameShown;
+            float headLeft = x + FramePadX;
+            if (!frame.HasEffect) headLeft += Mathf.Max(0f, Mathf.Floor((frame.Inner - headWidth) * 0.5f));
+
+            float nameLeft = reward.IconLast ? headLeft : headLeft + frame.IconWidth;
+            float iconLeft = reward.IconLast ? headLeft + nameShown + IconGap : headLeft;
+
+            frame.Name.rectTransform.sizeDelta = new Vector2(frame.NameRoom + Slack, frame.NameHeight) * QuestBackdrop.Pixel;
+            frame.Name.transform.localPosition = At(nameLeft, contentTop);
+            frame.Name.text = reward.Name ?? "";
+
+            frame.Effect.rectTransform.sizeDelta = new Vector2(frame.Inner + Slack, Mathf.Max(1f, frame.EffectHeight)) * QuestBackdrop.Pixel;
+            frame.Effect.transform.localPosition = At(x + FramePadX, contentTop + frame.NameHeight - EffectLift);
+            frame.Effect.text = frame.HasEffect ? reward.Effect : "";
+
+            // In this font the middle of the capitals is the middle of the line,
+            // so an icon centred on the name's first line stands level with it.
+            float iconWide = reward.Icon != null ? IconWidth(reward.Icon) : 0f;
+            PlaceIcon(frame.Icon, reward.Icon, At(iconLeft + iconWide * 0.5f, contentTop + _nameLine * 0.5f));
+
+            x += width + FrameGap;
+        }
+    }
+
+    /// <summary>How wide an icon is drawn, in the art's pixels, standing <see cref="IconHeight"/> tall.</summary>
+    private static float IconWidth(Sprite icon)
+    {
+        Vector2 size = icon.rect.size;
+        return size.y > 0f ? IconHeight * size.x / size.y : IconHeight;
+    }
+
+    /// <summary>
+    /// Draws <paramref name="icon"/> with its middle on <paramref name="centre"/>,
+    /// <see cref="IconHeight"/> tall. Nothing is drawn for a reward with no art.
+    /// </summary>
+    private static void PlaceIcon(SpriteRenderer renderer, Sprite icon, Vector3 centre)
+    {
+        renderer.sprite = icon;
+        renderer.enabled = icon != null;
+        if (icon == null) return;
+
+        float ppu = icon.pixelsPerUnit;
+        Vector2 size = icon.rect.size / ppu;
+        float scale = size.y > 0f ? IconHeight * QuestBackdrop.Pixel / size.y : 1f;
         renderer.transform.localScale = Vector3.one * scale;
 
-        // Where the art has to END UP: sitting in the line's own band, one small gap
-        // past the name. xAdvance rather than the ink's right edge, so the gap is the
-        // same whether the name ends in a narrow letter or a wide one.
-        Vector2 centre = new Vector2(
-            last.xAdvance + band * 0.32f + size.x * scale * 0.5f,
-            baseline + band * 0.5f);
-
-        // And where the TRANSFORM has to go to put it there, which is not the same
-        // point. A SpriteRenderer draws its sprite with the PIVOT on the transform,
-        // and these icons are imported pivot-at-the-bottom (SpriteAlignment 7,
-        // BottomCenter — see crystal.aseprite.meta), not centred. Setting the
-        // transform to the centre therefore drew the whole crystal upward from
-        // there, which is the entire reason it floated above its line instead of
-        // standing in it. Read off the sprite rather than assumed, because the art
-        // this places is whatever the catalog holds — crystals, equipment, map
-        // panes — and they do not all share a pivot.
-        Vector2 pivotOffCentre = placement.Icon.pivot / ppu - size * 0.5f;
-        renderer.transform.localPosition = centre + pivotOffCentre * scale;
-
-        renderer.enabled = true;
-        return true;
+        // Where the TRANSFORM has to go to put the art's middle there, which is
+        // not the same point. A SpriteRenderer draws its sprite with the PIVOT
+        // on the transform, and these icons are imported pivot-at-the-bottom
+        // (SpriteAlignment 7, BottomCenter — see crystal.aseprite.meta), not
+        // centred. Read off the sprite rather than assumed, because the art this
+        // places is whatever the catalog holds — crystals, equipment, slots —
+        // and they do not all share a pivot.
+        Vector2 pivotOffCentre = icon.pivot / ppu - size * 0.5f;
+        renderer.transform.localPosition = centre + (Vector3)(pivotOffCentre * scale);
     }
 
     private IEnumerator Fade(float to)
@@ -755,11 +892,20 @@ public class QuestNotices : MonoBehaviour
     {
         _label.alpha = alpha;
         if (_stamp != null) _stamp.alpha = alpha;
+        if (_heading != null) _heading.alpha = alpha;
         _backdrop.SetAlpha(alpha);
-        for (int i = 0; i < _icons.Count; i++)
+
+        // White tint: the frame's colour is baked into its sprite and an icon is
+        // drawn in its own, so the tint carries nothing but the fade.
+        var tint = new Color(1f, 1f, 1f, alpha);
+        for (int i = 0; i < _frames.Count; i++)
         {
-            var color = _icons[i].color;
-            _icons[i].color = new Color(color.r, color.g, color.b, alpha);
+            RewardFrame frame = _frames[i];
+            frame.Line.color = tint;
+            frame.Icon.color = tint;
+            frame.Legend.alpha = alpha;
+            frame.Name.alpha = alpha;
+            frame.Effect.alpha = alpha;
         }
     }
 }

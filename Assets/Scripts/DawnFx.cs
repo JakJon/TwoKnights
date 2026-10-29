@@ -206,6 +206,10 @@ public static class DawnFx
         host.transform.position = CenterOf(knight);
 
         var system = Build(host, 0.7f);
+        // A fresh ParticleSystem is already playing on its first frame, and the
+        // duration below cannot be set on a playing system (Unity logs an error
+        // and ignores it) — the same stop SparkleFx makes
+        system.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
         var main = system.main;
         // Local space so the halo travels with the knight; Hierarchy scaling so

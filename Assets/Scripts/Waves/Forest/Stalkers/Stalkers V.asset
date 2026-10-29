@@ -21,7 +21,7 @@ MonoBehaviour:
   useEnemyTracking: 1
   ambushes:
   - label: the first pass
-    wolfCount: 12
+    wolfCount: 14
     additionalCircles: 2
     leadIn: 0
     spawnInterval: 0.7
@@ -30,7 +30,7 @@ MonoBehaviour:
     - 1
     - 2
   - label: the second pass
-    wolfCount: 14
+    wolfCount: 16
     additionalCircles: 1
     leadIn: 2
     spawnInterval: 0.65

@@ -19,7 +19,14 @@ public class UpgradeMenu : MonoBehaviour
     // Wired by Assets/Editor/UpgradeMenuWiring.cs so they survive a fresh scene.
     [SerializeField] private Sprite leftKnightPortrait;
     [SerializeField] private Sprite rightKnightPortrait;
-    
+
+    [Header("Backdrop")]
+    // The stone slabs repeated behind the menu and the finer lattice inside its frames
+    // (UpgradeBackdrop). Wired by UpgradeMenuWiring like the portraits; left empty,
+    // either one is plain ground.
+    [SerializeField] private Sprite backdropTile;
+    [SerializeField] private Sprite panelTile;
+
     [Header("Waves")]
     [SerializeField] private WaveManager waveManager;
     
@@ -309,6 +316,7 @@ public class UpgradeMenu : MonoBehaviour
     BindColumn(_leftColumn, "left");
     BindColumn(_rightColumn, "right");
     BindPortraits();
+        AddBackdrop();
 
         if (menuItems.Count == 0) return;
         
@@ -726,6 +734,15 @@ public class UpgradeMenu : MonoBehaviour
             ? new OrderAura(leftBack, leftFront, leftKnightPortrait) : null;
         _rightAura = rightFront != null && rightBack != null
             ? new OrderAura(rightBack, rightFront, rightKnightPortrait) : null;
+    }
+
+    // The frames behind the three columns (see UpgradeBackdrop). First child of the
+    // menu, so it paints under everything else; it measures the columns itself.
+    private void AddBackdrop()
+    {
+        var menu = root.Q<VisualElement>("upgrade-menu");
+        if (menu == null || menu.Q<UpgradeBackdrop>() != null) return;
+        menu.Insert(0, new UpgradeBackdrop(menu, backdropTile, panelTile));
     }
 
     // Recount each knight's Orders and feed the mote streams. Called whenever the menu

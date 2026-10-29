@@ -38,7 +38,8 @@ public static class TestRunConfig
     // and as practice — it records nothing. Boss gaps and gaps with an NPC scene
     // queued are still skipped. Null/empty leaves trials to their normal dice.
     // "targets" forces a target range pattern instead, with the pattern number
-    // (1-5) in ForcedTrialPhase — see TargetRange.TryForced.
+    // (1-5) in ForcedTrialPhase — see TargetRange.TryForced. "carts" forces a
+    // cart sorting phase the same way — see CartSorting.TryForced.
     // Like AutoPickWave it steers the whole run and is not cleared by Clear().
     public static string ForcedTrial;
     public static int ForcedTrialPhase = 1;

@@ -69,3 +69,31 @@ Columns: 7
 255 242   0	fuse-yellow fff200
 255 173   0	fuse-orange ffad00
 225   0   0	fuse-red e10000
+# switch_red / switch_blue - cart sorting (2026-10-09): red and blue carts, flags,
+# the fork's corner piece and the levers. Built on the two knights' own plume
+# colours (9c3828 / ff7a54 and 2e6fd8 / 7cc4ff); the two darker steps are new.
+# Strips: Assets/Graphics/palletes/switch_red.aseprite, switch_blue.aseprite.
+ 59  22  26	switch-red-1 3b161a
+ 94  35  32	switch-red-2 5e2320
+156  56  40	switch-red-3 9c3828
+255 122  84	switch-red-4 ff7a54
+ 20  37  74	switch-blue-1 14254a
+ 28  63 133	switch-blue-2 1c3f85
+ 46 111 216	switch-blue-3 2e6fd8
+124 196 255	switch-blue-4 7cc4ff
+# skeleton - castle (Pallid Keep) skeleton mob (2026-10-27). Bone is a WARM ivory so it
+# stands off the deep blue floor and stays apart from the lilac-white spectre ramp.
+# Helmet and shoulder pads are dark neutral iron, darker and less blue than the keep's
+# stone so armour never melts into fallen masonry; two rust steps for dents and rivets.
+# Strip: Assets/Graphics/palletes/skeleton.aseprite.
+ 75  66  55	bone-1 4b4237
+125 113  95	bone-2 7d715f
+176 163 135	bone-3 b0a387
+217 207 180	bone-4 d9cfb4
+244 238 220	bone-5 f4eedc
+ 34  33  38	iron-1 222126
+ 58  56  63	iron-2 3a383f
+ 92  89  95	iron-3 5c595f
+140 136 136	iron-4 8c8888
+107  58  36	rust-1 6b3a24
+160  87  46	rust-2 a0572e

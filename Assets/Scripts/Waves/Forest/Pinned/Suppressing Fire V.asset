@@ -31,7 +31,7 @@ MonoBehaviour:
   arcRadius: 12
   secondsBetweenShots: 1.3
   patternSeconds: 61
-  batCount: 6
+  batCount: 5
   ratCount: 2
-  slimeCount: 2
+  slimeCount: 1
   slimeSize: 2

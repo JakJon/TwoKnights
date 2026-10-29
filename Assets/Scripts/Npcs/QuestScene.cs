@@ -137,12 +137,22 @@ public class QuestScene : MonoBehaviour
     /// about to be handed. A line that contains the reveal starts him without it;
     /// every other scene shows him as the save actually has him.
     /// </summary>
-    private static void SetInitialCrown(NpcActor actor, NpcId npc, string line)
+    private void SetInitialCrown(NpcActor actor, NpcId npc, string line)
     {
         if (npc != NpcId.King) return;
         bool revealedInThisScene = !string.IsNullOrEmpty(line) && line.Contains("<crown>");
-        actor.SetCrownVisible(!revealedInThisScene
-                              && QuestProgress.IsCompleted(ForestQuests.Ruckus));
+        SetCrown(actor, !revealedInThisScene && QuestProgress.IsCompleted(ForestQuests.Ruckus));
+    }
+
+    /// <summary>
+    /// The King's crown, on him and on his portrait in the text box together
+    /// (owner, 2026-10-13). The portrait is cut from his sprite's layers, so it
+    /// has to be told when the top one goes on or comes off.
+    /// </summary>
+    private void SetCrown(NpcActor actor, bool visible)
+    {
+        if (actor != null) actor.SetCrownVisible(visible);
+        if (_box != null) _box.SetCrownVisible(visible);
     }
 
     private IEnumerator TakeOffCast()
@@ -206,8 +216,8 @@ public class QuestScene : MonoBehaviour
         if (speaker == null) yield break;
         switch (directive)
         {
-            case DialogueScript.Directive.ShowCrown: speaker.SetCrownVisible(true); break;
-            case DialogueScript.Directive.HideCrown: speaker.SetCrownVisible(false); break;
+            case DialogueScript.Directive.ShowCrown: SetCrown(speaker, true); break;
+            case DialogueScript.Directive.HideCrown: SetCrown(speaker, false); break;
             case DialogueScript.Directive.Exit: yield return speaker.StepAway(); break;
         }
     }

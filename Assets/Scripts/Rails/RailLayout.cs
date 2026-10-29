@@ -31,6 +31,41 @@ public enum RailFlow
     Reverse = 1
 }
 
+// The two track switches of the cart sorting challenge, by the colour of the
+// lever that works them. A fork in the track has one corner piece that turns:
+// it is drawn in the switch's colour, and hitting the lever of that colour
+// swings it from one branch to the other — see RailNetwork.Throw. Everything
+// else in the fork is ordinary track and never moves.
+//
+// A switch is either at rest, which is how the layout is laid, or thrown. The
+// corner is authored twice, once for each, and so is the link that carries a
+// cart off the end of the feeder; only the pair that matches the lever is there.
+//
+// There are only ever these two. The carts being sorted, and the flags they are
+// sorted to, come in more colours than that — see CartColor.
+public enum RailSwitchColor
+{
+    None = 0,
+    Red = 1,
+    Blue = 2
+}
+
+// The colour of a cart in the cart sorting challenge, and of the flag it has to
+// reach (owner, 2026-10-09: four cart colours, still only two levers). A layout
+// marks each drop point with the colour of the flag planted there. None is the
+// ordinary orange delivery flag, which no sorting cart matches.
+//
+// Red and Blue keep the numbers they had when a flag was typed as a lever colour,
+// so the layouts written before the split still read correctly.
+public enum CartColor
+{
+    None = 0,
+    Red = 1,
+    Blue = 2,
+    Green = 3,
+    Yellow = 4
+}
+
 // One straight line of rail pieces. Every run is axis-aligned, so a run is
 // fully described by its axis, the cross-axis coordinate it sits on, and where
 // along the axis it starts and stops.
@@ -63,6 +98,9 @@ public struct RailRun
 
     [Tooltip("Lay this run from its far end back, reversing the fall cascade. Cosmetic only — it does not change which way carts travel.")]
     public bool layFromFarEnd;
+
+    [Tooltip("Lay no pieces for this run. For a second lane on track another run already draws, going the other way — the Overseer's way back after he turns round.")]
+    public bool noPieces;
 }
 
 // A one-way link between the far end of one run and the mouth of another: a cart
@@ -90,6 +128,12 @@ public struct RailTeleport
 
     [Tooltip("How far before the destination run's first cell the cart reappears — normally the cart's own lead-in")]
     public float entryLead;
+
+    [Tooltip("Red or Blue = this link is one way out of a fork, and only exists while that switch is where 'whenThrown' says. None = an ordinary link, always there.")]
+    public RailSwitchColor switchColor;
+
+    [Tooltip("Off = the link is there while the switch is at rest. On = only once the lever has been thrown.")]
+    public bool whenThrown;
 }
 
 // A single tile dropped at an explicit spot, outside any run. Corners are the
@@ -113,6 +157,12 @@ public struct RailTile
 
     [Tooltip("World position of the tile")]
     public Vector2 position;
+
+    [Tooltip("Red or Blue = this is the corner of a fork that the lever of that colour turns. It is drawn in that colour and is only there while the switch is where 'whenThrown' says. None = ordinary track.")]
+    public RailSwitchColor switchColor;
+
+    [Tooltip("Off = the tile is there while the switch is at rest. On = only once the lever has been thrown.")]
+    public bool whenThrown;
 }
 
 // A point on the track where a delivery cart puts its passenger down. The
@@ -131,6 +181,23 @@ public struct RailDrop
 
     [Tooltip("Distance from that run's mouth, in world units")]
     public float distanceAlong;
+
+    [Tooltip("Which flag is planted here. None = the ordinary orange one. The colours are the cart sorting goals.")]
+    public CartColor flag;
+
+    [Tooltip("Which side of the track the flag stands on. Outward = away from the middle of the board, the way delivery flags have always stood.")]
+    public RailFlagSide flagSide;
+
+    [Tooltip("Moves the flag from where its side puts it, in world units. For a flag at the end of a short spur, where 'beside the track' is not where it reads best.")]
+    public Vector2 flagShift;
+}
+
+// Which side of its track a drop point's flag is planted on.
+public enum RailFlagSide
+{
+    Outward = 0,     // away from the middle of the board
+    WestOrSouth = 1, // west of a vertical run, south of a horizontal one
+    EastOrNorth = 2
 }
 
 // Where a single piece ends up, in the order it should fall
@@ -138,6 +205,12 @@ public struct RailPlacement
 {
     public RailPieceKind Piece;
     public Vector2 Position;
+
+    /// <summary>The switch that turns this piece. None for ordinary track.</summary>
+    public RailSwitchColor Switch;
+
+    /// <summary>For a switch piece: in place once the lever is thrown, rather than at rest.</summary>
+    public bool WhenThrown;
 }
 
 // A run resolved into world space and oriented in travel order: a rider enters
@@ -235,6 +308,10 @@ public class RailLayout : ScriptableObject
 
         foreach (var run in runs)
         {
+            // Its line is still built (BuildLines), so carts can ride it; only
+            // the art is left to the run it shares the track with
+            if (run.noPieces) continue;
+
             bool horizontal = run.axis == RailAxis.Horizontal;
 
             float first;
@@ -259,7 +336,13 @@ public class RailLayout : ScriptableObject
         // visibly closes itself at the end of the cascade
         foreach (var tile in tiles)
         {
-            into.Add(new RailPlacement { Piece = tile.piece, Position = tile.position });
+            into.Add(new RailPlacement
+            {
+                Piece = tile.piece,
+                Position = tile.position,
+                Switch = tile.switchColor,
+                WhenThrown = tile.whenThrown
+            });
         }
     }
 

@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a7f4c493d080c8499155f95350bad47, type: 3}
+  m_Name: Back to Back
+  m_EditorClassIdentifier: 
+  waveName: Back to Back
+  weight: 1000
+  isUnlocked: 0
+  waveDescription: 
+  unlockedAfterXWaves: 0
+  lockedAfterXWaves: 6
+  useEnemyTracking: 1
+  mirrorLayout: {fileID: 11400000, guid: 277f999cddbda1343a71f834d790d24b, type: 2}
+  pillarPrefab: {fileID: 6516826002055581776, guid: adbc31b10674fad44b1acc81253fb4d0, type: 3}
+  wallX: 0
+  wallTop: 5
+  wallBottom: -5
+  topGate: 3.5
+  middleGate: 0
+  bottomGate: -3.5
+  spawnX: 12
+  entryX: 8.3
+  skeletonPrefab: {fileID: 6858484398065915977, guid: 20a892ea2f8ab8a42a86c6ba1ceb8c41, type: 3}
+  gates: 0000000005000000
+  groups: 2
+  memberStagger: 0
+  nextGroupAt: 0.75
+  volleys:
+  - label: left, over the wall from above
+    shape: 0
+    rightKnight: 0
+    fromBelow: 0
+    origin: 2
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3
+  - label: right, over the wall from below
+    shape: 0
+    rightKnight: 1
+    fromBelow: 1
+    origin: 2
+    spacing: 1
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.1
+    restAfter: 3
+  projectileWindow: 14
+  rockSpeed: 1.75
+  manaOrbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 6
+    interval: 12
+    from: {x: -12, y: 2.8}
+    to: {x: 12, y: 2.8}
+  healthOrbs:
+    healthOrb: 1
+    count: 0
+    firstAt: 12
+    interval: 12
+    from: {x: 12, y: -2.8}
+    to: {x: -12, y: -2.8}

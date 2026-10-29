@@ -1,0 +1,365 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
+  m_Name: Mine Overseer Rings
+  m_EditorClassIdentifier: 
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
+  cellSize: 1
+  fallStagger: 0.015
+  runs:
+  - label: HIS TRACK (east) - he enters here
+    piece: 0
+    axis: 0
+    offset: 4.625
+    spanViewport: 0
+    overhangCells: 0
+    start: -11
+    count: 23
+    flow: 0
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: HIS TRACK (west) - the way back after a U-turn; no pieces of its own
+    piece: 0
+    axis: 0
+    offset: 4.625
+    spanViewport: 0
+    overhangCells: 0
+    start: -11
+    count: 23
+    flow: 1
+    layFromFarEnd: 0
+    noPieces: 1
+  - label: INNER top (east)
+    piece: 0
+    axis: 0
+    offset: 1.125
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 7
+    flow: 0
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: INNER right (south)
+    piece: 1
+    axis: 1
+    offset: 4
+    spanViewport: 0
+    overhangCells: 0
+    start: -1.875
+    count: 3
+    flow: 1
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: INNER bottom (west)
+    piece: 0
+    axis: 0
+    offset: -2.875
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 7
+    flow: 1
+    layFromFarEnd: 1
+    noPieces: 0
+  - label: INNER left (north)
+    piece: 1
+    axis: 1
+    offset: -4
+    spanViewport: 0
+    overhangCells: 0
+    start: -1.875
+    count: 3
+    flow: 0
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: MIDDLE top (west)
+    piece: 0
+    axis: 0
+    offset: 2.125
+    spanViewport: 0
+    overhangCells: 0
+    start: -5
+    count: 11
+    flow: 1
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: MIDDLE left (south)
+    piece: 1
+    axis: 1
+    offset: -6
+    spanViewport: 0
+    overhangCells: 0
+    start: -2.875
+    count: 5
+    flow: 1
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: MIDDLE bottom (east)
+    piece: 0
+    axis: 0
+    offset: -3.875
+    spanViewport: 0
+    overhangCells: 0
+    start: -5
+    count: 11
+    flow: 0
+    layFromFarEnd: 1
+    noPieces: 0
+  - label: MIDDLE right (north)
+    piece: 1
+    axis: 1
+    offset: 6
+    spanViewport: 0
+    overhangCells: 0
+    start: -2.875
+    count: 5
+    flow: 0
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: OUTER top (east)
+    piece: 0
+    axis: 0
+    offset: 3.375
+    spanViewport: 0
+    overhangCells: 0
+    start: -8
+    count: 17
+    flow: 0
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: OUTER right (south)
+    piece: 1
+    axis: 1
+    offset: 9
+    spanViewport: 0
+    overhangCells: 0
+    start: -4.625
+    count: 8
+    flow: 1
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: OUTER bottom (west)
+    piece: 0
+    axis: 0
+    offset: -5.625
+    spanViewport: 0
+    overhangCells: 0
+    start: -8
+    count: 17
+    flow: 1
+    layFromFarEnd: 1
+    noPieces: 0
+  - label: OUTER left (north)
+    piece: 1
+    axis: 1
+    offset: -9
+    spanViewport: 0
+    overhangCells: 0
+    start: -4.625
+    count: 8
+    flow: 0
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: WAY IN, top-left (east) - joins the outer top
+    piece: 0
+    axis: 0
+    offset: 3.375
+    spanViewport: 0
+    overhangCells: 0
+    start: -13
+    count: 4
+    flow: 0
+    layFromFarEnd: 0
+    noPieces: 0
+  - label: WAY IN, top-right (west) - turns down the outer right side
+    piece: 0
+    axis: 0
+    offset: 3.375
+    spanViewport: 0
+    overhangCells: 0
+    start: 10
+    count: 4
+    flow: 1
+    layFromFarEnd: 0
+    noPieces: 0
+  tiles:
+  - label: INNER top-left elbow
+    piece: 4
+    position: {x: -4, y: 1.125}
+    switchColor: 0
+    whenThrown: 0
+  - label: INNER top-right elbow
+    piece: 5
+    position: {x: 4, y: 1.125}
+    switchColor: 0
+    whenThrown: 0
+  - label: INNER bottom-right elbow
+    piece: 3
+    position: {x: 4, y: -2.875}
+    switchColor: 0
+    whenThrown: 0
+  - label: INNER bottom-left elbow
+    piece: 2
+    position: {x: -4, y: -2.875}
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE top-left elbow
+    piece: 4
+    position: {x: -6, y: 2.125}
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE top-right elbow
+    piece: 5
+    position: {x: 6, y: 2.125}
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE bottom-right elbow
+    piece: 3
+    position: {x: 6, y: -3.875}
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE bottom-left elbow
+    piece: 2
+    position: {x: -6, y: -3.875}
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER top-left elbow
+    piece: 4
+    position: {x: -9, y: 3.375}
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER top-right elbow
+    piece: 5
+    position: {x: 9, y: 3.375}
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER bottom-right elbow
+    piece: 3
+    position: {x: 9, y: -5.625}
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER bottom-left elbow
+    piece: 2
+    position: {x: -9, y: -5.625}
+    switchColor: 0
+    whenThrown: 0
+  - label: 'OUTER top-left junction: the left way in runs straight through'
+    piece: 0
+    position: {x: -9, y: 3.375}
+    switchColor: 0
+    whenThrown: 0
+  - label: 'OUTER top-right junction: the right way in turns down'
+    piece: 4
+    position: {x: 9, y: 3.375}
+    switchColor: 0
+    whenThrown: 0
+  teleports:
+  - label: INNER top into the right side
+    fromRun: 2
+    toRun: 3
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: INNER right side into the bottom
+    fromRun: 3
+    toRun: 4
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: INNER bottom into the left side
+    fromRun: 4
+    toRun: 5
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: INNER left side into the top
+    fromRun: 5
+    toRun: 2
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE top into the left side
+    fromRun: 6
+    toRun: 7
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE left side into the bottom
+    fromRun: 7
+    toRun: 8
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE bottom into the right side
+    fromRun: 8
+    toRun: 9
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: MIDDLE right side into the top
+    fromRun: 9
+    toRun: 6
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER top into the right side
+    fromRun: 10
+    toRun: 11
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER right side into the bottom
+    fromRun: 11
+    toRun: 12
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER bottom into the left side
+    fromRun: 12
+    toRun: 13
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: OUTER left side into the top
+    fromRun: 13
+    toRun: 10
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: WAY IN top-left onto the outer top
+    fromRun: 14
+    toRun: 10
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: WAY IN top-right onto the outer right side
+    fromRun: 15
+    toRun: 11
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  drops: []

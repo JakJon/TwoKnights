@@ -39,8 +39,11 @@ public class SwordSwing : MonoBehaviour
 
     // Long Sword lives on the knight, so it is looked up per swing rather than
     // cached in Awake: the upgrade can land between one swing and the next.
+    //
+    // Through UpgradeHold, like every other upgrade this blade reads off its
+    // knight, so cart sorting can hand the knight a plain sword for its length.
     private LongSwordBoost LongSword =>
-        owningKnight != null ? owningKnight.GetComponent<LongSwordBoost>() : null;
+        UpgradeHold.Of<LongSwordBoost>(owningKnight);
 
     // Stock values unless a Long Sword rank says otherwise.
     private float BladeReach => LongSword != null ? LongSword.LengthMultiplier : 1f;
@@ -50,7 +53,13 @@ public class SwordSwing : MonoBehaviour
         get
         {
             var boost = LongSword;
-            return boost != null && boost.BaseDamage > 0 ? boost.BaseDamage : swingDamage;
+            int damage = boost != null && boost.BaseDamage > 0 ? boost.BaseDamage : swingDamage;
+
+            // Heavy Swing raises the blade to at least its own number; past that,
+            // Long Sword decides.
+            GuardianBoost guardian = UpgradeHold.Of<GuardianBoost>(owningKnight);
+            if (guardian != null) damage = Mathf.Max(damage, guardian.SwordDamageFloor);
+            return damage;
         }
     }
 
@@ -109,6 +118,22 @@ public class SwordSwing : MonoBehaviour
     private Vector2 SwingDirection => _backSwing ? -shield.Direction : shield.Direction;
 
     /// <summary>
+    /// The way the swing in progress faces, fixed when it starts — the same moment
+    /// the arc's angle is fixed, so this always agrees with the blade on screen even
+    /// if the shield turns mid-swing. Enemy ammunition the blade meets is sent off
+    /// along it (see GuardianReflect.TryBat). Zero before the first swing.
+    /// </summary>
+    public Vector2 SwingFacing { get; private set; }
+
+    // The middle of the swing in world space: the same point AnimateSwingArc draws
+    // the blade's arc around. Everything a swing throws off starts its step out
+    // from HERE, not from the knight's transform. That sits at the knight's feet,
+    // half a unit lower, so anything measured from it came out half a unit nearer
+    // the knight's middle on an upward swing and half a unit further on a
+    // downward one (owner, 2026-10-09).
+    private Vector2 SwingPivot => transform.TransformPoint(rotationOffset);
+
+    /// <summary>
     /// Drops a swing still in the air and puts the blade away.
     ///
     /// Every wait inside PerformSwordSwing runs on SCALED time, so a swing loosed on
@@ -158,6 +183,7 @@ public class SwordSwing : MonoBehaviour
         shield.SetSwordReloadBarVisible(true);
         shield.SetSwordReloadBarFill(1f);
         float shieldAngle = SwingAngle;
+        SwingFacing = SwingDirection;
         // Feat tracking: a phase is the real swing or one echo. The Shadow quest
         // wants a swing where the real strike AND both echoes each connected.
         _phaseLanded = false;
@@ -182,7 +208,7 @@ public class SwordSwing : MonoBehaviour
         // trail the real swing after a short beat, then sweep through at the real
         // swing's own pace. They used to whip through at twice that, which was too
         // quick to follow (owner, 2026-09-26).
-        NinjaBoost ninja = owningKnight != null ? owningKnight.GetComponent<NinjaBoost>() : null;
+        NinjaBoost ninja = UpgradeHold.Of<NinjaBoost>(owningKnight);
         int echoCount = ninja != null ? ninja.TotalPhantomEchoes : 0;
         for (int i = 0; i < echoCount; i++)
         {
@@ -342,11 +368,11 @@ public class SwordSwing : MonoBehaviour
     {
         if (owningKnight == null || shield == null) return;
 
-        PoisonTipBoost boost = owningKnight.GetComponent<PoisonTipBoost>();
+        PoisonTipBoost boost = UpgradeHold.Of<PoisonTipBoost>(owningKnight);
         if (boost == null || boost.BreathBeadCount <= 0) return;
 
         Vector2 facing = SwingDirection;
-        Vector2 origin = (Vector2)owningKnight.transform.position + facing * 1.3f;
+        Vector2 origin = SwingPivot + facing * 1.3f;
         string knightTag = owningKnight.tag;
 
         float[] angles = BreathFanAngles(boost.BreathBeadCount, BreathBeadFanStep);
@@ -397,9 +423,16 @@ public class SwordSwing : MonoBehaviour
     private const float FirebrandLifetime = 4f;
     private const float FirebrandDirectDamageFactor = 1.5f;
 
-    // Rimeblade (Frigid Order): every swing throws off a burst of cold around the
-    // knight, dealing the sword's own damage to everything it catches, and then
-    // the rank's frost damage on top (5 / 10 / 15).
+    // Rimeblade (Frigid Order) is two separate things (owner, 2026-10-05):
+    //
+    //   The BURST. Every swing throws off a burst of cold, whether or not the blade
+    //   touches anything. It only chills, or freezes what was already chilled. It
+    //   deals no damage of any kind - it used to carry the sword's own damage and
+    //   the frost damage too.
+    //
+    //   The FROST DAMAGE (5 / 10 / 15 by rank). Dealt by the blade itself to
+    //   whatever it makes contact with - see OnEnemyHit. A swing that hits nothing
+    //   deals none.
     //
     // Every Order hangs a discipline off the sword and each one does something
     // different with it - Serpent exhales a cloud, Shadow echoes the swing, Ember
@@ -408,25 +441,26 @@ public class SwordSwing : MonoBehaviour
     // way in gets stopped dead at arm's length, which is the strongest single
     // moment in the Order and costs two picks from different chains to reach.
     //
-    // Note what this is not: a projectile. It does not travel — it opens once,
+    // Note what the burst is not: a projectile. It does not travel — it opens once,
     // one step out along the swing, and is gone. Nudging it a unit down the facing
-    // rather than sitting it on the knight's own feet means the half of the circle
-    // behind the knight (where nothing the sword just hit can be) stops being
-    // wasted, and the burst covers the ground the blade actually swept.
+    // rather than sitting it on the knight means the half of the circle behind the
+    // knight (where nothing the sword is about to hit can be) stops being wasted,
+    // and the burst covers the ground the blade actually sweeps.
+    //
+    // The unit is measured from SwingPivot, the point the blade turns about, so
+    // the burst reaches the same distance whichever way the knight swings.
     private const float RimebladeForwardOffset = 1f;
 
     private void TryReleaseRimeblade()
     {
         if (owningKnight == null) return;
 
-        FrigidBoost boost = owningKnight.GetComponent<FrigidBoost>();
+        FrigidBoost boost = UpgradeHold.Of<FrigidBoost>(owningKnight);
         if (boost == null || !boost.ShouldReleaseRimeblade()) return;
 
         float radius = boost.RimebladeRadius;
         Vector2 facing = shield != null ? SwingDirection : Vector2.zero;
-        Vector2 center = (Vector2)owningKnight.transform.position + facing * RimebladeForwardOffset;
-        int damage = EffectiveSwingDamage;
-        int frost = boost.RimebladeFrostDamage;
+        Vector2 center = SwingPivot + facing * RimebladeForwardOffset;
 
         FrostFx.Burst(center, radius);
         // Same centre and radius as the OverlapCircleAll below, so the blue ring is
@@ -437,75 +471,19 @@ public class SwordSwing : MonoBehaviour
             AudioManager.Instance.PlaySFX(AudioManager.Instance.frostChill);
         }
 
-        // A temporary carrier so the damage lands credited to the right knight,
-        // the same trick OnEnemyHit already uses for the blade itself - sword
-        // objects are untagged children, so the tag has to be built here.
-        GameObject carrier = new GameObject("RimebladeBurst");
-        carrier.tag = owningKnight.tag + "Projectile";
-
         Collider2D[] caught = Physics2D.OverlapCircleAll(center, radius);
         for (int i = 0; i < caught.Length; i++)
         {
             EnemyBase enemy = caught[i] != null ? caught[i].GetComponent<EnemyBase>() : null;
             if (enemy == null || enemy.IsDead) continue;
 
-            // Damage first, cold second - the same order an arrow uses, and for
-            // the same reason. A blow ends a freeze, so chilling first would let
-            // one swing stop a body and then break its own ice on the next line.
-            // This way a swing shatters what was already frozen and leaves it
-            // chilled again, or stops what was already chilled. Never both.
-            int blow = EquipmentBoost.ScaleHit(damage, enemy, owningKnight.tag);
-            bool shatterHit = enemy.IsFrozen && boost.ShatterMultiplier > 1f;
-            if (shatterHit)
-            {
-                blow = Mathf.CeilToInt(blow * boost.ShatterMultiplier);
-            }
-            // Read before the blow: TakeDamage can kill, and a corpse reports
-            // neither its position usefully nor whether it was frozen.
-            bool wasFrozen = enemy.IsFrozen;
-            float reach = owningKnight != null
-                ? Vector2.Distance(owningKnight.transform.position, enemy.transform.position)
-                : 0f;
-            Vector2 where = enemy.transform.position;
-
-            enemy.TakeDamage(blow, carrier);
-            // Counted only when this blow actually broke the ice.
-            if (shatterHit && !enemy.IsFrozen)
-            {
-                PlayerStats.Increment("frigid.shattered");
-                // A burst that breaks ice is a shatter like any other, so it throws
-                // Shatter's frost blast too. That blast only chills, so it cannot
-                // set off another one.
-                boost.ReleaseShatterBlast(where, enemy);
-            }
-
-            // The frost rides on the blow as its own pale-blue number. Flat: Shatter
-            // multiplies the blow, not this, and it never wears down ice - it is
-            // cold, and cold does not break its own ice (see ApplyFrostDamage).
-            if (frost > 0 && !enemy.IsDead) enemy.TakeFrostDamage(frost, owningKnight.tag);
-
-            if (wasFrozen)
-            {
-                QuestTally.Total(OrderStats.FrozenTargetDamage, blow);
-                if (shatterHit) QuestTally.Wave(OrderStats.ShatterDamageWaveMax, blow);
-            }
-
-            if (enemy.IsDead)
-            {
-                if (_inEchoPhase) QuestTally.Wave(OrderStats.PhantomKillsWaveMax);
-                if (reach >= LongReach) QuestTally.Wave(OrderStats.LongRangeSwordKillsWaveMax);
-            }
-
-            // isBlow: true. This is a hit the knight swung for, so it is one of
-            // the two things in the game allowed to freeze.
-            //
-            // wasFrozen gates it for the same reason the arrow's does: a blow into
-            // ice ends the freeze and leaves the body FREE, not chilled. Freeing it
-            // is what this swing bought.
-            if (!wasFrozen && !enemy.IsDead) boost.TouchWithCold(enemy, true);
+            // isBlow: true. The knight swung for this, so it is one of the two
+            // things in the game allowed to freeze: a body already chilled is
+            // stopped, anything else is chilled. A body already held in ice is
+            // left exactly as it is (ApplyCold ignores it) - breaking it is the
+            // blade's job, a moment later in the same swing.
+            boost.TouchWithCold(enemy, true);
         }
-
-        Destroy(carrier);
     }
 
     // Acid Dagger (Serpent capstone): half a second after the swing starts, a small
@@ -551,7 +529,7 @@ public class SwordSwing : MonoBehaviour
     {
         if (owningKnight == null || shield == null) return;
 
-        PoisonTipBoost boost = owningKnight.GetComponent<PoisonTipBoost>();
+        PoisonTipBoost boost = UpgradeHold.Of<PoisonTipBoost>(owningKnight);
         if (boost == null || !boost.AcidDagger) return;
 
         StartCoroutine(AcidDaggerJab(boost, _backSwing));
@@ -690,7 +668,12 @@ public class SwordSwing : MonoBehaviour
 
         // The capstone quest asks for kills the DAGGER made, not kills the swing
         // that carried it made, so this is counted here rather than in the strike.
-        if (enemy.IsDead) QuestTally.Total(OrderStats.AcidDaggerKills);
+        // StrikeWithDagger only lands on the living, so dead here means this jab.
+        if (enemy.IsDead)
+        {
+            QuestTally.Total(OrderStats.AcidDaggerKills);
+            TryHeavySwing(enemy);
+        }
 
         // Damage first, venom second — the order an arrow uses — so a jab that kills
         // leaves nothing on the body and is not counted as a venom kill
@@ -704,11 +687,34 @@ public class SwordSwing : MonoBehaviour
         }
     }
 
+    // Heavy Swing (Guardian): a body the sword killed is thrown straight away from the
+    // knight, spinning, and hits the first enemy it touches (see LaunchedBody). The
+    // blade, a Phantom Blade echo and the Acid Dagger all count as the sword. A
+    // Firebrand fireball does not: its kills go through the fireball, never through
+    // here, so only the blade's own blow launches (owner, 2026-10-15).
+    private void TryHeavySwing(EnemyBase enemy)
+    {
+        if (enemy == null || owningKnight == null) return;
+
+        GuardianBoost guardian = UpgradeHold.Of<GuardianBoost>(owningKnight);
+        if (guardian == null || !guardian.HasHeavySwing) return;
+
+        // From the middle of the swing to the middle of the body. Enemy pivots sit at
+        // the feet, so the transform would tip the throw downward on a body above.
+        Collider2D body = enemy.GetComponent<Collider2D>();
+        Vector2 at = body != null ? (Vector2)body.bounds.center : (Vector2)enemy.transform.position;
+        Vector2 away = at - SwingPivot;
+        if (away.sqrMagnitude < 1e-6f) away = SwingFacing;
+
+        LaunchedBody.Launch(enemy, away, owningKnight.tag,
+                            guardian.HeavySwingDamage, guardian.HeavySwingGuideRadius);
+    }
+
     private void TryHurlFirebrand()
     {
         if (owningKnight == null || shield == null) return;
 
-        EmberBoost boost = owningKnight.GetComponent<EmberBoost>();
+        EmberBoost boost = UpgradeHold.Of<EmberBoost>(owningKnight);
         if (boost == null || boost.FireballPrefab == null || !boost.ShouldHurlFirebrand()) return;
 
         // One fireball goes straight down the facing; two straddle it. Driven off
@@ -719,7 +725,7 @@ public class SwordSwing : MonoBehaviour
             : new float[] { 0f };
 
         Vector2 facing = SwingDirection;
-        Vector2 origin = (Vector2)owningKnight.transform.position + facing * 1.1f;
+        Vector2 origin = SwingPivot + facing * 1.1f;
         int directDamage = Mathf.Max(1, Mathf.RoundToInt(EffectiveSwingDamage * FirebrandDirectDamageFactor));
 
         foreach (float angle in angles)
@@ -785,16 +791,33 @@ public class SwordSwing : MonoBehaviour
         EnemyBase enemyBase = enemy.GetComponent<EnemyBase>();
         if (enemyBase != null)
         {
+            // A carried guard (the castle skeleton's shield) takes the blade when
+            // it faces the knight swinging it. Counted as touched, so one swing
+            // rings the guard once rather than every frame it sweeps across it.
+            Vector2 swungFrom = owningKnight != null ? owningKnight.transform.position : transform.position;
+            if (enemyBase.TryBlockBlowFrom(swungFrom))
+            {
+                damagedEnemies.Add(enemy);
+                return;
+            }
+
             // Shatter (Frigid): the blade breaks ice like anything else the knight
             // lands. Asked before the damage, because landing it is what breaks it.
-            FrigidBoost frigid = owningKnight != null ? owningKnight.GetComponent<FrigidBoost>() : null;
-            bool frigidShatter = frigid != null && enemyBase.IsFrozen && frigid.ShatterMultiplier > 1f;
+            FrigidBoost frigid = UpgradeHold.Of<FrigidBoost>(owningKnight);
+            bool wasFrozen = enemyBase.IsFrozen;
+
+            // Heavy Swing wants kills THIS blow made, and the blade can sweep through
+            // a body an arrow already killed earlier in the frame
+            bool wasAlive = !enemyBase.IsDead;
+            bool frigidShatter = frigid != null && wasFrozen && frigid.ShatterMultiplier > 1f;
 
             GameObject tempProjectile = new GameObject("SwordHit");
             // Credit the OWNING knight: the sword object itself is untagged, so
             // using its own tag produced "UntaggedProjectile" and sword kills
             // fed the wrong knight's special
             tempProjectile.tag = (owningKnight != null ? owningKnight.tag : gameObject.tag) + "Projectile";
+            // A Phantom Blade echo's hit prints purple — see EnemyBase.TakeDamage
+            if (_inEchoPhase) tempProjectile.AddComponent<ShadowEcho>();
 
             // Equipment banes apply to the sword too — an item that says vermin
             // take more damage would read as broken if only arrows honoured it
@@ -819,12 +842,40 @@ public class SwordSwing : MonoBehaviour
                 frigid.ReleaseShatterBlast(hitPoint, enemyBase);
             }
 
-            // "A safe distance" (Guardian): a kill landed at the sword's own furthest
-            // reach. Only Long Sword stretches that far — see LongReach.
-            if (enemyBase.IsDead && owningKnight != null
-                && Vector2.Distance(owningKnight.transform.position, hitPoint) >= LongReach)
+            // Everything the blade lands into a body held in ice, and the share of
+            // it Shatter is responsible for - the same two tallies an arrow keeps
+            // (see PlayerProjectile). They used to be kept by Rimeblade's burst,
+            // back when the burst dealt the sword's damage.
+            if (wasFrozen)
             {
-                QuestTally.Wave(OrderStats.LongRangeSwordKillsWaveMax);
+                QuestTally.Total(OrderStats.FrozenTargetDamage, swingDamage);
+                if (frigidShatter) QuestTally.Wave(OrderStats.ShatterDamageWaveMax, swingDamage);
+            }
+
+            // Rimeblade's frost damage rides the blade, not the burst (owner,
+            // 2026-10-05): its own pale-blue number on whatever the sword touches,
+            // an echo's touch included. Flat - Shatter multiplies the blow, not
+            // this - and it never wears down ice, because cold does not break its
+            // own ice (see EnemyBase.ApplyFrostDamage).
+            int frost = frigid != null ? frigid.RimebladeFrostDamage : 0;
+            if (frost > 0 && !enemyBase.IsDead) enemyBase.TakeFrostDamage(frost, owningKnight.tag);
+
+            if (enemyBase.IsDead)
+            {
+                // A kill scored by a Phantom Blade echo rather than the real swing
+                if (_inEchoPhase) QuestTally.Wave(OrderStats.PhantomKillsWaveMax);
+
+                // "A safe distance" (Guardian): a kill landed at the sword's own furthest
+                // reach. Only Long Sword stretches that far — see LongReach.
+                if (owningKnight != null
+                    && Vector2.Distance(owningKnight.transform.position, hitPoint) >= LongReach)
+                {
+                    QuestTally.Wave(OrderStats.LongRangeSwordKillsWaveMax);
+                }
+
+                // After the tallies, which read where the body fell. Rimeblade's
+                // frost above rides the blade, so a kill it finishes counts too.
+                if (wasAlive) TryHeavySwing(enemyBase);
             }
 
             OnSwordLanded?.Invoke(enemyId, enemyBase.IsDead);

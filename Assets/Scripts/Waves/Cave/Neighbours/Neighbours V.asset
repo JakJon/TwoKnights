@@ -15,7 +15,7 @@ MonoBehaviour:
   waveName: Neighbours V
   weight: 1000
   isUnlocked: 0
-  waveDescription: Eight crates and eleven wolves on the roads.
+  waveDescription: Five crates and five wolves on the roads.
   unlockedAfterXWaves: 16
   lockedAfterXWaves: 22
   useEnemyTracking: 1
@@ -25,23 +25,23 @@ MonoBehaviour:
   crates:
   - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
-  crateCount: 8
-  crateInterval: 3.25
+  crateCount: 5
+  crateInterval: 4.88
   firstCrateAt: 1
-  wolves: 11
-  wolfInterval: 2.35
+  wolves: 5
+  wolfInterval: 5.03
   firstWolfAt: 5
   packOrder:
   - 0
   - 2
-  courseDistance: 19
+  courseDistance: 25
   courseOffset: 1.2
   courseLeadIn: 6
   courseReversals: 0
   flanks:
-  - label: five from each edge
-    fromTop: 4
-    fromBottom: 4
+  - label: two from the top, one from the bottom
+    fromTop: 2
+    fromBottom: 1
     firstAt: 6
     interval: 0.85
     ratTypes:
@@ -58,9 +58,9 @@ MonoBehaviour:
     to: {x: 12, y: 0.5}
   ogres:
     label: 8 vertically across both haul roads
-    count: 5
+    count: 3
     firstAt: 5
-    interval: 4.25
+    interval: 6.38
     fireEveryNth: 3
     entries:
     - label: up across both haul roads, right

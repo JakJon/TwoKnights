@@ -29,20 +29,15 @@ MonoBehaviour:
     kegsPerAmbush: 2
     leadIn: 0.75
     releasePause: 1
-  - label: shift 2 (4 riders, 3 kegs)
-    gnomesPerAmbush: 4
-    kegsPerAmbush: 3
-    leadIn: 1.5
-    releasePause: 1
   highOrbs:
     healthOrb: 0
-    count: 1
+    count: 2
     firstAt: 10
     interval: 14
     from: {x: -12, y: 4.3}
     to: {x: 12, y: 4.3}
   lowOrbs:
-    healthOrb: 0
+    healthOrb: 1
     count: 1
     firstAt: 20
     interval: 14

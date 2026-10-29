@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2790305949914994635}
   - component: {fileID: 6367655384825480626}
   - component: {fileID: 4554649008633507014}
+  - component: {fileID: 5664849065738765004}
   m_Layer: 0
   m_Name: Mirror_Pane
   m_TagString: Untagged
@@ -121,6 +122,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   art: {fileID: 1362292781875711130}
+--- !u!114 &5664849065738765004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6266855917260766410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e218003220243be96a50f24b5badbd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shader: {fileID: 4800000, guid: 5f09f1c2f717a4e428ec1a6e8b49a135, type: 3}
+  green: {r: 0.49411765, g: 0.9647059, b: 0.59607846, a: 1}
+  cyan: {r: 0.47843137, g: 0.9254902, b: 0.98039216, a: 1}
+  vermilion: {r: 0.98039216, g: 0.4392157, b: 0.3137255, a: 1}
+  magenta: {r: 0.9411765, g: 0.4392157, b: 0.8392157, a: 1}
+  reach: 1
+  intensity: 0.08
+  rings: 7
+  breath: 0.15
+  breathPeriod: 3.5
+  flare: 1
+  flareSeconds: 0.35
 --- !u!1 &7456906869993571778
 GameObject:
   m_ObjectHideFlags: 0

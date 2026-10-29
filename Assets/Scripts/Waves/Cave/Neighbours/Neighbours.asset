@@ -24,10 +24,10 @@ MonoBehaviour:
   westboundRun: 1
   crates:
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
-  crateCount: 4
-  crateInterval: 5
+  crateCount: 3
+  crateInterval: 7.5
   firstCrateAt: 1.5
-  wolves: 2
+  wolves: 1
   wolfInterval: 3.5
   firstWolfAt: 6
   packOrder:

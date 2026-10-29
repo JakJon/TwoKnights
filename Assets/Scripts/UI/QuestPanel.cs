@@ -397,7 +397,7 @@ public class QuestPanel : MonoBehaviour
         // the fold does not always bring itself into view — be explicit
         if (_list != null && _rows[_selectedIndex].Button != null)
         {
-            _list.ScrollTo(_rows[_selectedIndex].Button);
+            ListScroll.Reveal(_list, _rows[_selectedIndex].Button);
         }
 
         var quest = _rows[_selectedIndex].Quest;

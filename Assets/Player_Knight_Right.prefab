@@ -116,6 +116,10 @@ MonoBehaviour:
   damageTextPrefab: {fileID: 3743341822335282499, guid: 225900761027b3641860ebbbe4304136, type: 3}
   damageTextOffset: {x: 0, y: 0.2, z: 0}
   damageTextStackSeparation: 0.25
+  lowHealthThreshold: 30
+  lowHealthChirpInterval: 3
+  criticalHealthThreshold: 10
+  criticalHealthChirpInterval: 1.5
 --- !u!114 &3369740735711854902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,6 +281,11 @@ MonoBehaviour:
   backLeft: {fileID: -6084640859382233717, guid: 9daa1da932544bf7a843800067fb7681, type: 3}
   frontLeft: {fileID: 6839563030555454722, guid: 6c14c8e46542420fa751e3c2e59eb947, type: 3}
   frontRight: {fileID: -1045602623566700396, guid: 94dfeee3b4de4a8b99d8b6cbabf70d0f, type: 3}
+  bloodBackRight: {fileID: 0}
+  bloodBackLeft: {fileID: 0}
+  bloodFrontLeft: {fileID: 3588981563393516535, guid: 6c14c8e46542420fa751e3c2e59eb947, type: 3}
+  bloodFrontRight: {fileID: -3423525068363869169, guid: 94dfeee3b4de4a8b99d8b6cbabf70d0f, type: 3}
+  backSectorDegrees: 50
   shield: {fileID: 0}
 --- !u!1 &8765011026333924727
 GameObject:

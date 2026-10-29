@@ -60,6 +60,13 @@ public static class TutorialStatGate
         {
             if (key.StartsWith(AlwaysAllowedPrefixes[i], System.StringComparison.Ordinal)) return true;
         }
+
+        // The target range turns up in the tutorial run (forest waves 5 to 9),
+        // and it has to remember which pattern it showed last or it shows pattern 1
+        // every time. Bookkeeping like the families above, but the rest of
+        // "targets." is the tally Target Practice reads, so it cannot go in by prefix.
+        if (TargetRange.IsRotationKey(key)) return true;
+
         return Allowed.Contains(key);
     }
 

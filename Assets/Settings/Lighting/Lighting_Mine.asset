@@ -16,12 +16,12 @@ MonoBehaviour:
   groundStrength: 1
   actorStrength: 0.25
   shadeColor: {r: 0.02, g: 0.015, b: 0.045, a: 1}
-  shadeStrength: 0.32
+  shadeStrength: 0.5
   topShade: 0
-  breathAmount: 0.14
+  breathAmount: 0.18
   breathPeriod: 11
   gladeCenter: {x: 0, y: 0}
-  gladeRadius: {x: 8.2, y: 4.6}
+  gladeRadius: {x: 6.4, y: 3.6}
   gladeSoftness: 0.55
   edgeNoiseScale: 0.16
   edgeRaggedness: 0.1

@@ -30,6 +30,11 @@ public class EnemyMineCart : EnemyBase
     // EnemyBase.ImmuneToAreaDamage for why scenery has to work this way.
     public override bool ImmuneToAreaDamage => true;
 
+    // ...except the blast of a bomb the knights sent back, which breaks an empty
+    // cart (owner, 2026-10-15). An exact type match, the same "empty" OnDeath counts:
+    // kegs, delivery carts and gnome carts all subclass this and none is empty.
+    public override bool BrokenByReturnedBomb => GetType() == typeof(EnemyMineCart);
+
     // Moot while the cart cannot be ignited at all, but kept honest: MineCart owns
     // the position, so Searing Panic's nudge would only show up as a frame of
     // wobble before the next Reposition pulls it back onto the rail.
@@ -41,6 +46,11 @@ public class EnemyMineCart : EnemyBase
     // own travel instead - see MineCart.ChillScale - and a frozen one stops dead
     // through HoldFor, which is already how a darted cart jams the run behind it.
     protected override bool AcceptsChill => false;
+
+    // Heavy Swing leaves carts on the rail. A gnome cart's wreck rides on when the
+    // gnome dies, and a delivery cart's too, so a launched copy would be a second
+    // cart flying off while the first one keeps rolling.
+    public override bool CanBeLaunched => false;
 
     protected override void Awake()
     {
@@ -89,10 +99,20 @@ public class EnemyMineCart : EnemyBase
     /// </summary>
     public void Shatter()
     {
+        Shatter(true);
+    }
+
+    /// <summary>
+    /// Shatter, with the noise left out when <paramref name="withSound"/> is
+    /// false — for clearing many at once, where one crash says it for all of them
+    /// and the same clip on every one in one frame would only be the clip louder.
+    /// </summary>
+    public void Shatter(bool withSound)
+    {
         if (isDead) return;
         isDead = true;
 
-        if (deathSound != null && AudioManager.Instance != null)
+        if (withSound && deathSound != null && AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(deathSound);
         }

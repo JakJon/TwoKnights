@@ -78,9 +78,25 @@ action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
    Mana orbs are unconstrained — two is fine, and one of each is fine — but health
    is the resource a run is actually spending, and a wave that hands back two of
    them stops being a cost. Bosses are exempt because their fights are long enough
-   to need a recovery on their own clock: see The Overseer, whose two orbs are
-   released at 50% and 20% of the BOSS's health rather than on a stopwatch, so a
-   fast kill is not paid the same medicine a slow one earns.
+   to need a recovery on their own clock: see The Overseer, whose orbs are
+   released on the BOSS's health rather than on a stopwatch (owner, 2026-10-19:
+   health at 3000, two mana at 2000, health at 1000 — `orbDrops` on the asset),
+   so a fast kill is not paid the same medicine a slow one earns.
+
+   **The Overseer (rebuilt 2026-10-19/20)** is the one wave whose rock and boss
+   projectiles share a clock: per-stage attack lists (`OverseerStage.attacks`,
+   rock volleys AND his axe throws) placed by landing time, with gnomes holding
+   their throws via `IncomingLedger` (`EnemyGnomeCart.WaitForClearLanding`).
+   Built by Tools ▸ Two Knights ▸ Wire The Overseer (OverseerWiring.cs, a first
+   draft the owner tunes); check a list on paper with Tools ▸ Two Knights ▸ Check
+   Overseer Attack Lists before playing it. `RockVolley.Plan` gives any wave a
+   volley's exact landings without firing it.
+
+   2026-10-14: two forest waves broke this in code, not in an asset, and were
+   fixed: Sheep's Clothing paid a health orb on each of its two walls (now the
+   second wall only), and Belfry and Cellar IV–VI paid one on every odd rat pair
+   that carried an orb (now only the last of them). Loop-driven orb code needs
+   the same care as `count`.
 
    In practice: `OrbRun.healthOrb: 1` with `count` above 1 is the bug, and it is
    easy to author by accident because the field pair reads as one orb run. If a
@@ -123,6 +139,88 @@ action inside x ±10 / y ±5.6 (e.g. wolf circle paths, rat formation targets).
    RESETS in SpawnWave (SO state persists between runs) — see AboutFace.cs,
    refactored to this pattern 2026-07-19.
 
+11. **A wolf is on screen for at least 6 seconds before it can strike** (owner,
+   2026-10-14: "wolves should never strike before 6 seconds on screen").
+   "Strike" is touching a shield or a knight: count to about 1.5 units from the
+   knight's feet (the shield sits 1 unit out and the wolf's box reaches ~0.45
+   ahead of its middle). Measure at the FASTEST the wolf can be in the tier's
+   window — before the forest's wave 11 every black wolf comes out grey (3.0, not
+   2.5) — and check its path against BOTH knights, not just its target.
+   Tiers fixed to it that day: Sheep's Clothing II–VI (`secondsBeforeWolfAttack`
+   4.75 / 5.5 / 4.5 / 4.5 / 4.5 — pacing only changes in whole zigzag legs, so
+   pick a value inside a leg, not on its edge) and Neighbours III–VII
+   (`courseDistance` 25 / 24 / 24 / 24 / 24). On 2026-10-20 the owner said
+   Neighbours IV "feels fast": at 24 a grey wolf on the LOWER road struck at
+   6.1s (the lower road is nearer the shields' centre, which sits half a unit
+   above the knights' feet, so it is always the tighter one). IV–VII went to 25,
+   matching III: grey 6.7s lower / 6.9s upper, black 8.0 / 8.2. Every other wolf wave already passed;
+   the closest are Hold the Line (~8.9s) and Sheep's Clothing I (~6.4s). Run of
+   the Mine II and III were then given 13s or more on the owner's ask (roads
+   26 -> 42 and 22 -> 40); its tiers now run 19.6 / 14.3 / 13.8 / 13.4 / 12.6 /
+   12.1 / 11.3s.
+   In the editor and dev builds `EnemyWolf` logs a `[Wolves]` warning naming the
+   wave whenever one strikes sooner (`EnemyWolf.MinSecondsOnScreen`), so play the
+   tier once after authoring and read the log.
+
+12. **Mine wolf counts climb steadily tier by tier** (owner, 2026-10-17: tiers I–III
+   had too many wolves; halved, and the counts "should gradually scale up"; then
+   the same day "reduce mobs on all Run of the Mine and Neighbours tiers by 33%",
+   which cut every enemy, not just wolves). Only two Mine waves have wolves. A
+   retune or a new wolf wave in the Mine should keep these ladders smooth, with no
+   tier jumping far past the one below it. Tiers I–VII:
+
+   | | I | II | III | IV | V | VI | VII |
+   |---|---|---|---|---|---|---|---|
+   | Neighbours crates | 3 | 3 | 4 | 5 | 5 | 6 | 7 |
+   | Neighbours wolves | 1 | 2 | 3 | 4 | 5 | 7 | 9 |
+   | Neighbours rats | 0 | 1 | 1 | 2 | 3 | 4 | 5 |
+   | Neighbours ogres | 1 | 1 | 2 | 3 | 3 | 4 | 5 |
+   | Run of the Mine wolves | 3 | 3 | 7 | 16 | 24 | 32 | 40 |
+   | Run of the Mine relays | 2 | 2 | 2 | 4 | 6 | 8 | 8 |
+   | Run of the Mine riders | 1 | 1 | 2 | 2 | 2 | 2 | 2 |
+   | Run of the Mine ogres | 1 | 1 | 2 | 3 | 3 | 4 | 5 |
+
+   Run of the Mine I was then given a second relay of two brown wolves (owner,
+   2026-10-19), so tier I now matches tier II's three.
+
+   **Rat ladders in Delivery and Neighbours** (owner, 2026-10-20: "too many rats
+   in Delivery IV", halve it, then make the tiers below step down and the tiers
+   above step up with no big jumps; the same for Neighbours IV). These count the
+   FLANK rats only — the groups dropped in off the top and bottom edges. Rats in
+   delivery carts and crates only exist if the cart reaches its flag, and the
+   cart lists were left alone.
+
+   | | I | II | III | IV | V | VI | VII |
+   |---|---|---|---|---|---|---|---|
+   | Delivery flank rats | 4 | 4 | 5 | 6 | 7 | 8 | 9 |
+   | Neighbours flank rats | 0 | 1 | 1 | 2 | 3 | 4 | 5 |
+
+   Delivery's groups keep their old arrival times (5 / 15 / 25 / 35s on IV–VII)
+   and are pairs, with a three as the last group where the count is odd. A
+   flank rat at x = 0 (the middle of an odd group, or a group of one) is given
+   to the RIGHT knight, so pairs keep the knights even.
+
+   **Up the Middle has a second ogre band** (`secondOgres`, owner, 2026-10-20):
+   it sets off once every ogre of the first band is dead, its `firstAt` counted
+   from that moment. Tier IV uses it — two plain ogres from the top corners,
+   (±11.5, 6.5), each for the knight on its side — and lost its fifth rat/bat
+   shift in the same change, because the wave went quiet once the first band
+   was down. Tiers V–VII have no second band yet.
+
+   **Bits and Pieces shifts per tier are 1 / 2 / 2 / 3 / 3 / 4 / 4** (owner,
+   2026-10-20: one fewer gnome shift on every tier; the last, heaviest shift
+   was the one taken). Ogres come with every shift, so each tier also lost one
+   shift's worth of ogres.
+
+   When a count was cut, the gap between releases (`crateInterval`,
+   `wolfInterval`, `ogres.interval`) was widened ×1.5 so what is left is spread
+   over the same stretch of the wave rather than finishing early. Run of the
+   Mine's `projectileWindow` (20 / 26 / 21 / 51 / 74 / 96 / 96) was cut in
+   step with its relays, because that wave does not end until the window runs
+   out. Riders were cut by spelling the ring out cart by cart in
+   `trafficPattern` and swapping the last riders for empties, so the kegs and
+   the ring's spacing stay as they were.
+
 ## Creating a new wave type
 
 1. New folder under the map's bucket — `Assets/Scripts/Waves/Forest/<WaveName>/` for the
@@ -148,7 +246,8 @@ public class MyWave : BaseWave
 - Class names already taken (avoid collisions): `RatMischief` (inside the misnamed
   `TemplateWave.cs`), `RatMischef` [sic], `WolfCircles`, `BatSwarmWave`, `SlimesAndBats`,
   `ChaoticCorners`, `Slimy`, `AboutFace`, `SheepsClothing`, `BelfryAndCellar`,
-  `NightHunt`, `ChooChoo`, `Delivery`, `PowderTrain`, `HotPotato`, `RushHour`. `WolfPack.cs` and
+  `NightHunt`, `ChooChoo`, `Delivery`, `PowderTrain`, `HotPotato`, `RushHour`,
+  `BehindThePillars`, `WolfInvaders`, `BetweenTheMirrors`, `BackToBack`. `WolfPack.cs` and
   `Editor/WaveManagerEditor.cs` are empty stubs.
 
 ## Rock: RockVolley, and how a tier makes it harder (updated 2026-09-06)
@@ -282,6 +381,22 @@ Rules that cost real time if you miss them:
 - Debug: `AmbushIndex`, `AmbushEnemiesRemaining`, and an editor-only
   `[Ambush] <asset> cleared ambush N at t=…` log per clear.
 
+**Rock that runs per ambush must keep ONE clock across ambushes** (2026-10-19). Killing
+a group stops its shafts coroutine but not the rock already scheduled or falling, so a
+next group that fires the moment it starts lands its first volley on top of the last
+one — Choo Choo III put a flip from above and a pair from below on the right knight
+together, and every tier had the same hole. ChooChoo now carries `_shaftsRestUntil`
+with `_shot` and waits it out. It also waits for the last volley to LAND: Weave and
+the spirals leave from `WeaveRadius` (13) rather than the shaft mouths (7), so a shaft
+volley timed off a weave's release lands on it (Choo Choo VII). Use
+`RockVolley.FlightDistance` and `Spawner.RockFlightSpeed` for the difference.
+`RockVolley.WorkTheShafts` got the same landing check on 2026-10-19, after Delivery
+VII hit the right knight with a weave shot from below and the fan from above at the
+same instant. A replay of every shared-loop asset found the same overlap in Cart
+Loads VII, Up the Middle VII, Run of the Mine VII, Bat Cauldron VI–VII, Bat Slime
+Boogie V–VI, Stalkers V and Rat Mischief V–VI; all cleared by the one change. A wave
+that runs its own volley loop (not `WorkTheShafts`) still has to do this itself.
+
 Worked example: `ChooChoo.cs` (shifts of gnome carts on the Mine Circuit, one shift per
 ambush, shafts firing throughout).
 
@@ -383,8 +498,36 @@ waves above never play there, and these never play in the forest:
 | Hot Potato | fire ogres only, each group sent together (4/5/6/7/7/8/9 per group); spiral rock | none |
 | Rush Hour | gangs of plain ogres (8/12/16/22/26/30/36); straight shaft rock at I–II, fans/spirals/weaves from III | none |
 
-The Mine has 13 wave types (2026-09-25; the forest has 12). The Overseer is at wave 25
-and does NOT end the run (`trueBossEndsRun: 0`), so a Mine run goes on to wave 30 and
+**The Keep / Forgotten Fortress** (`Assets/Scripts/Maps/Pallid Keep.asset`, waves under
+`Assets/Scripts/Waves/Castle/`). Its two gimmicks (owner, 2026-10-26): **mirrors** are portals
+that KEEP a shot's heading (`MirrorRedirect.PreserveDirection`; going right in, it comes out the
+right side of the twin at the same speed and angle), and **pillars** are solid blocks that stop
+every projectile EXCEPT enemy rocks, which fly over them (owner, 2026-10-26). Pillars exist to make the mirrors worth using. Every castle wave should put its
+targets where a straight shot cannot reach and give a pane pair that carries a shot there.
+
+- A wave lays its board at the start: `spawner.Mirrors.Lay(layout)` and
+  `spawner.Pillars.Lay(Castle_Pillar.prefab, rows)`. Both are cleared when the next wave begins.
+- Knights stand at (±2, **-0.5**); the shield centre and a level shot are at y = 0. Rat body
+  centre = position + 0.22, wolf + 0.38. Hang a pane at the height of the BODY you want hit.
+- Tall panes all face Right in castle layouts, so a shot's height on the pane carries over.
+- Pillar rows sit on odd x so there is a gap over each knight. Rocks ignore pillars AND mirror
+  panes (owner, 2026-10-27: mirrors carry only the knights' shots), so any volley shape works.
+- A volley's `origin` (RockOrigin) says where the shaft shapes (Single, Pair, Split, Flip, Mirror,
+  Scissors) come from: Column (straight down/up his column, (±2, ±7)), Corner (the screen corner on
+  his own side, (±12, ±7), ~12.2 units of flight) or Centre (top/bottom middle, (0, ±7), ~7.3 units,
+  ~16° off vertical from the inside). Per volley, never per map: every wave type's rock is its own
+  (owner, 2026-10-27). It replaced the bool `fromCorners` (FormerlySerializedAs keeps old assets).
+  Each castle wave's file header carries its rock idea and a tier I–V ladder.
+- Rats walk to the nearest gap when they chase (`PillarField.Route`); wolves do not route yet,
+  so do not put wolves and pillars on the same board until they do.
+
+| Wave (class) | Pattern | Tiers |
+|---|---|---|
+| Behind the Pillars | pillar rows at y ±2; rats patrol above/below; knight-height panes wrap to the rat rows | I (0–6), II (4–10) |
+| Wolf Invaders | four wrap pairs down the side edges; a pack zigzags in from top-left and from bottom-right, held in order by `SpawnWolf(..., pathSpeed)` | I (0–6), II (4–10) |
+
+The Mine has 13 wave types (2026-09-25; the forest has 12). The Overseer is at wave 20
+(owner, 2026-10-20; it was 25) and does NOT end the run (`trueBossEndsRun: 0`), so a Mine run goes on to wave 30 and
 past it like the forest does. `finalWaveNumber: 30` is only the level-select star.
 
 **Seven tiers per wave (owner, 2026-09-25).** Every tiered wave has tiers I–VII, not

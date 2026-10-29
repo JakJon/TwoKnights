@@ -30,6 +30,15 @@ public class RailTeleporter : MonoBehaviour
 
     public bool IsExit => Destination != null;
 
+    /// <summary>
+    /// The switch this link hangs on, for one of the two ways out of a fork. None
+    /// for every ordinary link. See RailSwitchColor.
+    /// </summary>
+    public RailSwitchColor Switch { get; private set; }
+
+    /// <summary>For a fork's link: there once the lever is thrown, rather than at rest.</summary>
+    public bool WhenThrown { get; private set; }
+
     public void Configure(string label, int lineIndex, float distanceAlong, Vector2 position)
     {
         Label = label;
@@ -41,6 +50,13 @@ public class RailTeleporter : MonoBehaviour
     public void LinkTo(RailTeleporter destination)
     {
         Destination = destination;
+    }
+
+    /// <summary>Makes this exit one of the two ways out of a fork.</summary>
+    public void HangOnSwitch(RailSwitchColor color, bool whenThrown)
+    {
+        Switch = color;
+        WhenThrown = whenThrown;
     }
 
 #if UNITY_EDITOR

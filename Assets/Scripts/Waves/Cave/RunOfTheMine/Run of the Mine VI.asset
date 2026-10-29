@@ -15,7 +15,7 @@ MonoBehaviour:
   waveName: Run of the Mine VI
   weight: 1000
   isUnlocked: 0
-  waveDescription: Eleven relays of five wolves.
+  waveDescription: Eight relays of four wolves.
   unlockedAfterXWaves: 20
   lockedAfterXWaves: 26
   useEnemyTracking: 1
@@ -32,74 +32,60 @@ MonoBehaviour:
   - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   trafficCarts: 14
   trafficInterval: 0
   firstCartDelay: 0.5
   packLeadIn: 4
   relays:
-  - label: first relay (five, the top edge and down the side)
+  - label: first relay (four, the top edge and down the side)
     courseRun: 0
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
-  - label: second relay (five, the bottom edge and up the side)
+  - label: second relay (four, the bottom edge and up the side)
     courseRun: 2
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
-  - label: third relay (five, the top edge and down the side)
+  - label: third relay (four, the top edge and down the side)
     courseRun: 0
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
-  - label: first relay (five, the top edge and down the side) [pass 2]
+  - label: first relay (four, the top edge and down the side) [pass 2]
     courseRun: 2
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
-  - label: second relay (five, the bottom edge and up the side) [pass 2]
+  - label: second relay (four, the bottom edge and up the side) [pass 2]
     courseRun: 0
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
-  - label: third relay (five, the top edge and down the side) [pass 2]
+  - label: third relay (four, the top edge and down the side) [pass 2]
     courseRun: 2
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
-  - label: first relay (five, the top edge and down the side) [pass 3]
+  - label: first relay (four, the top edge and down the side) [pass 3]
     courseRun: 0
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
-  - label: second relay (five, the bottom edge and up the side) [pass 3]
+  - label: second relay (four, the bottom edge and up the side) [pass 3]
     courseRun: 2
-    wolves: 5
-    wolfInterval: 1
-    leadIn: 1
-    courseDistance: 32
-  - label: third relay (five, the top edge and down the side) [pass 3]
-    courseRun: 0
-    wolves: 5
-    wolfInterval: 1
-    leadIn: 1
-    courseDistance: 32
-  - label: first relay (five, the top edge and down the side) [pass 4]
-    courseRun: 0
-    wolves: 5
-    wolfInterval: 1
-    leadIn: 1
-    courseDistance: 32
-  - label: second relay (five, the bottom edge and up the side) [pass 4]
-    courseRun: 2
-    wolves: 5
+    wolves: 4
     wolfInterval: 1
     leadIn: 1
     courseDistance: 32
@@ -118,9 +104,9 @@ MonoBehaviour:
     to: {x: 12, y: 1}
   ogres:
     label: 8 in through the ring's elbows
-    count: 6
+    count: 4
     firstAt: 5
-    interval: 4
+    interval: 6
     fireEveryNth: 3
     entries:
     - label: in through the bottom-right elbow
@@ -200,5 +186,5 @@ MonoBehaviour:
     salvoStagger: 0.1
     restAfter: 2.8
     weaveDegrees: 90
-  projectileWindow: 134
+  projectileWindow: 96
   rockSpeed: 1.75

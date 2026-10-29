@@ -5,11 +5,17 @@
 // the millstone has been beaten). The stages themselves live on the
 // MapDefinition asset, so authoring a new one never means touching this scene.
 //
-// A stage may also carry a FOREGROUND: a second sprite drawn over every other
-// sprite in the arena, so the knights fight behind the near lip of the cave
-// mouth rather than on top of it. It rides a child renderer this component
-// builds itself — nothing in the scene needs wiring, and a stage without one
-// simply leaves that renderer switched off.
+// A stage may also carry a FOREGROUND: a second sprite laid over the backdrop.
+// The stage says which way it faces the fight. The Deep Mine's rim and rocks
+// sit UNDER every game sprite — the track, the carts, the knights and the
+// enemies all draw on top of them. The forest's tree canopy sits OVER the
+// knights and enemies, so they walk underneath it. It rides a child renderer
+// this component builds itself — nothing in the scene needs wiring, and a
+// stage without one simply leaves that renderer switched off.
+//
+// A stage may also make the gems and ore in its art glow (GemGlow, another
+// child built here). It is painted from whichever backdrop and foreground are
+// up, so it changes stage in the same breath they do.
 //
 // Polls the WaveManager instead of hooking wave events so Test Mode jumps and
 // run restarts are picked up automatically. Between waves the Spawner calls
@@ -30,15 +36,24 @@ public class BackgroundController : MonoBehaviour
 {
     public static BackgroundController Instance { get; private set; }
 
-    // Clear of every sorting order the game hands out in the world: the highest
-    // is the bomb blast at 25 (BombFx), and prefabs top out at 12. On the
-    // Default layer rather than Background, because Background as a whole
-    // draws under Default and no order within it could ever reach the arena.
-    private const string ForegroundSortingLayer = "Default";
-    private const int ForegroundSortingOrder = 100;
+    // A foreground UNDER the arena (the Deep Mine's rim): just above the
+    // backdrop (Background/0) and below the lowest game sprite on that layer,
+    // the track at Background/10. Everything on Default draws over the whole
+    // Background layer, so the arena is above it too.
+    private const string UnderSortingLayer = "Background";
+    private const int UnderSortingOrder = 5;
+
+    // A foreground OVER the arena (the forest canopy): clear of the highest
+    // order the fight hands out — the bomb blast's ring at 26 (BombFx) — and
+    // under the canopy light's actor pass at Default/200, so the trees take the
+    // same shade as everything walking beneath them. Quest NPCs and their text
+    // (Default/500 and up) still draw over it.
+    private const string OverSortingLayer = "Default";
+    private const int OverSortingOrder = 100;
 
     private SpriteRenderer _renderer;
     private SpriteRenderer _foreground;
+    private GemGlow _gemGlow;
     private bool _held;
 
     /// <summary>
@@ -54,6 +69,7 @@ public class BackgroundController : MonoBehaviour
         Instance = this;
         _renderer = GetComponent<SpriteRenderer>();
         _foreground = BuildForegroundRenderer();
+        _gemGlow = GemGlow.Build(transform);
     }
 
     void OnDestroy()
@@ -113,8 +129,9 @@ public class BackgroundController : MonoBehaviour
         if (stage.backdrop != null && _renderer.sprite != stage.backdrop)
             _renderer.sprite = stage.backdrop;
 
-        ApplyForeground(stage.foreground);
+        ApplyForeground(stage.foreground, stage.foregroundOverArena);
         ApplyLighting(stage.canopy);
+        _gemGlow.Apply(stage.gemGlow, _renderer.sprite, _foreground.enabled ? _foreground.sprite : null);
         _applied = true;
     }
 
@@ -130,17 +147,20 @@ public class BackgroundController : MonoBehaviour
         ArenaLighting.Ensure().Apply(canopy);
     }
 
-    private void ApplyForeground(Sprite sprite)
+    private void ApplyForeground(Sprite sprite, bool overArena)
     {
         if (_foreground == null) return;
 
         if (_foreground.sprite != sprite) _foreground.sprite = sprite;
         _foreground.enabled = sprite != null;
+
+        string layer = overArena ? OverSortingLayer : UnderSortingLayer;
+        if (_foreground.sortingLayerName != layer) _foreground.sortingLayerName = layer;
+        _foreground.sortingOrder = overArena ? OverSortingOrder : UnderSortingOrder;
     }
 
-    // Built here rather than authored in the scene: the backdrop object is an
-    // instance of an .aseprite's generated model prefab, so a hand-added child
-    // would be a prefab override that the next reimport could argue with.
+    // Built here rather than authored in the scene, so a stage can gain a
+    // foreground without anyone touching Main.unity.
     //
     // Shares the backdrop's material on purpose. That material is lit, and the
     // one global light is what VentureCurtain rides down to black — a foreground
@@ -155,8 +175,8 @@ public class BackgroundController : MonoBehaviour
 
         var foreground = holder.AddComponent<SpriteRenderer>();
         foreground.sharedMaterial = _renderer.sharedMaterial;
-        foreground.sortingLayerName = ForegroundSortingLayer;
-        foreground.sortingOrder = ForegroundSortingOrder;
+        foreground.sortingLayerName = UnderSortingLayer;
+        foreground.sortingOrder = UnderSortingOrder;
         foreground.enabled = false;
         return foreground;
     }

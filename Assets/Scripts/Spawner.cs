@@ -165,6 +165,17 @@ public class Spawner : MonoBehaviour
             return mirrorNetwork;
         }
     }
+
+    // The castle's pillars, built on first use like the mirrors.
+    private PillarField pillarField;
+    public PillarField Pillars
+    {
+        get
+        {
+            if (pillarField == null) pillarField = PillarField.Ensure();
+            return pillarField;
+        }
+    }
     #endregion
 
     void Awake()
@@ -200,6 +211,10 @@ public class Spawner : MonoBehaviour
         // Per-wave and per-run quest records. Static, so it must be cleared at the
         // START of a run rather than trusted to be empty from the last one.
         QuestTally.BeginRun();
+        // How long the range or the carts have gone unseen is counted per run
+        LowEventRoll.BeginRun();
+        // The death screen's run time
+        RunClock.BeginRun();
         // The queue is deliberately NOT cleared here. A quest can open while the
         // player is standing in camp — the tutorial run ending is the obvious case,
         // since the freeze lifting is what opens them — and camp has no arena to
@@ -257,6 +272,11 @@ public class Spawner : MonoBehaviour
         if (tutorial) return;
 
         BeginFirstWave();
+    }
+
+    void Update()
+    {
+        RunClock.Tick(_isUpgradeMenuActive);
     }
 
     /// <summary>
@@ -416,6 +436,7 @@ public class Spawner : MonoBehaviour
         // Through the field as well as the singleton: the network is built lazily
         // and this spawner may be holding one that has not registered itself.
         if (mirrorNetwork != null) mirrorNetwork.Clear();
+        if (pillarField != null) pillarField.Clear();
         ArenaSweep.ClearPlayingField();
     }
 
@@ -425,6 +446,8 @@ public class Spawner : MonoBehaviour
         if (waveNameDisplay != null)
             waveNameDisplay.DisplayWaveName(nextWave.GetFormattedWaveName(waveManager.CurrentWaveNumber));
         _isWaveInProgress = true;
+        // The camp is pitched wherever the run last got to — see CampSite
+        CampSite.NoteWave(waveManager.CurrentMap, waveManager.CurrentWaveNumber);
         UpdateWaveMusic(nextWave);
         _batCallCount = 0; // dark-bat cadence restarts every wave
         _ratCallCount = 0; // and the rat cadence with it - see NextRatInCadence
@@ -440,6 +463,7 @@ public class Spawner : MonoBehaviour
         // than the property so a map with no mirrors does not build a network
         // just to tear it down again.
         if (mirrorNetwork != null) mirrorNetwork.Clear();
+        if (pillarField != null) pillarField.Clear();
         StartCoroutine(RunWave(nextWave));
     }
 
@@ -561,6 +585,53 @@ public class Spawner : MonoBehaviour
             BeginWave(waveManager.SelectNextWave()); // "Random" row / B button
         }
     }
+
+    /// <summary>Is there a wave for the pause menu's Skip Wave to skip? Test runs only.</summary>
+    public bool CanSkipWave => TestRunConfig.ActiveRun && _isWaveInProgress
+                               && waveManager != null && waveManager.CurrentWave != null;
+
+    /// <summary>
+    /// Dev-only Test Mode: ends the wave in progress on the spot and carries on as
+    /// if its last enemy had just died — "Wave Survived", the gap's event, the
+    /// upgrade pick, the next wave.
+    ///
+    /// The wave counts as COMPLETED, which on a boss wave means the boss counts as
+    /// beaten: the clear is saved, and a boss that ends the run ends it in victory.
+    /// What is left on the field is destroyed rather than killed, so it pays no
+    /// kills, gold or drops; anything killed before the skip is kept as usual.
+    /// </summary>
+    public void SkipCurrentWave()
+    {
+        if (!CanSkipWave) return;
+
+        BaseWave wave = waveManager.CurrentWave;
+        Debug.Log($"[TestMode] Skipping wave {waveManager.CurrentWaveNumber} ({wave.name}).");
+
+        // Mid-wave, everything running on this object IS the wave: RunWave, the
+        // wave's own script, and every delayed spawn it has queued.
+        StopAllCoroutines();
+
+        // Closed here rather than left to FinishWave, so a second press cannot
+        // skip the same wave twice and nothing destroyed below is waited on.
+        wave.EndWaveTracking();
+        _isWaveInProgress = false;
+
+        StartCoroutine(FinishSkippedWave(wave));
+    }
+
+    private IEnumerator FinishSkippedWave(BaseWave wave)
+    {
+        ClearFixturesForTrial();
+        // Most bosses take their bar down as they go; this covers one that does not.
+        BossHealthBar.Hide();
+
+        // And once more a frame later, for anything that was put down in the same
+        // frame the wave was cut — a boss's summons, a cart's passenger.
+        yield return null;
+        ClearFixturesForTrial();
+
+        yield return FinishWave(wave);
+    }
 #endif
 
     private IEnumerator RunWave(BaseWave wave)
@@ -582,10 +653,21 @@ public class Spawner : MonoBehaviour
         
         // Wait for all enemies to be killed (if enemy tracking is enabled)
         yield return StartCoroutine(wave.WaitForAllEnemiesDead());
-        
+
+        yield return FinishWave(wave);
+    }
+
+    /// <summary>
+    /// Everything that follows a wave being over: the count moves on, the wave's
+    /// stats are banked, then the gap — "Wave Survived", an event, the NPCs, the
+    /// curtain and the upgrade menu. Its own method so Test Mode's Skip Wave can
+    /// come in here without the wave having been fought (see SkipCurrentWave).
+    /// </summary>
+    private IEnumerator FinishWave(BaseWave wave)
+    {
         // End wave tracking
         wave.EndWaveTracking();
-        
+
         _isWaveInProgress = false;
 
         // The boss is down: take the music off and leave the upgrade screen quiet.
@@ -1144,12 +1226,13 @@ public class Spawner : MonoBehaviour
         enemy.transform.position = spawnPosition;
     }
 
-    public void SpawnWolf(List<Vector2> waypoints, Transform targetKnight, WolfType wolfType, float delay = 0f)
+    /// <param name="pathSpeed">Speed along the waypoints only; 0 keeps the wolf type's own. See EnemyWolf.SetPathSpeed.</param>
+    public void SpawnWolf(List<Vector2> waypoints, Transform targetKnight, WolfType wolfType, float delay = 0f, float pathSpeed = 0f)
     {
-        StartCoroutine(SpawnWolfAfterDelay(waypoints, targetKnight, wolfType, delay));
+        StartCoroutine(SpawnWolfAfterDelay(waypoints, targetKnight, wolfType, delay, pathSpeed));
     }
 
-    private IEnumerator SpawnWolfAfterDelay(List<Vector2> waypoints, Transform targetKnight, WolfType wolfType, float delay)
+    private IEnumerator SpawnWolfAfterDelay(List<Vector2> waypoints, Transform targetKnight, WolfType wolfType, float delay, float pathSpeed)
     {
         if (delay > 0f)
             yield return new WaitForSeconds(delay);
@@ -1215,6 +1298,7 @@ public class Spawner : MonoBehaviour
             wolfScript.SetWaypoints(wp3);
             wolfScript.SetTarget(targetKnight);
             wolfScript.SetWolfType(wolfType);
+            wolfScript.SetPathSpeed(pathSpeed);
         }
         else
         {
@@ -1265,14 +1349,26 @@ public class Spawner : MonoBehaviour
     {
         if (targetPlayer == null || projectilePrefab == null) return;
 
-        ProjectileMovement prefabMovement = projectilePrefab.GetComponent<ProjectileMovement>();
-        float baseSpeed = speed > 0f ? speed : (prefabMovement != null ? prefabMovement.Speed : 0f);
-        float flightSpeed = baseSpeed * Mathf.Max(1f, RockEscalation.SpeedScale);
+        float flightSpeed = RockFlightSpeed(speed);
         if (flightSpeed <= 0.0001f) return;
 
         Vector2 aim = (Vector2)targetPlayer.position + new Vector2(0f, 0.5f);
         float flight = Vector2.Distance(spawnPosition, aim) / flightSpeed;
         IncomingLedger.Book(targetPlayer, Time.time + Mathf.Max(0f, delay) + flight);
+    }
+
+    /// <summary>
+    /// World units per second a rock will actually fly at when a wave asks for
+    /// <paramref name="speed"/>: the prefab's own speed for 0, and the mine's
+    /// deep-run hurry on top (RockEscalation). 0 when there is no rock prefab.
+    /// </summary>
+    public float RockFlightSpeed(float speed)
+    {
+        if (projectilePrefab == null) return 0f;
+
+        ProjectileMovement prefabMovement = projectilePrefab.GetComponent<ProjectileMovement>();
+        float baseSpeed = speed > 0f ? speed : (prefabMovement != null ? prefabMovement.Speed : 0f);
+        return baseSpeed * Mathf.Max(1f, RockEscalation.SpeedScale);
     }
 
     private IEnumerator SpawnProjectileAfterDelay(Transform targetPlayer, Vector2 spawnPosition, float delay,

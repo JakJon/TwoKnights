@@ -117,6 +117,12 @@ public class ChooChoo : BaseWave
     // open a different corner each time the wave came up.
     private int _shot;
 
+    // When the shafts may next fire, and how far the last volley's rocks had to
+    // fly. Carried across shifts like _shot, because the rock from one shift is
+    // still falling when the next one starts. Reset with it.
+    private float _shaftsRestUntil;
+    private float _lastFlight;
+
     // Every gnome rider this wave has put on the track. Entries go null as they
     // die, which is how the gear change knows half the shift is down. Cleared at
     // the top of the wave — the asset outlives the run.
@@ -126,6 +132,8 @@ public class ChooChoo : BaseWave
     public override IEnumerator SpawnWave(Spawner spawner)
     {
         _shot = 0;
+        _shaftsRestUntil = 0f;
+        _lastFlight = 0f;
         _riders.Clear();
         _gearedUp = false;
 
@@ -339,9 +347,36 @@ public class ChooChoo : BaseWave
         // without re-authoring every shape.
         while (!IsAmbushClear())
         {
-            RockVolley volley = volleys[_shot++ % volleys.Count];
+            RockVolley volley = volleys[_shot % volleys.Count];
+
+            // Not before the last volley's rest is over, even when that volley
+            // was fired for an earlier shift. Killing a shift stops its shafts
+            // but not the rock already falling, and the next shift used to fire
+            // the moment it started: on Choo Choo III a flip from above landed on
+            // the right knight at the same moment as the pair from below that
+            // came after it.
+            //
+            // And not until the last volley has had time to LAND. A weave leaves
+            // from almost twice as far out as a shaft, so a shaft volley timed
+            // off the weave's release alone arrives on top of it (Choo Choo VII).
+            float speed = spawner.RockFlightSpeed(rockSpeed);
+            float lag = speed > 0f
+                ? Mathf.Max(0f, _lastFlight - RockVolley.FlightDistance(spawner, volley)) / speed
+                : 0f;
+            float due = _shaftsRestUntil + lag;
+
+            if (Time.time < due)
+            {
+                // Looped rather than fired straight after, so a shift cleared
+                // during the wait leaves this volley for the next one.
+                yield return new WaitForSeconds(due - Time.time);
+                continue;
+            }
+
+            _shot++;
             float busy = RockVolley.Fire(spawner, volley, rockSpeed);
-            yield return new WaitForSeconds(busy + wait);
+            _lastFlight = RockVolley.FlightDistance(spawner, volley);
+            _shaftsRestUntil = Time.time + busy + wait;
         }
     }
 

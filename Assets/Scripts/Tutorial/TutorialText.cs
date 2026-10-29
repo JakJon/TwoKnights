@@ -9,8 +9,9 @@ using UnityEngine;
 /// without covering the lesson, and because it should read as part of the arena
 /// the player is looking at rather than as menu chrome laid over it.
 ///
-/// Built in code, not authored into the scene: it borrows the wave banner's font
-/// so it speaks in the game's own typeface, and it only exists during a tutorial.
+/// Built in code, not authored into the scene: it is set in the run's pixel font
+/// (RunFont), like the damage numbers and the text box, and it only exists during
+/// a tutorial.
 /// </summary>
 public class TutorialText : MonoBehaviour
 {
@@ -29,14 +30,26 @@ public class TutorialText : MonoBehaviour
     public static readonly Vector3 HintAnchor = new Vector3(5.1f, -1.6f, 0f);
     private static readonly Vector2 HintBlockSize = new Vector2(9f, 2f);
 
+    // Where the lines stand once the second knight is on the board. The usual
+    // place is that knight's half, and any line longer than a few words would be
+    // printed across it. So the voice moves to the middle of the board, above
+    // both knights' heads. The block is wider there because there is room for
+    // it: the two long lines at the end of the tutorial come out at three rows
+    // and two, where the usual nine units would break them into five and three.
+    private static readonly Vector3 OverBothKnights = new Vector3(0f, 3.6f, 0f);
+    private static readonly Vector2 OverBothKnightsBlockSize = new Vector2(12.5f, 5f);
+
     // The wave banner's gold, so the tutorial sounds like the rest of the game
     private static readonly Color Gold = new Color(0.957f, 0.667f, 0.212f, 1f);
 
     // Autosizing with a low ceiling, not a fixed size: nearly every line comes out
     // at the maximum and so reads as one consistent voice, and the two or three
     // long ones shrink to fit instead of spilling out of the block.
-    private const float FontSizeMax = 5.5f;
-    private const float FontSizeMin = 3f;
+    //
+    // The ceiling is the pixel font drawn pixel for pixel with the art, which is
+    // a shade smaller than the serif's 5.5 was; the floor is half that.
+    private static readonly float FontSizeMax = RunFont.WorldSize(1f);
+    private static readonly float FontSizeMin = RunFont.WorldSize(0.5f);
 
     // Above every sprite in the arena. Not a new sorting layer — adding one leaves
     // every sprite on it unlit black until each Light2D is told about it.
@@ -47,9 +60,10 @@ public class TutorialText : MonoBehaviour
 
     private TextMeshPro _label;
 
-    // Where this block sits when nothing has asked it to move. Per instance, so
-    // the hint line keeps its own place when it is raised.
+    // Where this block sits, and how big it is, when nothing has asked it to
+    // move. Per instance, so the hint line keeps its own place when it is raised.
     private Vector3 _anchor;
+    private Vector2 _block;
 
     public static TutorialText Create(WaveName banner)
     {
@@ -73,6 +87,7 @@ public class TutorialText : MonoBehaviour
 
         var text = go.AddComponent<TutorialText>();
         text._anchor = anchor;
+        text._block = block;
         text.Build(banner, block);
         return text;
     }
@@ -81,10 +96,9 @@ public class TutorialText : MonoBehaviour
     {
         _label = gameObject.AddComponent<TextMeshPro>();
 
-        // The banner's own font asset. Failing to find it is not worth stopping
-        // for — TMP falls back to its default and the tutorial still reads.
-        var bannerText = banner != null ? banner.GetComponent<TMP_Text>() : null;
-        if (bannerText != null && bannerText.font != null) _label.font = bannerText.font;
+        // The run's pixel font. The wave banner itself kept its serif, so this
+        // no longer borrows the banner's.
+        RunFont.Apply(_label);
 
         _label.rectTransform.sizeDelta = block;
         _label.alignment = TextAlignmentOptions.Center;
@@ -114,7 +128,25 @@ public class TutorialText : MonoBehaviour
     /// </summary>
     public IEnumerator Raise(string line, float lift = 0f)
     {
-        transform.position = _anchor + Vector3.up * lift;
+        yield return RaiseAt(line, _anchor + Vector3.up * lift, _block);
+    }
+
+    /// <summary>
+    /// Fade a line up over the middle of the board and leave it standing. For
+    /// the end of the tutorial, when the right knight is standing where the
+    /// lines usually go. A plain <see cref="Raise"/> afterwards puts the block
+    /// back in its own place.
+    /// </summary>
+    public IEnumerator RaiseOverBothKnights(string line)
+    {
+        yield return RaiseAt(line, OverBothKnights, OverBothKnightsBlockSize);
+    }
+
+    // Moved and resized while the block is still invisible
+    private IEnumerator RaiseAt(string line, Vector3 position, Vector2 block)
+    {
+        transform.position = position;
+        _label.rectTransform.sizeDelta = block;
         _label.text = line;
         yield return Fade(_label.alpha, 1f);
     }
@@ -129,6 +161,14 @@ public class TutorialText : MonoBehaviour
     public IEnumerator Say(string line, float hold)
     {
         yield return Raise(line);
+        yield return new WaitForSeconds(hold);
+        yield return Lower();
+    }
+
+    /// <summary><see cref="Say"/>, over the middle of the board.</summary>
+    public IEnumerator SayOverBothKnights(string line, float hold)
+    {
+        yield return RaiseOverBothKnights(line);
         yield return new WaitForSeconds(hold);
         yield return Lower();
     }

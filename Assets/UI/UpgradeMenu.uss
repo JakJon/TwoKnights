@@ -394,9 +394,9 @@
 }
 
 .detail-stat {
-    font-size: 11px;
+    font-size: 9px;
     -unity-font-style: bold;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
     -unity-text-align: middle-left;
     white-space: normal;
     margin: 1px 0;
@@ -441,10 +441,14 @@
     justify-content: flex-start;
 }
 
+/* Exactly the width it is given, never the width of its widest card. With a
+   min-width here a card whose chips ran long pushed the whole column wider, and
+   every card in it grew to match. */
 .upgrade-column {
     flex-direction: column;
     justify-content: flex-start;
-    min-width: 100%;
+    width: 100%;
+    max-width: 100%;
     align-items: center;
     align-self: center;
     flex-shrink: 0;
@@ -468,6 +472,7 @@
 .menu-item.upgrade {
     width: 100%;
     min-width: 0;
+    max-width: 100%;
     background-color: rgb(33, 26, 16);
     border-color: rgb(58, 50, 34);
     margin: 4px auto;
@@ -517,26 +522,34 @@
    children carry their own top margin rather than the row carrying it: a neutral
    upgrade with no stats hides both, and a row with a margin of its own would hold
    five pixels of nothing open under the description. */
+/* Top-aligned so the Order tag stays on the chips' first line when they wrap. */
 .card-stats-row {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
 }
 
+/* Takes whatever the Order tag leaves and wraps inside it. Allowed to shrink so a
+   long row of chips drops onto a second line instead of widening the card. */
 .stat-badges {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
     margin-left: 0;
     margin-top: 5px;
 }
 
+/* A chip longer than max-width wraps its own words onto a second line. */
 .stat-badge {
-    font-size: 11px;
+    font-size: 9px;
     -unity-font-style: bold;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
     -unity-text-align: middle-left;
+    white-space: normal;
+    max-width: 150px;
+    flex-shrink: 1;
     margin: 1px 14px 1px 0;
 }
 
@@ -564,9 +577,9 @@
 }
 
 .upgrade-rarity {
-    font-size: 11px;
+    font-size: 9px;
     -unity-font-style: bold;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
 }
 
 /* Common is the floor, so saying so on the card is noise — the badge only
@@ -611,10 +624,13 @@
     margin-right: 7px;
 }
 
+/* Same top and bottom margin as a stat chip, so the two share a line. */
 .upgrade-order {
-    font-size: 11px;
+    font-size: 9px;
     -unity-font-style: bold;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
+    margin-top: 1px;
+    margin-bottom: 1px;
 }
 
 /* Neutral cards look exactly as before — no badge, no stripe */
@@ -706,12 +722,13 @@
 
 .menu-item.upgrade.menu-item--chosen .upgrade-title { color: rgb(255, 248, 230); }
 
-/* both at once: keep the chosen card's left offset — the brighter border already
-   says where focus is, and re-centring it would hide the pick */
+/* both at once: the cursor is back on the picked card, so it goes twice as far
+   left. The colours are the chosen card's own, so the extra slide is the only
+   thing that says the cursor is here and not on Confirm */
 .menu-item.upgrade.menu-item--chosen.menu-item--selected {
     background-color: rgb(51, 40, 21);
     border-color: rgb(240, 205, 120);
-    translate: -8px 0;
+    translate: -16px 0;
 }
 
 /* ---------- confirm button ---------- */

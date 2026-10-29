@@ -27,10 +27,10 @@ When each trial is due (owner, 2026-09-25). Every one is a 100% chance when due:
 
 | Order | Trial | Due after | Phases |
 |---|---|---|---|
-| Ember | Fire orbs | every odd wave (1, 3, 5...) | 3 |
-| Frigid | Ice orbs | every odd wave | 3 |
-| Serpent | Venom orbs | every even wave (2, 4, 6...) | 3 |
-| Shadow | Catch the Ninja | every even wave | 3 |
+| Ember | Fire orbs | every odd wave from 3 (3, 5, 7...) | 3 |
+| Frigid | Ice orbs | every odd wave from 3 | 3 |
+| Serpent | Venom orbs | every even wave from 4 (4, 6, 8...) | 3 |
+| Shadow | Catch the Ninja | every even wave from 4 | 3 |
 | Dawn | Paladin's bout, mirrored | every 6th wave | 1 |
 | Guardian | Paladin's bout, one knight at a time | every 7th wave | 1 |
 

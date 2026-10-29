@@ -19,7 +19,7 @@ MonoBehaviour:
   icon: {fileID: -6461287188764917925, guid: d165ead73d5c69743b6758e4a241e52f, type: 3}
   crystalCost: 0
   stats:
-  - valueText: +0.5u
+  - valueText: +MEDIUM
     labelText: FIRE ZONE SIZE
     isPositive: 1
   maxHealthBonus: 0

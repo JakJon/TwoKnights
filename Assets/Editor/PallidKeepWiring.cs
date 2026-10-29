@@ -3,9 +3,11 @@ using UnityEditor;
 using UnityEngine;
 
 // One-shot: builds everything the Pallid Keep needs that cannot be written by
-// hand — the mirror pane prefab, its tileset, the test layout, the "Looking Good"
-// wave and the map itself — then puts the map in the catalog and points the Mine
-// at it. Unity runs this the next time it compiles or regains focus; the version
+// hand — the mirror pane prefab, its tileset and the map itself — then puts the
+// map in the catalog and points the Mine at it. The map is only built when it is
+// missing; once it exists it belongs to the owner and is never rewritten here.
+// ("Looking Good", the empty test wave this used to build, was deleted 2026-10-26.
+// Its layout, Keep Looking Good.asset, stays: StoreCaptureKeepWave copies it.) Unity runs this the next time it compiles or regains focus; the version
 // guard means bumping the number below and letting Unity recompile rebuilds it in
 // place. Tools > Two Knights > Wire Pallid Keep forces a pass.
 //
@@ -43,10 +45,6 @@ public static class PallidKeepWiring
     private const string MirrorFolder = "Assets/Scripts/Mirrors";
     private const string LayoutFolder = MirrorFolder + "/Layouts";
     private const string PaneSetPath = LayoutFolder + "/Keep Panes.asset";
-    private const string TestLayoutPath = LayoutFolder + "/Keep Looking Good.asset";
-
-    private const string WaveFolder = "Assets/Scripts/Waves/Castle/LookingGood";
-    private const string WavePath = WaveFolder + "/Looking Good.asset";
 
     private const string MapPath = "Assets/Scripts/Maps/Pallid Keep.asset";
     private const string MinePath = "Assets/Scripts/Maps/The Mine.asset";
@@ -78,7 +76,6 @@ public static class PallidKeepWiring
     public static void Wire()
     {
         EnsureFolder(LayoutFolder);
-        EnsureFolder(WaveFolder);
 
         // Import settings first: everything below reads sprites back, and a pane
         // sized off a 100-PPU sprite would bake the wrong collider into the prefab
@@ -98,9 +95,8 @@ public static class PallidKeepWiring
         MirrorPaneSet paneSet = BuildPaneSet(panePrefab);
         if (paneSet == null) return;
 
-        MirrorLayout layout = BuildTestLayout(paneSet);
-        BaseWave wave = BuildWave(layout);
-        MapDefinition map = BuildMap(backdrop, wave);
+        MapDefinition map = AssetDatabase.LoadAssetAtPath<MapDefinition>(MapPath);
+        if (map == null) map = BuildMap(backdrop);
 
         RegisterInCatalog(map);
         PointTheMineAtIt();
@@ -108,8 +104,8 @@ public static class PallidKeepWiring
         AssetDatabase.SaveAssets();
         EditorPrefs.SetInt(VersionKey, Version);
 
-        Debug.Log("[PallidKeepWiring] Pallid Keep wired: pane prefab, tileset, test layout, " +
-                  "'Looking Good' and the map, and the map is in the catalog.");
+        Debug.Log("[PallidKeepWiring] Pallid Keep wired: pane prefab, tileset and the map, " +
+                  "and the map is in the catalog.");
     }
 
     // ---- art ------------------------------------------------------------
@@ -274,98 +270,9 @@ public static class PallidKeepWiring
         return set;
     }
 
-    // ---- the test board -------------------------------------------------
+    // ---- the map -------------------------------------------------------
 
-    // Eight panes, one pair of every colour, each pair placed to exercise a
-    // DIFFERENT turn through the redirect maths. That is what makes this a test
-    // rather than a wave: four pairs is too much furniture for anything real (the
-    // design doc says two is the normal case), but here the clutter is the point.
-    //
-    // The arena is roughly 20 x 11.25 world units and the knights stand at about
-    // (-2, 0) and (+2, 0), so the middle is kept clear and nothing overlaps
-    // anything else.
-    private static MirrorLayout BuildTestLayout(MirrorPaneSet paneSet)
-    {
-        MirrorLayout layout = LoadOrCreate<MirrorLayout>(TestLayoutPath);
-
-        var entries = new[]
-        {
-            // Aimed at each other: the turn is the identity, so a level shot runs
-            // between them and never leaves. High enough to be clear of the knights.
-            Entry("loop, right end", MirrorColor.Green, MirrorFacing.Left, 7f, 3.5f),
-            Entry("loop, left end", MirrorColor.Green, MirrorFacing.Right, -7f, 3.5f),
-
-            // A tall pane twinned with a wide one: a quarter turn. A shot fired
-            // left comes out of the far side travelling up.
-            Entry("right angle, in", MirrorColor.Cyan, MirrorFacing.Right, -7f, -3.2f),
-            Entry("right angle, out", MirrorColor.Cyan, MirrorFacing.Up, 7f, -3.2f),
-
-            // Twins facing the SAME way: a half turn. A shot in the right-hand
-            // pane comes back out of the left-hand one travelling left.
-            Entry("reversal, right", MirrorColor.Vermilion, MirrorFacing.Left, 5f, -1.5f),
-            Entry("reversal, left", MirrorColor.Vermilion, MirrorFacing.Left, -5f, -1.5f),
-
-            // Two wide panes, one at each edge: the identity again, but across the
-            // short axis. Off the top of the arena, back in at the bottom.
-            Entry("wrap, top", MirrorColor.Magenta, MirrorFacing.Up, -4f, 5f),
-            Entry("wrap, bottom", MirrorColor.Magenta, MirrorFacing.Down, 4f, -5f)
-        };
-
-        var so = new SerializedObject(layout);
-        so.FindProperty("paneSet").objectReferenceValue = paneSet;
-        so.FindProperty("redirect").enumValueIndex = (int)MirrorRedirect.MirrorAboutFacing;
-
-        SerializedProperty panes = so.FindProperty("panes");
-        panes.arraySize = entries.Length;
-        for (int i = 0; i < entries.Length; i++)
-        {
-            SerializedProperty pane = panes.GetArrayElementAtIndex(i);
-            pane.FindPropertyRelative("label").stringValue = entries[i].label;
-            pane.FindPropertyRelative("color").enumValueIndex = (int)entries[i].color;
-            pane.FindPropertyRelative("facing").enumValueIndex = (int)entries[i].facing;
-            pane.FindPropertyRelative("position").vector2Value = entries[i].position;
-        }
-
-        so.ApplyModifiedPropertiesWithoutUndo();
-        Save(layout);
-        return layout;
-    }
-
-    private static MirrorPaneEntry Entry(string label, MirrorColor color, MirrorFacing facing, float x, float y)
-    {
-        return new MirrorPaneEntry
-        {
-            label = label,
-            color = color,
-            facing = facing,
-            position = new Vector2(x, y)
-        };
-    }
-
-    // ---- the wave and the map -------------------------------------------
-
-    private static BaseWave BuildWave(MirrorLayout layout)
-    {
-        var wave = LoadOrCreate<LookingGood>(WavePath);
-
-        var so = new SerializedObject(wave);
-        so.FindProperty("waveName").stringValue = "Looking Good";
-        so.FindProperty("waveDescription").stringValue =
-            "No enemies. Eight mirrors, one pair of every colour, and a shot to spare.";
-        so.FindProperty("weight").floatValue = 1000f;
-        so.FindProperty("isUnlocked").boolValue = true;
-        so.FindProperty("unlockedAfterXWaves").intValue = -1;
-        so.FindProperty("lockedAfterXWaves").intValue = -1;
-        so.FindProperty("useEnemyTracking").boolValue = true;
-        so.FindProperty("mirrorLayout").objectReferenceValue = layout;
-        so.FindProperty("viewingSeconds").floatValue = 120f;
-        so.ApplyModifiedPropertiesWithoutUndo();
-
-        Save(wave);
-        return wave;
-    }
-
-    private static MapDefinition BuildMap(Sprite backdrop, BaseWave wave)
+    private static MapDefinition BuildMap(Sprite backdrop)
     {
         MapDefinition map = LoadOrCreate<MapDefinition>(MapPath);
 
@@ -379,14 +286,6 @@ public static class PallidKeepWiring
         so.FindProperty("unlockedByDefault").boolValue = true;
         so.FindProperty("previewImage").objectReferenceValue = backdrop;
         so.FindProperty("lockedHint").stringValue = "Defeat the Millstone";
-
-        SerializedProperty waves = so.FindProperty("waves");
-        waves.arraySize = 1;
-        waves.GetArrayElementAtIndex(0).objectReferenceValue = wave;
-
-        SerializedProperty folders = so.FindProperty("waveFolders");
-        folders.arraySize = 1;
-        folders.GetArrayElementAtIndex(0).stringValue = WaveFolder;
 
         // No bosses yet. WaveManager guards both on null, so an empty gate simply
         // never comes due — the map has one wave and a mechanic to prove.

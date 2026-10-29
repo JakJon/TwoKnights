@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <!-- Test Mode's panel (dev builds only; rows are built in code), shared by the
+         camp menu, the pause screen and the death screen exactly as QuestOverlay,
+         EquipmentOverlay and SettingsOverlay are. TestModePanel finds these by name
+         inside whichever document instances the template. At camp it sets up a
+         whole run; inside a run it hides the wave and map rows and only changes the
+         knights' upgrades. The host element must carry .overlay-host, and the
+         styles are CampMenu.uss's. -->
+    <ui:VisualElement name="test-panel" class="overlay-panel" style="display: none;">
+        <ui:VisualElement class="overlay-header">
+            <ui:Label name="test-title" text="Test Mode" class="overlay-title" />
+            <ui:Button name="test-close-button" class="overlay-close-button" text="X" />
+        </ui:VisualElement>
+        <ui:VisualElement name="test-wave-row" class="test-row">
+            <ui:Label text="Starting Wave" class="test-row-name" />
+            <ui:Label name="test-wave-value" text="&#9664; 1 &#9654;" class="test-row-value" />
+        </ui:VisualElement>
+        <ui:VisualElement name="test-map-row" class="test-row">
+            <ui:Label text="Map" class="test-row-name" />
+            <ui:Label name="test-map-value" text="&#9664; The Camp Fields &#9654;" class="test-row-value" />
+        </ui:VisualElement>
+        <ui:Label name="test-budget-line" text="" class="test-budget-line" />
+        <ui:ScrollView name="test-upgrade-list" class="test-upgrade-list" />
+        <ui:VisualElement name="test-start-row" class="test-row test-start-row">
+            <ui:Label name="test-start-label" text="Begin Run" class="test-start-label" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

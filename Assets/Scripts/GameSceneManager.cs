@@ -186,7 +186,7 @@ public class GameSceneManager : MonoBehaviour
             // timeScale via LoadCampScene/LoadGameScene
             Time.timeScale = 0f;
             int runGold = GoldManager.Instance != null ? GoldManager.Instance.RunGold : 0;
-            deathScreen.Show(knightName, causeOfDeath, runGold, waveReached, waveName);
+            deathScreen.Show(knightName, causeOfDeath, runGold, RunClock.Seconds, waveReached, waveName);
         }
         else
         {

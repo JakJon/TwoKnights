@@ -32,6 +32,16 @@ public class BelfryAndCellar : BaseWave
     private const float RatSlotX = 6.5f;
     private const float RatSlotY = -4f;
 
+    // No odd pair after this one carries an orb, so this one gets the health
+    private bool IsLastOddOrbPair(int pair)
+    {
+        for (int later = pair + 2; later < ratPairs; later += 2)
+        {
+            if (WaveOrbBudget.SlotCarriesOrb(later, ratPairs)) return false;
+        }
+        return true;
+    }
+
     public override IEnumerator SpawnWave(Spawner spawner)
     {
         float beat = Mathf.Max(MinBeatSeconds, secondsBetweenBats);
@@ -52,12 +62,19 @@ public class BelfryAndCellar : BaseWave
             // Orbs ride the lane you should already be watching. Three per wave is
             // the allowance (health and mana counted together), so the four- and
             // five-pair tiers spread them across the pairs rather than one apiece.
+            //
+            // Even pairs pay mana along the top, odd pairs along the bottom. Only
+            // the LAST odd pair with an orb pays health; any odd pair before it
+            // pays mana down there instead (owner, 2026-10-14). Spread over four,
+            // five and six pairs, two or three odd pairs carry an orb, and each
+            // of them used to be a health orb, against the one-health rule.
             if (WaveOrbBudget.SlotCarriesOrb(pair, ratPairs))
             {
                 if (pair % 2 == 0)
                     spawner.SpawnOrb(new Vector2(-13f, 4.5f), new Vector2(13f, 4.5f), false, beat * 0.5f);
                 else
-                    spawner.SpawnOrb(new Vector2(13f, -4.5f), new Vector2(-13f, -4.5f), true, beat * 0.5f);
+                    spawner.SpawnOrb(new Vector2(13f, -4.5f), new Vector2(-13f, -4.5f),
+                                     IsLastOddOrbPair(pair), beat * 0.5f);
             }
 
             // The belfry: bats cross on the beat, alternating entry side and altitude.

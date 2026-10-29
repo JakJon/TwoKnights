@@ -15,9 +15,9 @@ MonoBehaviour:
   mapId: camp_fields
   displayName: Kingdom's Forest
   unlockedByDefault: 1
-  previewImage: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
-  description: Directly outside the kingdom gates lies the deep forests swarmed by creatures.
-    The deeper you venture the darker it gets.
+  previewImage: {fileID: 1965895059332403975, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
+  description: Directly outside the kingdom gates lies the deep forests swarmed by
+    creatures. The deeper you venture the darker it gets.
   finalWaveNumber: 30
   completionMarkColor: {r: 0.4784314, g: 0.7607843, b: 0.4156863, a: 1}
   waves:
@@ -132,21 +132,27 @@ MonoBehaviour:
   stages:
   - label: Forest
     fromWaveNumber: 1
-    backdrop: {fileID: -3145207243317566137, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
-    foreground: {fileID: 0}
+    backdrop: {fileID: 1965895059332403975, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
+    foreground: {fileID: -4780072659211535093, guid: c3bcf6fd48b91874bba12887ab26e89a, type: 3}
+    foregroundOverArena: 1
     canopy: {fileID: 11400000, guid: f73b2e192fccc124ca9c551777a1b6e5, type: 2}
+    gemGlow: {fileID: 0}
     ventureLine: 
   - label: Deep Forest
     fromWaveNumber: 11
-    backdrop: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
-    foreground: {fileID: 0}
+    backdrop: {fileID: 1584949685606263171, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+    foreground: {fileID: 1028037075441634906, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+    foregroundOverArena: 1
     canopy: {fileID: 11400000, guid: e4103d4c9b6fb954b91a127ff4ede75a, type: 2}
+    gemGlow: {fileID: 0}
     ventureLine: The knights venture deeper into the forest.
   - label: Moonlit Wood
     fromWaveNumber: 21
-    backdrop: {fileID: -1490967720933370490, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
-    foreground: {fileID: 0}
-    canopy: {fileID: 11400000, guid: e4103d4c9b6fb954b91a127ff4ede75a, type: 2}
+    backdrop: {fileID: 1584949685606263171, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+    foreground: {fileID: 1028037075441634906, guid: 511fdfd8415f06f45bbfe59dd37a1614, type: 3}
+    foregroundOverArena: 1
+    canopy: {fileID: 11400000, guid: a2473eeed0abb5c40b46636c88748527, type: 2}
+    gemGlow: {fileID: 0}
     ventureLine: The canopy closes over. Something pale moves between the trunks.
   explorationMusic: {fileID: 8300000, guid: bacd3a1a09ebb474cbc8511f9fdde73b, type: 3}
   intenseMusic: {fileID: 8300000, guid: f30566957c15fe4459e128e31253c361, type: 3}

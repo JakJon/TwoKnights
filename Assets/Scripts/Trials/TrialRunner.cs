@@ -24,6 +24,9 @@ using UnityEngine;
 /// test itself — the HUD, the held specials, the fanfare, the clean board — is the
 /// same, so it shares <see cref="Open"/> and <see cref="Close"/> rather than
 /// keeping a copy of them. Which of the two gets a gap is BetweenWaveEvents' call.
+///
+/// So does the mine's cart sorting (<see cref="CartSorting"/>), through
+/// <see cref="PlayCarts"/>, for the same reason.
 /// </summary>
 public class TrialRunner : MonoBehaviour
 {
@@ -90,6 +93,21 @@ public class TrialRunner : MonoBehaviour
         Finish(runner);
     }
 
+    /// <summary>
+    /// Plays one phase of the mine's cart sorting. <paramref name="practice"/> is
+    /// Test Mode's, as it is for the range: it plays and pays out, and records nothing.
+    /// </summary>
+    public static IEnumerator PlayCarts(Spawner spawner, CartSorting.Phase phase, bool practice)
+    {
+        if (spawner == null || phase == null) yield break;
+
+        var runner = Create(spawner, "Cart Sorting");
+        IsRunning = true;
+        Debug.Log($"[Carts] phase {phase.Number}{(practice ? " (practice)" : "")}");
+        yield return runner.RunCarts(phase, practice);
+        Finish(runner);
+    }
+
     private static TrialRunner Create(Spawner spawner, string name)
     {
         var go = new GameObject(name);
@@ -105,6 +123,7 @@ public class TrialRunner : MonoBehaviour
         IsRunning = false;
         IsSpeaking = false;
         EchoShotsHeld = false;
+        UpgradeHold.Held = false;
         if (runner != null) Destroy(runner.gameObject);
     }
 
@@ -152,6 +171,37 @@ public class TrialRunner : MonoBehaviour
         }
 
         yield return Close($"[Targets] pattern {pattern.Number}", () => TargetRange.PayOut(this, pattern, practice));
+    }
+
+    /// <summary>
+    /// Cart sorting. Nobody introduces it — the track simply drops in. The echoes
+    /// are held as they are for the range: a fan of shadow arrows through the
+    /// lever would throw it three times for one press.
+    ///
+    /// Every upgrade is held with them (owner, 2026-10-13): the knights sort with
+    /// one plain arrow and one plain swing — see UpgradeHold. They are handed back
+    /// before the fanfare, so the orbs a clear pays are caught by the knights as
+    /// they really are.
+    ///
+    /// Its track is laid by the mine's RailNetwork, so it is not one of the things
+    /// Track() knows about. It is taken up here, win or lose, before the fanfare.
+    /// </summary>
+    private IEnumerator RunCarts(CartSorting.Phase phase, bool practice)
+    {
+        yield return Open();
+
+        if (!Abandoned)
+        {
+            EchoShotsHeld = true;
+            UpgradeHold.Held = true;
+            yield return CartSorting.Run(this, phase);
+            UpgradeHold.Held = false;
+            EchoShotsHeld = false;
+        }
+
+        if (Spawner.Rails != null) Spawner.Rails.ClearAll();
+
+        yield return Close($"[Carts] phase {phase.Number}", () => CartSorting.PayOut(this, phase, practice));
     }
 
     /// <summary>What every event here does before its test starts.</summary>
@@ -380,5 +430,6 @@ public class TrialRunner : MonoBehaviour
         IsRunning = false;
         IsSpeaking = false;
         EchoShotsHeld = false;
+        UpgradeHold.Held = false;
     }
 }

@@ -1,6 +1,7 @@
 // Something that is not an enemy but still moves, and so can still be slowed by
-// the Frigid Order's cold: a health orb drifting across the field, a rock or a
-// pickaxe in the air, a boss's fireball.
+// the Frigid Order's cold: a health orb drifting across the field, a bomb or a
+// pickaxe in the air, a boss's fireball. NOT a rock - the ward never slows one
+// (owner, 2026-10-15), so ProjectileMovement leaves this off.
 //
 // An interface rather than a pile of type checks at the call sites, for the same
 // reason ISleepHold is one: the ward sweeps a circle and asks whatever it finds,

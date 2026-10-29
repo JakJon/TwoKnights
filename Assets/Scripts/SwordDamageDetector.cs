@@ -16,6 +16,10 @@ public class SwordDamageDetector : MonoBehaviour
     /// design — so anything that needs to know whose swing it was reads it here.
     /// See CollectibleOrb.</summary>
     public GameObject OwningKnight => swordSwing != null ? swordSwing.OwningKnight : null;
+
+    /// <summary>The way the swing in progress faces. A fireball or pickaxe the blade
+    /// meets is sent off along this (see GuardianReflect.TryBat).</summary>
+    public Vector2 SwingFacing => swordSwing != null ? swordSwing.SwingFacing : Vector2.zero;
     
     private void OnTriggerEnter2D(Collider2D other)
     {

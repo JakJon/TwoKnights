@@ -37,6 +37,11 @@ public class EnemyRat : EnemyBase
     private bool _hasPlayedChaseSFX = false;
     private Vector2? _entryPoint;
 
+    // Waypoints through the castle's pillar gaps, walked before the straight run
+    // at the knight. Empty on every map without pillars.
+    private readonly System.Collections.Generic.List<Vector2> _route = new System.Collections.Generic.List<Vector2>();
+    private int _routeStep;
+
     public void InitializeTarget(Transform playerTarget)
     {
         _assignedPlayer = playerTarget;
@@ -114,6 +119,7 @@ public class EnemyRat : EnemyBase
         if (_isChasing && _playerTransform == null)
         {
             _playerTransform = NearestKnight();
+            PlanRoute();
         }
 
         if (_isChasing && _playerTransform != null)
@@ -177,6 +183,11 @@ public class EnemyRat : EnemyBase
     private void ChasePlayer()
     {
         Vector3 targetPos = _playerTransform.position;
+        if (_routeStep < _route.Count)
+        {
+            targetPos = _route[_routeStep];
+            if (Vector2.Distance(transform.position, targetPos) < 0.05f) _routeStep++;
+        }
         transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
         _spriteRenderer.flipX = transform.position.x > targetPos.x;
     }
@@ -185,6 +196,23 @@ public class EnemyRat : EnemyBase
     {
         _isChasing = true;
         _playerTransform = player;
+        PlanRoute();
+    }
+
+    // In the castle the straight line to a knight can run through a pillar; the
+    // field hands back the nearest gap so the rat comes down between them.
+    private void PlanRoute()
+    {
+        _route.Clear();
+        _routeStep = 0;
+
+        PillarField field = PillarField.Instance;
+        if (field == null || !field.HasPillars || _playerTransform == null) return;
+
+        Collider2D body = GetComponent<Collider2D>();
+        float low = body != null ? body.bounds.min.y - transform.position.y : 0f;
+        float high = body != null ? body.bounds.max.y - transform.position.y : 0.5f;
+        field.Route(transform.position, _playerTransform.position, _route, low, high);
     }
 
     private Transform NearestKnight()

@@ -22,9 +22,11 @@
     height: 100%;
 }
 
+/* Jersey 10, the run's pixel font (see RunFont.cs and PlayerHUD.uss). 56 keeps
+   the capitals the height the serif's were at 46. */
 .ws-title {
-    font-size: 46px;
-    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    font-size: 56px;
+    -unity-font-definition: url("/Assets/Resources/Fonts/Jersey10-Regular.ttf");
     -unity-font-style: normal;
     letter-spacing: 6px;
     color: rgb(244, 170, 54);

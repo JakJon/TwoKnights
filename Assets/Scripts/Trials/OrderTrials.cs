@@ -24,6 +24,15 @@ public static class OrderTrials
 {
     public enum Kind { FireOrbs, IceOrbs, VenomOrbs, NinjaChase, GuardianBout, DawnBout }
 
+    /// <summary>
+    /// No trial before the gap after wave 3, whatever its own timing says (owner,
+    /// 2026-10-14). The fire and ice trials used to turn up after wave 1 and the
+    /// venom and ninja ones after wave 2. Each keeps its odd or even beat from
+    /// here, so fire and ice now start after wave 3 and venom and the ninja after
+    /// wave 4.
+    /// </summary>
+    public const int EarliestWave = 3;
+
     public sealed class Trial
     {
         public readonly UpgradeOrder Order;
@@ -57,6 +66,7 @@ public static class OrderTrials
 
         public bool IsDueAfter(int wave)
         {
+            if (wave < EarliestWave) return false;
             return wave >= FirstWave && (wave - FirstWave) % EveryNthWave == 0;
         }
 
@@ -196,6 +206,41 @@ public static class OrderTrials
         Debug.Log($"[Trials] after wave {survivedWave}: {report.ToString().TrimEnd(',', ' ')} — {best.Key} plays");
         return true;
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    /// <summary>
+    /// For Test Mode's event list: every trial a real run could play in the gap
+    /// after <paramref name="survivedWave"/> — due, and open. Nothing is rolled
+    /// and nothing is written; the tester picks one and <see cref="PickByHand"/>
+    /// does the writing.
+    /// </summary>
+    public static System.Collections.Generic.List<Trial> PeekDue(int survivedWave)
+    {
+        var due = new System.Collections.Generic.List<Trial>();
+        if (survivedWave <= 0) return due;
+
+        for (int i = 0; i < All.Length; i++)
+        {
+            if (All[i].IsDueAfter(survivedWave) && IsOpen(All[i])) due.Add(All[i]);
+        }
+        return due;
+    }
+
+    /// <summary>
+    /// The tester picked this trial for the gap. Counted as played exactly as
+    /// TryPick's winner is, so "gone the longest" is still right in the gaps
+    /// after it. Hands back the phase to play, zero-based.
+    /// </summary>
+    public static int PickByHand(Trial trial, int survivedWave)
+    {
+        int clock = PlayerStats.Get(ClockKey) + 1;
+        PlayerStats.Set(ClockKey, clock);
+        PlayerStats.Set(trial.LastPlayedKey, clock);
+
+        Debug.Log($"[Trials] after wave {survivedWave}: {trial.Key} plays (picked in Test Mode)");
+        return NextPhase(trial);
+    }
+#endif
 
     /// <summary>Gaps since the trial last played, or int.MaxValue if it never has.</summary>
     private static int GapsSinceLastPlayed(Trial trial, int clock)

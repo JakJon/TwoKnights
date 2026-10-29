@@ -82,6 +82,27 @@ public class EnemyGnomeMineCart : EnemyGnomeCart
     // The teleporter throws the cart from one edge of the screen to the other,
     // which sails straight across the midpoint. Without this the gnome would drop
     // a bomb off-frame on every lap.
+    // A bomb goes off when it reaches the knights' level, between them, so it is
+    // a landing on BOTH of them; it drifts there at the bomb's own slow speed.
+    // This gnome only ever throws ON a crossing, so a crossing whose slot is
+    // taken simply goes by without a bomb.
+    protected override void PlanLandings(System.Collections.Generic.List<Landing> into)
+    {
+        float speed = EnemyBomb.TravelSpeedOf(bombPrefab);
+        if (speed <= 0.0001f) return;
+
+        AddLanding(into, GameObject.FindWithTag("PlayerLeft"), speed);
+        AddLanding(into, GameObject.FindWithTag("PlayerRight"), speed);
+    }
+
+    private void AddLanding(System.Collections.Generic.List<Landing> into, GameObject knight, float speed)
+    {
+        if (knight == null) return;
+        Collider2D body = knight.GetComponent<Collider2D>();
+        float knightY = body != null ? body.bounds.center.y : knight.transform.position.y;
+        into.Add(new Landing(knight.transform, Time.time + Mathf.Abs(ThrowPoint.y - knightY) / speed));
+    }
+
     protected override void HandleTeleported()
     {
         _lastSide = 0f;

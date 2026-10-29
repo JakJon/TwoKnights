@@ -79,6 +79,23 @@ public class MineCart : MonoBehaviour, ISleepHold
     /// </summary>
     public event System.Action Teleported;
 
+    /// <summary>
+    /// Asked when the cart rolls off the far end of a line that has no pad on it,
+    /// just before it would despawn. Return true once you have put the cart
+    /// somewhere else (Resume) and it lives on; false and it despawns as usual.
+    ///
+    /// The Overseer's track is the one user: each time he reaches an end he either
+    /// wraps round to the far side or turns round, and which one changes with his
+    /// health, so it cannot be a fixed link in the layout.
+    /// </summary>
+    public System.Func<MineCart, bool> EndOfLine;
+
+    /// <summary>How far behind a line's mouth a fresh cart starts.</summary>
+    public float LeadIn => leadIn;
+
+    /// <summary>How far past a line's last cell the cart rolls before it is done with it.</summary>
+    public float RunOut => runOut;
+
     /// <summary>Units per second. Set before Ride, or pass a speed to Ride.</summary>
     public float Speed
     {
@@ -210,6 +227,8 @@ public class MineCart : MonoBehaviour, ISleepHold
 
     private void Update()
     {
+        if (_dropping) UpdateDrop();
+
         if (!_riding) return;
         if (Time.time < _heldUntil) return;
 
@@ -228,7 +247,91 @@ public class MineCart : MonoBehaviour, ISleepHold
             return;
         }
 
-        if (Along > _line.Length + runOut) Destroy(gameObject);
+        if (Along > _line.Length + runOut)
+        {
+            var handler = EndOfLine;
+            if (handler != null && handler(this))
+            {
+                var moved = Teleported;
+                if (moved != null) moved();
+                return;
+            }
+            Destroy(gameObject);
+        }
+    }
+
+    // ---- dropping in ----
+    //
+    // The Overseer's inner loops have no way in from off-screen, so their carts
+    // arrive from above: the cart is already on its line at the spot it will
+    // land, held there, and only its picture falls. Position stays owned by the
+    // line the whole way down — the fall is an offset added in Reposition — so
+    // the spacing sweep and every "where is this cart" question already have the
+    // right answer before it lands.
+
+    private bool _dropping;
+    private float _dropHeight;
+    private float _dropStart;
+    private float _dropSeconds;
+    private System.Action _dropLanded;
+    private Collider2D[] _dropColliders;
+
+    /// <summary>
+    /// Fall from <paramref name="height"/> units above where the cart already sits
+    /// on its line, taking <paramref name="seconds"/>. It does not roll or collide
+    /// until it lands; then <paramref name="landed"/> runs and it rides on.
+    /// </summary>
+    public void DropIn(float height, float seconds, System.Action landed = null)
+    {
+        seconds = Mathf.Max(0.05f, seconds);
+        _dropping = true;
+        _dropHeight = Mathf.Max(0f, height);
+        _dropStart = Time.time;
+        _dropSeconds = seconds;
+        _dropLanded = landed;
+
+        // Nothing in the air can be shot or bumped: a falling cart is not on the
+        // track yet, and an arrow stopped by it would be stopped by a picture
+        _dropColliders = GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < _dropColliders.Length; i++) _dropColliders[i].enabled = false;
+
+        HoldFor(seconds);
+        Reposition();
+    }
+
+    private float DropOffset
+    {
+        get
+        {
+            if (!_dropping) return 0f;
+            float t = Mathf.Clamp01((Time.time - _dropStart) / _dropSeconds);
+            // Falling, so it gathers speed: height times what is left of t squared
+            return _dropHeight * (1f - t * t);
+        }
+    }
+
+    private void UpdateDrop()
+    {
+        if (Time.time - _dropStart < _dropSeconds)
+        {
+            Reposition();
+            return;
+        }
+
+        _dropping = false;
+        if (_dropColliders != null)
+        {
+            for (int i = 0; i < _dropColliders.Length; i++)
+            {
+                if (_dropColliders[i] != null) _dropColliders[i].enabled = true;
+            }
+            _dropColliders = null;
+        }
+        Reposition();
+
+        var landed = _dropLanded;
+        _dropLanded = null;
+        if (landed != null) landed();
     }
 
     // The seam. Whatever the cart had overrun the pad by this frame is carried
@@ -264,7 +367,8 @@ public class MineCart : MonoBehaviour, ISleepHold
         // finish centred on the cell. Identity rotation cancels exactly, so
         // horizontal track is untouched by this.
         var bodyFromPivot = new Vector3(0f, _halfHeight, 0f);
-        transform.position = onRail + bodyFromPivot - transform.rotation * bodyFromPivot;
+        transform.position = onRail + bodyFromPivot - transform.rotation * bodyFromPivot
+                             + new Vector3(0f, DropOffset, 0f);
     }
 
     // ---- Spacing ----
@@ -284,6 +388,9 @@ public class MineCart : MonoBehaviour, ISleepHold
     // and already rolling out. A halted cart is furniture and never moves at all.
     private static readonly List<MineCart> Live = new List<MineCart>();
     private static int _resolvedFrame = -1;
+
+    /// <summary>Every cart in the scene right now. May hold a destroyed one for a frame.</summary>
+    public static IReadOnlyList<MineCart> All => Live;
 
     // Every cart runs this; the first one to reach it each frame does the sweep
     // for all of them, so the cost is one pass however many are on the track.

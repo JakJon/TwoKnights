@@ -44,11 +44,6 @@ MonoBehaviour:
     kegsPerAmbush: 4
     leadIn: 1.5
     releasePause: 1
-  - label: shift 5 (7 riders, 4 kegs)
-    gnomesPerAmbush: 7
-    kegsPerAmbush: 4
-    leadIn: 1.5
-    releasePause: 1
   highOrbs:
     healthOrb: 0
     count: 1

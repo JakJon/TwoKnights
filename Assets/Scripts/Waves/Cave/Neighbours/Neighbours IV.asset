@@ -15,7 +15,7 @@ MonoBehaviour:
   waveName: Neighbours IV
   weight: 1000
   isUnlocked: 0
-  waveDescription: Seven loads, six beasts, and barely any road at all.
+  waveDescription: Five loads, four beasts, and barely any road at all.
   unlockedAfterXWaves: 12
   lockedAfterXWaves: 18
   useEnemyTracking: 1
@@ -25,23 +25,23 @@ MonoBehaviour:
   crates:
   - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
-  crateCount: 7
-  crateInterval: 3.5
+  crateCount: 5
+  crateInterval: 5.25
   firstCrateAt: 1
-  wolves: 10
-  wolfInterval: 2.5
+  wolves: 4
+  wolfInterval: 6.75
   firstWolfAt: 5
   packOrder:
   - 0
   - 2
-  courseDistance: 20
+  courseDistance: 25
   courseOffset: 1.2
   courseLeadIn: 6
   courseReversals: 0
   flanks:
-  - label: five from each edge
-    fromTop: 3
-    fromBottom: 3
+  - label: two from the top
+    fromTop: 2
+    fromBottom: 0
     firstAt: 6
     interval: 0.9
     ratTypes:
@@ -58,9 +58,9 @@ MonoBehaviour:
     to: {x: 12, y: 0.5}
   ogres:
     label: 8 vertically across both haul roads
-    count: 4
+    count: 3
     firstAt: 5
-    interval: 4.5
+    interval: 6.75
     fireEveryNth: 3
     entries:
     - label: up across both haul roads, right

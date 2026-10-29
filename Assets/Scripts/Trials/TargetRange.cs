@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// The target range (owner, 2026-09-26): after every ODD wave from wave five on, in
-/// the forest only, red-and-white targets pop up round the edge of the arena. Shoot every one before the time runs out and the fanfare
+/// The target range (owner, 2026-09-26): after any wave from wave five on (odd or
+/// even since 2026-10-13; it was odd waves only), in the forest only, red-and-white targets pop up round the edge of the arena. Shoot every one before the time runs out and the fanfare
 /// plays, and a health orb crosses just above the knights and a mana orb just below
 /// them, both inside a sword's reach.
 ///
@@ -12,15 +12,13 @@ using UnityEngine;
 /// Order trial that is going to play always has the gap instead — see
 /// BetweenWaveEvents for the whole ladder.
 ///
-/// There is no roll any more (owner, 2026-09-26). It was one in three, and after
-/// Target Practice was finished three misses in a row read as the range having
-/// gone for good. It stays for the whole file, quest or no quest: a gap nothing
-/// higher wants, after an odd wave from five, is always the range's.
+/// It is rolled again (owner, 2026-10-13): one chance in four, and one in two once
+/// four waves have gone by without it — see LowEventRoll. From 2026-09-26 until
+/// then it had no roll and took every gap it was due in. It stays for the whole
+/// file, quest or no quest.
 ///
-/// Five patterns. Which one plays is not rolled either: it is the lowest-numbered
-/// pattern never cleared, so the five work as a ladder, and once all five have been
-/// cleared they take turns, 1 to 5 and round again, moving on only when one is
-/// cleared — the same line the waves and the Order trials hold.
+/// Five patterns. Which one plays is never rolled: they go in batches of five,
+/// each time the next pattern not yet cleared in the batch — see Next.
 ///
 /// Clearing a pattern for the first time counts toward the Cartographer's "Target
 /// Practice" quest, which is offered after the first clear of any pattern.
@@ -30,7 +28,7 @@ public static class TargetRange
     /// <summary>The map it lives on. The range is the forest's; no other map has one.</summary>
     public const string MapId = QuestBuild.Forest;
 
-    /// <summary>The first wave it can follow. From there, every odd wave.</summary>
+    /// <summary>The first wave it can follow. From there, any wave.</summary>
     public const int FirstWave = 5;
 
     /// <summary>What <see cref="TestRunConfig.ForcedTrial"/> is set to for a forced pattern.</summary>
@@ -49,11 +47,20 @@ public static class TargetRange
     public const string ClearedStat = "targets.cleared";
 
     /// <summary>
-    /// Bookkeeping, not an achievement: which pattern was cleared last, so the
-    /// rotation after the ladder knows where it is. Written with PlayerStats.Set
-    /// and left out of StatsDatabase, like the trials' ".last" keys.
+    /// Bookkeeping, not an achievement: which pattern was put up last (cleared or
+    /// not), and a bit per pattern cleared in the current batch of five. Written
+    /// with PlayerStats.Set and left out of StatsDatabase, like the trials' ".last" keys.
     /// </summary>
-    private const string LastClearedKey = "targets.last_cleared";
+    private const string LastPlayedKey = "targets.last_played";
+    private const string BatchKey = "targets.batch";
+
+    /// <summary>
+    /// True for the two keys that say where the range has got to in its batch. The
+    /// tutorial run lets these be written (see TutorialStatGate): without them the
+    /// range forgot what it had just put up and showed pattern 1 in every gap of
+    /// that run (owner, 2026-10-13). The counters a quest reads are still held back.
+    /// </summary>
+    public static bool IsRotationKey(string key) => key == LastPlayedKey || key == BatchKey;
 
     /// <summary>1 once pattern <paramref name="number"/> has ever been cleared. Bookkeeping, as above.</summary>
     private static string PatternClearedKey(int number) => "targets.pattern." + number;
@@ -101,9 +108,9 @@ public static class TargetRange
     ///
     ///   1  one in each corner. 8 seconds.
     ///   2  five spread along the top without reaching the corners, five along the
-    ///      bottom. 15 seconds.
+    ///      bottom. 13.5 seconds (1.5 off, 2026-10-05).
     ///   3  one in each corner, three between them along the top and three along the
-    ///      bottom. 15 seconds.
+    ///      bottom. 12.5 seconds (2.5 off, 2026-10-13).
     ///   4  one in each corner, sliding to the next corner round, clockwise: top
     ///      right down to bottom right, bottom right across to bottom left, bottom
     ///      left up to top left, top left across to top right. They arrive as the
@@ -114,8 +121,8 @@ public static class TargetRange
     public static readonly Pattern[] Patterns =
     {
         new Pattern(1, 8f, Still(TopLeft, TopRight, BottomLeft, BottomRight)),
-        new Pattern(2, 15f, Join(Row(EdgeY, -6f, -3f, 0f, 3f, 6f), Row(-EdgeY, -6f, -3f, 0f, 3f, 6f))),
-        new Pattern(3, 15f, Join(Still(TopLeft, TopRight, BottomLeft, BottomRight),
+        new Pattern(2, 13.5f, Join(Row(EdgeY, -6f, -3f, 0f, 3f, 6f), Row(-EdgeY, -6f, -3f, 0f, 3f, 6f))),
+        new Pattern(3, 12.5f, Join(Still(TopLeft, TopRight, BottomLeft, BottomRight),
                                  Row(EdgeY, -4.6f, 0f, 4.6f), Row(-EdgeY, -4.6f, 0f, 4.6f))),
         new Pattern(4, 8f, new[]
         {
@@ -184,7 +191,7 @@ public static class TargetRange
 
     public static bool IsDueAfter(int wave)
     {
-        return wave >= FirstWave && wave % 2 == 1;
+        return wave >= FirstWave;
     }
 
     /// <summary>
@@ -205,8 +212,16 @@ public static class TargetRange
             return false;
         }
 
+        if (!LowEventRoll.Roll(survivedWave, FirstWave, out int percent))
+        {
+            Debug.Log($"[Targets] after wave {survivedWave}: missed its roll ({percent}%)");
+            return false;
+        }
+
         pattern = Next();
-        Debug.Log($"[Targets] after wave {survivedWave}: pattern {pattern.Number} plays");
+        RecordPlayed(pattern);
+        LowEventRoll.NotePlayed(survivedWave);
+        Debug.Log($"[Targets] after wave {survivedWave}: pattern {pattern.Number} plays ({percent}% roll)");
         return true;
     }
 
@@ -223,26 +238,55 @@ public static class TargetRange
         pattern = Find(Mathf.Clamp(TestRunConfig.ForcedTrialPhase, 1, Patterns.Length));
         return pattern != null;
     }
+
+    /// <summary>
+    /// For Test Mode's event list: the pattern the range would put up in the gap
+    /// after <paramref name="survivedWave"/>, or null when it is not due there. The
+    /// roll is left out on purpose — the tester is the one choosing. Nothing is
+    /// written; <see cref="PickByHand"/> does that.
+    /// </summary>
+    public static Pattern PeekDue(int survivedWave, string mapId)
+    {
+        if (mapId != MapId || !IsDueAfter(survivedWave) || Sprite == null) return null;
+        return Next();
+    }
+
+    /// <summary>
+    /// The tester picked the range for the gap. Recorded as put up, the way
+    /// TryPick records it, without the roll.
+    /// </summary>
+    public static void PickByHand(Pattern pattern, int survivedWave)
+    {
+        RecordPlayed(pattern);
+        LowEventRoll.NotePlayed(survivedWave);
+        Debug.Log($"[Targets] after wave {survivedWave}: pattern {pattern.Number} plays (picked in Test Mode)");
+    }
 #endif
 
     /// <summary>
-    /// The lowest-numbered pattern never cleared; once all five have been, the one
-    /// after whichever was cleared last. A pattern that is failed comes back next
-    /// time, on the ladder and in the rotation alike.
+    /// Works through the patterns in batches of five (owner, 2026-10-05). From the one
+    /// just played, the next pattern NOT yet cleared in this batch, wrapping from 5
+    /// back to 1. Pass or fail, play always moves on: with 2 and 4 cleared, playing
+    /// 3 leads to 5 whatever happens, and a failed 3 stays uncleared and comes round
+    /// again. Once all five are cleared the batch resets and starts from 1.
     /// </summary>
     public static Pattern Next()
     {
-        for (int i = 0; i < Patterns.Length; i++)
-        {
-            if (PlayerStats.Get(PatternClearedKey(Patterns[i].Number)) == 0) return Patterns[i];
-        }
+        int mask = PlayerStats.Get(BatchKey);
+        int last = Mathf.Clamp(PlayerStats.Get(LastPlayedKey), 0, Patterns.Length);
 
-        int last = PlayerStats.Get(LastClearedKey);
-        for (int i = 0; i < Patterns.Length; i++)
+        for (int step = 1; step <= Patterns.Length; step++)
         {
-            if (Patterns[i].Number == last) return Patterns[(i + 1) % Patterns.Length];
+            int index = (last - 1 + step + Patterns.Length) % Patterns.Length;
+            if ((mask & (1 << index)) == 0) return Patterns[index];
         }
         return Patterns[0];
+    }
+
+    /// <summary>A pattern was put up, whether or not it gets cleared.</summary>
+    private static void RecordPlayed(Pattern pattern)
+    {
+        PlayerStats.Set(LastPlayedKey, pattern.Number);
     }
 
     /// <summary>A pattern was cleared. Written between waves, so it lands at once.</summary>
@@ -258,7 +302,16 @@ public static class TargetRange
             PlayerStats.Increment(PatternsStat);
         }
         PlayerStats.Increment(ClearedStat);
-        PlayerStats.Set(LastClearedKey, pattern.Number);
+
+        // The batch: this one is done until all five are, then it starts over at 1
+        int full = (1 << Patterns.Length) - 1;
+        int mask = PlayerStats.Get(BatchKey) | (1 << (pattern.Number - 1));
+        if (mask == full)
+        {
+            mask = 0;
+            PlayerStats.Set(LastPlayedKey, 0);
+        }
+        PlayerStats.Set(BatchKey, mask);
         PlayerStats.Flush();
     }
 
@@ -387,7 +440,15 @@ public static class TargetRange
     public static IEnumerator PayOut(TrialRunner runner, Pattern pattern, bool practice)
     {
         if (!practice) RecordClear(pattern);
+        yield return SendRewardOrbs(runner);
+    }
 
+    /// <summary>
+    /// The two orbs on their own, without the bookkeeping. The mine's cart sorting
+    /// pays the same way — see CartSorting.PayOut.
+    /// </summary>
+    public static IEnumerator SendRewardOrbs(TrialRunner runner)
+    {
         var spawner = runner.Spawner;
         float y = runner.LeftKnight != null ? runner.LeftKnight.position.y
                 : runner.RightKnight != null ? runner.RightKnight.position.y : 0f;

@@ -138,6 +138,11 @@ public class BitsAndPieces : BaseWave
         from = new Vector2(12f, -5f), to = new Vector2(-12f, -5f)
     };
 
+    // The run the wave promises will pay: the health one when a tier has one
+    // (owner, 2026-10-14: tiers I and II pay a health orb on the low crossing),
+    // so a quick clear never costs the player the health; otherwise the high one.
+    private OrbRun PromisedRun => lowOrbs.healthOrb && lowOrbs.count > 0 ? lowOrbs : highOrbs;
+
     // Where the gnome rotation stands. Reset at the top of every run — SO state
     // outlives the run that set it, and a rotation that carried over would deal a
     // different shift each time the wave came up.
@@ -210,7 +215,7 @@ public class BitsAndPieces : BaseWave
             // now, with this shift still on the board. One run is enough to keep
             // the promise, and hurrying both would clump two orbs together.
             // See OrbRun.SendFirstIfWaiting.
-            if (i == ambushes.Count - 1) highOrbs.SendFirstIfWaiting(spawner);
+            if (i == ambushes.Count - 1) PromisedRun.SendFirstIfWaiting(spawner);
 
             yield return WaitForAmbushClear();
         }

@@ -18,11 +18,20 @@ public class RailDropPoint : MonoBehaviour
 
     public string Label { get; private set; }
 
-    public void Configure(string label, int lineIndex, float distanceAlong, Vector2 position)
+    /// <summary>
+    /// Which flag stands here. None is the ordinary orange delivery flag; the
+    /// colours are the goals of the cart sorting challenge, which reads this to
+    /// tell whether a cart has reached its own flag.
+    /// </summary>
+    public CartColor Flag { get; private set; }
+
+    public void Configure(string label, int lineIndex, float distanceAlong, Vector2 position,
+                          CartColor flag = CartColor.None)
     {
         Label = label;
         LineIndex = lineIndex;
         DistanceAlong = distanceAlong;
+        Flag = flag;
         transform.position = new Vector3(position.x, position.y, 0f);
     }
 

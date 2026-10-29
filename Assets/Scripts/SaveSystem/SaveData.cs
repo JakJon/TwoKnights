@@ -19,6 +19,12 @@ public class SaveData
     // Level select reopens here; empty on old saves, which resolves to the
     // first unlocked map (see MapSelection.Resolve)
     public string lastPlayedMapId = "";
+    // Where the camp is pitched: the map and the wave the most recent run got to.
+    // The camp draws the knights at their fire on that stage's backdrop, so a run
+    // that reached the deep mine comes home to the deep mine. Empty on a file
+    // that has not started a wave yet — see CampSite.Resolve.
+    public string lastVentureMapId = "";
+    public int lastVentureWave = 0;
     public List<QuestCompletion> completedQuests = new List<QuestCompletion>();
     public List<StatEntry> stats = new List<StatEntry>();
     public List<MapRecord> maps = new List<MapRecord>();

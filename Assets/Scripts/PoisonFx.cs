@@ -12,6 +12,97 @@ public static class PoisonFx
 {
     private const string ChargeName = "VialCharge";
 
+    private static readonly Color Lime = new Color(0.62f, 0.93f, 0.22f);
+    private static readonly Color PaleLime = new Color(0.88f, 1f, 0.62f);
+    private static readonly Color DeepGreen = new Color(0.2f, 0.42f, 0.08f);
+
+    private static Sprite MoteSprite
+    {
+        get
+        {
+            Sprite mote = FireResourceManager.Instance != null
+                ? FireResourceManager.Instance.GetEmberMoteSprite()
+                : null;
+            if (mote == null && PoisonResourceManager.Instance != null)
+            {
+                mote = PoisonResourceManager.Instance.GetPoisonPuffSprite();
+            }
+            return mote;
+        }
+    }
+
+    /// <summary>
+    /// The trail on a poisoned arrow: lime motes, built the same way as the fire
+    /// and ice arrows' trails (FireFx / FrostFx.AttachArrowTrail) out of the same
+    /// white mote. It replaced a thin stream of bubbles (owner, 2026-10-14):
+    /// bubbles also stand for the venom beads that poison whatever touches them,
+    /// so an arrow trailing bubbles read as one more thing to keep away from.
+    /// Parented to the arrow and dies with it, as the other two do.
+    /// </summary>
+    public static ParticleSystem AttachArrowTrail(GameObject arrow)
+    {
+        var host = new GameObject("VenomTrail");
+        host.transform.SetParent(arrow.transform);
+        host.transform.localPosition = Vector3.zero;
+
+        var trail = host.AddComponent<ParticleSystem>();
+
+        var main = trail.main;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.startColor = new Color(Lime.r, Lime.g, Lime.b, 0.5f);
+        main.maxParticles = 120;
+        main.playOnAwake = false;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.2f, 0.4f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.05f, 0.35f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
+
+        var emission = trail.emission;
+        emission.rateOverTime = 32f;
+
+        var shape = trail.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 0.06f;
+
+        var sizeOverLifetime = trail.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        var sizeCurve = new AnimationCurve();
+        sizeCurve.AddKey(0f, 1f);
+        sizeCurve.AddKey(1f, 0.25f);
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
+
+        // Pale at the arrow, lime, then a deep green as it goes out
+        var colorOverLifetime = trail.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+        var gradient = new Gradient();
+        gradient.SetKeys(
+            new[]
+            {
+                new GradientColorKey(PaleLime, 0f),
+                new GradientColorKey(Lime, 0.5f),
+                new GradientColorKey(DeepGreen, 1f)
+            },
+            new[]
+            {
+                new GradientAlphaKey(1f, 0f),
+                new GradientAlphaKey(0.75f, 0.5f),
+                new GradientAlphaKey(0f, 1f)
+            }
+        );
+        colorOverLifetime.color = gradient;
+
+        var renderer = trail.GetComponent<ParticleSystemRenderer>();
+        if (renderer != null)
+        {
+            var material = new Material(Shader.Find("Sprites/Default"));
+            Sprite mote = MoteSprite;
+            if (mote != null) material.mainTexture = mote.texture;
+            renderer.material = material;
+        }
+
+        trail.Play();
+        return trail;
+    }
+
     /// <summary>
     /// Hangs the vial tell on the shield and hands back the system, so the caller
     /// can turn its emission on and off with the cadence rather than rebuilding it

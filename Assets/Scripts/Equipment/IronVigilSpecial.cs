@@ -27,5 +27,6 @@ public class IronVigilSpecial : SpecialDefinition
         // The glow is the whole tell — nothing else on screen says "that hit
         // did nothing", and a special the player can't see working reads as broken
         knight.GetComponent<GlowManager>()?.StartGlow(glow, duration);
+        SparkleFx.ShowGoldSparkles(knight, duration);
     }
 }

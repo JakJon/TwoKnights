@@ -1,0 +1,292 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
+  m_Name: Mine Sorting 3
+  m_EditorClassIdentifier: 
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
+  cellSize: 1
+  fallStagger: 0.03
+  runs:
+  - label: TOP lane, left to right
+    piece: 0
+    axis: 0
+    offset: 3
+    spanViewport: 0
+    overhangCells: 0
+    start: -11
+    count: 17
+    flow: 0
+    layFromFarEnd: 0
+  - label: BOTTOM lane, right to left
+    piece: 0
+    axis: 0
+    offset: -4
+    spanViewport: 0
+    overhangCells: 0
+    start: -5
+    count: 17
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'top lane: down into the right fork'
+    piece: 1
+    axis: 1
+    offset: 6
+    spanViewport: 0
+    overhangCells: 0
+    start: 1
+    count: 2
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'right fork: across to its left prong'
+    piece: 0
+    axis: 0
+    offset: 0
+    spanViewport: 0
+    overhangCells: 0
+    start: 5
+    count: 1
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'right fork: across to its right prong'
+    piece: 0
+    axis: 0
+    offset: 0
+    spanViewport: 0
+    overhangCells: 0
+    start: 7
+    count: 1
+    flow: 0
+    layFromFarEnd: 0
+  - label: 'right fork: left prong, green flag'
+    piece: 1
+    axis: 1
+    offset: 4
+    spanViewport: 0
+    overhangCells: 0
+    start: -2
+    count: 2
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'right fork: right prong, blue flag'
+    piece: 1
+    axis: 1
+    offset: 8
+    spanViewport: 0
+    overhangCells: 0
+    start: -2
+    count: 2
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'bottom lane: up into the left fork'
+    piece: 1
+    axis: 1
+    offset: -6
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 2
+    flow: 0
+    layFromFarEnd: 0
+  - label: 'left fork: across to its left prong'
+    piece: 0
+    axis: 0
+    offset: -1
+    spanViewport: 0
+    overhangCells: 0
+    start: -7
+    count: 1
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'left fork: across to its right prong'
+    piece: 0
+    axis: 0
+    offset: -1
+    spanViewport: 0
+    overhangCells: 0
+    start: -5
+    count: 1
+    flow: 0
+    layFromFarEnd: 0
+  - label: 'left fork: left prong, red flag'
+    piece: 1
+    axis: 1
+    offset: -8
+    spanViewport: 0
+    overhangCells: 0
+    start: 0
+    count: 2
+    flow: 0
+    layFromFarEnd: 0
+  - label: 'left fork: right prong, yellow flag'
+    piece: 1
+    axis: 1
+    offset: -4
+    spanViewport: 0
+    overhangCells: 0
+    start: 0
+    count: 2
+    flow: 0
+    layFromFarEnd: 0
+  tiles:
+  - label: corner
+    piece: 5
+    position: {x: 6, y: 3}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 4
+    position: {x: 4, y: 0}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 5
+    position: {x: 8, y: 0}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 2
+    position: {x: -6, y: -4}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 2
+    position: {x: -8, y: -1}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 3
+    position: {x: -4, y: -1}
+    switchColor: 0
+    whenThrown: 0
+  - label: BLUE corner, at rest
+    piece: 2
+    position: {x: 6, y: 0}
+    switchColor: 2
+    whenThrown: 0
+  - label: BLUE corner, thrown
+    piece: 3
+    position: {x: 6, y: 0}
+    switchColor: 2
+    whenThrown: 1
+  - label: RED corner, at rest
+    piece: 5
+    position: {x: -6, y: -1}
+    switchColor: 1
+    whenThrown: 0
+  - label: RED corner, thrown
+    piece: 4
+    position: {x: -6, y: -1}
+    switchColor: 1
+    whenThrown: 1
+  teleports:
+  - label: 'TOP lane, left to right  ->  top lane: down into the right fork'
+    fromRun: 0
+    toRun: 2
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'top lane: down into the right fork  ->  right fork: across to its right
+      prong (BLUE at rest)'
+    fromRun: 2
+    toRun: 4
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 2
+    whenThrown: 0
+  - label: 'top lane: down into the right fork  ->  right fork: across to its left
+      prong (BLUE thrown)'
+    fromRun: 2
+    toRun: 3
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 2
+    whenThrown: 1
+  - label: 'right fork: across to its left prong  ->  right fork: left prong, green
+      flag'
+    fromRun: 3
+    toRun: 5
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'right fork: across to its right prong  ->  right fork: right prong, blue
+      flag'
+    fromRun: 4
+    toRun: 6
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'BOTTOM lane, right to left  ->  bottom lane: up into the left fork'
+    fromRun: 1
+    toRun: 7
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'bottom lane: up into the left fork  ->  left fork: across to its left
+      prong (RED at rest)'
+    fromRun: 7
+    toRun: 8
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 1
+    whenThrown: 0
+  - label: 'bottom lane: up into the left fork  ->  left fork: across to its right
+      prong (RED thrown)'
+    fromRun: 7
+    toRun: 9
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 1
+    whenThrown: 1
+  - label: 'left fork: across to its left prong  ->  left fork: left prong, red flag'
+    fromRun: 8
+    toRun: 10
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'left fork: across to its right prong  ->  left fork: right prong, yellow
+      flag'
+    fromRun: 9
+    toRun: 11
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  drops:
+  - label: 'Green flag: right fork: left prong, green flag'
+    run: 5
+    distanceAlong: 0.5
+    flag: 3
+    flagSide: 1
+    flagShift: {x: 0, y: 0}
+  - label: 'Blue flag: right fork: right prong, blue flag'
+    run: 6
+    distanceAlong: 0.5
+    flag: 2
+    flagSide: 2
+    flagShift: {x: 0, y: 0}
+  - label: 'Red flag: left fork: left prong, red flag'
+    run: 10
+    distanceAlong: 1
+    flag: 1
+    flagSide: 1
+    flagShift: {x: 0, y: 0.5}
+  - label: 'Yellow flag: left fork: right prong, yellow flag'
+    run: 11
+    distanceAlong: 1
+    flag: 4
+    flagSide: 2
+    flagShift: {x: 0, y: 0.5}

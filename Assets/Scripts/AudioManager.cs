@@ -71,11 +71,13 @@ public class AudioManager : MonoBehaviour
     public SoundEffect frostFreeze;
     public SoundEffect frostShatter;
 
-    // A knight rotting, one tick a second for twenty-five seconds. Deliberately
+    // A knight rotting, one tick every 2.4s for twenty-four seconds. Deliberately
     // NOT the unified playerHurt: that sound is sized for a hit worth fifteen, and
-    // twenty-five of them in a row would read as the knight being beaten to death
-    // by something invisible. This one is a small wet bubble, and it is the only
-    // damage source in the game allowed its own voice — see KnightPoison.
+    // ten of them in a row would read as the knight being beaten to death by
+    // something invisible. This one is two quick wet bubbles ("blub-blub"), about
+    // as loud as the hurt cry so a tick is never missed (owner, 2026-10-24: the
+    // old single 50ms bubble was too subtle), and it is the only damage source in
+    // the game allowed its own voice — see KnightPoison.
     public SoundEffect knightPoisonTick;
     // Guardian. Both are deliberately near the noise floor and both are textures
     // rather than events: a Reflector knight turns rocks around all wave, and a

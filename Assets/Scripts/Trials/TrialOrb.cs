@@ -246,7 +246,7 @@ public class TrialOrb : MonoBehaviour, IChillable
         _bittenAt = Time.time;
         if (_renderer != null) _renderer.color = BittenTint;
         if (_bubbles != null) _bubbles.StopBubbles();
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.poisoned);
+        EnemyBase.PlayPoisonedSound();
         Struck?.Invoke(this);
     }
 

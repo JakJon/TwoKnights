@@ -85,6 +85,10 @@ public class DamageText : MonoBehaviour
         
         if (textMesh != null)
         {
+            // The run's pixel font, set plain and a little lighter than it is
+            // drawn. The prefab's own is a slanted bold sans, and a pixel letter
+            // leant over stops being pixels.
+            RunFont.ApplyToDamageNumber(textMesh);
             originalColor = textMesh.color;
         }
 
@@ -117,7 +121,9 @@ public class DamageText : MonoBehaviour
 
     public void Initialize(int damage, Color? color = null)
     {
-        Show(damage, "-", color ?? Color.red);
+        // A hit that did nothing reads "0", not "-0" — the Overseer's crimson
+        // carts print one on every hit, and that is their whole tell
+        Show(damage, damage == 0 ? "" : "-", color ?? Color.red);
     }
 
     /// <summary>
@@ -174,7 +180,11 @@ public class DamageText : MonoBehaviour
 
         float t = Mathf.InverseLerp(low, high, Mathf.Clamp(damage, low, high));
         t = Mathf.Pow(t, Mathf.Max(0.05f, sizeCurve));
-        return Mathf.Lerp(smallestSize, largestSize, t);
+
+        // The two sizes above were chosen for the sans the numbers used to be set
+        // in. The pixel font's digits fill less of its em square, so the same
+        // font size would print every number about a quarter smaller.
+        return Mathf.Lerp(smallestSize, largestSize, t) * RunFont.VersusLiberation;
     }
 
     private void ApplySize(int damage)

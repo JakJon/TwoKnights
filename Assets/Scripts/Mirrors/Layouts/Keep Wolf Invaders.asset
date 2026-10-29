@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a6a47b0498c91742bc67c17636fb1be, type: 3}
+  m_Name: Keep Wolf Invaders
+  m_EditorClassIdentifier: 
+  paneSet: {fileID: 11400000, guid: e56bb789c93560a4ab4c5b4dcc1d9155, type: 2}
+  redirect: 1
+  panes:
+  - label: top row, left
+    color: 3
+    facing: 1
+    position: {x: -9.4, y: 3.15}
+  - label: top row, right
+    color: 3
+    facing: 1
+    position: {x: 9.4, y: 3.15}
+  - label: upper row, left
+    color: 0
+    facing: 1
+    position: {x: -9.4, y: 1.05}
+  - label: upper row, right
+    color: 0
+    facing: 1
+    position: {x: 9.4, y: 1.05}
+  - label: lower row, left
+    color: 1
+    facing: 1
+    position: {x: -9.4, y: -1.05}
+  - label: lower row, right
+    color: 1
+    facing: 1
+    position: {x: 9.4, y: -1.05}
+  - label: bottom row, left
+    color: 2
+    facing: 1
+    position: {x: -9.4, y: -3.15}
+  - label: bottom row, right
+    color: 2
+    facing: 1
+    position: {x: 9.4, y: -3.15}

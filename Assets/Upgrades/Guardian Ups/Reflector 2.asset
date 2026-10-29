@@ -24,9 +24,6 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 100%
-    labelText: REFLECT
-    isPositive: 1
   - valueText: x2.5
     labelText: REFLECT DAMAGE
     isPositive: 1

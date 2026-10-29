@@ -112,6 +112,12 @@ public class ShieldSight : MonoBehaviour
     {
         if (_rangeUnits <= 0f) return;
 
+        // Upgrades held (cart sorting): the sight is put away with the rest and
+        // comes back where it was.
+        bool shown = !UpgradeHold.Held;
+        if (_beamRoot != null && _beamRoot.gameObject.activeSelf != shown) _beamRoot.gameObject.SetActive(shown);
+        if (!shown) return;
+
         PulseGlow();
         AdvanceGap();
         TickBeamDamage();
@@ -205,6 +211,9 @@ public class ShieldSight : MonoBehaviour
         for (int i = 0; i < _inBeam.Count; i++)
         {
             EnemyBase enemy = _inBeam[i];
+
+            // A carried guard facing the beam takes all of it, burn included
+            if (enemy.TryBlockBlowFrom(origin)) continue;
 
             // Fire Sight, before the tick. Lighting anything in the beam that is not
             // already alight — rather than on entering it — is what makes the capstone

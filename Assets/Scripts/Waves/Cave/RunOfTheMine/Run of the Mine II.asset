@@ -30,41 +30,28 @@ MonoBehaviour:
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   trafficCarts: 13
   trafficInterval: 0
   firstCartDelay: 0.5
   packLeadIn: 5
   relays:
-  - label: first relay (two, two thirds of a lap)
+  - label: first relay (two, nearly a full lap)
     courseRun: 0
     wolves: 2
     wolfInterval: 0.8
     leadIn: 1.5
-    courseDistance: 26
-  - label: second relay (two, two thirds of a lap, from the west)
+    courseDistance: 42
+  - label: second relay (one, nearly a full lap, from the west)
     courseRun: 2
-    wolves: 2
+    wolves: 1
     wolfInterval: 0.8
     leadIn: 1.5
-    courseDistance: 26
-  - label: third relay (two, two thirds of a lap)
-    courseRun: 0
-    wolves: 2
-    wolfInterval: 0.8
-    leadIn: 1.5
-    courseDistance: 26
-  - label: first relay (two, two thirds of a lap) [pass 2]
-    courseRun: 2
-    wolves: 2
-    wolfInterval: 0.8
-    leadIn: 1.5
-    courseDistance: 26
-  - label: second relay (two, two thirds of a lap, from the west) [pass 2]
-    courseRun: 0
-    wolves: 2
-    wolfInterval: 0.8
-    leadIn: 1.5
-    courseDistance: 26
+    courseDistance: 42
   packOrder:
   - 1
   - 1
@@ -80,9 +67,9 @@ MonoBehaviour:
     to: {x: 12, y: 1}
   ogres:
     label: 3 in through the ring's elbows
-    count: 2
+    count: 1
     firstAt: 7
-    interval: 6
+    interval: 9
     fireEveryNth: 3
     entries:
     - label: in through the bottom-right elbow
@@ -135,5 +122,5 @@ MonoBehaviour:
     salvoSpread: 0.45
     salvoStagger: 1.64
     restAfter: 4
-  projectileWindow: 64
+  projectileWindow: 26
   rockSpeed: 1.75

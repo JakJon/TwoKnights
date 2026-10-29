@@ -68,12 +68,47 @@ public abstract class EnemyGnomeCart : EnemyMineCart
     [Tooltip("Played the moment the throw goes out. Lives on the prefab so each rider can sound like its own weapon.")]
     [SerializeField] protected SoundEffect throwSound;
 
+    [Tooltip("Only used when the wave turns WaitForClearLanding on: seconds either side of this throw's landing that must be free of anything else due at the same knight.")]
+    [SerializeField] protected float landingClearance = 0.75f;
+
     [Header("Wreck")]
     [Tooltip("Left rolling in the rider's place when he dies. Needs a MineCart.")]
     [SerializeField] private GameObject wreckPrefab;
 
     private float _armedAt;
     private float _lastThrowAt = float.NegativeInfinity;
+
+    /// <summary>
+    /// Hold each throw while its landing would share a moment with something
+    /// else due at the same knight — the fire ogre's rule (IncomingLedger). A
+    /// knight has one guard facing one way, so a pickaxe landing with a rock from
+    /// another direction cannot be blocked. Off by default; set per rider by the
+    /// wave that sends it (the Overseer's ambushes turn it on, because his rock and
+    /// axes are a fixed pattern the gnomes must not land on top of).
+    /// </summary>
+    public bool WaitForClearLanding { get; set; }
+
+    /// <summary>Where a throw would land, and when, if it went out this frame.</summary>
+    protected struct Landing
+    {
+        public Transform Knight;
+        public float ArrivesAt;
+
+        public Landing(Transform knight, float arrivesAt)
+        {
+            Knight = knight;
+            ArrivesAt = arrivesAt;
+        }
+    }
+
+    /// <summary>
+    /// Fill <paramref name="into"/> with every landing this throw would make if it
+    /// went now. Only asked when WaitForClearLanding is on, and always straight
+    /// after ShouldRelease said yes, so whatever that picked is still current.
+    /// </summary>
+    protected virtual void PlanLandings(List<Landing> into) { }
+
+    private static readonly List<Landing> Planned = new List<Landing>();
 
     /// <summary>The gate every gnome of this concrete type shares.</summary>
     protected abstract ThrowGate Gate { get; }
@@ -163,6 +198,24 @@ public abstract class EnemyGnomeCart : EnemyMineCart
         if (Time.time - _lastThrowAt < cooldown) return;
         if (Time.time - SharedLastThrow() < cooldown) return;
         if (!ShouldRelease()) return;
+
+        // Held, not skipped: nothing is stamped, so the same check runs again
+        // next frame and the throw goes the moment its landing slot is free
+        if (WaitForClearLanding)
+        {
+            Planned.Clear();
+            PlanLandings(Planned);
+            for (int i = 0; i < Planned.Count; i++)
+            {
+                if (!IncomingLedger.IsClear(Planned[i].Knight, Planned[i].ArrivesAt, landingClearance)) return;
+            }
+            // Booked before the projectile exists, so a second thrower deciding
+            // on this same frame sees the slot taken
+            for (int i = 0; i < Planned.Count; i++)
+            {
+                IncomingLedger.Book(Planned[i].Knight, Planned[i].ArrivesAt);
+            }
+        }
 
         _lastThrowAt = Time.time;
         StampShared(Time.time);

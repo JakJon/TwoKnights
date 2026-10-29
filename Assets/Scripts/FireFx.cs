@@ -88,7 +88,7 @@ public static class FireFx
     }
 
     // Ember trail on an arrow that rolled ignite, so the player can read which
-    // shots are live before they land — the role PoisonProjectile's bubbles play
+    // shots are live before they land — the role PoisonFx's lime trail plays
     // for Serpent. Parented to the arrow; detaches and fades when it's destroyed.
     public static ParticleSystem AttachArrowTrail(GameObject arrow)
     {

@@ -99,4 +99,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 545f0a08b79e402c96d342e9da17b031, type: 2}
   - {fileID: 11400000, guid: 528ca1b5f6494189afdf85b2442bb8b3, type: 2}
   - {fileID: 11400000, guid: 09c39773013d47fb98fe618cff8d78c1, type: 2}
+  - {fileID: 11400000, guid: bb56f946fecf8dc44ac39b41ca3fd782, type: 2}
+  - {fileID: 11400000, guid: a13dabddb599df34e91a9b3c2f20b809, type: 2}
   upgradesPerSelection: 3

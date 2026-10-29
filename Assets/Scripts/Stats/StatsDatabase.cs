@@ -82,6 +82,11 @@ public static class StatsDatabase
         // deliberately not listed.
         new StatDefinition("targets.patterns", "Target Patterns Cleared", "target patterns cleared"),
         new StatDefinition("targets.cleared",  "Target Ranges Cleared",   "target ranges cleared"),
+
+        // The mine's cart sorting — see CartSorting. Sorting Carts reads the first;
+        // the per-phase flags and the rotation's place are bookkeeping, as above.
+        new StatDefinition("carts.phases", "Cart Sorting Phases Cleared", "cart sorting phases cleared"),
+        new StatDefinition("carts.sorted", "Cart Sortings Cleared",       "cart sortings cleared"),
     };
 
     /// <summary>

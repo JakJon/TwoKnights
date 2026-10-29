@@ -1,6 +1,9 @@
 using UnityEngine;
 
-public class ProjectileMovement : MonoBehaviour, IChillable, IIncoming
+// Deliberately NOT IChillable: no rank of Glacial Ward slows a rock (owner,
+// 2026-10-15). The ward still slows the other enemy ammunition — bombs,
+// fireballs, pickaxes — which state that on themselves.
+public class ProjectileMovement : MonoBehaviour, IIncoming
 {
     private Transform _target;
     [SerializeField] private float _speed = .75f;
@@ -31,21 +34,6 @@ public class ProjectileMovement : MonoBehaviour, IChillable, IIncoming
         AudioManager.Instance.PlaySFX(AudioManager.Instance.projectileSpawn);
     }
 
-    // Glacial Ward II: a rock crossing a knight's ring of cold loses half its
-    // speed. Not damage and not defence - it is time to bring the shield round,
-    // which is the only currency the Frigid Order deals in.
-    private float _chillMultiplier = 1f;
-    private float _chillUntil = -1f;
-
-    public void ApplyChill(float speedMultiplier, float seconds)
-    {
-        if (seconds <= 0f) return;
-        _chillMultiplier = Mathf.Clamp(Mathf.Min(_chillMultiplier, speedMultiplier), 0.05f, 1f);
-        _chillUntil = Mathf.Max(_chillUntil, Time.time + seconds);
-    }
-
-    private float ChillScale => Time.time < _chillUntil ? _chillMultiplier : 1f;
-
     /// <summary>
     /// Send this rock somewhere else, faster. Used by the Guardian Order's Reflector
     /// when a guard turns a rock around.
@@ -54,10 +42,6 @@ public class ProjectileMovement : MonoBehaviour, IChillable, IIncoming
     /// this transform's own local +X — there is no velocity to reverse. Same reason
     /// MirrorPane.WriteFlight sets the rotation for this family and only touches a
     /// Rigidbody2D when the projectile actually has one.
-    ///
-    /// The chill is deliberately left alone: a rock slowed by a Glacial Ward on its
-    /// way in is still a slowed rock on its way out, and one Order does not get to
-    /// quietly cancel another's effect on the way past.
     /// </summary>
     public void Redirect(Vector2 direction, float speedMultiplier)
     {
@@ -81,14 +65,14 @@ public class ProjectileMovement : MonoBehaviour, IChillable, IIncoming
         {
             if (_target == null) return float.PositiveInfinity;
             Vector2 aim = _target.position + new Vector3(0f, 0.5f, 0f);
-            return IncomingLedger.StraightEta(transform.position, transform.right, aim, _speed * ChillScale);
+            return IncomingLedger.StraightEta(transform.position, transform.right, aim, _speed);
         }
     }
 
     void Update()
     {
         // Move in a straight line toward the initial target direction
-        transform.Translate(Vector2.right * _speed * ChillScale * Time.deltaTime);
+        transform.Translate(Vector2.right * _speed * Time.deltaTime);
     }
 
     void FaceTarget()

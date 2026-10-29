@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bc3cd12b74f3f284233667ab139f960, type: 3}
+  m_Name: Heavy Swing
+  m_EditorClassIdentifier: 
+  upgradeName: Heavy Swing
+  description: Enemies slain by your sword get launched backward and deal damage
+    to whatever they hit.
+  weight: 100
+  order: 3
+  requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
+  unlockedBy: []
+  requiresAllUnlocks: 0
+  lockedBy: []
+  stats:
+  - valueText: +LAUNCH
+    labelText: ENEMIES
+    isPositive: 1
+  - valueText: 20
+    labelText: SWORD DAMAGE
+    isPositive: 1
+  rank: 1

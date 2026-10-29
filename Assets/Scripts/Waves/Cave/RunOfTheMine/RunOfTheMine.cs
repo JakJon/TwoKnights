@@ -45,13 +45,25 @@ using UnityEngine;
 // crossing up, watch it go by, and take the next one.
 // A quarter of a lap is not a decision, it is a reflex: the first keg you see is
 // the only keg you get. So the first three tiers are the road getting shorter —
-// fifty-nine, twenty-six, twenty-two.
+// fifty-nine, forty-two, forty. Tiers II and III were twenty-six and twenty-two,
+// which put a brown wolf on a knight 9 and 7.6 seconds after it came on screen;
+// the owner asked for 13 or more (2026-10-14), and these give 14.3 and 13.8.
+// Browns are why these two need the longest roads after tier I: they run 3.5
+// to a grey's 3, and the late tiers send no browns.
 //
 // From tier IV the road goes back up, to thirty-six, thirty-four, thirty-two and
 // thirty (owner, 2026-09-25: "wolves attack too soon, double their run"). Those
-// tiers carry nine to twelve relays of four or five wolves, and on an eighteen-unit
+// tiers carry four to eight relays of four or five wolves, and on an eighteen-unit
 // road every relay was on the knights six seconds after it appeared. The late
 // tiers get harder through the size of the pack instead.
+//
+// The pack over the seven tiers is 3 / 3 / 7 / 16 / 24 / 32 / 40 wolves (owner,
+// 2026-10-17: tiers I–III halved and the rest re-spaced so the count climbs
+// steadily, then every enemy on every tier cut by a third; 2026-10-19: tier I
+// given a second relay of two browns after its single wolf). The rock window
+// is cut with the relays, at each tier's old seconds per relay: the wave
+// waits for it to run out, so a window sized for the old relay count would
+// leave a minute of rock with nothing else on the board.
 //
 // The arithmetic of the crossing, which is geometry rather than feel:
 //   * A keg reaches 2.8 units (EnemyKegCart) and deals 15.

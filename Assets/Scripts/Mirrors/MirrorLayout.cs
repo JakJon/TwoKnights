@@ -34,7 +34,11 @@ public class MirrorLayout : ScriptableObject
     [SerializeField] private MirrorPaneSet paneSet;
 
     [Tooltip("How a shot's heading survives the trip. See MirrorRedirect — this changes what a given arrangement DOES, so it is authored, not assumed.")]
-    [SerializeField] private MirrorRedirect redirect = MirrorRedirect.MirrorAboutFacing;
+    // PreserveDirection is the castle's rule (owner, 2026-10-26): a shot going
+    // right into a green pane comes out of the right of the other green pane,
+    // same speed, same angle. Only Keep Looking Good.asset (the deleted test
+    // wave's board, still borrowed by Store Capture) uses MirrorAboutFacing.
+    [SerializeField] private MirrorRedirect redirect = MirrorRedirect.PreserveDirection;
 
     [Tooltip("Every pane on the board. A colour must appear exactly twice — MirrorNetwork says so loudly if it does not.")]
     [SerializeField] private List<MirrorPaneEntry> panes = new List<MirrorPaneEntry>();

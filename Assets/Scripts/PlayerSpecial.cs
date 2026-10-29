@@ -34,6 +34,12 @@ public class PlayerSpecial : MonoBehaviour
     public int CurrentSpecial => _currentSpecial;
     public int MaxSpecial => maxSpecial;
 
+    /// <summary>
+    /// What this knight's special is called, for text that has to name it. Null
+    /// while the knight carries none. With two slots filled it is the first.
+    /// </summary>
+    public string SpecialName => _specials.Count > 0 ? _specials[0].DisplayName : null;
+
     // Add this field to track if SFX has been played for the current streak
     private bool _specialBarFilledSfxPlayed = false;
 

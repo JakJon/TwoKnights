@@ -9,7 +9,8 @@ using UnityEngine.UIElements;
 /// and hands each piece over as it is explained. Everything here is reversible and
 /// nothing is destroyed: the right knight has to be standing in the scene the whole
 /// time (the Spawner found it by tag before the tutorial ever started, and wave one
-/// is about to need it), it is simply invisible, inert and out of harm's way.
+/// is about to need it), it is simply invisible, inert and out of harm's way until
+/// the last two lessons bring it on.
 /// </summary>
 public class TutorialStage
 {
@@ -90,17 +91,16 @@ public class TutorialStage
     public void AllowSpecial() => SetInput(_leftKnight, shield: true, bow: true, sword: true, special: true);
 
     /// <summary>
-    /// Hands the game over: both knights visible and answering the sticks, both
-    /// sets of bars up, and nobody untouchable any more. From here the arena is in
-    /// exactly the state a normal run starts in.
+    /// Puts the second knight on the board to stay: fully drawn, solid again, its
+    /// bars up, and answering the controller the way the first one does. The
+    /// director fades the sprites and bars in first; this is the part that is not
+    /// a fade. Neither knight can be hurt yet.
     /// </summary>
-    public void RestoreEverything()
+    public void SeatRightKnight()
     {
         SetKnightAlpha(_rightKnight, _rightSprites, _rightSpriteColors, 1f);
         SetInput(_leftKnight, shield: true, bow: true, sword: true, special: true);
         SetInput(_rightKnight, shield: true, bow: true, sword: true, special: true);
-        SetUntouchable(_leftKnight, false);
-        SetUntouchable(_rightKnight, false);
         SetHudOpacity(1f, 1f);
 
         // Restored to what each was, not blanket-enabled — a collider that was off
@@ -109,6 +109,31 @@ public class TutorialStage
         {
             if (_rightColliders[i] != null) _rightColliders[i].enabled = _rightColliderEnabled[i];
         }
+    }
+
+    /// <summary>
+    /// For the one lesson that is about being hit: both shields stop where they
+    /// are pointing, and both knights can be hurt. Bow, sword and special are
+    /// left alone, because none of them can stop a rock.
+    /// </summary>
+    public void FreezeShieldsAndAllowDamage()
+    {
+        SetInput(_leftKnight, shield: false, bow: true, sword: true, special: true);
+        SetInput(_rightKnight, shield: false, bow: true, sword: true, special: true);
+        SetUntouchable(_leftKnight, false);
+        SetUntouchable(_rightKnight, false);
+    }
+
+    /// <summary>
+    /// Hands the game over: both knights visible and answering the sticks, both
+    /// sets of bars up, and nobody untouchable any more. From here the arena is in
+    /// exactly the state a normal run starts in.
+    /// </summary>
+    public void RestoreEverything()
+    {
+        SeatRightKnight();
+        SetUntouchable(_leftKnight, false);
+        SetUntouchable(_rightKnight, false);
     }
 
     /// <summary>The left knight's bars, brought up on their own for the orb lesson.</summary>

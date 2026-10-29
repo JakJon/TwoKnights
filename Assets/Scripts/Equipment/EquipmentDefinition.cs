@@ -14,20 +14,18 @@ public abstract class EquipmentDefinition : ScriptableObject
     [Tooltip("Stable save key. Never change it once a build has shipped — saves store this string.")]
     [SerializeField] protected string id;
     [SerializeField] protected string displayName;
-    [Tooltip("Flavor. One sentence, second person, NO numbers — house style.")]
-    [TextArea(2, 4)]
-    [SerializeField] protected string description;
-    [Tooltip("Exactly what it does, with the numbers. This is the line a player buys on.")]
+    // There is no flavor "description" any more (owner, 2026-10-05: not needed).
+    // The effect line is the only text an item has.
+    [Tooltip("Exactly what it does, with the numbers. This is the line a player buys on, and the only text the item has.")]
     [SerializeField] protected string effect;
     [SerializeField] protected Sprite icon;
     [Tooltip("Crystals to buy in the camp shop. 0 means quest reward only, never sold.")]
     [SerializeField] protected int crystalCost = 0;
-    [Tooltip("Badges on the item card, same shape as an upgrade's — the numbers the description deliberately leaves out.")]
+    [Tooltip("Badges on the item card, same shape as an upgrade's.")]
     [SerializeField] protected List<UpgradeStat> stats = new List<UpgradeStat>();
 
     public string Id => id;
     public string DisplayName => displayName;
-    public string Description => description;
     /// <summary>The mechanical line, with numbers. Never leave this empty on a shop item.</summary>
     public string Effect => effect;
     public Sprite Icon => icon;

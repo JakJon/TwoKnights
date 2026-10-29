@@ -56,13 +56,8 @@ public class ShopPanel : MonoBehaviour
             Slot == SlotKind.Special ? "Special Slot" :
             Equipment != null ? Equipment.DisplayName : (Special != null ? Special.DisplayName : "");
 
-        public string Description =>
-            Slot == SlotKind.Equipment
-                ? "The quartermaster can be talked into a second belt loop, given a reason."
-                : Slot == SlotKind.Special
-                    ? "Whatever it is you do when the bar fills, you can learn to do two of them at once."
-                    : Equipment != null ? Equipment.Description : (Special != null ? Special.Description : "");
-
+        // The one line of text an item has. Equipment and specials carried a second,
+        // flavor line until 2026-10-05 (owner: not needed).
         public string Effect =>
             Slot == SlotKind.Equipment
                 ? "+1 equipment slot on both knights."
@@ -336,7 +331,7 @@ public class ShopPanel : MonoBehaviour
 
         // Rows are plain VisualElements, so nothing scrolls them into view on
         // its own — without this a controller can select a row it cannot see
-        if (_list != null) _list.ScrollTo(_entries[Index].Row);
+        ListScroll.Reveal(_list, _entries[Index].Row);
 
         if (_detail != null)
         {
@@ -344,7 +339,7 @@ public class ShopPanel : MonoBehaviour
             string tail = entry.Owned
                 ? entry.OwnedTail
                 : (CrystalBank.CanAfford(entry.Cost) ? "" : "\nNot enough crystals.");
-            _detail.text = ItemText.Detail(entry.Effect, entry.Description) + tail;
+            _detail.text = entry.Effect + tail;
         }
     }
 

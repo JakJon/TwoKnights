@@ -11,8 +11,9 @@ using UnityEngine;
 //      multiplier on a blow the PLAYER lands - so a Frigid knight without Frost
 //      Bite is still buying time and nothing else, which is what the whole
 //      roster below is priced against. The one exception is Rimeblade, whose
-//      burst adds frost damage to the swing that throws it (owner's call,
-//      2026-09-25) - still a blow the player landed, never a timer paying out.
+//      blade adds frost damage to whatever it touches (owner's call, 2026-09-25;
+//      moved off the burst and onto the blade's contact on 2026-10-05) - still
+//      a blow the player landed, never a timer paying out.
 //   2. Only a blow can freeze. Fields, auras and splinters chill; they never
 //      stop anything. The ward is a floor of cold, not a lockdown engine - this
 //      is the direct analogue of Ember's "only your shots can ignite", and it
@@ -82,7 +83,8 @@ public class FrigidBoost : MonoBehaviour
     /// because standing in the ring is what is being paid for.</summary>
     public const float WardChillSeconds = 0.6f;
 
-    /// <summary>What the ward does to enemy ammunition crossing it, at every rank.</summary>
+    /// <summary>What the ward does to enemy ammunition crossing it, at every rank.
+    /// Rocks excepted - no rank slows a rock (owner, 2026-10-15).</summary>
     public const float WardProjectileSpeedMultiplier = 0.5f;
 
     /// <summary>Frost Bite: what a CHILLED body loses per second once the capstone
@@ -270,8 +272,15 @@ public class FrigidBoost : MonoBehaviour
 
     /// <summary>Any Frost Tip rank (drafted or from Winter's Tooth) lets this
     /// knight's blows freeze a chilled body. Deep Freeze is checked too so the
-    /// rule never depends on the draft order.</summary>
-    public bool CanFreeze { get { return TotalFrostTip > 0 || deepFreezeLevel > 0; } }
+    /// rule never depends on the draft order.
+    ///
+    /// Rimeblade counts as well (owner, 2026-10-09): its burst freezes what was
+    /// already chilled whether or not the knight owns Frost Tip. Before this a
+    /// knight who reached Rimeblade through Glacial Ward could only ever chill
+    /// with it. The burst is the only blow such a knight has that carries cold -
+    /// arrows still need Frost Tip (ArrowsChill) - so nothing else starts
+    /// freezing because of this.</summary>
+    public bool CanFreeze { get { return TotalFrostTip > 0 || deepFreezeLevel > 0 || rimebladeLevel > 0; } }
 
     /// <summary>What a blow landed on a frozen body is multiplied by. One means
     /// the knight has no Shatter and the hit is just a hit.</summary>
@@ -354,11 +363,13 @@ public class FrigidBoost : MonoBehaviour
     public bool WardSlowsProjectiles { get { return glacialWardLevel >= 1; } }
 
     /// <summary>Rimeblade's frost damage per rank, dealt ON TOP of the sword's own
-    /// hit to everything the burst catches: 5, then 10, then 15.</summary>
+    /// hit to whatever the blade itself touches: 5, then 10, then 15. The burst
+    /// deals none of it (owner, 2026-10-05) - see SwordSwing.OnEnemyHit.</summary>
     public const int RimebladeFrostDamagePerRank = 5;
 
-    // Every rank fires on every swing (owner's call, 2026-09-25 - it used to be
-    // 33% / 60% / 100%). What a rank buys now is reach and frost damage.
+    // Every rank bursts on every swing (owner's call, 2026-09-25 - it used to be
+    // 33% / 60% / 100%). What a rank buys now is the burst's reach and the blade's
+    // frost damage. The burst itself only chills or freezes.
     public bool ShouldReleaseRimeblade() { return rimebladeLevel > 0; }
 
     public float RimebladeRadius
@@ -380,8 +391,9 @@ public class FrigidBoost : MonoBehaviour
     /// The one door cold comes through, so every source spends the same rules.
     ///
     /// <paramref name="isBlow"/> is pillar 2 made structural: true only for a hit
-    /// the knight landed with an arrow or the blade. Everything else - the ward,
-    /// splinters - passes false and can never do more than chill.
+    /// the knight landed with an arrow, or the burst a Rimeblade swing throws.
+    /// Everything else - the ward, splinters - passes false and can never do more
+    /// than chill.
     /// </summary>
     /// <returns>True if this touch froze the target.</returns>
     public bool TouchWithCold(EnemyBase enemy, bool isBlow)

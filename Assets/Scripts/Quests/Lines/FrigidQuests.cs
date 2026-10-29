@@ -29,7 +29,7 @@ public static class FrigidQuests
                             menu: "{count} frost trials passed",
                             npc: "Pass the frost trials"),
             reward: Reward(crystals: 2),
-            unlocks: Gate(Stat("frigid.chilled", 60)),
+            unlocks: Gate(Stat("frigid.chilled", 120)),
             cast: Cast(NpcId.Wizard, UpgradeOrder.Frigid),
             offer:
                 "Oh.. It seems that you may know how to handle frost magic.. That is very exciting!\n"

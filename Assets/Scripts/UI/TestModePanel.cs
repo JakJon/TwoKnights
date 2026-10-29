@@ -11,6 +11,9 @@ using UnityEngine.UIElements;
 // upgrades to each knight within the budget a real run would have earned
 // (wave N = N-1 picks, alternating knights), then launch the run.
 // Added at runtime by CampMenuController; compiled out of release builds.
+//
+// The same panel is the pause menu's and the death screen's Change Upgrades
+// (InRun): only the upgrade list, starting from what the knights hold now.
 public class TestModePanel : MonoBehaviour
 {
     private const int MinWave = 1;
@@ -34,6 +37,7 @@ public class TestModePanel : MonoBehaviour
     private Label _waveValue;
     private Label _mapValue;
     private Label _budgetLine;
+    private Label _startLabel;
     private Button _closeButton;
 
     private enum RowKind { Wave, Map, Randomize, Trial, Section, Upgrade, Start }
@@ -69,8 +73,21 @@ public class TestModePanel : MonoBehaviour
     private int _heldHorizontal;
     private float _nextVerticalRepeat;
     private float _nextHorizontalRepeat;
+    // InRun only: what each knight held when the panel opened. See LeftCap.
+    private int _leftHeld;
+    private int _rightHeld;
 
     public Action OnCloseRequested;
+
+    /// <summary>
+    /// Set by the pause menu and the death screen, which open this panel inside a
+    /// test run rather than at camp. The wave and the map are the run's own, so
+    /// only the upgrade list is offered. It opens on what the knights hold now,
+    /// and applying rebuilds the run at the wave it is on with the new picks -
+    /// the same restart the death screen's Try Wave Again does. Upgrades cannot be
+    /// taken off a knight mid-wave, so a restart is the only way to change them.
+    /// </summary>
+    public bool InRun { get; set; }
 
     public bool IsVisible => _panel != null && _panel.style.display == DisplayStyle.Flex;
 
@@ -83,6 +100,7 @@ public class TestModePanel : MonoBehaviour
     {
         if (_panel == null) BindUI();
         if (_panel == null) return;
+        if (InRun) LoadRunState();
         _panel.style.display = DisplayStyle.Flex;
         _inputReadyTime = Time.unscaledTime + EntryGrace;
         SetSelectedIndex(_selectedIndex);
@@ -107,10 +125,11 @@ public class TestModePanel : MonoBehaviour
         _waveValue = _root.Q<Label>("test-wave-value");
         _mapValue = _root.Q<Label>("test-map-value");
         _budgetLine = _root.Q<Label>("test-budget-line");
+        _startLabel = _root.Q<Label>("test-start-label");
         _closeButton = _root.Q<Button>("test-close-button");
         if (_panel == null || _list == null)
         {
-            Debug.LogWarning("TestModePanel: test-panel markup not found in the camp UXML.");
+            Debug.LogWarning("TestModePanel: test-panel markup not found in this document's UXML.");
             _panel = null;
             return;
         }
@@ -119,6 +138,16 @@ public class TestModePanel : MonoBehaviour
         {
             _closeButton.clicked -= Close;
             _closeButton.clicked += Close;
+            // The pause and death screens walk focus with the stick, and the X is
+            // the one thing in this panel that could take it - A would then close
+            // the panel instead of working the selected row. Mouse only, there.
+            if (InRun) _closeButton.focusable = false;
+        }
+
+        if (InRun)
+        {
+            var title = _root.Q<Label>("test-title");
+            if (title != null) title.text = "Change Upgrades";
         }
 
         if (_upgradeManager == null)
@@ -155,16 +184,20 @@ public class TestModePanel : MonoBehaviour
         _rows.Clear();
         _list.Clear();
 
+        // Inside a run the wave and the map are not up for choosing: both rows
+        // are taken off the screen and left out of the list the cursor walks.
         var waveRow = _root.Q<VisualElement>("test-wave-row");
         if (waveRow != null)
         {
-            _rows.Add(new Row { Kind = RowKind.Wave, Element = waveRow });
+            if (InRun) waveRow.style.display = DisplayStyle.None;
+            else _rows.Add(new Row { Kind = RowKind.Wave, Element = waveRow });
         }
 
         var mapRow = _root.Q<VisualElement>("test-map-row");
         if (mapRow != null)
         {
-            _rows.Add(new Row { Kind = RowKind.Map, Element = mapRow });
+            if (InRun) mapRow.style.display = DisplayStyle.None;
+            else _rows.Add(new Row { Kind = RowKind.Map, Element = mapRow });
         }
 
         // Sits at the top of the upgrade list: one press fills both knights'
@@ -185,21 +218,24 @@ public class TestModePanel : MonoBehaviour
 
         // Plays one Order trial at one phase, or one target range pattern, in
         // every gap of the test run — practice only, nothing is recorded.
-        // Left/right cycles it.
-        BuildTrialOptions();
-        var trialRow = new VisualElement();
-        trialRow.AddToClassList("test-row");
-        var trialLabel = new Label("Force event between waves");
-        trialLabel.AddToClassList("test-row-name");
-        trialRow.Add(trialLabel);
-        _trialValue = new Label();
-        _trialValue.AddToClassList("test-row-value");
-        trialRow.Add(_trialValue);
-        int trialIndex = _rows.Count;
-        trialRow.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(trialIndex));
-        trialRow.RegisterCallback<ClickEvent>(_ => CycleTrial(1));
-        _rows.Add(new Row { Kind = RowKind.Trial, Element = trialRow });
-        _list.Add(trialRow);
+        // Left/right cycles it. A setting for the whole run, so camp only.
+        if (!InRun)
+        {
+            BuildTrialOptions();
+            var trialRow = new VisualElement();
+            trialRow.AddToClassList("test-row");
+            var trialLabel = new Label("Force event between waves");
+            trialLabel.AddToClassList("test-row-name");
+            trialRow.Add(trialLabel);
+            _trialValue = new Label();
+            _trialValue.AddToClassList("test-row-value");
+            trialRow.Add(_trialValue);
+            int trialIndex = _rows.Count;
+            trialRow.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(trialIndex));
+            trialRow.RegisterCallback<ClickEvent>(_ => CycleTrial(1));
+            _rows.Add(new Row { Kind = RowKind.Trial, Element = trialRow });
+            _list.Add(trialRow);
+        }
 
         if (_upgradeManager != null)
         {
@@ -258,6 +294,40 @@ public class TestModePanel : MonoBehaviour
             startRow.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(index));
             startRow.RegisterCallback<ClickEvent>(_ => TryStartRun());
             _rows.Add(new Row { Kind = RowKind.Start, Element = startRow });
+        }
+
+        // At camp the cursor opens on the wave row. Here the top row is Randomize,
+        // which throws the loadout away on one press of A, so open on the first
+        // chain instead.
+        if (InRun)
+        {
+            _selectedIndex = Mathf.Max(0, _rows.FindIndex(r => r.Kind == RowKind.Section));
+        }
+    }
+
+    // InRun: start from the run as it stands - its wave number, and both knights'
+    // upgrades as the UpgradeManager has them, mid-run picks included.
+    private void LoadRunState()
+    {
+        var waves = WaveManager.ActiveInstance;
+        _startWave = waves != null ? Mathf.Clamp(waves.CurrentWaveNumber, MinWave, MaxWave) : MinWave;
+
+        _leftPicked.Clear();
+        _rightPicked.Clear();
+        if (_upgradeManager != null)
+        {
+            _leftPicked.UnionWith(_upgradeManager.GetAppliedUpgrades(KnightTarget.LeftKnight));
+            _rightPicked.UnionWith(_upgradeManager.GetAppliedUpgrades(KnightTarget.RightKnight));
+        }
+        _leftHeld = _leftPicked.Count;
+        _rightHeld = _rightPicked.Count;
+
+        // Say what applying will do. A wave in progress is fought again from its
+        // start; in a gap there is no wave to repeat, so the next one starts.
+        if (_startLabel != null)
+        {
+            bool midWave = waves != null && waves.CurrentWave != null;
+            _startLabel.text = midWave ? $"Apply and Restart Wave {_startWave}" : $"Apply and Start Wave {_startWave}";
         }
     }
 
@@ -460,7 +530,7 @@ public class TestModePanel : MonoBehaviour
                       || selected.Kind == RowKind.Upgrade;
         if (scrollIntoView && inList && _list != null)
         {
-            _list.ScrollTo(selected.Element);
+            ListScroll.Reveal(_list, selected.Element);
         }
     }
 
@@ -635,9 +705,12 @@ public class TestModePanel : MonoBehaviour
     }
 
     private int TotalBudget => _startWave - 1;
-    // Picks alternate starting with the left knight, so left gets the odd one
-    private int LeftCap => (TotalBudget + 1) / 2;
-    private int RightCap => TotalBudget / 2;
+    // Picks alternate starting with the left knight, so left gets the odd one.
+    // Inside a run a knight can already hold more than that (a Whetstone's head
+    // start, a loadout set over the bridge), and what they hold must never read
+    // as over budget - so the cap is never below it. Both are 0 at camp.
+    private int LeftCap => Mathf.Max((TotalBudget + 1) / 2, _leftHeld);
+    private int RightCap => Mathf.Max(TotalBudget / 2, _rightHeld);
     private bool OverBudget => _leftPicked.Count > LeftCap || _rightPicked.Count > RightCap;
 
     private void RefreshAll()
@@ -696,10 +769,25 @@ public class TestModePanel : MonoBehaviour
         if (OverBudget) return;
 
         TestRunConfig.Set(_startWave, OrderForApplication(_leftPicked), OrderForApplication(_rightPicked));
-        TestRunConfig.Map = SelectedMap;
-        var trial = _trialOptions.Count > 0 ? _trialOptions[_trialIndex] : default;
-        TestRunConfig.ForcedTrial = trial.Key;
-        TestRunConfig.ForcedTrialPhase = trial.Phase;
+        if (InRun)
+        {
+            // The run keeps its own ground and its own forced-event setting; only
+            // the loadout changes. The wave in progress is the one fought again
+            // (none, in a gap - the wave picker comes up as usual).
+            var waves = WaveManager.ActiveInstance;
+            if (waves != null)
+            {
+                if (waves.CurrentMap != null) TestRunConfig.Map = waves.CurrentMap;
+                TestRunConfig.RetryWave = waves.CurrentWave;
+            }
+        }
+        else
+        {
+            TestRunConfig.Map = SelectedMap;
+            var trial = _trialOptions.Count > 0 ? _trialOptions[_trialIndex] : default;
+            TestRunConfig.ForcedTrial = trial.Key;
+            TestRunConfig.ForcedTrialPhase = trial.Phase;
+        }
 
         if (GameSceneManager.Instance != null)
         {
@@ -747,6 +835,12 @@ public class TestModePanel : MonoBehaviour
         foreach (var pattern in TargetRange.Patterns)
         {
             _trialOptions.Add((TargetRange.ForcedKey, pattern.Number, $"Targets {pattern.Number}"));
+        }
+
+        // And the mine's cart sorting, the same way: its key and the phase number.
+        foreach (var phase in CartSorting.Phases)
+        {
+            _trialOptions.Add((CartSorting.ForcedKey, phase.Number, $"Carts {phase.Number}"));
         }
 
         // Re-opening the panel shows what the last test run was set to

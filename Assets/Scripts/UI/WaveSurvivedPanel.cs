@@ -3,8 +3,13 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 /// <summary>
-/// The beat between a cleared wave and whatever comes next: two words over the
-/// arena, and nothing else.
+/// The beat between a cleared wave and whatever comes next: a second's pause and
+/// the wave-complete sound. It used to put the words "Wave Survived" over the
+/// arena for that second; the owner took them off (2026-10-13) and kept the
+/// pause and the sound. The overlay and its style sheet are still wired, so
+/// showing the words again is the one line marked in ShowWaveSurvived.
+///
+/// What follows is the history of the words themselves.
 ///
 /// It used to carry the quest news as well — headings, one row per objective, a
 /// reward line, and a wait for input whenever a quest finished or opened. All of
@@ -71,14 +76,16 @@ public class WaveSurvivedPanel : MonoBehaviour
     }
 
     /// <summary>
-    /// Shows the words and returns when the run should move on. Runs on unscaled
-    /// time, so the caller may freeze timeScale first.
+    /// Holds the beat and returns when the run should move on. Runs on unscaled
+    /// time, so the caller may freeze timeScale first. IsVisible is still up for
+    /// the length of it, which is what keeps the pause menu from opening inside it.
     /// </summary>
     public IEnumerator ShowWaveSurvived()
     {
-        if (!EnsureUI()) yield break;
-
-        _root.style.display = DisplayStyle.Flex;
+        // Still called, though nothing is shown: it retries the set-up that hides
+        // the overlay, for the case where OnEnable ran before the document was ready.
+        // To bring the words back: if (EnsureUI()) _root.style.display = DisplayStyle.Flex;
+        EnsureUI();
         IsVisible = true;
 
         AudioManager.Instance?.PlaySFX(AudioManager.Instance.waveComplete);

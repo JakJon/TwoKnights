@@ -213,8 +213,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 2.4
-  leadIn: 6
-  runOut: 2
+  leadIn: 1.5
+  runOut: 1.5
   railOffset: 0
   body: {fileID: 4493551660254957739}
   artFacesEast: 1
@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 208b6f0f71347ac4184f7cb48089a595, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 2500
+  health: 1500
   specialOnHit: 5
   specialOnDeath: 10
   goldOnDeath: 1
@@ -261,17 +261,14 @@ MonoBehaviour:
   throwSound:
     clip: {fileID: 8300000, guid: 4fac13e93fd02ae4bb7fdf27ee3efe16, type: 3}
     volume: 1
+  landingClearance: 0.75
   wreckPrefab: {fileID: 0}
   pickaxePrefab: {fileID: 3637945793063949056, guid: e9e65d1cbcdb3b6458a87a824e06317a, type: 3}
-  volleyEveryNthThrow: 3
-  volleyPairs: 3
-  volleySpacing: 0.15
-  volleyRecovery: 1.5
+  axePace: 0.5
+  throwRange: 9
   bombPrefab: {fileID: 6230284414221818368, guid: d28d848a461ca2049b0d7f2fe7dcf24b, type: 3}
-  poisonBombPrefab: {fileID: 2463619481175189397, guid: 9f4001146abc095489539b40600d0860, type: 3}
-  bombsBetweenPoison: 4
-  minVerticalClearance: 1.5
   roarSeconds: 2
-  lastStandSpeedScale: 1.275
-  lastStandThrowScale: 0.5
   bossTitle: The Overseer
+  deathCry:
+    clip: {fileID: 8300000, guid: cb5d92c1d7f6b204f92a621aade4bcfb, type: 3}
+    volume: 1

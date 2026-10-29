@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bc3cd12b74f3f284233667ab139f960, type: 3}
+  m_Name: Guided Heavy Swing
+  m_EditorClassIdentifier: 
+  upgradeName: Guided Heavy Swing
+  description: Enemies launched by your sword are now guided towards their target
+    and deal more damage.
+  weight: 30
+  order: 3
+  requiresOrderCount: 0
+  secondOrder: 0
+  requiresSecondOrderCount: 0
+  unlockedBy:
+  - {fileID: 11400000, guid: bb56f946fecf8dc44ac39b41ca3fd782, type: 2}
+  requiresAllUnlocks: 0
+  lockedBy: []
+  stats:
+  - valueText: +25
+    labelText: DAMAGE
+    isPositive: 1
+  - valueText: +HOMING
+    labelText: ENEMIES
+    isPositive: 1
+  rank: 2

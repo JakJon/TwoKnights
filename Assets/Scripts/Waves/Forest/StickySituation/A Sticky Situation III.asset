@@ -19,7 +19,7 @@ MonoBehaviour:
   unlockedAfterXWaves: 10
   lockedAfterXWaves: 15
   useEnemyTracking: 1
-  waveOccurences: 3
+  waveOccurences: 2
   firstOccurrence: 2
   projectilesPerStraight: 5
   delayBetweenProjectiles: 0.7

@@ -144,8 +144,8 @@ MonoBehaviour:
     restAfter: 2.6
   projectileWindow: 46
   flanks:
-  - label: first four
-    fromTop: 4
+  - label: first pair
+    fromTop: 2
     fromBottom: 0
     firstAt: 5
     interval: 0.8
@@ -153,8 +153,8 @@ MonoBehaviour:
     - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
     stationHeight: 4.3
     laneSpacing: 2.6
-  - label: second four
-    fromTop: 4
+  - label: second pair
+    fromTop: 2
     fromBottom: 0
     firstAt: 15
     interval: 0.8
@@ -162,8 +162,8 @@ MonoBehaviour:
     - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
     stationHeight: 4.3
     laneSpacing: 2.6
-  - label: third four
-    fromTop: 4
+  - label: third pair
+    fromTop: 2
     fromBottom: 0
     firstAt: 25
     interval: 0.8

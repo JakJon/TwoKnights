@@ -28,7 +28,7 @@ public static class SerpentQuests
                             menu: "{count} venom trials passed",
                             npc: "Complete the venom trials"),
             reward: Reward(crystals: 2),
-            unlocks: Gate(Stat("applied.poison", 60)),
+            unlocks: Gate(Stat("applied.poison", 120)),
             cast: Cast(NpcId.Ninja, UpgradeOrder.Serpent),
             offer:
                 "The Serpent Order has noticed your poison techniques.\n"

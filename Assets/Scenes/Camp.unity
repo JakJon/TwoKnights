@@ -706,9 +706,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   campSceneName: Camp
   gameSceneName: Main
-  transitionDelay: 2
   showDeathMessage: 1
-  victoryDelay: 5
   gateVictoryGold: 100
   trueVictoryGold: 250
 --- !u!21 &1259923104
@@ -975,7 +973,7 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: ee758308ae38a2f42bb96a67b6257cf5, type: 3}
     volume: 0.7
   knightPoisonTick:
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 0c9db14a8cedf7941aa0a33cdf251065, type: 3}
     volume: 1
   guardianReflect:
     clip: {fileID: 8300000, guid: 488a0666c1b0441c848dcccd0b9c9a3c, type: 3}
@@ -1124,6 +1122,9 @@ MonoBehaviour:
   cardSettle:
     clip: {fileID: 8300000, guid: 0f774500e81941b9b93a8959fca08974, type: 3}
     volume: 1
+  sfxVolume: 1
+  musicVolume: 0.8
+  musicCrossfade: 2
 --- !u!4 &1436245485
 Transform:
   m_ObjectHideFlags: 0
@@ -1206,10 +1207,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47425e61c4daf6d489eae86ff8bc5dfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  menuStyle: 0
   returnButtonName: return-button
   questsButtonName: quests-button
   equipmentButtonName: equipment-button
   shopButtonName: shop-button
+  settingsButtonName: settings-button
   statsButtonName: stats-button
   resetButtonName: reset-button
   exitButtonName: exit-button
@@ -1218,6 +1221,7 @@ MonoBehaviour:
   statsPanel: {fileID: 1450641613}
   mapSelectPanel: {fileID: 1450641614}
   equipmentPanel: {fileID: 0}
+  settingsPanel: {fileID: 0}
   shopPanel: {fileID: 0}
   fileSelectPanel: {fileID: 0}
   menuContainerName: menu-container

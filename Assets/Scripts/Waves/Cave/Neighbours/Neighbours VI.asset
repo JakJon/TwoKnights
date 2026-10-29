@@ -15,7 +15,7 @@ MonoBehaviour:
   waveName: Neighbours VI
   weight: 1000
   isUnlocked: 0
-  waveDescription: Nine crates, twelve wolves, and a shorter course.
+  waveDescription: Six crates, seven wolves, and a shorter course.
   unlockedAfterXWaves: 20
   lockedAfterXWaves: 26
   useEnemyTracking: 1
@@ -25,23 +25,23 @@ MonoBehaviour:
   crates:
   - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
-  crateCount: 9
-  crateInterval: 3
+  crateCount: 6
+  crateInterval: 4.5
   firstCrateAt: 1
-  wolves: 12
-  wolfInterval: 2.2
+  wolves: 7
+  wolfInterval: 4.05
   firstWolfAt: 5
   packOrder:
   - 0
   - 2
-  courseDistance: 18
+  courseDistance: 25
   courseOffset: 1.2
   courseLeadIn: 6
   courseReversals: 0
   flanks:
-  - label: five from each edge
-    fromTop: 4
-    fromBottom: 4
+  - label: two from the top, two from the bottom
+    fromTop: 2
+    fromBottom: 2
     firstAt: 6
     interval: 0.8
     ratTypes:
@@ -58,9 +58,9 @@ MonoBehaviour:
     to: {x: 12, y: 0.5}
   ogres:
     label: 8 vertically across both haul roads
-    count: 6
+    count: 4
     firstAt: 5
-    interval: 4
+    interval: 6
     fireEveryNth: 3
     entries:
     - label: up across both haul roads, right

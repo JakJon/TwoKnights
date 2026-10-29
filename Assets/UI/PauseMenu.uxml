@@ -3,6 +3,8 @@
     <ui:Template name="QuestOverlay" src="QuestOverlay.uxml" />
     <ui:Template name="EquipmentOverlay" src="EquipmentOverlay.uxml" />
     <ui:Template name="SettingsOverlay" src="SettingsOverlay.uxml" />
+    <!-- Dev builds only: Test Mode's panel, opened by CHANGE UPGRADES -->
+    <ui:Template name="TestModeOverlay" src="TestModeOverlay.uxml" />
     <ui:VisualElement name="pause-menu" class="pause-menu-overlay">
         <!-- Landscape container: a knight's loadout down each side, the menu card
              in the middle. The container itself draws nothing — only the centre
@@ -32,6 +34,9 @@
                         <ui:Button text="QUESTS" name="pause-quests-button" class="menu-button" />
                         <ui:Button text="EQUIPMENT" name="pause-equipment-button" class="menu-button" />
                         <ui:Button text="SETTINGS" name="pause-settings-button" class="menu-button" />
+                        <!-- Dev builds only: shown when the run came from Test Mode -->
+                        <ui:Button text="SKIP WAVE" name="pause-skip-wave-button" class="menu-button test" style="display: none;" />
+                        <ui:Button text="CHANGE UPGRADES" name="pause-change-upgrades-button" class="menu-button test" style="display: none;" />
                         <ui:Button text="QUIT" name="quit-button" class="menu-button secondary" />
                     </ui:VisualElement>
                     <ui:VisualElement name="confirm-actions" class="actions-container confirm" style="display: none;">
@@ -67,6 +72,7 @@
             <ui:Instance template="QuestOverlay" class="overlay-host" />
             <ui:Instance template="EquipmentOverlay" class="overlay-host" />
             <ui:Instance template="SettingsOverlay" class="overlay-host" />
+            <ui:Instance template="TestModeOverlay" class="overlay-host" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

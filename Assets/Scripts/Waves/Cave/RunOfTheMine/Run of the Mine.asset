@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 999e9a662a0db23592693dce4d246088, type: 3}
   m_Name: Run of the Mine
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   waveName: Run of the Mine
   weight: 1000
   isUnlocked: 0
@@ -41,34 +41,52 @@ MonoBehaviour:
     wolfInterval: 0.8
     leadIn: 1.5
     courseDistance: 59
-  - label: second relay (one, a full lap in from the west)
+  - label: second relay (two browns, a full lap, from the west)
     courseRun: 2
-    wolves: 1
+    wolves: 2
     wolfInterval: 0.8
-    leadIn: 2
+    leadIn: 1.5
     courseDistance: 59
-  - label: third relay (one, a full lap in from the east)
-    courseRun: 0
-    wolves: 1
-    wolfInterval: 0.8
-    leadIn: 2
-    courseDistance: 59
-  packOrder:
-  - 1
+  packOrder: 01000000
   courseOffset: 1.2
   courseLeadIn: 6
-  orbs:
-    healthOrb: 0
-    count: 1
-    firstAt: 16
-    interval: 16
-    from: {x: -12, y: 1}
-    to: {x: 12, y: 1}
+  volleys:
+  - label: two down the left shaft
+    shape: 1
+    rightKnight: 0
+    fromBelow: 0
+    spacing: 1.4
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.91
+    restAfter: 5
+  - label: two down the right shaft
+    shape: 1
+    rightKnight: 1
+    fromBelow: 0
+    spacing: 1.4
+    count: 3
+    fanDegrees: 60
+    weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
+    salvo: 1
+    salvoSpread: 0.45
+    salvoStagger: 0.77
+    restAfter: 5
+  projectileWindow: 20
+  rockSpeed: 1.75
   ogres:
     label: 2 in through the ring's elbows
-    count: 2
+    count: 1
     firstAt: 8
     interval: 7
+    throwStagger: 0
     fireEveryNth: 3
     entries:
     - label: in through the top-left elbow
@@ -87,28 +105,10 @@ MonoBehaviour:
     entryX: 11
     entryY: -0.5
     laneStep: 1.1
-  volleys:
-  - label: two down the left shaft
-    shape: 1
-    rightKnight: 0
-    fromBelow: 0
-    spacing: 1.4
-    count: 3
-    fanDegrees: 60
-    salvo: 1
-    salvoSpread: 0.45
-    salvoStagger: 0.91
-    restAfter: 5
-  - label: two down the right shaft
-    shape: 1
-    rightKnight: 1
-    fromBelow: 0
-    spacing: 1.4
-    count: 3
-    fanDegrees: 60
-    salvo: 1
-    salvoSpread: 0.45
-    salvoStagger: 0.77
-    restAfter: 5
-  projectileWindow: 60
-  rockSpeed: 1.75
+  orbs:
+    healthOrb: 0
+    count: 1
+    firstAt: 16
+    interval: 16
+    from: {x: -12, y: 1}
+    to: {x: 12, y: 1}

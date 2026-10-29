@@ -25,22 +25,22 @@ MonoBehaviour:
   crates:
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
   - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
-  crateCount: 6
-  crateInterval: 4
+  crateCount: 4
+  crateInterval: 6
   firstCrateAt: 1.5
-  wolves: 8
-  wolfInterval: 2.75
+  wolves: 3
+  wolfInterval: 8.25
   firstWolfAt: 5
   packOrder:
   - 0
-  courseDistance: 23
+  courseDistance: 25
   courseOffset: 1.2
   courseLeadIn: 6
   courseReversals: 0
   flanks:
-  - label: three from each edge
-    fromTop: 2
-    fromBottom: 2
+  - label: one from the top
+    fromTop: 1
+    fromBottom: 0
     firstAt: 7
     interval: 1.0
     ratTypes:
@@ -57,9 +57,9 @@ MonoBehaviour:
     to: {x: 12, y: 0.5}
   ogres:
     label: 5 vertically across both haul roads
-    count: 3
+    count: 2
     firstAt: 6
-    interval: 5
+    interval: 7.5
     fireEveryNth: 3
     entries:
     - label: down across both haul roads, left

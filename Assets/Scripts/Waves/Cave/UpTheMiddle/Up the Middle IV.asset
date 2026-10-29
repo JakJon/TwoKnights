@@ -52,12 +52,6 @@ MonoBehaviour:
     ratInterval: 1.5
     bats: 2
     batInterval: 3
-  - label: fifth pair
-    leadIn: 2.5
-    rats: 2
-    ratInterval: 1.5
-    bats: 2
-    batInterval: 3
   ratTypes:
   - {fileID: 7458024508628542092, guid: 8853e53e38d81094da8d03049da9489f, type: 3}
   - {fileID: 8339559666056484505, guid: 7af84162aefaccb4592029d45969edee, type: 3}
@@ -91,6 +85,24 @@ MonoBehaviour:
       at: {x: -11.5, y: -0.5}
       mark: 1
     startOnRight: 1
+    entryX: 11
+    entryY: -0.5
+    laneStep: 1.1
+  secondOgres:
+    label: 2 in from the top corners once the first band is down
+    count: 2
+    firstAt: 2
+    interval: 1
+    throwStagger: 0
+    fireEveryNth: 0
+    entries:
+    - label: in from the top left corner
+      at: {x: -11.5, y: 6.5}
+      mark: 1
+    - label: in from the top right corner
+      at: {x: 11.5, y: 6.5}
+      mark: 2
+    startOnRight: 0
     entryX: 11
     entryY: -0.5
     laneStep: 1.1

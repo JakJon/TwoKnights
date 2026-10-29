@@ -180,6 +180,9 @@ public class MirrorPane : MonoBehaviour
     public int SortingLayerId => art != null ? art.sortingLayerID : 0;
     public int SortingOrder => art != null ? art.sortingOrder : 0;
 
+    /// <summary>Time.time of the last shot in or out. MirrorGlow flares on it.</summary>
+    public float LastPulseTime => _pulseAt;
+
     public void Pulse()
     {
         _pulseAt = Time.time;
@@ -276,20 +279,23 @@ public class MirrorPane : MonoBehaviour
         WriteFlight(shot, exitDirection, speed, body);
         passenger.NoteExit(Twin);
 
+        // The buff: it comes out as two, as often as its cooldown allows (see MirrorCopy)
+        if (MirrorCopy.MaySplit(shot)) MirrorCopy.Make(shot, exit, exitDirection, speed, Twin);
+
         // Said at both ends, in the pair's colour, so the trip can be read
         MirrorFx.Passage(this, entry, direction, Twin, exit, exitDirection);
         Pulse();
         Twin.Pulse();
     }
 
-    // Where a shot is going and how fast. Two families of projectile fly in this
-    // game and they are moved by different machinery:
+    // Where a shot is going and how fast. Only the knights' arrows, shadow arrows
+    // and shurikens go through: they ride a Rigidbody2D velocity set by
+    // PlayerShooter.
     //
-    //   * the knights' arrows, shadow arrows and shurikens ride a Rigidbody2D
-    //     velocity set by PlayerShooter;
-    //   * the rats' and gnomes' rocks carry ProjectileMovement, which translates
-    //     along its own local +X every frame and so keeps its heading in its
-    //     rotation.
+    // Rocks (ProjectileMovement) are NOT carried (owner, 2026-10-27): they fly
+    // straight over the glass, the same as they fly over the pillars. Before that
+    // a rock dropped down a knight's column fell into a flat pane over his head
+    // and came out of its twin under his feet, still falling, and never arrived.
     //
     // Anything that steers itself is deliberately left out. EnemyFireball homes
     // and orbits on a heading it owns privately, and a pane that moved it would
@@ -311,19 +317,11 @@ public class MirrorPane : MonoBehaviour
             }
         }
 
-        ProjectileMovement mover = shot.GetComponent<ProjectileMovement>();
-        if (mover != null)
-        {
-            direction = shot.transform.right;
-            speed = mover.Speed;
-            return direction.sqrMagnitude > 0.0001f;
-        }
-
         return false;
     }
 
-    // Heading lives in the rotation for both families — ProjectileMovement reads
-    // it directly, and the arrows' sprites are drawn pointing along +X — so the
+    // Heading lives in the rotation — the arrows' sprites are drawn pointing
+    // along +X — so the
     // rotation is set either way and the velocity only when there is one.
     private static void WriteFlight(GameObject shot, Vector2 direction, float speed, Rigidbody2D body)
     {

@@ -34,9 +34,10 @@ on a blow *you* land — and the whole roster is priced against that, so a Frigi
 knight without **Frost Bite** is still buying time and nothing else.
 
 **Shatter** and **Rimeblade** are not exceptions to this: both are damage the
-player aimed and landed, not a timer paying out. (Since 2026-09-25 Rimeblade's burst
-also adds a flat 5 / 10 / 15 frost damage on top of the sword hit — still a blow the
-player landed.)
+player aimed and landed, not a timer paying out. (Since 2026-09-25 Rimeblade also
+adds a flat 5 / 10 / 15 frost damage on top of the sword hit — still a blow the
+player landed. Since 2026-10-05 that damage comes from the blade touching an enemy,
+not from the burst.)
 
 *This half was rewritten on 2026-09-08 (owner's call).* It used to read "frost has
 no damage of its own, Frigid never ticks", and Frost Bite is exactly the tick it
@@ -114,7 +115,7 @@ Legendary).
 | Deep Freeze II | 26 | Epic | Deep Freeze I |
 | Shatter I | 55 | Rare | Frost Tip I |
 | Shatter II | 24 | Epic | Shatter I |
-| Rimeblade I | 55 | Rare | Frost Tip I *or* Glacial Ward I |
+| Rimeblade I | 55 | Rare | — (starting pick, since 2026-10-09; was Frost Tip I *or* Glacial Ward I) |
 | Rimeblade II | 26 | Epic | Rimeblade I |
 | Rimeblade III | 14 | Legendary | Rimeblade II |
 | Deep Freeze III | 12 | Legendary | Deep Freeze II |
@@ -143,6 +144,12 @@ their longer chills, also make longer freezes. Deep Freeze no longer unlocks
 freezing; it adds time and makes the ice harder to break. This applies to any Frost
 Tip rank, including the one Winter's Tooth gives, and to the knight's other blows
 (the sword, Rimeblade) too, because `CanFreeze` is a property of the knight.
+
+**Rimeblade freezes on its own too** (owner's call, 2026-10-09). Owning any
+Rimeblade rank makes `CanFreeze` true, so its burst freezes a body that was already
+chilled even if the knight has no Frost Tip. The chill can come from anywhere: the
+ward, a Shatter blast, the other knight, or the same knight's last swing. Arrows
+are unaffected, because arrows only carry cold with Frost Tip.
 
 A body chilled only by Glacial Ward has about 0.6s of chill left at any moment, so
 an arrow freezes it for about 0.6s plus the Deep Freeze bonus.
@@ -238,14 +245,24 @@ cold rather than with a blow.
 
 ### Rimeblade I–III — the sword door
 
-Every swing throws off a burst of cold centred on the knight, dealing the sword's
-own damage to everything it catches, plus the rank's frost damage on top.
+Two separate things:
 
-| | Chance | Radius | Frost damage |
+- **The burst.** Every swing throws off a burst of cold, whether or not the blade
+  touches anything. It chills what it catches, or freezes what was already chilled.
+  It deals no damage.
+- **The frost damage.** The blade itself deals the rank's frost damage, on top of
+  the sword hit, to whatever it touches (a Phantom Blade echo's touch included). A
+  swing that hits nothing deals none.
+
+| | Burst chance | Burst radius | Frost damage on a sword hit |
 |---|---|---|---|
 | I | 100% | 1.6u | 5 |
 | II | 100% | 2.3u | 10 |
 | III | 100% | 3.0u | 15 |
+
+*Changed 2026-10-05 (owner's call).* The burst used to deal the sword's own damage
+and the frost damage to everything inside it. Now it only chills or freezes, and
+the frost damage needs the blade to make contact.
 
 *Changed 2026-09-25 (owner's call).* The chance used to be 33% / 60% / 100% with no
 frost damage, and III only raised the chance. The frost damage is flat — Shatter
@@ -257,11 +274,15 @@ it — Serpent exhales a cloud, Shadow echoes the swing, Ember throws ordnance.
 Frigid's blade is cold iron, and it answers the thing that has *already* closed the
 distance.
 
-The burst is centred on the **knight**, not thrown along the facing, because the
-whole point of the sword in this game is that something is already too close. With
-Frost Tip owned, a swing into a body an arrow chilled on the way in stops it dead
-at arm's length — the strongest single moment in the Order, and it costs two picks
-from different chains to reach.
+The burst opens **one unit out from the knight along the swing** and does not
+travel, because the whole point of the sword in this game is that something is
+already too close. The unit is measured from the middle of the knight (the point
+the blade swings around), so the burst reaches the same distance whichever way the
+knight is facing. It used to be measured from the knight's feet, which put it a
+unit and a half below the knight on a downward swing and half a unit above on an
+upward one (fixed 2026-10-09). With Frost Tip owned, a swing into a body an arrow
+chilled on the way in stops it dead at arm's length — the strongest single moment
+in the Order, and it costs two picks from different chains to reach.
 
 Damage lands **before** the cold, the same order an arrow uses. Chilling first would
 let one swing freeze a body and then break its own ice on the very next line.
@@ -361,6 +382,13 @@ knight who wants to stop a body now has to buy Frost Tip I first, which is one
 Common. Rimeblade itself still opens off the ward, so the no-aim door still leads
 somewhere — it just leads to damage rather than to a hold.
 
+*Changed 2026-10-09 (owner's call).* Rimeblade no longer needs Frost Tip for
+anything. Its burst freezes without Frost Tip, and Rimeblade I has no prerequisite
+at all (`unlockedBy` is empty), the same as Firebrand I, Serpent's Breath I and
+Phantom Blade I. A knight can take it as their first Frigid card. Glacial Ward →
+Rimeblade leads to a hold again: the ward chills what walks in and the swing
+freezes it. Deep Freeze still opens only off Frost Tip I.
+
 **The ceiling, and it is deliberate.** The longest drafted freeze is Frost Tip III's
 10s chill + Deep Freeze III's 9s = **19s** (when the freezing arrow lands right
 after the chilling one). Frost Bite bills it 3 a second and its ticks never wear the
@@ -404,7 +432,7 @@ the capstone would wear down and break every statue it creates.
 
 Frost Tip I ──────────────────────► Deep Freeze I ──► Deep Freeze II
       └────────────────────────────► Shatter I ──► Shatter II
-(Frost Tip I OR Glacial Ward I) ──► Rimeblade I ──► Rimeblade II ──► Rimeblade III
+Rimeblade I (no prerequisites) ──► Rimeblade II ──► Rimeblade III
 
 Deep Freeze I ──► Deep Freeze II ──► Deep Freeze III
 

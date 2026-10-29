@@ -19,9 +19,7 @@ MonoBehaviour:
   requiresOrderCount: 0
   secondOrder: 0
   requiresSecondOrderCount: 0
-  unlockedBy:
-  - {fileID: 11400000, guid: 0939341d5e063e848b2fca3a7ce19c9e, type: 2}
-  - {fileID: 11400000, guid: 799603b65e53950459c15e22882d3166, type: 2}
+  unlockedBy: []
   requiresAllUnlocks: 0
   lockedBy: []
   stats:

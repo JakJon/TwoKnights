@@ -48,7 +48,24 @@ public class PlayerProjectile : MonoBehaviour
     /// who didn't, which made the Order a special-charge upgrade that happened to
     /// throw shurikens. The bar is meant to count SHOTS the player took.
     /// </summary>
-    public bool IsEcho => isShadowArrow || volley != null;
+    public bool IsEcho => isShadowArrow || volley != null || isMirrorCopy;
+
+    /// <summary>The second shot a mirror pane made of this one (see MirrorCopy).
+    /// Hits as hard, pays no special.</summary>
+    [HideInInspector] public bool isMirrorCopy;
+
+    /// <summary>When the shot was fired. A clone (a mirror copy) is handed the
+    /// original's value and keeps it, so it ends when the original would.</summary>
+    [HideInInspector] public float bornAt = -1f;
+
+    /// <summary>When a mirror last split this shot in two (it, or the split that
+    /// made it). -1 = never. See MirrorCopy.MaySplit.</summary>
+    [HideInInspector] public float lastSplitAt = -1f;
+
+    private void Awake()
+    {
+        if (bornAt < 0f) bornAt = Time.time;
+    }
 
     // "PlayerLeftProjectile" -> "PlayerLeft"
     private string OwnerTag
@@ -67,6 +84,10 @@ public class PlayerProjectile : MonoBehaviour
     private void Update()
     {
         if (!absorbsFieldEffects) return;
+
+        // Upgrades held (cart sorting): a cloud or a fire left over from the wave
+        // does not get to dress the plain arrow back up.
+        if (UpgradeHold.Held) return;
 
         Vector2 pos = transform.position;
 
@@ -104,6 +125,17 @@ public class PlayerProjectile : MonoBehaviour
         EnemyBase enemy = other.GetComponent<EnemyBase>();
         if (enemy != null)
         {
+            // A carried guard (the castle skeleton's shield) takes the shot before
+            // anything rides it in. A fireball still bursts on it, but the burst
+            // passes over the body that blocked it.
+            if (enemy.TryBlockShot(gameObject))
+            {
+                FireballProjectile blockedFireball = GetComponent<FireballProjectile>();
+                if (blockedFireball != null) blockedFireball.Explode(enemy);
+                Destroy(gameObject);
+                return;
+            }
+
             // Equipment that bites one kinship group harder (The Gnawed Crown,
             // Wolfsbane Pendant). Before Killing Blow, so an execute still lands
             // as exactly lethal instead of an inflated number.

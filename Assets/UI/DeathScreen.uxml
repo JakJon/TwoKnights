@@ -1,4 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <!-- Dev builds only: Test Mode's panel, opened by Change Upgrades -->
+    <ui:Template name="TestModeOverlay" src="TestModeOverlay.uxml" />
     <ui:VisualElement name="death-screen" class="death-overlay">
         <ui:VisualElement name="death-panel" class="death-panel">
             <ui:Label text="&lt;color=#D1533F&gt;Left Knight&lt;/color&gt; died from Wolf" name="death-message" class="death-message" />
@@ -8,17 +10,32 @@
                     <ui:Label text="0" name="gold-amount" class="summary-amount" />
                 </ui:VisualElement>
                 <ui:VisualElement class="summary-divider" />
+                <ui:VisualElement name="time-summary" class="summary-block">
+                    <ui:Label text="TIME" name="time-caption" class="summary-caption" />
+                    <ui:Label text="0:00" name="time-amount" class="summary-amount" />
+                </ui:VisualElement>
+                <ui:VisualElement class="summary-divider" />
                 <ui:VisualElement name="wave-summary" class="summary-block">
                     <ui:Label text="WAVE REACHED" name="wave-caption" class="summary-caption" />
                     <ui:Label text="1" name="wave-amount" class="summary-amount" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="death-actions" class="death-actions">
-                <ui:Button text="Return to Camp" name="camp-button" class="death-button secondary" />
-                <!-- Dev builds only: shown when the run came from Test Mode -->
-                <ui:Button text="Try Wave Again" name="retry-wave-button" class="death-button secondary" style="display: none;" />
-                <ui:Button text="Go Again" name="go-again-button" class="death-button primary" />
+                <ui:Button text="Return to Camp" name="camp-button" class="death-button primary" />
             </ui:VisualElement>
+            <!-- Dev builds only: shown when the run came from Test Mode. A row of
+                 their own, because three buttons do not fit across the panel. -->
+            <ui:VisualElement name="death-test-actions" class="death-actions death-test-actions" style="display: none;">
+                <ui:Button text="Try Wave Again" name="retry-wave-button" class="death-button secondary" />
+                <ui:Button text="Change Upgrades" name="change-upgrades-button" class="death-button secondary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <!-- Test Mode's panel, drawn over the death panel. CampMenu.uss is attached
+             HERE rather than at the document root for the same reason the pause
+             screen does it: scoped to this subtree it only dresses the overlay. -->
+        <ui:VisualElement name="death-overlays" class="death-overlays">
+            <ui:Style src="CampMenu.uss" />
+            <ui:Instance template="TestModeOverlay" class="overlay-host" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

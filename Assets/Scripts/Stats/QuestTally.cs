@@ -25,7 +25,11 @@ public static class QuestTally
     private static readonly Dictionary<string, int> _wave = new Dictionary<string, int>();
     private static readonly Dictionary<string, int> _run = new Dictionary<string, int>();
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private static bool Excluded => TestRunConfig.ActiveRun;
+#else
+    private static bool Excluded => false;
+#endif
 
     /// <summary>Called from Spawner.Start. Clears everything — statics outlive the scene load.</summary>
     public static void BeginRun()

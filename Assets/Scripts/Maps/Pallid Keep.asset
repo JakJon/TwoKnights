@@ -21,21 +21,43 @@ MonoBehaviour:
   finalWaveNumber: 30
   completionMarkColor: {r: 0.4117647, g: 0.627451, b: 0.9215686, a: 1}
   waves:
-  - {fileID: 11400000, guid: 83fc6163c0f15ed44ae751e0c19843da, type: 2}
+  - {fileID: 11400000, guid: c7019f2b1086a534ca5aadfe2b9543bf, type: 2}
+  - {fileID: 11400000, guid: 72163c76f20ddf449a2ad079c31810f7, type: 2}
+  - {fileID: 11400000, guid: 1b8546fe73418f7489cda9687d5ccd40, type: 2}
+  - {fileID: 11400000, guid: 2c50c30a5506e1c418aff198ecde88be, type: 2}
+  - {fileID: 11400000, guid: cb6bb84dfd6f18e44914fac4b06d0930, type: 2}
+  - {fileID: 11400000, guid: 1bd42744d2339bc48a571897fd29a67c, type: 2}
+  - {fileID: 11400000, guid: be5714a9986ab3c46bf9a68733dd0dfc, type: 2}
+  - {fileID: 11400000, guid: 9a2b0405feab42247afc2f30e0355e00, type: 2}
   waveFolders:
-  - Assets/Scripts/Waves/Castle/LookingGood
+  - Assets/Scripts/Waves/Castle/BehindThePillars
+  - Assets/Scripts/Waves/Castle/WolfInvaders
+  - Assets/Scripts/Waves/Castle/BetweenTheMirrors
+  - Assets/Scripts/Waves/Castle/BackToBack
   gateBoss: {fileID: 0}
   gateBossWaveNumber: 10
   gateBossRepeats: 1
   gateBossEndsRun: 1
   trueBoss: {fileID: 0}
   trueBossWaveNumber: 20
+  trueBossEndsRun: 1
   strongerEnemiesFromWave: 1
+  ratPhases:
+  - label: The Keep
+    fromWaveNumber: 1
+    cadence: 00000000020000000100000003000000
+  deepRosterFromWave: -1
   stages:
   - label: Keep
     fromWaveNumber: 1
     backdrop: {fileID: -4760992463451118159, guid: 874bf6ff8a6f8454c85ead115dc188b6, type: 3}
     foreground: {fileID: 0}
-    canopy: {fileID: 0}
+    foregroundOverArena: 0
+    canopy: {fileID: 11400000, guid: a699bc8228f52da43b906b2812cece61, type: 2}
+    gemGlow: {fileID: 0}
     ventureLine: 
+  explorationMusic: {fileID: 0}
+  intenseMusic: {fileID: 0}
+  intenseMusicFromWave: 11
+  bossMusic: {fileID: 0}
   unlocksMapId: 

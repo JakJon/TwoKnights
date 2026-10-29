@@ -20,99 +20,826 @@ MonoBehaviour:
   unlockedAfterXWaves: 19
   lockedAfterXWaves: -1
   useEnemyTracking: 1
-  railLayout: {fileID: 11400000, guid: a9eeb19e5d93bc0c8677d7f5a2f79757, type: 2}
-  entryRun: 0
+  railLayout: {fileID: 11400000, guid: a21e4d2c93202bf4dafa878eb0a12c05, type: 2}
+  bossLine: 0
+  bossReturnLine: 1
+  innerLine: 2
+  middleLine: 6
+  outerLine: 10
+  leftEntranceLine: 14
+  rightEntranceLine: 15
   bossPrefab: {fileID: 4426783449998927009, guid: bcf11d06f2ff3b74dbbb1d2b5d7c13a8, type: 3}
-  entryDelay: 1
-  bossSpeedScale: 1.5
-  roarAtHealth: 200
-  hauls:
-  - label: ten wide
-    atBossHealth: 2000
+  entryDelay: 0.5
+  firstAttackDelay: 3.5
+  roarAtHealth: 450
+  stages:
+  - label: "1500: curves \u2014 wraps, six axes"
+    fromHealth: 1500
     speedScale: 1.5
-    pattern:
-    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
-    whistle: 1
-  - label: twenty wide
-    atBossHealth: 1000
-    speedScale: 2.25
-    pattern:
-    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-    - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
-    - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
-    - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
-    whistle: 1
-  reliefGnomes: 3
-  reliefInterval: 10
-  reliefCarts:
-  - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+    turns: 0
+    axesPerThrow: 6
+    gnomesPerAmbush: 4
+    refillInnerLoops: 0
+    ogres:
+    - label: bottom-left corner
+      at: {x: -11.5, y: -6.5}
+      mark: 0
+      after: 0
+    - label: bottom-right corner
+      at: {x: 11.5, y: -6.5}
+      mark: 0
+      after: 0
+    secondBlueGnome: 1
+    attacks:
+    - label: spiral on the right, axes at the left
+      kind: 2
+      rock:
+        label: spiral on the right
+        shape: 8
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 0.4
+        count: 6
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0
+      axeTarget: 0
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.14
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: fan up from below on the left
+      kind: 0
+      rock:
+        label: fan up from below on the left
+        shape: 4
+        rightKnight: 0
+        fromBelow: 1
+        spacing: 0.45
+        count: 4
+        fanDegrees: 70
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: axes at both
+      kind: 1
+      rock:
+        label: 
+        shape: 0
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 1
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.1
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.15
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: weave on the right
+      kind: 0
+      rock:
+        label: weave on the right
+        shape: 7
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 1.2
+        count: 4
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 2
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: flip on the left from below, axes at the right
+      kind: 2
+      rock:
+        label: flip on the left from below
+        shape: 3
+        rightKnight: 0
+        fromBelow: 1
+        spacing: 0.4
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0.5
+      axeTarget: 1
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 3
+    - label: twin spiral
+      kind: 0
+      rock:
+        label: twin spiral
+        shape: 9
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 0.45
+        count: 5
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 160
+        spiralPasses: 1
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 3.5
+  - label: "1150: crossings \u2014 faster, eight axes"
+    fromHealth: 1150
+    speedScale: 1.8
+    turns: 0
+    axesPerThrow: 8
+    gnomesPerAmbush: 6
+    refillInnerLoops: 0
+    ogres:
+    - label: bottom-left corner
+      at: {x: -11.5, y: -6.5}
+      mark: 0
+      after: 0
+    - label: bottom-right corner
+      at: {x: 11.5, y: -6.5}
+      mark: 0
+      after: 0
+    - label: bottom centre, for the left knight
+      at: {x: -0.5, y: -7.5}
+      mark: 1
+      after: 6
+    secondBlueGnome: 1
+    attacks:
+    - label: weave on the left, axes at the right
+      kind: 2
+      rock:
+        label: weave on the left
+        shape: 7
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 1.2
+        count: 5
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 2
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0.5
+      axeTarget: 1
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.1
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: scissors
+      kind: 0
+      rock:
+        label: scissors
+        shape: 6
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 0.35
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 4
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2
+    - label: axes back and forth, two at a time
+      kind: 1
+      rock:
+        label: 
+        shape: 0
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 1
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.1
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 3
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.35
+      restAfter: 2
+    - label: spiral on the right, there and back
+      kind: 0
+      rock:
+        label: spiral on the right, there and back
+        shape: 8
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 0.35
+        count: 5
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 200
+        spiralPasses: 2
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2
+    - label: fan down on the right, axes at the left
+      kind: 2
+      rock:
+        label: fan down on the right
+        shape: 4
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 0.45
+        count: 4
+        fanDegrees: 75
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0
+      axeTarget: 0
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.1
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: mirror, left from below
+      kind: 0
+      rock:
+        label: mirror, left from below
+        shape: 5
+        rightKnight: 0
+        fromBelow: 1
+        spacing: 1
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 5
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: weave on the left, opening underneath
+      kind: 0
+      rock:
+        label: weave on the left, opening underneath
+        shape: 7
+        rightKnight: 0
+        fromBelow: 1
+        spacing: 1.2
+        count: 4
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 3.5
+  - label: "800: turns \u2014 faster, turns round, ten axes, walls refilled"
+    fromHealth: 800
+    speedScale: 2.1
+    turns: 1
+    axesPerThrow: 10
+    gnomesPerAmbush: 8
+    refillInnerLoops: 1
+    ogres:
+    - label: bottom-left corner
+      at: {x: -11.5, y: -6.5}
+      mark: 0
+      after: 0
+    - label: bottom-right corner
+      at: {x: 11.5, y: -6.5}
+      mark: 0
+      after: 0
+    - label: bottom centre, for the left knight
+      at: {x: -0.5, y: -7.5}
+      mark: 1
+      after: 6
+    - label: bottom centre, for the right knight
+      at: {x: 0.5, y: -7.5}
+      mark: 2
+      after: 9
+    secondBlueGnome: 1
+    attacks:
+    - label: spiral on the left there and back, axes at the right
+      kind: 2
+      rock:
+        label: spiral on the left, there and back
+        shape: 8
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 0.3
+        count: 6
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 240
+        spiralPasses: 2
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0
+      axeTarget: 1
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.09
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: weave on the right
+      kind: 0
+      rock:
+        label: weave on the right
+        shape: 7
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 1.2
+        count: 6
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2
+    - label: axes at both
+      kind: 1
+      rock:
+        label: 
+        shape: 0
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 1
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.1
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.1
+      turnGap: 0.4
+      restAfter: 2
+    - label: scissors
+      kind: 0
+      rock:
+        label: scissors
+        shape: 6
+        rightKnight: 0
+        fromBelow: 1
+        spacing: 0.25
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 5
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2
+    - label: flip on the right, axes at the left
+      kind: 2
+      rock:
+        label: flip on the right
+        shape: 3
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 0.2
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 5
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0.5
+      axeTarget: 0
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.09
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: fan up from below on the left
+      kind: 0
+      rock:
+        label: fan up from below on the left
+        shape: 4
+        rightKnight: 0
+        fromBelow: 1
+        spacing: 0.4
+        count: 5
+        fanDegrees: 80
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2
+    - label: twin spiral, there and back
+      kind: 0
+      rock:
+        label: twin spiral, there and back
+        shape: 9
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 0.35
+        count: 6
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 200
+        spiralPasses: 2
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 3.5
+  - label: "450: everything \u2014 roars, wraps twice then turns, twelve axes"
+    fromHealth: 450
+    speedScale: 2.4
+    turns: 2
+    axesPerThrow: 12
+    gnomesPerAmbush: 10
+    refillInnerLoops: 0
+    ogres:
+    - label: bottom-left corner
+      at: {x: -11.5, y: -6.5}
+      mark: 0
+      after: 0
+    - label: bottom-right corner
+      at: {x: 11.5, y: -6.5}
+      mark: 0
+      after: 0
+    - label: bottom centre, for the left knight
+      at: {x: -0.5, y: -7.5}
+      mark: 1
+      after: 6
+    - label: bottom centre, for the right knight
+      at: {x: 0.5, y: -7.5}
+      mark: 2
+      after: 9
+    secondBlueGnome: 0
+    attacks:
+    - label: weave on the left, axes at the right
+      kind: 2
+      rock:
+        label: weave on the left
+        shape: 7
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 1.2
+        count: 6
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0
+      axeTarget: 1
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.08
+      turnGap: 0.4
+      restAfter: 2
+    - label: weave on the right, axes at the left
+      kind: 2
+      rock:
+        label: weave on the right
+        shape: 7
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 1.2
+        count: 6
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 3
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0
+      axeTarget: 0
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.08
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: scissors
+      kind: 0
+      rock:
+        label: scissors
+        shape: 6
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 0.2
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 6
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 1.8
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 1.8
+    - label: axes three and three
+      kind: 1
+      rock:
+        label: 
+        shape: 0
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 1
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.1
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 3
+      startRight: 0
+      axesPerTurn: 3
+      axeStagger: 0.08
+      turnGap: 0.25
+      restAfter: 1.8
+    - label: twin spiral, there and back
+      kind: 0
+      rock:
+        label: twin spiral, there and back
+        shape: 9
+        rightKnight: 0
+        fromBelow: 0
+        spacing: 0.3
+        count: 7
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 240
+        spiralPasses: 2
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: spiral on the right there and back, axes at the left
+      kind: 2
+      rock:
+        label: spiral on the right, there and back
+        shape: 8
+        rightKnight: 1
+        fromBelow: 0
+        spacing: 0.3
+        count: 7
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 240
+        spiralPasses: 2
+        salvo: 1
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 0
+      rockOffset: 0
+      axeTarget: 0
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.08
+      turnGap: 0.4
+      restAfter: 2.5
+    - label: mirror, left from below
+      kind: 0
+      rock:
+        label: mirror, left from below
+        shape: 5
+        rightKnight: 0
+        fromBelow: 1
+        spacing: 1
+        count: 3
+        fanDegrees: 60
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 6
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 2
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 2
+    - label: fan up from below on the right
+      kind: 0
+      rock:
+        label: fan up from below on the right
+        shape: 4
+        rightKnight: 1
+        fromBelow: 1
+        spacing: 0.35
+        count: 5
+        fanDegrees: 80
+        weaveDegrees: 90
+        spiralDegrees: 180
+        spiralPasses: 1
+        salvo: 4
+        salvoSpread: 0.45
+        salvoStagger: 0.12
+        restAfter: 3.5
+      rockOffset: 0
+      axeTarget: 2
+      startRight: 0
+      axesPerTurn: 2
+      axeStagger: 0.12
+      turnGap: 0.4
+      restAfter: 3.5
+  rockSpeed: 0
+  crimsonCartPrefab: {fileID: 6134681678773964288, guid: 5bea4c57f0bc57244a89a7ff39eafdbb, type: 3}
+  innerGroups: 020000000200000002000000
+  middleGroups: 0200000003000000020000000300000002000000
+  outerSingles: 10
+  dropHeight: 7
+  dropSeconds: 0.55
+  dropStagger: 0.12
+  landingDust: {fileID: 4657661260103907140, guid: b22d4a60ffa7e1d4bb53f71252b66922, type: 3}
+  landingSound:
+    clip: {fileID: 0}
+    volume: 1
+  outerCap: 24
+  mergeGap: 1.6
+  firstAmbushAfter: 0
+  nextAmbushAfterWindow: 25
+  gnomeRotation:
   - {fileID: 3373363984116673796, guid: 4d58b5f02b1984c45aa7b711ff205307, type: 3}
-  healthOrbAt:
-  - 0.5
-  - 0.2
-  healthOrbFrom: {x: -12, y: -1.5}
-  healthOrbTo: {x: 12, y: -1.5}
-  orbs:
+  - {fileID: 3239380898384450950, guid: 923eb29968c24be49990860b43fd7a7f, type: 3}
+  - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+  - {fileID: 4223699238814412227, guid: fc7759758614e104caebb0bf699a713a, type: 3}
+  blueGnomePrefab: {fileID: 5445496593237494468, guid: 4cd0fed611ea6b64eb2c1febaf523ac7, type: 3}
+  bombRunAfterBlue: 15
+  bombRunRest: 2.5
+  secondBlueLead: 5
+  orbDrops:
+  - label: health, just outside the inner loop, rising
+    atHealth: 1150
+    healthOrb: 1
+    from: {x: -5, y: -7}
+    to: {x: -5, y: 7}
+  - label: mana, above the middle loop
+    atHealth: 800
     healthOrb: 0
-    count: 4
-    firstAt: 15
-    interval: 20
-    from: {x: -12, y: 2}
-    to: {x: 12, y: 2}
+    from: {x: -12, y: 3.25}
+    to: {x: 12, y: 3.25}
+  - label: mana, below the middle loop
+    atHealth: 800
+    healthOrb: 0
+    from: {x: 12, y: -4.25}
+    to: {x: -12, y: -4.25}
+  - label: health, just under his track
+    atHealth: 450
+    healthOrb: 1
+    from: {x: -12, y: 4.5}
+    to: {x: 12, y: 4.5}

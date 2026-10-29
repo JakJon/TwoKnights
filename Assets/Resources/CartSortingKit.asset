@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afd8f78bb0678b8469fa9cd39fd154e6, type: 3}
+  m_Name: CartSortingKit
+  m_EditorClassIdentifier: 
+  layouts:
+  - {fileID: 11400000, guid: dbb0ae9534ef5fe48aaf64a3d497bd77, type: 2}
+  - {fileID: 11400000, guid: 2097b386ec8c43340a826119bd3c79e1, type: 2}
+  - {fileID: 11400000, guid: 32aa07cde4e798547a98ac530ac3b395, type: 2}
+  - {fileID: 11400000, guid: 342ef0aee456ea840a92008e5f21bbf1, type: 2}
+  - {fileID: 11400000, guid: 099af13d0d68fa0419004cb750cf8666, type: 2}
+  redCart: {fileID: 4252814864425792420, guid: f75b131f39128f84ea770d949d642c7c, type: 3}
+  blueCart: {fileID: 2777674099619749026, guid: 3befa52f7fbe80949abb388f81c0070e, type: 3}
+  greenCart: {fileID: 1862585567877394657, guid: 59c627d56c3a4334bbfe89e9c213cff6, type: 3}
+  yellowCart: {fileID: 989554935478540917, guid: cef174662de578243b363728b2372cfe, type: 3}
+  redLever: {fileID: 2242898228757996966, guid: c51d606b5c92a384097601ce5564da74, type: 3}
+  blueLever: {fileID: 8201516421540788793, guid: 67bc36b736e45a8478ab7218610e2391, type: 3}
+  deliveredSound:
+    clip: {fileID: 8300000, guid: 6d97ee48f450e734eac547f9cb8c1dc8, type: 3}
+    volume: 0.8

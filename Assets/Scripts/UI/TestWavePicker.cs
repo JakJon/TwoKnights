@@ -6,12 +6,14 @@ using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 // Dev-only Test Mode: shown by the Spawner before every wave of a test run so
-// the tester chooses exactly which wave comes next. Builds its whole UI in
-// code on a runtime UIDocument (PanelSettings borrowed from any scene panel),
-// so the Main scene needs no wiring. Compiled out of release builds.
+// the tester chooses exactly which wave comes next. The same list comes up
+// again after a wave when an event is due in the gap, so they choose that too
+// (ShowEvents). Builds its whole UI in code on a runtime UIDocument
+// (PanelSettings borrowed from any scene panel), so the Main scene needs no
+// wiring. Compiled out of release builds.
 public class TestWavePicker : MonoBehaviour
 {
-    private const float EntryGrace = 0.25f;  // swallow the press that closed the upgrade menu
+    private const float EntryGrace = 0.25f;  // swallow the press that closed the screen before this one
     private const float RepeatDelay = 0.35f;
     private const float RepeatInterval = 0.12f;
 
@@ -27,7 +29,7 @@ public class TestWavePicker : MonoBehaviour
 
     private class Entry
     {
-        public BaseWave Wave; // null = "Random" row or the locked-section header
+        public Action Pick; // what choosing the row does; null on the locked-section header
         public bool IsLockedHeader;
         public bool IsLockedWave;
         public VisualElement Element;
@@ -43,12 +45,16 @@ public class TestWavePicker : MonoBehaviour
     private int _selectedIndex;
     private bool _lockedExpanded;
     private int _lockedCount;
-    private Action<BaseWave> _onChosen;
+    private Action _onCancel; // what B does: the same as the list's last row
     private float _inputReadyTime;
     private int _heldVertical;
     private float _nextVerticalRepeat;
 
     public bool IsVisible => _overlay != null && _overlay.style.display == DisplayStyle.Flex;
+
+    // True while either list is up. The pause menu stays shut underneath it:
+    // both read the same buttons, and this document draws over that one.
+    public static bool IsOpen => _instance != null && _instance.IsVisible;
 
     // Piggybacks on an existing UIDocument's PanelSettings; returns null when
     // the scene has no UI at all (caller falls back to normal selection)
@@ -70,14 +76,82 @@ public class TestWavePicker : MonoBehaviour
 
     public void Show(BaseWave scheduledBoss, List<BaseWave> pool, List<BaseWave> locked, int waveNumber, Action<BaseWave> onChosen)
     {
-        _onChosen = onChosen;
         _lockedExpanded = false; // locked section always starts collapsed
-        BuildUI(scheduledBoss, pool, locked, waveNumber);
+        _onCancel = () => onChosen?.Invoke(null); // B = let the normal weighted draw decide
+        BuildFrame($"TEST MODE — WAVE {waveNumber}", scheduledBoss != null
+            ? "Choose the next wave — normal play would force the boss"
+            : "Choose the next wave");
+
+        if (scheduledBoss != null)
+        {
+            AddEntry($"{scheduledBoss.WaveName}", "scheduled boss", () => onChosen?.Invoke(scheduledBoss), goldDetail: true);
+        }
+
+        // The real draw's weights (already-seen waves count for a quarter)
+        var manager = WaveManager.ActiveInstance;
+        System.Func<BaseWave, float> weightOf = w => manager != null ? manager.EffectiveWeight(w) : w.Weight;
+
+        float totalWeight = 0f;
+        foreach (var wave in pool) totalWeight += weightOf(wave);
+        foreach (var wave in pool)
+        {
+            string odds = totalWeight > 0f ? $"{weightOf(wave) / totalWeight * 100f:0}%" : "";
+            // Asset name in brackets — display names repeat across difficulty tiers
+            AddEntry($"{wave.WaveName}  <color=#8D8266>[{wave.name}]</color>", odds, () => onChosen?.Invoke(wave));
+        }
+
+        // Waves outside their unlock window: collapsed by default, but a dev
+        // can expand the section and force one anyway
+        _lockedCount = locked != null ? locked.Count : 0;
+        if (_lockedCount > 0)
+        {
+            var header = AddEntry("", "", null);
+            header.IsLockedHeader = true;
+            foreach (var wave in locked)
+            {
+                var entry = AddEntry($"{wave.WaveName}  <color=#8D8266>[{wave.name}]</color>", "locked", () => onChosen?.Invoke(wave));
+                entry.IsLockedWave = true;
+                entry.Element.style.display = DisplayStyle.None;
+                entry.Name.style.color = Dim;
+            }
+            UpdateLockedHeader(header);
+        }
+
+        AddEntry("Random (normal selection)", "", _onCancel);
+
+        Open();
+    }
+
+    // The other list: after a wave of a test run, the events that are due in the
+    // gap (BetweenWaveEvents builds it). onChosen gets the index of the row
+    // picked, or -1 for none — the last row, and B.
+    public void ShowEvents(int survivedWave, IReadOnlyList<string> events, Action<int> onChosen)
+    {
+        _lockedExpanded = false;
+        _lockedCount = 0;
+        _onCancel = () => onChosen?.Invoke(-1);
+        BuildFrame($"TEST MODE — AFTER WAVE {survivedWave}", "Choose the event for this gap");
+
+        for (int i = 0; i < events.Count; i++)
+        {
+            int index = i;
+            AddEntry(events[i], "", () => onChosen?.Invoke(index));
+        }
+
+        AddEntry("No event", "", _onCancel);
+
+        Open();
+    }
+
+    private void Open()
+    {
+        _overlay.style.display = DisplayStyle.Flex;
         _inputReadyTime = Time.unscaledTime + EntryGrace;
         SetSelectedIndex(0);
     }
 
-    private void BuildUI(BaseWave scheduledBoss, List<BaseWave> pool, List<BaseWave> locked, int waveNumber)
+    // The scrim, the panel, the two heading lines and an empty list to fill
+    private void BuildFrame(string heading, string sub)
     {
         var root = _uiDocument.rootVisualElement;
         root.Clear();
@@ -108,7 +182,7 @@ public class TestWavePicker : MonoBehaviour
         panel.style.paddingRight = 22;
         _overlay.Add(panel);
 
-        var title = new Label($"TEST MODE — WAVE {waveNumber}");
+        var title = new Label(heading);
         title.style.fontSize = 20;
         title.style.color = Gold;
         title.style.letterSpacing = 2;
@@ -116,9 +190,6 @@ public class TestWavePicker : MonoBehaviour
         title.style.unityTextAlign = TextAnchor.MiddleCenter;
         panel.Add(title);
 
-        string sub = scheduledBoss != null
-            ? "Choose the next wave — normal play would force the boss"
-            : "Choose the next wave";
         var subtitle = new Label(sub);
         subtitle.style.fontSize = 12;
         subtitle.style.color = Dim;
@@ -129,48 +200,9 @@ public class TestWavePicker : MonoBehaviour
         _scroll = new ScrollView();
         _scroll.style.flexGrow = 1;
         panel.Add(_scroll);
-
-        if (scheduledBoss != null)
-        {
-            AddEntry(scheduledBoss, $"{scheduledBoss.WaveName}", "scheduled boss");
-        }
-
-        // The real draw's weights (already-seen waves count for a quarter)
-        var manager = WaveManager.ActiveInstance;
-        System.Func<BaseWave, float> weightOf = w => manager != null ? manager.EffectiveWeight(w) : w.Weight;
-
-        float totalWeight = 0f;
-        foreach (var wave in pool) totalWeight += weightOf(wave);
-        foreach (var wave in pool)
-        {
-            string odds = totalWeight > 0f ? $"{weightOf(wave) / totalWeight * 100f:0}%" : "";
-            // Asset name in brackets — display names repeat across difficulty tiers
-            AddEntry(wave, $"{wave.WaveName}  <color=#8D8266>[{wave.name}]</color>", odds);
-        }
-
-        // Waves outside their unlock window: collapsed by default, but a dev
-        // can expand the section and force one anyway
-        _lockedCount = locked != null ? locked.Count : 0;
-        if (_lockedCount > 0)
-        {
-            var header = AddEntry(null, "", "");
-            header.IsLockedHeader = true;
-            foreach (var wave in locked)
-            {
-                var entry = AddEntry(wave, $"{wave.WaveName}  <color=#8D8266>[{wave.name}]</color>", "locked");
-                entry.IsLockedWave = true;
-                entry.Element.style.display = DisplayStyle.None;
-                entry.Name.style.color = Dim;
-            }
-            UpdateLockedHeader(header);
-        }
-
-        AddEntry(null, "Random (normal selection)", "");
-
-        _overlay.style.display = DisplayStyle.Flex;
     }
 
-    private Entry AddEntry(BaseWave wave, string label, string detail)
+    private Entry AddEntry(string label, string detail, Action pick, bool goldDetail = false)
     {
         var row = new VisualElement();
         row.style.flexDirection = FlexDirection.Row;
@@ -195,12 +227,12 @@ public class TestWavePicker : MonoBehaviour
         {
             var detailLabel = new Label(detail);
             detailLabel.style.fontSize = 12;
-            detailLabel.style.color = wave != null && detail == "scheduled boss" ? Gold : Dim;
+            detailLabel.style.color = goldDetail ? Gold : Dim;
             detailLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             row.Add(detailLabel);
         }
 
-        var entry = new Entry { Wave = wave, Element = row, Name = name };
+        var entry = new Entry { Pick = pick, Element = row, Name = name };
         int index = _entries.Count;
         row.RegisterCallback<PointerMoveEvent>(_ => OnRowHovered(index));
         row.RegisterCallback<ClickEvent>(_ => Activate(entry));
@@ -212,7 +244,7 @@ public class TestWavePicker : MonoBehaviour
     private void Activate(Entry entry)
     {
         if (entry.IsLockedHeader) ToggleLocked();
-        else Choose(entry.Wave);
+        else Choose(entry.Pick);
     }
 
     private void ToggleLocked()
@@ -268,7 +300,7 @@ public class TestWavePicker : MonoBehaviour
             _entries[i].Element.style.borderLeftColor = selected ? Gold : Color.clear;
             _entries[i].Name.style.color = selected ? Bright : (_entries[i].IsLockedWave ? Dim : Text);
         }
-        if (scrollIntoView) _scroll?.ScrollTo(_entries[_selectedIndex].Element);
+        if (scrollIntoView) ListScroll.Reveal(_scroll, _entries[_selectedIndex].Element);
     }
 
     private void Update()
@@ -308,7 +340,7 @@ public class TestWavePicker : MonoBehaviour
         }
         else if (cancel)
         {
-            Choose(null); // B = let the normal weighted draw decide
+            Choose(_onCancel);
         }
     }
 
@@ -334,12 +366,13 @@ public class TestWavePicker : MonoBehaviour
         return 0;
     }
 
-    private void Choose(BaseWave wave)
+    // The list comes down first: what was picked may want the screen at once
+    private void Choose(Action pick)
     {
-        if (_overlay != null) _overlay.style.display = DisplayStyle.None;
-        var callback = _onChosen;
-        _onChosen = null;
-        callback?.Invoke(wave);
+        if (!IsVisible) return; // already answered
+        _overlay.style.display = DisplayStyle.None;
+        _onCancel = null;
+        pick?.Invoke();
     }
 
     private void OnDestroy()

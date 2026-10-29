@@ -14,6 +14,12 @@
     background-color: rgba(12, 9, 5, 0.8);
 }
 
+/* No scrim while Settings is see-through for the bars' rows, or the bars
+   behind it would be dimmed to a fifth (SettingsPanel.SetPeek) */
+.settings-peek .pause-menu-overlay {
+    background-color: rgba(12, 9, 5, 0);
+}
+
 /* Holds the quest and equipment overlays over the top of the pause card. Sized
    to the screen because the panels inside are absolutely positioned, and
    ignore-picking so it does not swallow clicks meant for the card behind it
@@ -252,9 +258,9 @@
 }
 
 .detail-stat {
-    font-size: 11px;
+    font-size: 9px;
     -unity-font-style: bold;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
     -unity-text-align: middle-left;
     white-space: normal;
     margin: 1px 0;
@@ -328,6 +334,27 @@
     background-color: rgb(196, 74, 74);
     border-color: rgb(224, 120, 110);
     color: rgb(36, 13, 10);
+}
+
+/* Test Mode's two actions (dev builds). The camp's Test Mode button wears this
+   same teal, so nothing dev-only ever reads as part of the real menu. */
+.menu-button.test {
+    border-color: rgb(38, 52, 58);
+    color: rgb(122, 160, 170);
+}
+
+.menu-button.test:hover,
+.menu-button.test:focus {
+    background-color: rgb(30, 38, 40);
+    border-color: rgb(122, 160, 170);
+    color: rgb(196, 222, 228);
+}
+
+/* With the Test Mode actions showing there are seven buttons rather than five.
+   Tightened so they still fit the height the loadout columns set. */
+.actions-container--dense .menu-button {
+    height: 36px;
+    margin: 2px 0;
 }
 
 .confirm-text {

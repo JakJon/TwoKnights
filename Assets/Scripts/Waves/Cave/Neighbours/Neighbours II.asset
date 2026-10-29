@@ -15,7 +15,7 @@ MonoBehaviour:
   waveName: Neighbours II
   weight: 1000
   isUnlocked: 0
-  waveDescription: Five loads, and something of your own running the other way.
+  waveDescription: Three loads, and something of your own running the other way.
   unlockedAfterXWaves: 4
   lockedAfterXWaves: 10
   useEnemyTracking: 1
@@ -25,11 +25,11 @@ MonoBehaviour:
   crates:
   - {fileID: 2485300486004253414, guid: db4eb1045e589154a9e6e9ffa46f6c69, type: 3}
   - {fileID: 2490643606974903783, guid: a3076bd70f4883845b457a879ba89fa2, type: 3}
-  crateCount: 5
-  crateInterval: 4.5
+  crateCount: 3
+  crateInterval: 6.75
   firstCrateAt: 1.5
-  wolves: 6
-  wolfInterval: 3
+  wolves: 2
+  wolfInterval: 9
   firstWolfAt: 6
   packOrder:
   - 1
@@ -39,9 +39,9 @@ MonoBehaviour:
   courseLeadIn: 6
   courseReversals: 1
   flanks:
-  - label: one from each edge
+  - label: one from the top
     fromTop: 1
-    fromBottom: 1
+    fromBottom: 0
     firstAt: 8
     interval: 1.2
     ratTypes:
@@ -57,9 +57,9 @@ MonoBehaviour:
     to: {x: 12, y: 0.5}
   ogres:
     label: 3 vertically across both haul roads
-    count: 2
+    count: 1
     firstAt: 7
-    interval: 6
+    interval: 9
     fireEveryNth: 3
     entries:
     - label: up across both haul roads, right

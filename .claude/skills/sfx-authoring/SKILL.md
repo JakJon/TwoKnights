@@ -112,6 +112,14 @@ and `peak`. The b58 code does NOT encode `sound_vol` / `sample_rate` /
      editor route preferred; offline YAML fallback works because an
      AudioClip's main-asset fileID is constant `8300000`:
      `{fileID: 8300000, guid: <from the .wav.meta>, type: 3}`.
+     **There are TWO AudioManager objects — one in `Camp.unity`, one in
+     `Main.unity` — and they must be wired identically.** Camp is build
+     scene 0, so ITS copy is the singleton that survives into every real
+     run; Main's copy is destroyed on arrival and only matters when you hit
+     Play in Main directly. A slot wired in Main alone works in an editor
+     test and is silent (or falls back) in the game: `knightPoisonTick` sat
+     like that until 2026-10-19, so poison played the normal hurt cry.
+     After wiring, diff the two scenes' `playerHurt:`…`cardSettle:` blocks.
 - AudioManager (`Assets/Scripts/AudioManager.cs`) is a DontDestroyOnLoad
   singleton, one AudioSource, `PlayOneShot` only — no loops, no pitch control.
   Extend it (separate looping source) before authoring any ambient/looping

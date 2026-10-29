@@ -256,23 +256,13 @@ public class EquipmentPanel : MonoBehaviour
         if (OnSpecialRow)
         {
             var special = Loadout.ResolveSpecial(KnightId, null, SpecialSlot);
-            _detail.text = special != null ? Describe(special.Effect, special.Description)
-                                           : "Nothing in this special slot.";
+            _detail.text = special != null ? special.Effect : "Nothing in this special slot.";
         }
         else
         {
             var def = Loadout.EquippedAt(KnightId, _slot);
-            _detail.text = def != null ? Describe(def.Effect, def.Description)
-                                       : "Nothing carried in this slot.";
+            _detail.text = def != null ? def.Effect : "Nothing carried in this slot.";
         }
-    }
-
-    // What it does, then what it feels like — the same order the shop uses
-    private static string Describe(string effect, string flavor)
-    {
-        if (string.IsNullOrEmpty(effect)) return flavor;
-        if (string.IsNullOrEmpty(flavor)) return effect;
-        return effect + "\n" + flavor;
     }
 
     // Controls are not spelled out anywhere in the menus any more — they are the
@@ -454,10 +444,10 @@ public class EquipmentPanel : MonoBehaviour
         if (OnSpecialRow)
         {
             var special = catalog.FindSpecial(id);
-            return special != null ? Describe(special.Effect, special.Description) : "";
+            return special != null ? special.Effect : "";
         }
         var def = catalog.Find(id);
-        return def != null ? Describe(def.Effect, def.Description) : "";
+        return def != null ? def.Effect : "";
     }
 
     private void RefreshPicker()
@@ -471,7 +461,7 @@ public class EquipmentPanel : MonoBehaviour
         // knight owns more than a handful of items
         if (_picker != null && _pickIndex >= 0 && _pickIndex < _candidateRows.Count)
         {
-            _picker.ScrollTo(_candidateRows[_pickIndex]);
+            ListScroll.Reveal(_picker, _candidateRows[_pickIndex]);
         }
         UpdateDetail();
     }

@@ -23,10 +23,7 @@ MonoBehaviour:
   requiresAllUnlocks: 0
   lockedBy: []
   stats:
-  - valueText: 0.58
+  - valueText: SMALL
     labelText: HOMING RANGE
-    isPositive: 1
-  - valueText: MAIN SHOT
-    labelText: STEERS
     isPositive: 1
   rank: 1

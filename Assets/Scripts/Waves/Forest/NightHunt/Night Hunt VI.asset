@@ -25,7 +25,7 @@ MonoBehaviour:
   roundOneWolf: 2
   roundTwoWolf: 2
   roundThreeWolf: 2
-  batsPerStrike: 5
+  batsPerStrike: 6
   batSpacing: 0.475
   ratsPerStrike: 2
   wolvesPerStrike: 2

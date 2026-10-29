@@ -1,0 +1,229 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93ed109e0ebbe3e4a81f37b9d1b7f252, type: 3}
+  m_Name: Mine Sorting 2
+  m_EditorClassIdentifier: 
+  pieceSet: {fileID: 11400000, guid: 2fa8581524f280a43ac4eb9e40220125, type: 2}
+  cellSize: 1
+  fallStagger: 0.03
+  runs:
+  - label: feeder, up the left
+    piece: 1
+    axis: 1
+    offset: -6
+    spanViewport: 0
+    overhangCells: 0
+    start: -7
+    count: 9
+    flow: 0
+    layFromFarEnd: 0
+  - label: 'red fork: keeps it, across to the red branch'
+    piece: 0
+    axis: 0
+    offset: 2
+    spanViewport: 0
+    overhangCells: 0
+    start: -7
+    count: 1
+    flow: 1
+    layFromFarEnd: 0
+  - label: down to the red flag
+    piece: 1
+    axis: 1
+    offset: -8
+    spanViewport: 0
+    overhangCells: 0
+    start: -3
+    count: 5
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'red fork: passes it on, over the knights'
+    piece: 0
+    axis: 0
+    offset: 2
+    spanViewport: 0
+    overhangCells: 0
+    start: -5
+    count: 11
+    flow: 0
+    layFromFarEnd: 0
+  - label: down to the blue fork
+    piece: 1
+    axis: 1
+    offset: 6
+    spanViewport: 0
+    overhangCells: 0
+    start: -1
+    count: 3
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'blue fork: across to its left prong'
+    piece: 0
+    axis: 0
+    offset: -2
+    spanViewport: 0
+    overhangCells: 0
+    start: 5
+    count: 1
+    flow: 1
+    layFromFarEnd: 0
+  - label: 'blue fork: across to its right prong'
+    piece: 0
+    axis: 0
+    offset: -2
+    spanViewport: 0
+    overhangCells: 0
+    start: 7
+    count: 1
+    flow: 0
+    layFromFarEnd: 0
+  - label: left prong, blue flag
+    piece: 1
+    axis: 1
+    offset: 4
+    spanViewport: 0
+    overhangCells: 0
+    start: -6
+    count: 4
+    flow: 1
+    layFromFarEnd: 0
+  - label: right prong, green flag
+    piece: 1
+    axis: 1
+    offset: 8
+    spanViewport: 0
+    overhangCells: 0
+    start: -6
+    count: 4
+    flow: 1
+    layFromFarEnd: 0
+  tiles:
+  - label: corner
+    piece: 4
+    position: {x: -8, y: 2}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 5
+    position: {x: 6, y: 2}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 4
+    position: {x: 4, y: -2}
+    switchColor: 0
+    whenThrown: 0
+  - label: corner
+    piece: 5
+    position: {x: 8, y: -2}
+    switchColor: 0
+    whenThrown: 0
+  - label: RED corner, at rest
+    piece: 5
+    position: {x: -6, y: 2}
+    switchColor: 1
+    whenThrown: 0
+  - label: RED corner, thrown
+    piece: 4
+    position: {x: -6, y: 2}
+    switchColor: 1
+    whenThrown: 1
+  - label: BLUE corner, at rest
+    piece: 3
+    position: {x: 6, y: -2}
+    switchColor: 2
+    whenThrown: 0
+  - label: BLUE corner, thrown
+    piece: 2
+    position: {x: 6, y: -2}
+    switchColor: 2
+    whenThrown: 1
+  teleports:
+  - label: 'feeder, up the left  ->  red fork: keeps it, across to the red branch
+      (RED at rest)'
+    fromRun: 0
+    toRun: 1
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 1
+    whenThrown: 0
+  - label: 'feeder, up the left  ->  red fork: passes it on, over the knights (RED
+      thrown)'
+    fromRun: 0
+    toRun: 3
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 1
+    whenThrown: 1
+  - label: 'red fork: keeps it, across to the red branch  ->  down to the red flag'
+    fromRun: 1
+    toRun: 2
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'red fork: passes it on, over the knights  ->  down to the blue fork'
+    fromRun: 3
+    toRun: 4
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'down to the blue fork  ->  blue fork: across to its left prong (BLUE
+      at rest)'
+    fromRun: 4
+    toRun: 5
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 2
+    whenThrown: 0
+  - label: 'down to the blue fork  ->  blue fork: across to its right prong (BLUE
+      thrown)'
+    fromRun: 4
+    toRun: 6
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 2
+    whenThrown: 1
+  - label: 'blue fork: across to its left prong  ->  left prong, blue flag'
+    fromRun: 5
+    toRun: 7
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  - label: 'blue fork: across to its right prong  ->  right prong, green flag'
+    fromRun: 6
+    toRun: 8
+    exitOvershoot: 1
+    entryLead: 1
+    switchColor: 0
+    whenThrown: 0
+  drops:
+  - label: 'Red flag: down to the red flag'
+    run: 2
+    distanceAlong: 3.5
+    flag: 1
+    flagSide: 1
+    flagShift: {x: 0, y: 0}
+  - label: 'Blue flag: left prong, blue flag'
+    run: 7
+    distanceAlong: 1
+    flag: 2
+    flagSide: 1
+    flagShift: {x: 0, y: 0}
+  - label: 'Green flag: right prong, green flag'
+    run: 8
+    distanceAlong: 1
+    flag: 3
+    flagSide: 2
+    flagShift: {x: 0, y: 0}

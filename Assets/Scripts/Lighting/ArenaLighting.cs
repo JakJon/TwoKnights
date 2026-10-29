@@ -30,7 +30,7 @@ public class ArenaLighting : MonoBehaviour
     private const int GroundSortingOrder = 50;
 
     // Over the whole arena. Clear of the highest order the game hands out — the
-    // bomb blast at 25, prefabs at 12, BackgroundController's foreground at 100 —
+    // bomb blast at 25, prefabs at 12 —
     // because the canopy is the roof of the world and everything below is under it.
     private const string ActorSortingLayer = "Default";
     private const int ActorSortingOrder = 200;
@@ -221,7 +221,9 @@ public class ArenaLighting : MonoBehaviour
     // base is re-learned as a running maximum: nothing ever drives the light
     // ABOVE its authored intensity, so if this rig happens to be built while a
     // transition is already under way, the first lit frame corrects it.
-    private float GlobalLightScale()
+    //
+    // Public for GemGlow, which is unlit for the same reason the canopy is.
+    public float GlobalLightScale()
     {
         if (_globalLight == null)
         {

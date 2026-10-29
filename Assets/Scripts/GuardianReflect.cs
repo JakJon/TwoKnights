@@ -35,6 +35,12 @@ public static class GuardianReflect
         /// Carried on the turn rather than read from a const, because the rank is
         /// what sets it and only the blocking knight knows their rank.</summary>
         public float SpeedMultiplier;
+
+        /// <summary>True when the guard turned it, false when a sword did. Only the
+        /// guard's turns count toward the reflect quest: every knight can swing at a
+        /// fireball, and a Guardian trial anyone could clear without the Order would
+        /// not be testing the Order.</summary>
+        public bool ByShield;
     }
 
     /// <summary>
@@ -76,6 +82,7 @@ public static class GuardianReflect
         turn.OwnerTag = boost.gameObject.tag;
         turn.GuideRadius = boost.GuidedReflectionRadius;
         turn.SpeedMultiplier = boost.ReflectSpeedMultiplier;
+        turn.ByShield = true;
 
         PlayerStats.Increment("guardian.reflected");
         GuardianAwakening.NoteUse(turn.OwnerTag);
@@ -83,6 +90,79 @@ public static class GuardianReflect
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(AudioManager.Instance.guardianReflect);
+        }
+
+        return turn;
+    }
+
+    /// <summary>
+    /// The sword's turn. Not a roll and not an upgrade: any knight whose blade meets a
+    /// fireball, a pickaxe or a confusion ray sends it off the way the swing faces
+    /// (owner, 2026-10-15). Happened is false only when <paramref name="other"/> is not
+    /// a blade. Bombs ask for this too, for the owner and the multipliers, but roll
+    /// back the way they came rather than taking the heading.
+    ///
+    /// A knight who owns Reflector gets its damage and pace on what the sword sends
+    /// back as well, and Guided Reflections steers it. Without Reflector it leaves at
+    /// its own pace and hits for what it would have done to the knight.
+    ///
+    /// <paramref name="at"/> is where the ammunition is, for the one case the swing
+    /// has no facing yet: it then goes straight away from the knight.
+    /// </summary>
+    public static Turn TryBat(Collider2D other, Vector2 at)
+    {
+        Turn turn = default;
+        SwordDamageDetector blade = other != null ? other.GetComponent<SwordDamageDetector>() : null;
+        if (blade == null) return turn;
+
+        GameObject knight = blade.OwningKnight;
+        Vector2 heading = blade.SwingFacing;
+        if (heading.sqrMagnitude < 1e-6f && knight != null) heading = at - (Vector2)knight.transform.position;
+        if (heading.sqrMagnitude < 1e-6f) heading = Vector2.up;
+
+        return SentBack(knight, knight != null ? knight.tag : null, heading);
+    }
+
+    /// <summary>
+    /// The arrow's turn — asked by a BOMB and nothing else (owner, 2026-10-15). An
+    /// arrow that meets a bomb sends it rolling back the way it came, as a sword does,
+    /// and flies on; every other kind of ammunition is simply popped by an arrow.
+    /// Happened is false when <paramref name="other"/> is not a knight's projectile.
+    /// Shadow arrows, shurikens and the knight's own fireballs wear the same tag, so
+    /// they count too. Heading is the arrow's, for completeness; a bomb ignores it.
+    /// </summary>
+    public static Turn TryArrowBat(Collider2D other)
+    {
+        if (other == null) return default;
+
+        string ownerTag;
+        if (other.CompareTag("PlayerLeftProjectile")) ownerTag = "PlayerLeft";
+        else if (other.CompareTag("PlayerRightProjectile")) ownerTag = "PlayerRight";
+        else return default;
+
+        return SentBack(GameObject.FindWithTag(ownerTag), ownerTag, other.transform.right);
+    }
+
+    // Everything a knight sends back without the guard: their Reflector rank's damage
+    // and pace if they own it, Guided Reflections' steering, and credit to them
+    private static Turn SentBack(GameObject knight, string ownerTag, Vector2 heading)
+    {
+        GuardianBoost boost = UpgradeHold.Of<GuardianBoost>(knight);
+        bool reflector = boost != null && boost.CanReflect;
+
+        Turn turn = default;
+        turn.Happened = true;
+        turn.Heading = heading.sqrMagnitude > 1e-6f ? heading.normalized : Vector2.up;
+        turn.DamageMultiplier = reflector ? boost.ReflectDamageMultiplier : 1f;
+        turn.SpeedMultiplier = reflector ? boost.ReflectSpeedMultiplier : 1f;
+        turn.GuideRadius = boost != null ? boost.GuidedReflectionRadius : 0f;
+        turn.OwnerTag = ownerTag;
+        turn.ByShield = false;
+
+        // The guard's clang: steel met it, and the player should hear that it did
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.projectileShield);
         }
 
         return turn;

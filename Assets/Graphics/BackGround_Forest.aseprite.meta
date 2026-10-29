@@ -73,8 +73,8 @@ ScriptedImporter:
     applyGammaDecoding: 0
   previousAsepriteImporterSettings:
     fileImportMode: 1
-    importHiddenLayers: 0
-    layerImportMode: 1
+    importHiddenLayers: 1
+    layerImportMode: 0
     defaultPivotSpace: 0
     defaultPivotAlignment: 7
     customPivotPosition: {x: 0.5, y: 0.5}
@@ -86,8 +86,8 @@ ScriptedImporter:
     addShadowCasters: 0
   asepriteImporterSettings:
     fileImportMode: 1
-    importHiddenLayers: 0
-    layerImportMode: 1
+    importHiddenLayers: 1
+    layerImportMode: 0
     defaultPivotSpace: 0
     defaultPivotAlignment: 7
     customPivotPosition: {x: 0.5, y: 0.5}
@@ -123,7 +123,28 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: BackGround_Forest
+  - name: Layer 1
+    originalName: 
+    pivot: {x: 0.5, y: -0.008474577}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 372
+      width: 636
+      height: 354
+    spriteID: 0c614ec52699bc74cac4fe8fd446b13b
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 372}
+  - name: Layer 2
     originalName: 
     pivot: {x: 0.5, y: 0}
     alignment: 9
@@ -135,7 +156,7 @@ ScriptedImporter:
       y: 4
       width: 640
       height: 360
-    spriteID: 13588870ed59f3648ac70840d6f9c5af
+    spriteID: b63679aea3bbdd644a27ad34cb8d300b
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -148,17 +169,40 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 7404218
+      value0: 4287466680
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: BackGround_Forest
-    layerFlags: 0
+    name: Layer 1
+    layerFlags: 3
     layerType: 0
     blendMode: 0
     cells:
-    - name: BackGround_Forest
+    - name: Layer 1
+      frameIndex: 0
+      additiveSortOrder: 0
+      cellRect:
+        x: 2
+        y: 3
+        width: 636
+        height: 354
+      spriteId: 0c614ec52699bc74cac4fe8fd446b13b
+    linkedCells: []
+    parentIndex: -1
+  - layerIndex: 1
+    uuid:
+      value0: 4287466677
+      value1: 0
+      value2: 0
+      value3: 0
+    guid: 0
+    name: Layer 2
+    layerFlags: 3
+    layerType: 0
+    blendMode: 0
+    cells:
+    - name: Layer 2
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
@@ -166,7 +210,7 @@ ScriptedImporter:
         y: 0
         width: 640
         height: 360
-      spriteId: 13588870ed59f3648ac70840d6f9c5af
+      spriteId: b63679aea3bbdd644a27ad34cb8d300b
     linkedCells: []
     parentIndex: -1
   platformSettings:
@@ -210,4 +254,4 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 640, y: 360}
-  previousTextureSize: {x: 1024, y: 512}
+  previousTextureSize: {x: 1024, y: 1024}

@@ -175,7 +175,7 @@ public class PoisonTipBoost : MonoBehaviour
     /// ranks only move forward. The beads go out evenly spaced round the enemy,
     /// the first one pointing at airborneStartDegrees (0 = right, 90 = up):
     ///
-    ///   I   2 beads every 6s - left and right
+    ///   I   2 beads every 5s - left and right
     ///   II  5 beads every 5s - a pentagon, point up
     ///   III 8 beads every 4s - a ring that keeps I's left and right
     ///   IV  10 beads every 2s - a ring that keeps II's pentagon
@@ -206,7 +206,7 @@ public class PoisonTipBoost : MonoBehaviour
         else
         {
             airborneBubbles = 2;
-            airborneInterval = 6f;
+            airborneInterval = 5f;
             airborneStartDegrees = 0f;
         }
     }

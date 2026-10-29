@@ -29,6 +29,10 @@ public class PauseMenu : MonoBehaviour
     private Button _quitButton;
     private Button _confirmYesButton;
     private Button _confirmNoButton;
+    // Test Mode's two actions. In the UXML for every build; only a test run in a
+    // dev build ever shows them.
+    private Button _skipWaveButton;
+    private Button _changeUpgradesButton;
 
     // The camp's quest log and equipment sheet, instanced into this document
     // from the same UXML templates. Added in code so the scene needs no
@@ -38,6 +42,10 @@ public class PauseMenu : MonoBehaviour
     private QuestPanel _questPanel;
     private EquipmentPanel _equipmentPanel;
     private SettingsPanel _settingsPanel;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // Test Mode's own panel from the camp, opened here by CHANGE UPGRADES
+    private TestModePanel _testPanel;
+#endif
 
     // The button to hand focus back to when a sub-panel closes
     private Button _returnFocus;
@@ -47,6 +55,7 @@ public class PauseMenu : MonoBehaviour
     private float _previousTimeScale = 1f;
 
     private const string OVERLAY_CLASS = "pause-menu-overlay";
+    private const string DENSE_ACTIONS_CLASS = "actions-container--dense";
 
     public static bool IsPaused { get; private set; }
 
@@ -103,6 +112,11 @@ public class PauseMenu : MonoBehaviour
         _equipmentPanel.ReadOnly = true;
         _settingsPanel = GetComponent<SettingsPanel>();
         if (_settingsPanel == null) _settingsPanel = gameObject.AddComponent<SettingsPanel>();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _testPanel = GetComponent<TestModePanel>();
+        if (_testPanel == null) _testPanel = gameObject.AddComponent<TestModePanel>();
+        _testPanel.InRun = true;
+#endif
     }
 
     private void OnEnable()
@@ -112,6 +126,9 @@ public class PauseMenu : MonoBehaviour
         if (_questPanel != null) _questPanel.OnCloseRequested += HandleSubPanelClosed;
         if (_equipmentPanel != null) _equipmentPanel.OnCloseRequested += HandleSubPanelClosed;
         if (_settingsPanel != null) _settingsPanel.OnCloseRequested += HandleSubPanelClosed;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_testPanel != null) _testPanel.OnCloseRequested += HandleSubPanelClosed;
+#endif
     }
 
     private void OnDisable()
@@ -120,6 +137,9 @@ public class PauseMenu : MonoBehaviour
         if (_questPanel != null) _questPanel.OnCloseRequested -= HandleSubPanelClosed;
         if (_equipmentPanel != null) _equipmentPanel.OnCloseRequested -= HandleSubPanelClosed;
         if (_settingsPanel != null) _settingsPanel.OnCloseRequested -= HandleSubPanelClosed;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_testPanel != null) _testPanel.OnCloseRequested -= HandleSubPanelClosed;
+#endif
         ResumeGameInternal(resetInput: false);
     }
 
@@ -162,6 +182,8 @@ public class PauseMenu : MonoBehaviour
         _quitButton = _root.Q<Button>("quit-button");
         _confirmYesButton = _root.Q<Button>("confirm-yes");
         _confirmNoButton = _root.Q<Button>("confirm-no");
+        _skipWaveButton = _root.Q<Button>("pause-skip-wave-button");
+        _changeUpgradesButton = _root.Q<Button>("pause-change-upgrades-button");
 
         BindColumn(_left, "left");
         BindColumn(_right, "right");
@@ -200,6 +222,18 @@ public class PauseMenu : MonoBehaviour
         {
             _confirmNoButton.clicked += OnConfirmNoClicked;
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_skipWaveButton != null)
+        {
+            _skipWaveButton.clicked += OnSkipWaveClicked;
+        }
+
+        if (_changeUpgradesButton != null)
+        {
+            _changeUpgradesButton.clicked += OnChangeUpgradesClicked;
+        }
+#endif
 
         // Reaching the centre by mouse has to empty both readouts too, or a stale
         // description sits under a list nobody is in.
@@ -255,7 +289,7 @@ public class PauseMenu : MonoBehaviour
     private void OnTogglePause(InputAction.CallbackContext context)
     {
         if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible
-            || QuestScene.IsPlaying || TrialRunner.IsSpeaking)
+            || QuestScene.IsPlaying || TrialRunner.IsSpeaking || TestListOpen)
         {
             return;
         }
@@ -285,7 +319,7 @@ public class PauseMenu : MonoBehaviour
         }
 
         if (!IsInMainScene() || DeathScreen.IsVisible || WaveSurvivedPanel.IsVisible
-            || QuestScene.IsPlaying || TrialRunner.IsSpeaking)
+            || QuestScene.IsPlaying || TrialRunner.IsSpeaking || TestListOpen)
         {
             return;
         }
@@ -303,6 +337,7 @@ public class PauseMenu : MonoBehaviour
         UpdateWaveLabel();
         UpdateLoadout();
         UpdateTutorialVisibility();
+        UpdateTestModeVisibility();
         HideConfirmPrompt();
         CloseSubPanels();
         ShowMenu();
@@ -513,7 +548,7 @@ public class PauseMenu : MonoBehaviour
 
         var row = col.Rows[index];
         row.Focus();
-        col.Scroll?.ScrollTo(row);
+        ListScroll.Reveal(col.Scroll, row);
         RefreshMoreArrow(col);
     }
 
@@ -535,7 +570,19 @@ public class PauseMenu : MonoBehaviour
     private bool SubPanelOpen =>
         (_questPanel != null && _questPanel.IsVisible) ||
         (_equipmentPanel != null && _equipmentPanel.IsVisible) ||
-        (_settingsPanel != null && _settingsPanel.IsVisible);
+        (_settingsPanel != null && _settingsPanel.IsVisible) ||
+        TestPanelOpen;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private bool TestPanelOpen => _testPanel != null && _testPanel.IsVisible;
+
+    // Test Mode's wave list or event list is up. It draws over this menu and
+    // reads the same buttons, so pausing waits until it has been answered.
+    private static bool TestListOpen => TestWavePicker.IsOpen;
+#else
+    private bool TestPanelOpen => false;
+    private static bool TestListOpen => false;
+#endif
 
     private void OnQuestsClicked()
     {
@@ -561,6 +608,34 @@ public class PauseMenu : MonoBehaviour
         _settingsPanel.Show();
     }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // Ends the wave on the spot and carries on from "Wave Survived" - see
+    // Spawner.SkipCurrentWave. Unpaused first: everything after a wave runs on
+    // scaled time, the same as when the last enemy dies.
+    private void OnSkipWaveClicked()
+    {
+        if (!_isPaused || SubPanelOpen) return;
+
+        var spawner = FindFirstObjectByType<Spawner>();
+        ResumeGame();
+        if (spawner != null) spawner.SkipCurrentWave();
+    }
+
+    private void OnChangeUpgradesClicked()
+    {
+        // The SubPanelOpen check matters more here than on the buttons above:
+        // opening the panel is what loads the knights' current upgrades into it,
+        // so a second open would throw away whatever had been changed.
+        if (!_isPaused || _testPanel == null || SubPanelOpen) return;
+
+        _returnFocus = _changeUpgradesButton;
+        SetPausePanelVisible(false);
+        // A is the panel's own button. Nothing behind it may still hold focus.
+        (_root?.focusController?.focusedElement as VisualElement)?.Blur();
+        _testPanel.Show();
+    }
+#endif
+
     private void HandleSubPanelClosed()
     {
         SetPausePanelVisible(true);
@@ -574,6 +649,9 @@ public class PauseMenu : MonoBehaviour
         if (_questPanel != null) _questPanel.Hide();
         if (_equipmentPanel != null) _equipmentPanel.Hide();
         if (_settingsPanel != null) _settingsPanel.Hide();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_testPanel != null) _testPanel.Hide();
+#endif
         _returnFocus = null;
         SetPausePanelVisible(true);
     }
@@ -659,6 +737,28 @@ public class PauseMenu : MonoBehaviour
         bool hide = TutorialRun.IsTutorialRun;
         if (_questsButton != null) _questsButton.style.display = hide ? DisplayStyle.None : DisplayStyle.Flex;
         if (_equipmentButton != null) _equipmentButton.style.display = hide ? DisplayStyle.None : DisplayStyle.Flex;
+    }
+
+    // Skip Wave and Change Upgrades are Test Mode's: shown only inside a test run
+    // in a dev build, and Skip Wave only while there is a wave to skip. Hidden
+    // rather than disabled - the focus walk steps over what is not displayed, and
+    // would stick on a button it cannot land on.
+    private void UpdateTestModeVisibility()
+    {
+        bool testRun = false;
+        bool canSkip = false;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        testRun = TestRunConfig.ActiveRun;
+        if (testRun)
+        {
+            var spawner = FindFirstObjectByType<Spawner>();
+            canSkip = spawner != null && spawner.CanSkipWave;
+        }
+#endif
+        if (_skipWaveButton != null) _skipWaveButton.style.display = canSkip ? DisplayStyle.Flex : DisplayStyle.None;
+        if (_changeUpgradesButton != null) _changeUpgradesButton.style.display = testRun ? DisplayStyle.Flex : DisplayStyle.None;
+        // Seven buttons where there were five: tightened so the card keeps its height
+        if (_mainActions != null) _mainActions.EnableInClassList(DENSE_ACTIONS_CLASS, testRun);
     }
 
     private void UpdateWaveLabel()
@@ -931,6 +1031,16 @@ public class PauseMenu : MonoBehaviour
         {
             _confirmNoButton.clicked -= OnConfirmNoClicked;
         }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (_skipWaveButton != null)
+        {
+            _skipWaveButton.clicked -= OnSkipWaveClicked;
+        }
+        if (_changeUpgradesButton != null)
+        {
+            _changeUpgradesButton.clicked -= OnChangeUpgradesClicked;
+        }
+#endif
     }
 
     private void SetPausedState(bool paused)

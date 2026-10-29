@@ -78,6 +78,20 @@ public class RailNetwork : MonoBehaviour
     private bool _warnedMissingPiece;
     private bool _warnedMissingFlag;
 
+    // The corner pieces that a lever turns — see RailSwitchColor. A fork's corner
+    // is built twice when the layout is laid, once for each way it can point, and
+    // the one that does not match its lever is simply switched off.
+    private struct SwitchPiece
+    {
+        public RailSegment Segment;
+        public RailSwitchColor Color;
+        public bool WhenThrown;
+    }
+
+    private readonly List<SwitchPiece> _switchPieces = new List<SwitchPiece>();
+    private bool _redThrown;
+    private bool _blueThrown;
+
     public static RailNetwork Instance { get; private set; }
 
     /// <summary>Pieces currently on the field.</summary>
@@ -107,6 +121,26 @@ public class RailNetwork : MonoBehaviour
     /// faster.
     /// </summary>
     public float SpeedScale { get; private set; } = 1f;
+
+    /// <summary>
+    /// Has the lever of this colour been thrown? Every layout is laid with both
+    /// switches at rest. None is never thrown.
+    /// </summary>
+    public bool IsThrown(RailSwitchColor color)
+    {
+        return color == RailSwitchColor.Red ? _redThrown
+             : color == RailSwitchColor.Blue && _blueThrown;
+    }
+
+    /// <summary>Does the track laid right now have a fork that the lever of this colour turns?</summary>
+    public bool HasSwitch(RailSwitchColor color)
+    {
+        for (int i = 0; i < _switchPieces.Count; i++)
+        {
+            if (_switchPieces[i].Color == color) return true;
+        }
+        return false;
+    }
 
     private void Awake()
     {
@@ -149,11 +183,12 @@ public class RailNetwork : MonoBehaviour
 
         Transform parent = ResolveParent();
         float stagger = layout.FallStagger;
+        int falling = 0; // pieces in the cascade so far; a fork's other corner takes no turn
 
         for (int i = 0; i < _placements.Count; i++)
         {
             var placement = _placements[i];
-            GameObject prefab = PrefabFor(placement.Piece);
+            GameObject prefab = PrefabFor(placement.Piece, placement.Switch);
             if (prefab == null) continue;
 
             var instance = Instantiate(prefab, placement.Position, Quaternion.identity, parent);
@@ -164,13 +199,61 @@ public class RailNetwork : MonoBehaviour
                 continue;
             }
 
-            float delay = i * stagger;
+            _live.Add(segment);
+
+            if (placement.Switch != RailSwitchColor.None)
+            {
+                _switchPieces.Add(new SwitchPiece
+                {
+                    Segment = segment,
+                    Color = placement.Switch,
+                    WhenThrown = placement.WhenThrown
+                });
+
+                // The way the corner points once its lever is thrown. Built now
+                // so a throw only ever has to show one and hide the other, but it
+                // is not there yet: no fall, no dust.
+                if (placement.WhenThrown != IsThrown(placement.Switch))
+                {
+                    segment.SnapSettled();
+                    instance.SetActive(false);
+                    continue;
+                }
+            }
+
+            float delay = falling * stagger;
+            falling++;
             segment.Drop(delay);
             LayDuration = Mathf.Max(LayDuration, delay + segment.FallDuration);
-            _live.Add(segment);
         }
 
         return LayDuration;
+    }
+
+    /// <summary>
+    /// Throw the lever of this colour: every fork corner of that colour swings to
+    /// its other branch, and from this frame a cart reaching one of those forks is
+    /// sent the new way. Throwing it again puts it back.
+    ///
+    /// A cart that has already passed the middle of the corner keeps the way it
+    /// took — the track turns behind it.
+    /// </summary>
+    public void Throw(RailSwitchColor color)
+    {
+        if (color == RailSwitchColor.Red) _redThrown = !_redThrown;
+        else if (color == RailSwitchColor.Blue) _blueThrown = !_blueThrown;
+        else return;
+
+        bool thrown = IsThrown(color);
+        for (int i = 0; i < _switchPieces.Count; i++)
+        {
+            SwitchPiece piece = _switchPieces[i];
+            if (piece.Color != color || piece.Segment == null) continue;
+
+            bool inPlace = piece.WhenThrown == thrown;
+            piece.Segment.gameObject.SetActive(inPlace);
+            if (inPlace) piece.Segment.SnapSettled();
+        }
     }
 
     /// <summary>Build the layout already settled — no fall, no dust.</summary>
@@ -188,13 +271,19 @@ public class RailNetwork : MonoBehaviour
     /// The pad guarding the far end of <paramref name="lineIndex"/>, if the
     /// layout wired one. Null means carts on that line simply roll off and
     /// despawn — the behaviour of every layout with no teleport table.
+    ///
+    /// A fork is a line with two links off its end, one for each way its corner
+    /// can point. Only the link that matches the lever counts, which is the whole
+    /// of how a switch steers a cart.
     /// </summary>
     public RailTeleporter ExitPadFor(int lineIndex)
     {
         for (int i = 0; i < _pads.Count; i++)
         {
             RailTeleporter pad = _pads[i];
-            if (pad != null && pad.IsExit && pad.LineIndex == lineIndex) return pad;
+            if (pad == null || !pad.IsExit || pad.LineIndex != lineIndex) continue;
+            if (pad.Switch != RailSwitchColor.None && pad.WhenThrown != IsThrown(pad.Switch)) continue;
+            return pad;
         }
         return null;
     }
@@ -289,10 +378,21 @@ public class RailNetwork : MonoBehaviour
     /// </summary>
     public MineCart SpawnCart(GameObject cartPrefab, int lineIndex, float speed = 0f)
     {
+        return SpawnCart(cartPrefab, lineIndex, speed, true);
+    }
+
+    /// <summary>
+    /// SpawnCart, with the mine's every-Nth swaps (CartVariant) switched off when
+    /// <paramref name="substitute"/> is false. For a wave that deals its own exact
+    /// mix — the Overseer's ambushes send one of each gnome in turn, and a swap
+    /// would make that mix uneven.
+    /// </summary>
+    public MineCart SpawnCart(GameObject cartPrefab, int lineIndex, float speed, bool substitute)
+    {
         RailLine line;
         if (cartPrefab == null || !TryGetLine(lineIndex, out line)) return null;
 
-        cartPrefab = Substitute(cartPrefab);
+        if (substitute) cartPrefab = Substitute(cartPrefab);
 
         var instance = Instantiate(cartPrefab, line.EntryPoint, Quaternion.identity, ResolveParent());
         var cart = instance.GetComponent<MineCart>();
@@ -307,6 +407,31 @@ public class RailNetwork : MonoBehaviour
         if (speed > 0f) cart.Ride(line, speed * SpeedScale);
         else cart.Ride(line, cart.Speed * SpeedScale);
 
+        _carts.Add(cart);
+        return cart;
+    }
+
+    /// <summary>
+    /// Put a cart straight onto line <paramref name="lineIndex"/>, already
+    /// <paramref name="along"/> units past its mouth, instead of rolling it in
+    /// from behind the mouth. For track that has no way in from off-screen — see
+    /// MineCart.DropIn. Never substituted: a cart placed by hand is the cart meant.
+    /// </summary>
+    public MineCart SpawnCartAt(GameObject cartPrefab, int lineIndex, float along, float speed = 0f)
+    {
+        RailLine line;
+        if (cartPrefab == null || !TryGetLine(lineIndex, out line)) return null;
+
+        var instance = Instantiate(cartPrefab, line.PointAt(along), Quaternion.identity, ResolveParent());
+        var cart = instance.GetComponent<MineCart>();
+        if (cart == null)
+        {
+            Debug.LogWarning($"[RailNetwork] {cartPrefab.name} has no MineCart component; it cannot ride the track.");
+            Destroy(instance);
+            return null;
+        }
+
+        cart.Resume(line, along, (speed > 0f ? speed : cart.Speed) * SpeedScale);
         _carts.Add(cart);
         return cart;
     }
@@ -388,6 +513,9 @@ public class RailNetwork : MonoBehaviour
             if (_live[i] != null) Destroy(_live[i].gameObject);
         }
         _live.Clear();
+        _switchPieces.Clear();
+        _redThrown = false;
+        _blueThrown = false;
         _lines.Clear();
         LayDuration = 0f;
     }
@@ -425,6 +553,7 @@ public class RailNetwork : MonoBehaviour
             exit.Configure(link.label, from.Index, exitAlong, from.PointAt(exitAlong));
             entry.Configure(link.label, to.Index, entryAlong, to.PointAt(entryAlong));
             exit.LinkTo(entry);
+            exit.HangOnSwitch(link.switchColor, link.whenThrown);
 
             _pads.Add(exit);
             _pads.Add(entry);
@@ -441,11 +570,11 @@ public class RailNetwork : MonoBehaviour
         if (drops == null || drops.Count == 0) return;
 
         Transform parent = ResolveParent();
-        GameObject flagPrefab = layout.PieceSet != null ? layout.PieceSet.DropFlagPrefab : null;
 
         for (int i = 0; i < drops.Count; i++)
         {
             RailDrop drop = drops[i];
+            GameObject flagPrefab = layout.PieceSet != null ? layout.PieceSet.DropFlagFor(drop.flag) : null;
 
             RailLine line;
             if (!TryGetLine(drop.run, out line))
@@ -458,7 +587,8 @@ public class RailNetwork : MonoBehaviour
             var host = new GameObject($"RailDrop_{i}");
             host.transform.SetParent(parent, false);
             var marker = host.AddComponent<RailDropPoint>();
-            marker.Configure(drop.label, line.Index, drop.distanceAlong, line.PointAt(drop.distanceAlong));
+            marker.Configure(drop.label, line.Index, drop.distanceAlong, line.PointAt(drop.distanceAlong),
+                             drop.flag);
 
             if (flagPrefab != null)
             {
@@ -467,13 +597,28 @@ public class RailNetwork : MonoBehaviour
                 // the flag one cell further along the rail, in the path of the
                 // carts. So the nudge runs across the line's axis, and outward,
                 // away from the middle of the board where the fight is.
-                float side = line.Offset >= 0f ? 1f : -1f;
+                //
+                // Outward is the rule for a delivery flag. A sorting fork wants its
+                // two flags on the two outer sides of the fork instead, which is
+                // not the same thing, so the layout can name the side.
+                float side = drop.flagSide == RailFlagSide.WestOrSouth ? -1f
+                           : drop.flagSide == RailFlagSide.EastOrNorth ? 1f
+                           : line.Offset >= 0f ? 1f : -1f;
                 Vector3 nudge = line.Axis == RailAxis.Horizontal
                     ? new Vector3(0f, side * flagOffset, 0f)
                     : new Vector3(side * flagOffset, 0f, 0f);
 
                 GameObject flag = Instantiate(flagPrefab, host.transform);
-                flag.transform.localPosition = nudge;
+
+                // A flag built bigger than the ordinary one is stood that much
+                // further out, so its near edge stays where a small flag's would
+                // be instead of growing in over the rail.
+                var cloth = flag.GetComponent<SpriteRenderer>();
+                float grown = cloth != null && cloth.sprite != null
+                    ? cloth.sprite.bounds.extents.x * (flag.transform.localScale.x - 1f)
+                    : 0f;
+
+                flag.transform.localPosition = nudge + nudge.normalized * grown + (Vector3)drop.flagShift;
             }
             else if (!_warnedMissingFlag)
             {
@@ -508,11 +653,11 @@ public class RailNetwork : MonoBehaviour
     // The layout wins because it is an ASSET: it can be wired without a scene
     // open, which the table below cannot (see RailPieceSet for why that matters).
     // The table stays as a per-scene override.
-    private GameObject PrefabFor(RailPieceKind kind)
+    private GameObject PrefabFor(RailPieceKind kind, RailSwitchColor color)
     {
         if (_layout != null && _layout.PieceSet != null)
         {
-            GameObject fromSet = _layout.PieceSet.For(kind);
+            GameObject fromSet = _layout.PieceSet.For(kind, color);
             if (fromSet != null) return fromSet;
         }
 

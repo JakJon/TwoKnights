@@ -1,8 +1,9 @@
 /* ============================================================
-   Player HUD — glass vials. Thin pill bars: near-black track,
-   hairline gold rim, vivid gradient fill (grayscale ramp tinted
-   per bar) under a specular sheen. Text sits beside the vial,
-   bright with a hard shadow so it reads over any field.
+   Player HUD. The knights' health and special bars are pixel
+   art painted in code (PixelBar.cs): slanted boxes with a black
+   outline, on the same pixel grid as the sprites, and so is the
+   boss's bar (2026-10-20). Text sits beside or above each bar,
+   bright with a black outline so it reads over any field.
    ============================================================ */
 
 .player-hud {
@@ -24,14 +25,51 @@
 .hud-left { align-items: flex-start; }
 .hud-right { align-items: flex-end; }
 
-/* ---------- boss bar (top center, shown only while a boss lives) ---------- */
+/* ---------- the run's pixel font ----------
+   Everything the HUD prints during a run is set in Jersey 10 (owner,
+   2026-10-13), the same file RunFont.cs builds the damage numbers and the
+   text box from. Named on each text class, never on .player-hud, so the
+   black copies TextRim makes of the streak number pick it up with the rest
+   of that label's classes.
+
+   Always "normal": the font has one weight and one slope, and asking for
+   bold or italic makes UI Toolkit fake it by fattening or leaning the
+   letters, which smears the pixels.
+
+   Every size below is about a third bigger than the number it replaced.
+   Jersey's capitals fill less of its em square than the old fonts' did, so
+   that is what keeps the text the height it was. */
+.boss-title,
+.boss-health-amount,
+.streak-mult,
+.streak-count,
+.bar-side-label,
+.venture-line {
+    -unity-font-definition: url("/Assets/Resources/Fonts/Jersey10-Regular.ttf");
+    -unity-font-style: normal;
+}
+
+/* ---------- boss bar (bottom middle, shown only while a boss lives) ----------
+
+   Bottom middle, between the two knights (owner, 2026-10-20: at the top it
+   sat over the Overseer's own track), and drawn the way the knights' bars are
+   (same day: "the same style as the knights"): a PixelBar in the health ramp,
+   160 art pixels long where a knight's is 72 (BossHealthBar.BarPixels), and
+   the boss's name and health in the run's pixel font with the streak count's
+   black outline. The name and the number share one line above the bar, at the
+   left and right ends of it, so the bar itself stays centred.
+
+   The bar stands level with the knights' health bars: their blocks sit on the
+   HUD's bottom padding with the special bar's row (15px, and 5.625px above
+   it) under the health bar. The 26.4px is that padding, 2.2% of the panel's
+   1200 width; a percentage written here would be taken from its height
+   instead, which is not the same number. */
 
 .boss-hud {
     position: absolute;
-    top: 2.2%;
     left: 0;
     right: 0;
-    flex-direction: column;
+    bottom: 47.025px;
     align-items: center;
     display: none;
     opacity: 0;
@@ -43,62 +81,74 @@
 /* added once the wave-name banner has faded out */
 .boss-hud--visible { opacity: 1; }
 
-.boss-title {
-    font-size: 19px;
-    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
-    -unity-font-style: normal;
-    color: rgb(212, 162, 74);
-    letter-spacing: 4px;
-    margin-bottom: 3px;
+/* As wide as its widest child, the bar, so the line above stretches to the
+   bar's two ends */
+.boss-block {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* The line stands close over the bar the way STREAK stands over a knight's
+   health bar (see .streak-line) */
+.boss-head {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: -8px;
+}
+
+/* Same size, spacing and outline as STREAK and the knights' numbers. The name
+   keeps the boss's gold. Its left margin lines it up with the bar's top-left
+   corner, which the slant puts 7 art pixels (13.125px) in from the end. */
+.boss-title,
+.boss-health-amount {
+    font-size: 17px;
+    letter-spacing: 3px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
 }
 
-/* The row owns the boss bar's width now that the HP number shares it — a percentage
-   width on the bar itself would resolve against an auto-sized row and collapse. */
-.boss-hud .bar-row {
-    width: 34%;
-    min-width: 380px;
-    max-width: 640px;
-    justify-content: center;
-    margin-top: 0;
-}
-
-.boss-bar {
-    flex-grow: 1;
-    flex-shrink: 1;
-    width: auto;
-    height: 14px;
-    border-radius: 7px;
-}
-
-/* gold to match the boss title, so the whole boss block reads as one unit */
-.boss-hud .bar-side-label {
-    margin-left: 8px;
+.boss-title {
     color: rgb(212, 162, 74);
+    margin-left: 13px;
+    margin-right: 0;
+    -unity-text-align: lower-left;
 }
 
-/* deeper crimson than the knights' health red — reads as the enemy's blood */
-.boss-health-fill { -unity-background-image-tint-color: rgb(214, 36, 52); }
+.boss-health-amount {
+    color: rgb(255, 244, 214);
+    margin-left: 0;
+    margin-right: 0;
+    -unity-text-align: lower-right;
+}
 
 /* ---------- streak / multiplier line ---------- */
 
 /* "×N" on the left grows with the multiplier; "· STREAK n" never does.
-   Bottom-aligned so a bigger number grows upward, away from the vials. */
+   Bottom-aligned so a bigger number grows upward, away from the bars.
+
+   The bottom margin stands the line close over the health bar. STREAK's
+   letters sit 10.5px above the foot of the line: 2px of the theme's margin,
+   4px of its padding and 4.5px the font leaves under its letters. The row
+   below starts 5.625px further down. Taking 8px back leaves the letters
+   about 8px above the bar, which is 13 screen pixels at 1080p. */
 .streak-line {
     flex-direction: row;
     align-items: flex-end;
-    margin-bottom: 1px;
+    margin-bottom: -8px;
 }
 
-/* one typeface for the whole line: the number only changes size and colour */
+/* one typeface for the whole line: the number only changes size and colour.
+   The text is pinned to the foot of its label. A label is rounded up to a
+   whole pixel taller than its text, and left at the top the text would ride
+   that spare fraction up, by a different amount at each font size. */
 .streak-mult,
 .streak-count {
-    -unity-font-style: bold;
     letter-spacing: 3px;
+    -unity-text-align: lower-left;
 }
 
 .streak-count {
-    font-size: 13px;
+    font-size: 17px;
     color: rgb(255, 244, 214);
     margin-left: 5px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
@@ -130,31 +180,42 @@
     transition-timing-function: ease-out-back;
 }
 
-/* x1: tiny white. On x3 and x4 a negative bottom margin cancels the taller
-   descender space of the bigger size, so the number keeps the STREAK baseline. */
+/* x1: white, and the same size as x2 (owner, 2026-10-13: it was too small).
+
+   Each tier's bottom margin stands the number on the same line as STREAK.
+   The font leaves empty space under its letters, 0.27px for every pixel of
+   font size, so a number bigger than STREAK's 17 has to sit lower by 0.27px
+   for each pixel it is bigger: 1px at 21, 3px at 29, 6px at 39.
+
+   Those drops are taken off 2px, not off 0. Unity's theme gives every Label
+   a 2px bottom margin, STREAK's included, and a margin written here replaces
+   that one instead of adding to it. Written as the bare drop, the number
+   stood 2px under STREAK at every tier. */
 .streak-mult--1 {
-    font-size: 10px;
+    font-size: 21px;
     color: rgb(255, 255, 255);
+    margin-bottom: 1px;
 }
 
 /* x2: medium yellow, small fire */
 .streak-mult--2 {
-    font-size: 16px;
+    font-size: 21px;
     color: rgb(255, 226, 64);
+    margin-bottom: 1px;
     text-shadow: 0 0 6px rgba(255, 200, 40, 0.7);
 }
 
 /* x3: large frost blue (the frost damage number's hue, deepened), medium fire */
 .streak-mult--3 {
-    font-size: 22px;
+    font-size: 29px;
     color: rgb(64, 166, 242);
-    margin-bottom: -2px;
+    margin-bottom: -1px;
     text-shadow: 0 0 8px rgba(64, 166, 242, 0.7);
 }
 
 /* x4: XL bright purple, blue-and-orange fire */
 .streak-mult--4 {
-    font-size: 30px;
+    font-size: 39px;
     color: rgb(212, 104, 255);
     margin-bottom: -4px;
     text-shadow: 0 0 10px rgba(196, 80, 255, 0.85);
@@ -166,7 +227,7 @@
     transition-duration: 0s;
 }
 
-/* ---------- vials ---------- */
+/* ---------- bars ---------- */
 
 .bar-row {
     flex-direction: row;
@@ -177,98 +238,107 @@
 /* labels sit toward screen center on both sides */
 .hud-right .bar-row { flex-direction: row-reverse; }
 
-.bar {
-    width: 340px;
-    height: 12px;
-    background-color: rgb(10, 8, 6);
-    border-width: 1px;
-    border-color: rgba(123, 123, 123, 0.1);
-    border-radius: 6px;
-    overflow: hidden;
-}
+/* The knights' bars (owner, 2026-10-13). PixelBar.cs paints each one as a
+   72 x 8 texture and hands it to this element as its background.
 
-.bar-fill {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 100%;
-    border-radius: 5px;
-    background-color: rgba(0, 0, 0, 0);
-    background-image: url("BarFillGradient.png");
-    -unity-background-scale-mode: stretch-to-fill;
-    transition-property: width;
-    transition-duration: 0.15s;
-    transition-timing-function: ease-out;
-}
-
-/* glass highlight over fill and track alike */
-.bar-sheen {
-    position: absolute;
-    left: 1px;
-    top: 1px;
-    right: 1px;
-    bottom: 1px;
-    border-radius: 5px;
-    background-image: url("BarSheen.png");
+   One of the game's art pixels is 1.875px here: the panel is 1200 wide and
+   the game's frame is 640 art pixels wide. So 135 x 15 is 72 x 8 art pixels,
+   and at 1080p every art pixel lands on exactly 3 screen pixels. */
+.pixel-bar {
+    width: 135px;
+    height: 15px;
+    flex-shrink: 0;
     -unity-background-scale-mode: stretch-to-fill;
 }
 
-.health-fill { -unity-background-image-tint-color: rgb(255, 64, 40); }
+/* A knight's row is exactly as tall as its bar, so the two bars can sit
+   3 art pixels apart (5.625px). The number beside the bar is taller than
+   that and hangs over the row above and below, which costs nothing: there
+   is nothing else on the row. */
+.knight-hud .bar-row {
+    height: 15px;
+    margin-top: 5.625px;
+}
 
-/* last quarter of health burns hotter */
-.health-fill.health--low { -unity-background-image-tint-color: rgb(255, 32, 16); }
+/* The halo behind a bar: red and pulsing with the chirp while a knight is
+   low on health, and the special bar's own colour, pulsing slowly, while it
+   is full (owner, 2026-10-13: he wanted the old bars' glow, not the outline
+   flashing). It sits in a holder with the bar and is drawn first, so the bar
+   covers its middle and only the rim glows. Hidden until HealthBar or
+   SpecialBar drives its opacity.
 
-/* Low-health warning: a red halo behind the vial. The bar clips its children,
-   so the halo sits beside it in a holder instead, drawn first so the vial
-   covers its middle and only the rim glows. Hidden until PlayerHealth
-   drives its opacity — see HealthBar.SetWarningGlow. The texture is 34x32
-   with the pill's rounded ends in the outer 16px each side, so only the
-   centre column stretches along the bar. */
-.health-glow {
+   The texture is 34x32: a pill whose glow fades out over its outer 10
+   pixels. It is cut into nine pieces so the fade keeps its own size however
+   big the bar is, and drawn at three quarters size, so the fade is 7.5px
+   and ends exactly where the element does: 7.5px out from the bar, which is
+   4 art pixels. It was 10px out, and spread too far (owner, same day). */
+.health-glow,
+.special-glow {
     position: absolute;
-    left: -10px;
-    right: -10px;
-    top: -10px;
-    bottom: -10px;
+    left: -7.5px;
+    right: -7.5px;
+    top: -7.5px;
+    bottom: -7.5px;
     background-image: url("HealthGlow.png");
-    -unity-background-image-tint-color: rgb(255, 36, 20);
     -unity-slice-left: 16;
     -unity-slice-right: 16;
+    -unity-slice-top: 10;
+    -unity-slice-bottom: 10;
+    -unity-slice-scale: 0.75px;
     opacity: 0;
 }
 
-.special-fill { -unity-background-image-tint-color: rgb(140, 92, 255); }
+.health-glow { -unity-background-image-tint-color: rgb(255, 36, 20); }
 
-/* charged special shines bright */
-.special-fill.special--full { -unity-background-image-tint-color: rgb(186, 148, 255); }
+.special-glow { -unity-background-image-tint-color: rgb(120, 100, 255); }
 
 /* ---------- side labels ---------- */
 
 .bar-side-label {
-    font-size: 11px;
-    -unity-font-style: bold;
+    font-size: 14px;
     color: rgb(255, 244, 214);
     letter-spacing: 1px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.95);
     min-width: 64px;
 }
 
+/* A knight's numbers tuck in beside the bar: about 2.5px clear of its
+   outermost corner, counting the padding the theme gives every Label (1px on
+   the left, 2px on the right). The slant opens that gap wider at the height
+   of the digits. The top and bottom margins are zeroed because the theme's
+   are uneven (4px over, 2px under) and would sit the number 1px low.
+
+   Same size as STREAK, and outlined the same way: HealthBar and SpecialBar
+   put a 1.5px TextRim round them, the one the streak count has (owner,
+   2026-10-14: "slightly bigger and outlined"; they were 14px with only the
+   shadow). The side margins grew by the outline's 1.5px with it, so the
+   outline does not eat into the gap the number had from the bar.
+
+   STREAK's letter spacing too (3px, was 1px), after he asked for the same
+   weight as the streak text: packed tight, the outlines of neighbouring
+   digits ran together into one black block and the numbers read heavier. */
+.knight-hud .bar-side-label {
+    font-size: 17px;
+    letter-spacing: 3px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 .hud-left .bar-side-label {
-    margin-left: 8px;
+    margin-left: 3px;
     -unity-text-align: middle-left;
 }
 
 .hud-right .bar-side-label {
-    margin-right: 8px;
+    margin-right: 2px;
     -unity-text-align: middle-right;
 }
 
-/* READY matches the charged vial and glows — it's off the vial, so it can shine */
+/* READY is lilac and glows, like the halo behind the full bar. It keeps the
+   numbers' 3px spacing; it had 2px of its own when they had 1px. */
 .bar-side-label.bar-label--ready {
     color: rgb(200, 164, 255);
     text-shadow: 0 0 8px rgba(200, 164, 255, 0.7);
-    letter-spacing: 2px;
 }
 
 /* ============================================================
@@ -344,8 +414,7 @@
 
 .venture-line {
     max-width: 62%;
-    font-size: 26px;
-    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    font-size: 32px;
     -unity-text-align: middle-center;
     white-space: normal;
     color: rgb(212, 162, 74);

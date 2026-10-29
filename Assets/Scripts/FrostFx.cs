@@ -35,8 +35,8 @@ public static class FrostFx
     }
 
     /// <summary>The cold trail on an arrow carrying frost, so the player can read
-    /// which shots are live before they land - the role PoisonProjectile's bubbles
-    /// play for Serpent and the ember trail plays for Ember.</summary>
+    /// which shots are live before they land - the role PoisonFx's lime trail
+    /// plays for Serpent and the ember trail plays for Ember.</summary>
     public static ParticleSystem AttachArrowTrail(GameObject arrow)
     {
         var host = new GameObject("FrostTrail");

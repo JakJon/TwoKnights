@@ -1,11 +1,12 @@
 using UnityEngine;
 
 // The giant slimes' ammunition. Three flight modes share one prefab because they
-// share one rule: EVERY tool the knights hold can pop a fireball — arrow, sword,
+// share one rule: EVERY tool the knights hold can clear a fireball — arrow, sword,
 // and shield alike. That's deliberate and it differs from ProjectileSettings (the
 // rats' arrows, which only the shield stops): the Ward variant's orbit swings out
 // past the knight, so whatever the knight is holding when it arrives has to be
-// able to clear it.
+// able to clear it. An arrow pops it and flies on; a sword bats it back (a ward
+// still just pops).
 //
 // Bolted-on configuration follows PoisonProjectile/FireballProjectile: the prefab
 // carries sprite + collider identity, Launch/Orbit hand it the per-shot state.
@@ -267,20 +268,40 @@ public class EnemyFireball : MonoBehaviour, IChillable, IIncoming
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (_popped) return;
+        // Unity still sends trigger messages to a DISABLED behaviour, and switching
+        // this one off is how a fireball becomes the knight's (see the reflect and
+        // the sword below). Without this a turned fireball could still pop on the
+        // other knight's arrow or hurt a knight it passed.
+        if (_popped || !enabled) return;
 
-        // Arrow (and shuriken/shadow arrow — they all carry the owner tag)
+        // Arrow (and shuriken/shadow arrow — they all carry the owner tag). The
+        // arrow flies on through (owner, 2026-10-15): it is spent on bodies, not on
+        // the enemy's ammunition.
         if (other.CompareTag("PlayerLeftProjectile") || other.CompareTag("PlayerRightProjectile"))
         {
-            Destroy(other.gameObject);
             Pop();
             return;
         }
 
         // Sword. The sword object is untagged by design (see SwordSwing) — the
         // detector component it grows at swing time is the reliable handle.
+        //
+        // Any knight's blade bats it back down the line the swing faces (owner,
+        // 2026-10-15). A WARD still pops, for the reason it is exempt from the guard
+        // below: it is the boss's ring, with no flight of its own to send back.
         if (other.GetComponent<SwordDamageDetector>() != null)
         {
+            if (_mode != Mode.Ward)
+            {
+                GuardianReflect.Turn bat = GuardianReflect.TryBat(other, transform.position);
+                if (bat.Happened)
+                {
+                    enabled = false;
+                    ReflectedShot.Attach(gameObject, bat, _speed, _damage);
+                    return;
+                }
+            }
+
             Pop();
             return;
         }

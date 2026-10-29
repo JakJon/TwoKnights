@@ -72,6 +72,19 @@ Shader "Custom/CanopyLight"
         _ShaftSharp ("Shaft Sharpness", Range(0, 0.95)) = 0.72
         _ShaftStrength ("Shaft Strength", Range(0, 0.2)) = 0.002
 
+        [Header(Mist)]
+        // Pale drifting patches, the opposite of the leaf shadows: the frame is
+        // lerped TOWARD a light colour where they lie. Zero — the default — is no
+        // mist at all, which is what the forest and the mine want; the Forgotten
+        // Fortress uses it. Travels with the wind like the dapple does.
+        _MistColor ("Mist Colour", Color) = (0.86, 0.9, 0.96, 1)
+        _MistStrength ("Mist Strength", Range(0, 0.5)) = 0
+        _MistScale ("Mist Scale", Range(0.05, 4)) = 0.35
+        _MistDetail ("Mist Detail", Range(0, 1)) = 0.35
+        _MistStretch ("Mist Stretch Along The Wind", Range(0.1, 1)) = 0.5
+        _MistCoverage ("Mist Coverage", Range(0.05, 0.95)) = 0.5
+        _MistInDark ("Mist Under The Dark Edge", Range(0, 1)) = 0.5
+
         [Header(Wind)]
         _WindAngle ("Wind Angle (radians)", Range(-3.15, 3.15)) = -0.2
         _WindSpeed ("Wind Speed (world units per second)", Range(0, 2)) = 0.12
@@ -145,6 +158,14 @@ Shader "Custom/CanopyLight"
             float  _ShaftScale;
             float  _ShaftSharp;
             float  _ShaftStrength;
+
+            float4 _MistColor;
+            float  _MistStrength;
+            float  _MistScale;
+            float  _MistDetail;
+            float  _MistStretch;
+            float  _MistCoverage;
+            float  _MistInDark;
 
             float  _WindAngle;
             float  _WindSpeed;
@@ -296,11 +317,37 @@ Shader "Custom/CanopyLight"
                 // instead of banding across the frame
                 shade = floor(shade * _Levels + bayer4(cell)) / _Levels;
 
+                // Mist: the dapple's recipe again on bigger, softer lobes, read the
+                // other way up — where the field rises above the coverage line the
+                // frame is pulled toward the pale mist colour. Its own offset into
+                // the noise so it never lines up with the leaf shadows. Sampled in
+                // the wind's frame and squashed along it, so the patches draw out
+                // into banks the way mist does instead of sitting there as round
+                // clouds. Thinned under the dark edge, or it lifts the corners the
+                // shade is there to hold down.
+                float2 windPerp = float2(-windDir.y, windDir.x);
+                float2 mp = p - flow;
+                float2 mpFine = p - flow * 1.25;
+                mp = float2(dot(mp, windDir) * _MistStretch, dot(mp, windPerp));
+                mpFine = float2(dot(mpFine, windDir) * _MistStretch, dot(mpFine, windPerp));
+                float mistField = fbm(mp * _MistScale + 73.0);
+                float mistFine = fbm(mpFine * (_MistScale * 2.3) + 117.0);
+                mistField = saturate(mistField + (mistFine - 0.5) * _MistDetail);
+                float mist = saturate((mistField - (1.0 - _MistCoverage)) / max(_MistCoverage, 0.001));
+                mist = mist * mist * (3.0 - 2.0 * mist);
+                mist *= _MistStrength * (1.0 - canopy * _MistInDark) * _Master;
+                mist = floor(saturate(mist) * _Levels + bayer4(cell + 2.0)) / _Levels;
+
                 // Sun only where the canopy has actually opened up. Left smooth —
                 // its whole range is a few thousandths, far below one dither step.
                 float sun = (gap * _DappleLight + shaft * _ShaftStrength) * (1.0 - canopy) * _Master;
 
-                return float4(_ShadeColor.rgb * shade + _SunColor.rgb * sun, shade);
+                // Shade first, then mist over it: lerp(lerp(dst, shadeCol, shade),
+                // mistCol, mist) written as one premultiplied colour. With mist at
+                // zero this is exactly the shade-only output the forest and mine use.
+                float alpha = 1.0 - (1.0 - shade) * (1.0 - mist);
+                float3 rgb = _ShadeColor.rgb * shade * (1.0 - mist) + _MistColor.rgb * mist + _SunColor.rgb * sun;
+                return float4(rgb, alpha);
             }
             ENDCG
         }

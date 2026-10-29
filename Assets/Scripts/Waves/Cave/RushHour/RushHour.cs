@@ -125,6 +125,7 @@ public class RushHour : BaseWave
 
         Gang answering = null;
         int shot = 0;
+        float lastFlight = 0f;
 
         while (_gangsOut < live || !OgreBand.AllDead(_ogres))
         {
@@ -148,7 +149,17 @@ public class RushHour : BaseWave
                 continue;
             }
 
+            // A spiral or weave leaves from twice as far out as a fan, so the fan
+            // after it would land on top of it without this hold.
+            float lag = RockVolley.LandingLag(spawner, lastFlight, volley, rockSpeed);
+            if (lag > 0f)
+            {
+                yield return new WaitForSeconds(lag);
+                if (_gangsOut >= live && OgreBand.AllDead(_ogres)) yield break;
+            }
+
             float busy = RockVolley.Fire(spawner, volley, rockSpeed);
+            lastFlight = RockVolley.FlightDistance(spawner, volley);
             yield return new WaitForSeconds(busy + Mathf.Max(0f, volley.restAfter));
         }
     }

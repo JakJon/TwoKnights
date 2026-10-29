@@ -38,6 +38,17 @@ public static class StoreCapture
     public static bool KeepAlive = true;
     public static bool UseSpecials = true;
     public static bool HoldFire = false;        // true parks both bows (menus, entrances)
+    public static string PreferName = "";       // when set, only enemies whose object name contains it are shot at (powder carts)
+
+    // The powder salvo (see Salvo below). Armed, both bows wait for a moment when
+    // this many powder carts can be hit inside one SalvoWindow, then take it.
+    public static bool SalvoArmed = false;
+    public static int SalvoMin = 6;
+    public static float SalvoWindow = 0.4f;
+    public static string SalvoReport = "";      // what the last salvo planned and what it got
+    public static int SalvoBest = 0;            // the most carts any moment has offered since arming
+    public static float SalvoQuiet = 1.1f;      // no rock may be due on either knight for this long when it starts
+    private static float _armedAt;
     public static float HoldFireUntil = -1f;    // ...or parks them until this Time.time, so a crowd can gather
     public static bool AutoDialogue = false;    // press past an NPC's lines by itself
     public static float DialogueSeconds = 1.5f; // how long each page is left up first
@@ -60,6 +71,8 @@ public static class StoreCapture
     public static float StickySeconds = 0.45f;  // how long a thumb stays with a target it chose
     public static float ArrowSpeed = 10f;
     public static float OtherSidePenalty = 3.5f;
+    public static bool SnapShots = false;       // shoot and swing in the gaps between rocks instead of only guarding
+    public static float SnapMargin = 0.1f;      // ...when the next rock is at least this long from the shield
 
     // ------------------------------------------------------------------ state
 
@@ -79,6 +92,12 @@ public static class StoreCapture
         public bool specialTap;
         public float nextSpecialAt;
         public float nextSingleShotAt;
+        public PlayerShooter shooter;
+        public int snap;                // ticks left of a snap shot (see Fly, 1b)
+        public float snapAngle;
+        public bool snapSword;
+        public bool snapBack;           // the shield goes straight back to the rock, not round to it
+        public float nextSnapAt;
     }
 
     private static Gamepad _pad;
@@ -135,6 +154,13 @@ public static class StoreCapture
         if (_recorder != null && _recorder.IsRecording()) StopRecording();
         if (_pad != null && _pad.added) InputSystem.RemoveDevice(_pad);
         _pad = null;
+        RemoveStrayPads();
+        SalvoArmed = false;
+        _salvoRunning = false;
+        PreferName = "";
+        HoldFire = false;
+        SnapShots = false;
+        _handsOffNote = "";
         // Every pad, not only the ones this session remembers switching off: the list
         // is lost on a recompile, and a pad left off by an interrupted session would
         // otherwise stay dead until the editor is restarted.
@@ -168,10 +194,25 @@ public static class StoreCapture
         }
     }
 
+    private const string PadName = "StoreCapturePad";
+
     private static void EnsurePad()
     {
         if (_pad != null && _pad.added) return;
-        _pad = InputSystem.AddDevice<Gamepad>("StoreCapturePad");
+        RemoveStrayPads();
+        _pad = InputSystem.AddDevice<Gamepad>(PadName);
+    }
+
+    // A recompile forgets _pad but leaves the device it pointed at plugged in, so
+    // every interrupted session used to leave one more phantom controller behind.
+    private static void RemoveStrayPads()
+    {
+        var strays = new List<InputDevice>();
+        foreach (InputDevice device in InputSystem.devices)
+        {
+            if (device.name.StartsWith(PadName)) strays.Add(device);
+        }
+        foreach (InputDevice device in strays) InputSystem.RemoveDevice(device);
     }
 
     // ------------------------------------------------------------------ takes
@@ -199,6 +240,7 @@ public static class StoreCapture
         _claimed.Clear();
         HoldFireUntil = -1f;
         AimOverride = false;
+        PreferName = "";
         Time.timeScale = 1f;
         SceneManager.LoadScene("Main");
 
@@ -289,7 +331,9 @@ public static class StoreCapture
             if (pos.x < 0f) rocksLeft++; else rocksRight++;
         }
         _log.Append(frame).Append(';').Append(orbs).Append(';').Append(targets).Append(';').Append(enemies).Append(';')
-            .Append(ninja).Append(';').Append(rocksLeft).Append(';').Append(rocksRight).Append('|');
+            .Append(ninja).Append(';').Append(rocksLeft).Append(';').Append(rocksRight).Append(';')
+            .Append(_left != null && _left.health != null ? _left.health.CurrentHealth : 0).Append(';')
+            .Append(_right != null && _right.health != null ? _right.health.CurrentHealth : 0).Append('|');
     }
 
     public static string ForceTrial(string key, int phase)
@@ -508,6 +552,173 @@ public static class StoreCapture
     public static bool IsRecording => _recorder != null && _recorder.IsRecording();
     public static int RecordedFrames => _recorder != null ? Time.frameCount - _recordStartFrame : 0;
 
+    // ------------------------------------------------------------------ hands off
+    //
+    // A quest scene runs with the game's clock stopped, so everything in it — the
+    // Wizard's flames, the Paladin's orbs, the lettering — moves on REAL time. Every
+    // call made to the editor from outside stalls it for a moment, and a stalled
+    // scene jumps: that was the twitch in the reward shots. So once a take is handed
+    // over, nothing outside talks to the editor until this has stopped the camera
+    // itself and left a note on disk to say so.
+
+    public static int StopAfterFrames = 45;     // the camera runs this long after the draft opens
+    private static string _handsOffNote = "";
+    private static int _menuFrame, _sceneFirst, _sceneLast, _longFrames, _paced;
+    private static float _shortest, _longest, _total;
+    private static UpgradeMenu _menu;
+    private static MethodInfo _menuVisible;
+
+    /// <summary>
+    /// From now until the draft opens, the take looks after itself. The note is
+    /// written when the camera has stopped: how many frames, where the scene sat
+    /// in them, and how evenly the real clock ran while it played.
+    /// </summary>
+    public static string HandsOff(string notePath)
+    {
+        _menuFrame = -1;
+        EvenFrames = 0;
+        _sceneFirst = -1;
+        _sceneLast = -1;
+        _longFrames = 0;
+        _paced = 0;
+        _shortest = 0f;
+        _longest = 0f;
+        _total = 0f;
+        _menu = null;
+        _handsOffNote = notePath ?? "";
+        return "hands off until " + _handsOffNote;
+    }
+
+    private static void WatchScene()
+    {
+        int frame = Time.frameCount - _recordStartFrame;
+
+        if (QuestScene.IsPlaying)
+        {
+            if (_sceneFirst < 0) _sceneFirst = frame;
+            _sceneLast = frame;
+            // What the scene's effects were moved on by this frame. In the game it
+            // is a sixtieth of a second, every frame.
+            float step = Time.unscaledDeltaTime;
+            if (_paced == 0 || step < _shortest) _shortest = step;
+            if (_paced == 0 || step > _longest) _longest = step;
+            _total += step;
+            _paced++;
+            if (step > 0.03f) _longFrames++;
+        }
+
+        if (WaveSurvivedPanel.IsVisible && frame % 20 == 0) _taps[GamepadButton.South] = 2;
+
+        if (_menu == null) _menu = Object.FindFirstObjectByType<UpgradeMenu>(FindObjectsInactive.Include);
+        if (_menuVisible == null) _menuVisible = typeof(UpgradeMenu).GetMethod("IsMenuVisible", Hidden);
+        bool open = _menu != null && _menuVisible != null && (bool)_menuVisible.Invoke(_menu, null);
+        if (open && _menuFrame < 0) _menuFrame = frame;
+
+        bool over = (_menuFrame >= 0 && frame >= _menuFrame + StopAfterFrames) || frame > 100 * RecordFps;
+        if (!over) return;
+
+        var culture = System.Globalization.CultureInfo.InvariantCulture;
+        string note = "{\"frames\": " + frame + ", \"even_frames\": " + EvenFrames + ", \"scene_first\": " + _sceneFirst + ", \"scene_last\": " + _sceneLast +
+                      ", \"menu\": " + _menuFrame + ", \"paced_frames\": " + _paced +
+                      ", \"step_ms_mean\": " + (_paced > 0 ? _total / _paced * 1000f : 0f).ToString("0.00", culture) +
+                      ", \"step_ms_min\": " + (_shortest * 1000f).ToString("0.00", culture) +
+                      ", \"step_ms_max\": " + (_longest * 1000f).ToString("0.00", culture) +
+                      ", \"steps_over_30ms\": " + _longFrames + "}";
+        string path = _handsOffNote;
+        _handsOffNote = "";
+        StopRecording();
+        System.IO.File.WriteAllText(path, note);
+    }
+
+    // ------------------------------------------------------------------ the even clock
+    //
+    // A quest scene plays with the game's clock stopped, so its effects are moved
+    // by REAL time: each frame, by however long the last frame really took. In the
+    // game that is a steady sixtieth of a second. Under the recorder it is anything
+    // from four milliseconds to thirty and more, and the Wizard's flames and the
+    // Paladin's orbs lurch accordingly — played back at an even sixty, that is the
+    // twitch. So while the camera rolls on a stopped clock, the effects are taken
+    // off the real clock and stepped here instead, exactly one recorded frame's
+    // worth per recorded frame.
+    //
+    // Two kinds of thing need it: the particle systems NpcFx builds (all of them,
+    // and only them, are on unscaled time), and NpcAura, which is a component with
+    // its own LateUpdate. Nothing in the game is changed; when the camera stops or
+    // the clock starts again both are handed straight back.
+
+    private static readonly List<ParticleSystem> _stepped = new List<ParticleSystem>();
+    private class HeldAura { public NpcAura aura; public float angle, breath; }
+    private static readonly List<HeldAura> _auras = new List<HeldAura>();
+    private static readonly FieldInfo AuraAngle = typeof(NpcAura).GetField("_angle", Hidden);
+    private static readonly FieldInfo AuraBreath = typeof(NpcAura).GetField("_breath", Hidden);
+    private static readonly FieldInfo AuraRate = typeof(NpcAura).GetField("_degreesPerSecond", Hidden);
+    private static readonly MethodInfo AuraLateUpdate = typeof(NpcAura).GetMethod("LateUpdate", Hidden);
+    public static int EvenFrames;       // how many frames the effects have been stepped for (to check it ran)
+
+    private static void EvenClock()
+    {
+        bool wanted = IsRecording && Time.timeScale <= 0f;
+        if (!wanted)
+        {
+            if (_stepped.Count > 0 || _auras.Count > 0) ReleaseClock();
+            return;
+        }
+
+        float step = 1f / RecordFps;
+        EvenFrames++;
+
+        foreach (ParticleSystem system in Object.FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None))
+        {
+            if (!system.main.useUnscaledTime || _stepped.Contains(system)) continue;
+            system.Pause(false);
+            _stepped.Add(system);
+        }
+        for (int i = _stepped.Count - 1; i >= 0; i--)
+        {
+            if (_stepped[i] == null) { _stepped.RemoveAt(i); continue; }
+            _stepped[i].Simulate(step, false, false, false);
+        }
+
+        if (AuraAngle == null || AuraBreath == null || AuraRate == null || AuraLateUpdate == null) return;
+        foreach (NpcAura aura in Object.FindObjectsByType<NpcAura>(FindObjectsSortMode.None))
+        {
+            bool held = false;
+            foreach (HeldAura known in _auras) if (known.aura == aura) { held = true; break; }
+            if (held) continue;
+            _auras.Add(new HeldAura { aura = aura, angle = (float)AuraAngle.GetValue(aura), breath = (float)AuraBreath.GetValue(aura) });
+            aura.enabled = false;       // its own LateUpdate stops; it is run from here instead
+        }
+        // The aura adds the real frame time to its own counters when it updates. It
+        // is set that much short of where it should be first, so what it lands on is
+        // one even step on from last frame — and it still does all its own drawing.
+        float real = Time.unscaledDeltaTime;
+        for (int i = _auras.Count - 1; i >= 0; i--)
+        {
+            HeldAura held = _auras[i];
+            if (held.aura == null) { _auras.RemoveAt(i); continue; }
+            float rate = (float)AuraRate.GetValue(held.aura);
+            held.angle += rate * step;
+            held.breath += step;
+            AuraAngle.SetValue(held.aura, held.angle - rate * real);
+            AuraBreath.SetValue(held.aura, held.breath - real);
+            AuraLateUpdate.Invoke(held.aura, null);
+        }
+    }
+
+    private static void ReleaseClock()
+    {
+        foreach (ParticleSystem system in _stepped)
+        {
+            if (system != null && system.isPaused) system.Play(false);
+        }
+        _stepped.Clear();
+        foreach (HeldAura held in _auras)
+        {
+            if (held.aura != null) held.aura.enabled = true;
+        }
+        _auras.Clear();
+    }
+
     // ------------------------------------------------------------------ status
 
     /// <summary>One line on where the run is, for whoever is driving from outside.</summary>
@@ -548,7 +759,11 @@ public static class StoreCapture
         _lastTickFrame = Time.frameCount;
 
         EnsurePad();
-        if (IsRecording) Note();
+        // Not while the clock is stopped: nothing Note counts is on the board then, and
+        // a paused scene is the one place a frame must cost as little as it can.
+        if (IsRecording && Time.timeScale > 0f) Note();
+        if (IsRecording && _handsOffNote.Length > 0) WatchScene();
+        EvenClock();
         var state = new GamepadState();
 
         // Menus and dialogue stop the clock; the knights' hands come off the
@@ -563,16 +778,18 @@ public static class StoreCapture
                 Sense(out List<Threat> rocks, out List<Threat> bodies, out List<Threat> orbs, out List<Threat> marks);
                 Fly(_left, rocks, bodies, orbs, marks);
                 Fly(_right, rocks, bodies, orbs, marks);
+                _outsiders.Clear();
+                foreach (Threat body in bodies) if (!body.cart) _outsiders.Add(body);
+                if (SalvoArmed || _salvoRunning) Salvo();
+                if (PreferName.Length > 0) CountKegs();
 
-                bool parked = HoldFire || Time.time < HoldFireUntil;
+                bool parked = (HoldFire || Time.time < HoldFireUntil) && !_salvoRunning;
                 state.leftStick = StickFor(_left);
                 state.rightStick = StickFor(_right);
                 if (_left.fire && !parked) state = state.WithButton(GamepadButton.LeftShoulder);
                 if (_right.fire && !parked) state = state.WithButton(GamepadButton.RightShoulder);
                 state.leftTrigger = _left.swingHeld ? 1f : 0f;
                 state.rightTrigger = _right.swingHeld ? 1f : 0f;
-                if (_left.swingHeld) state = state.WithButton(GamepadButton.LeftTrigger);
-                if (_right.swingHeld) state = state.WithButton(GamepadButton.RightTrigger);
                 if (_left.specialTap) state = state.WithButton(GamepadButton.DpadUp);
                 if (_right.specialTap) state = state.WithButton(GamepadButton.North);
 
@@ -627,6 +844,7 @@ public static class StoreCapture
                 body = health.transform,
                 shield = health.GetComponentInChildren<ShieldOrbit>(),
                 special = health.GetComponent<PlayerSpecial>(),
+                shooter = health.GetComponent<PlayerShooter>(),
                 left = health.CompareTag("PlayerLeft")
             };
             if (pilot.shield != null) pilot.angle = pilot.shield.CurrentAngle;
@@ -640,6 +858,8 @@ public static class StoreCapture
         public Vector2 pos;
         public Vector2 vel;
         public bool once;       // a trial target that must be hit exactly one time
+        public bool shootable;  // PreferName lets this one be shot at
+        public bool cart;       // on a rail: never something to turn the shield or the sword on
     }
 
     // Everything on the board, with how it moved since the last frame. Speed is
@@ -663,7 +883,11 @@ public static class StoreCapture
             if (enemy.IsDead) continue;
             Vector2 pos = enemy.transform.position;
             if (!Spawner.IsInView(pos)) continue;
-            bodies.Add(Track(enemy.GetInstanceID(), pos, dt));
+            Threat body = Track(enemy.GetInstanceID(), pos, dt);
+            body.cart = enemy is EnemyMineCart;
+            body.shootable = PreferName.Length == 0 ||
+                             enemy.name.IndexOf(PreferName, System.StringComparison.OrdinalIgnoreCase) >= 0;
+            bodies.Add(body);
         }
         foreach (CollectibleOrb orb in Object.FindObjectsByType<CollectibleOrb>(FindObjectsSortMode.None))
         {
@@ -729,6 +953,7 @@ public static class StoreCapture
         // 1. Anything about to land owns the shield.
         bool urgent = false;
         float soonest = float.MaxValue;
+        float contactIn = float.MaxValue;   // seconds until that rock is at the shield itself
         foreach (Threat rock in rocks)
         {
             Vector2 to = centre - rock.pos;
@@ -747,6 +972,7 @@ public static class StoreCapture
                 soonest = seconds;
                 want = AngleTo(centre, rock.pos);
                 urgent = true;
+                contactIn = Mathf.Max(0f, (distance - 1.25f) / closing);
             }
         }
 
@@ -755,10 +981,54 @@ public static class StoreCapture
         float nearestDistance = float.MaxValue;
         foreach (Threat body in bodies)
         {
+            if (body.cart) continue;
             float distance = Vector2.Distance(centre, body.pos);
             if (distance < nearestDistance) { nearestDistance = distance; nearest = body; }
         }
         bool crowded = nearestDistance < ContactRadius;
+
+        // 1b. Between two rocks. The shield follows the stick at once, so a guard that
+        // has just turned a rock has time to turn on something else, loose one arrow or
+        // swing once, and be back before the next rock is there: stick over, press, back.
+        if (pilot.snap > 0)
+        {
+            pilot.angle = pilot.snapAngle;
+            pilot.fire = false;
+            pilot.specialTap = false;
+            if (pilot.snapSword) { pilot.swingHeld = true; pilot.nextSwingAt = now + 0.25f; }
+            else pilot.fire = true;
+            pilot.snap = 0;
+            pilot.snapBack = true;
+            pilot.nextSnapAt = now + 0.06f;
+            return;
+        }
+        if (SnapShots && urgent && contactIn > SnapMargin && now >= pilot.nextSnapAt)
+        {
+            Threat target;
+            bool bowReady = pilot.shooter != null && CanShootField != null && (bool)CanShootField.GetValue(pilot.shooter) &&
+                            !(HoldFire || now < HoldFireUntil);
+            if (nearestDistance < SwordReach && now >= pilot.nextSwingAt)
+            {
+                pilot.snap = 1;
+                pilot.snapSword = true;
+                pilot.snapAngle = AngleTo(centre, nearest.pos);
+            }
+            else if (bowReady && ChooseTarget(pilot, centre, bodies, orbs, now, out target))
+            {
+                float flight = Vector2.Distance(centre, target.pos) / ArrowSpeed;
+                pilot.snap = 1;
+                pilot.snapSword = false;
+                pilot.snapAngle = AngleTo(centre, target.pos + target.vel * flight);
+            }
+            if (pilot.snap > 0)
+            {
+                pilot.angle = pilot.snapAngle;
+                pilot.fire = false;
+                pilot.swingHeld = false;
+                pilot.specialTap = false;
+                return;
+            }
+        }
         if (!urgent && crowded)
         {
             want = AngleTo(centre, nearest.pos);
@@ -801,7 +1071,9 @@ public static class StoreCapture
         }
         if (urgent) rate = UrgentTurnRate;
 
-        pilot.angle = Mathf.MoveTowardsAngle(pilot.angle, want, rate * Time.deltaTime);
+        if (pilot.snapBack && urgent) pilot.angle = want;
+        else pilot.angle = Mathf.MoveTowardsAngle(pilot.angle, want, rate * Time.deltaTime);
+        pilot.snapBack = false;
         float off = Mathf.Abs(Mathf.DeltaAngle(pilot.angle, want));
 
         if (singleShot)
@@ -834,7 +1106,7 @@ public static class StoreCapture
         }
 
         pilot.specialTap = false;
-        if (UseSpecials && pilot.special != null && pilot.special.specialBarFilled &&
+        if (UseSpecials && !SalvoArmed && !_salvoRunning && pilot.special != null && pilot.special.specialBarFilled &&
             bodies.Count >= 3 && now >= pilot.nextSpecialAt)
         {
             pilot.specialTap = true;
@@ -877,7 +1149,7 @@ public static class StoreCapture
         // Stay with the last choice while it lives and the thumb's patience holds.
         if (pilot.targetId != 0 && now < pilot.targetUntil)
         {
-            foreach (Threat body in bodies) if (body.id == pilot.targetId) { chosen = body; return true; }
+            foreach (Threat body in bodies) if (body.id == pilot.targetId && body.shootable) { chosen = body; return true; }
             foreach (Threat orb in orbs) if (orb.id == pilot.targetId) { chosen = orb; return true; }
         }
 
@@ -885,6 +1157,7 @@ public static class StoreCapture
         bool found = false;
         foreach (Threat body in bodies)
         {
+            if (!body.shootable) continue;
             float distance = Vector2.Distance(centre, body.pos);
             if (distance > EngageRadius) continue;
             float score = distance;
@@ -907,6 +1180,463 @@ public static class StoreCapture
             pilot.targetUntil = now + StickySeconds;
         }
         return found;
+    }
+
+    // ------------------------------------------------------------------ the powder salvo
+    //
+    // A powder cart only sets off another one coupled directly to it, and from
+    // Powder Train IV on none are: every keg sits alone between iron, and iron
+    // ignores the blast. So several going up together means several arrows landing
+    // together, which is a thing a player can do and this does the same way —
+    // Rapid Fire, walked from the farthest cart to the nearest, so that each later
+    // arrow has less far to fly and they all arrive in the same moment.
+    //
+    // Every frame while armed, each way of sharing the carts between the two bows
+    // is tried and the arrivals worked out from where the rails will have carried
+    // each cart by then. The first moment that offers SalvoMin of them inside one
+    // SalvoWindow is taken.
+
+    private class Hand
+    {
+        public Pilot pilot;
+        public PlayerShooter shooter;
+        public bool rapid;              // carries Rapid Fire: a shot every `cadence` once the bar is spent
+        public float cadence;
+        public float arrowSpeed;
+        public List<EnemyKegCart> order = new List<EnemyKegCart>();
+        public int next;
+        public float startAt;           // when this hand lets its first arrow go
+        public float lastShotAt;
+        public bool couldShoot;
+        public bool spent;              // the special has been pressed
+    }
+
+    private static bool _salvoRunning;
+    private static Hand _handLeft, _handRight;
+    private static float _salvoBegan;
+    private static int _salvoFrame;
+    private static readonly List<int> _kegDeaths = new List<int>();
+    private static int _kegsAlive = -1;
+
+    private static readonly FieldInfo CanShootField = typeof(PlayerShooter).GetField("_canShoot", Hidden);
+    private static readonly FieldInfo ArrowSpeedField = typeof(PlayerShooter).GetField("projectileSpeed", Hidden);
+    private static readonly FieldInfo SpecialsField = typeof(PlayerSpecial).GetField("_specials", Hidden);
+
+    private const float ShieldReach = 1f;           // arrows leave from the shield, one unit out
+    private const float RapidCadence = 20f / 60f;   // Rapid Fire's 0.32 s, as it falls on whole frames
+    private const float PreAim = 0.12f;
+    private const int MaxShots = 6;
+
+    private static Hand Describe(Pilot pilot)
+    {
+        var hand = new Hand { pilot = pilot, shooter = pilot.body.GetComponent<PlayerShooter>() };
+        hand.arrowSpeed = hand.shooter != null && ArrowSpeedField != null ? (float)ArrowSpeedField.GetValue(hand.shooter) : ArrowSpeed;
+        hand.rapid = SpecialNames(pilot).IndexOf("Rapid", System.StringComparison.OrdinalIgnoreCase) >= 0 &&
+                     pilot.special.specialBarFilled;
+        hand.cadence = hand.rapid ? RapidCadence : (hand.shooter != null ? hand.shooter.cooldownTime : 1.5f);
+        return hand;
+    }
+
+    private static Vector2 Centre(Pilot pilot)
+    {
+        return (Vector2)pilot.body.position + Vector2.up * 0.5f;
+    }
+
+    // Where the rails will have carried a cart `seconds` from now: the middle of the
+    // face it shows the knights, and which way that face looks. False when the cart
+    // will have turned a corner by then — it is somewhere a straight rail cannot say.
+    private static bool CartAt(EnemyKegCart keg, float seconds, out Vector2 face, out Vector2 inward)
+    {
+        MineCart cart = keg.GetComponent<MineCart>();
+        Collider2D box = keg.GetComponent<Collider2D>();
+        Vector2 body = box != null ? (Vector2)box.bounds.center : (Vector2)keg.transform.position;
+        face = body;
+        inward = Vector2.zero;
+        if (cart == null || !cart.IsRiding || RailNetwork.Instance == null) return false;
+
+        RailLine line = cart.Line;
+        float along = cart.Along + cart.Speed * Mathf.Max(0f, seconds);
+        RailTeleporter pad = RailNetwork.Instance.ExitPadFor(line.Index);
+        if (pad != null && pad.Destination != null && along >= pad.DistanceAlong) return false;
+
+        // The ring is drawn round the knights, so "inward" is towards the middle of the board.
+        inward = line.Axis == RailAxis.Horizontal
+            ? new Vector2(0f, line.Offset > 0f ? -1f : 1f)
+            : new Vector2(line.Offset > 0f ? -1f : 1f, 0f);
+        Vector2 offset = body - line.PointAt(cart.Along);
+        face = line.PointAt(along) + offset + inward * FaceInset;
+        return true;
+    }
+
+    private const float FaceInset = 0.3f;       // aim this far in from the middle of the cart, towards the knights
+    private const float LineClearance = 0.75f;  // how wide a berth an arrow's path gives anything that is not a cart
+    private static readonly List<Threat> _outsiders = new List<Threat>();
+    private const float Unreachable = 99f;      // a flight time that means "do not take this shot"
+
+    // Seconds an arrow loosed `wait` from now needs to meet the cart, and where.
+    // Unreachable when the cart turns a corner first, or when the arrow would come
+    // in so nearly along the rail that the iron cart beside it would take it.
+    private static float Flight(Hand hand, EnemyKegCart keg, float wait, out Vector2 meet)
+    {
+        Vector2 from = Centre(hand.pilot);
+        Vector2 inward;
+        float flight = 0.4f;
+        if (!CartAt(keg, wait + flight, out meet, out inward)) return Unreachable;
+        for (int i = 0; i < 4; i++)
+        {
+            flight = Mathf.Max(0.02f, (Vector2.Distance(from, meet) - ShieldReach) / hand.arrowSpeed);
+            if (!CartAt(keg, wait + flight, out meet, out inward)) return Unreachable;
+        }
+        Vector2 heading = (meet - from).normalized;
+        if (Vector2.Dot(heading, -inward) < 0.62f) return Unreachable;      // more than about 52 degrees off square
+
+        // Nothing walking or flying across the line: a rat between the bow and the
+        // ring takes the arrow, and the cart it was meant for rolls on.
+        foreach (Threat body in _outsiders)
+        {
+            for (float along = 0f; along <= flight; along += 0.04f)
+            {
+                Vector2 arrow = from + heading * (ShieldReach + hand.arrowSpeed * along);
+                Vector2 there = body.pos + Vector2.up * 0.3f + body.vel * (wait + along);
+                if ((arrow - there).sqrMagnitude < LineClearance * LineClearance) return Unreachable;
+            }
+        }
+        return flight;
+    }
+
+    private static List<EnemyKegCart> KegsOnTheRing()
+    {
+        var kegs = new List<EnemyKegCart>();
+        foreach (EnemyKegCart keg in Object.FindObjectsByType<EnemyKegCart>(FindObjectsSortMode.None))
+        {
+            if (keg.IsDead) continue;
+            MineCart cart = keg.GetComponent<MineCart>();
+            if (cart == null || !cart.IsOnRail) continue;
+            if (!Spawner.IsInView(keg.transform.position)) continue;
+            kegs.Add(keg);
+        }
+        return kegs;
+    }
+
+    // The frame every powder cart went up on, salvo or not: it is how the cut finds the blast.
+    private static void CountKegs()
+    {
+        var now = new HashSet<int>();
+        foreach (EnemyKegCart keg in Object.FindObjectsByType<EnemyKegCart>(FindObjectsSortMode.None))
+        {
+            if (!keg.IsDead) now.Add(keg.GetInstanceID());
+        }
+        if (_kegsAlive >= 0)
+        {
+            foreach (int id in _kegIds)
+            {
+                if (now.Contains(id)) continue;
+                _kegDeaths.Add(Time.frameCount - _recordStartFrame);
+                _salvoNotes.Append(" boom+").Append((Time.time - _salvoBegan).ToString("0.00")).Append('#').Append(id % 1000);
+            }
+        }
+        _kegIds.Clear();
+        foreach (int id in now) _kegIds.Add(id);
+        _kegsAlive = now.Count;
+    }
+
+    private static void Salvo()
+    {
+        float now = Time.time;
+
+        if (!_salvoRunning)
+        {
+            if (!SalvoArmed) return;
+            Hand left = Describe(_left), right = Describe(_right);
+            int count;
+            float spread;
+            if (!Plan(left, right, out count, out spread)) return;
+            if (count > SalvoBest) SalvoBest = count;
+            if (count < SalvoMin) return;
+            // Both shields come off guard for the second the salvo takes.
+            if (NextRockIn() < SalvoQuiet && now < _armedAt + 13.5f) return;
+
+            _handLeft = left;
+            _handRight = right;
+            _salvoRunning = true;
+            SalvoArmed = false;
+            _salvoBegan = now;
+            _salvoFrame = Time.frameCount - _recordStartFrame;
+            left.startAt += now + PreAim;
+            right.startAt += now + PreAim;
+            // Half a dozen kegs inside the ring is more than a knight's whole bar.
+            Refill(_left);
+            Refill(_right);
+            SalvoReport = "frame " + _salvoFrame + " planned " + count + " in " + spread.ToString("0.00") + "s;" + _planNote +
+                          " rock in " + NextRockIn().ToString("0.0");
+            _salvoNotes.Length = 0;
+        }
+
+        Work(_handLeft, now);
+        Work(_handRight, now);
+
+        bool done = _handLeft.next >= _handLeft.order.Count && _handRight.next >= _handRight.order.Count;
+        if (done || now > _salvoBegan + 4.5f)
+        {
+            _salvoRunning = false;
+        }
+    }
+
+    /// <summary>What the last salvo planned, and the frame each powder cart went up on.</summary>
+    public static string SalvoResult()
+    {
+        return SalvoReport + " | best offered " + SalvoBest + " | kegs alive " + _kegsAlive + " | deaths at frames " + string.Join(",", _kegDeaths) +
+               " | notes" + _salvoNotes +
+               " | running=" + _salvoRunning + " armed=" + SalvoArmed;
+    }
+
+    private static void Refill(Pilot pilot)
+    {
+        if (pilot.health == null || CurrentHealthField == null) return;
+        int max = pilot.health.MaxHealth;
+        CurrentHealthField.SetValue(pilot.health, max);
+        var bar = HealthBarField != null ? HealthBarField.GetValue(pilot.health) as HealthBar : null;
+        if (bar != null) bar.SetValue(max);
+    }
+
+    // One hand's part: hold the bow on the next cart in its order, where that cart
+    // will be when the arrow gets there, and move on each time an arrow leaves.
+    private static void Work(Hand hand, float now)
+    {
+        Pilot pilot = hand.pilot;
+        pilot.specialTap = false;
+        pilot.swingHeld = false;
+        pilot.fire = false;
+
+        while (hand.next < hand.order.Count && (hand.order[hand.next] == null || hand.order[hand.next].IsDead)) hand.next++;
+
+        bool canShoot = hand.shooter != null && CanShootField != null && (bool)CanShootField.GetValue(hand.shooter);
+        if (hand.couldShoot && !canShoot && now >= hand.startAt - 0.05f)
+        {
+            // An arrow has just left, at whatever the bow was pointing at.
+            hand.lastShotAt = now;
+            _salvoNotes.Append(pilot.left ? " L" : " R").Append("shot+").Append((now - _salvoBegan).ToString("0.00"));
+            if (hand.next < hand.order.Count && hand.order[hand.next] != null)
+                _salvoNotes.Append("->").Append(hand.order[hand.next].GetInstanceID() % 1000);
+            if (hand.next < hand.order.Count) hand.next++;
+            while (hand.next < hand.order.Count && (hand.order[hand.next] == null || hand.order[hand.next].IsDead)) hand.next++;
+        }
+        hand.couldShoot = canShoot;
+        if (hand.next >= hand.order.Count) return;
+
+        float shotAt = hand.lastShotAt > 0f ? hand.lastShotAt + hand.cadence : hand.startAt;
+        float wait = Mathf.Max(0f, shotAt - now);
+        Vector2 meet = Vector2.zero;
+        while (hand.next < hand.order.Count)
+        {
+            EnemyKegCart keg = hand.order[hand.next];
+            if (keg != null && !keg.IsDead && Flight(hand, keg, wait, out meet) < Unreachable) break;
+            hand.next++;
+        }
+        if (hand.next >= hand.order.Count) return;
+        pilot.angle = AngleTo(Centre(pilot), meet);
+
+        if (now < hand.startAt) return;
+        if (hand.rapid)
+        {
+            // Rapid Fire shoots by itself for as long as it runs; the one press is the special.
+            if (!hand.spent) { pilot.specialTap = true; hand.spent = true; }
+        }
+        else
+        {
+            pilot.fire = true;
+        }
+    }
+
+    // How long one hand may hold back so its arrows land with the other's.
+    private static readonly float[] Waits = { 0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f };
+
+    // Tries every way of sharing the carts between the two hands, and every wait
+    // either hand might hold. Each hand takes its share farthest first; the answer
+    // is the most arrivals that fall inside one SalvoWindow, and how long that
+    // group takes to land. The carts keep rolling while a hand waits, so every
+    // arrival is worked out for the wait it would really be fired after.
+    private static bool Plan(Hand left, Hand right, out int best, out float bestSpread)
+    {
+        best = 0;
+        bestSpread = 0f;
+        List<EnemyKegCart> kegs = KegsOnTheRing();
+        int n = Mathf.Min(kegs.Count, 10);
+        if (n == 0) return false;
+
+        Hand[] hands = { left, right };
+        // arrive[h][w][j, k]: seconds from now until cart j goes up, as hand h's k-th arrow after waiting Waits[w]
+        var arrive = new float[2][][,];
+        var range = new float[2][];
+        for (int h = 0; h < 2; h++)
+        {
+            arrive[h] = new float[Waits.Length][,];
+            range[h] = new float[n];
+            Vector2 from = Centre(hands[h].pilot);
+            for (int j = 0; j < n; j++) range[h][j] = Vector2.Distance(from, kegs[j].transform.position);
+            for (int w = 0; w < Waits.Length; w++)
+            {
+                arrive[h][w] = new float[n, MaxShots];
+                for (int j = 0; j < n; j++)
+                {
+                    for (int k = 0; k < MaxShots; k++)
+                    {
+                        Vector2 meet;
+                        float wait = PreAim + Waits[w] + k * hands[h].cadence;
+                        float flight = Flight(hands[h], kegs[j], wait, out meet);
+                        arrive[h][w][j, k] = flight >= Unreachable ? Unreachable : wait + flight;
+                    }
+                }
+            }
+        }
+
+        int bestMask = -1, bestWaitLeft = 0, bestWaitRight = 0;
+        float bestFrom = 0f;
+        var mine = new List<int>[] { new List<int>(), new List<int>() };
+        var all = new List<float>();
+        for (int mask = 0; mask < (1 << n); mask++)
+        {
+            for (int h = 0; h < 2; h++) mine[h].Clear();
+            for (int j = 0; j < n; j++) mine[(mask >> j) & 1].Add(j);
+            for (int h = 0; h < 2; h++)
+            {
+                float[] reach = range[h];
+                mine[h].Sort((a, b) => reach[b].CompareTo(reach[a]));
+            }
+
+            for (int pair = 0; pair < Waits.Length * 2 - 1; pair++)
+            {
+                // only one hand ever waits
+                int waitLeft = pair < Waits.Length ? pair : 0;
+                int waitRight = pair < Waits.Length ? 0 : pair - Waits.Length + 1;
+                all.Clear();
+                for (int h = 0; h < 2; h++)
+                {
+                    float[,] table = arrive[h][h == 0 ? waitLeft : waitRight];
+                    int shot = 0;
+                    for (int i = 0; i < mine[h].Count && shot < MaxShots; i++)
+                    {
+                        float at = table[mine[h][i], shot];
+                        if (at >= Unreachable) continue;        // skipped: costs no arrow
+                        all.Add(at);
+                        shot++;
+                    }
+                }
+                all.Sort();
+                for (int i = 0; i < all.Count; i++)
+                {
+                    int end = i;
+                    while (end + 1 < all.Count && all[end + 1] - all[i] <= SalvoWindow) end++;
+                    int count = end - i + 1;
+                    float spread = all[end] - all[i];
+                    if (count > best || (count == best && spread < bestSpread))
+                    {
+                        best = count; bestSpread = spread; bestMask = mask;
+                        bestWaitLeft = waitLeft; bestWaitRight = waitRight; bestFrom = all[i];
+                    }
+                }
+            }
+        }
+        if (bestMask < 0) return false;
+
+        left.order.Clear();
+        right.order.Clear();
+        _planNote.Length = 0;
+        for (int h = 0; h < 2; h++)
+        {
+            mine[h].Clear();
+            for (int j = 0; j < n; j++) if (((bestMask >> j) & 1) == h) mine[h].Add(j);
+            float[] reach = range[h];
+            mine[h].Sort((a, b) => reach[b].CompareTo(reach[a]));
+            int w = h == 0 ? bestWaitLeft : bestWaitRight;
+            _planNote.Append(h == 0 ? " L" : " R").Append(hands[h].rapid ? " rapid" : " single").Append(" wait ").Append(Waits[w].ToString("0.0")).Append(':');
+            int shot = 0;
+            for (int i = 0; i < mine[h].Count && shot < MaxShots; i++)
+            {
+                float at = arrive[h][w][mine[h][i], shot];
+                if (at >= Unreachable) continue;
+                hands[h].order.Add(kegs[mine[h][i]]);
+                _planNote.Append(' ').Append(kegs[mine[h][i]].GetInstanceID() % 1000).Append('@').Append(at.ToString("0.00"));
+                shot++;
+            }
+        }
+        _planNote.Append(" window from ").Append(bestFrom.ToString("0.00"));
+        left.startAt = Waits[bestWaitLeft];
+        right.startAt = Waits[bestWaitRight];
+        return true;
+    }
+
+    private static readonly StringBuilder _planNote = new StringBuilder();
+    private static readonly StringBuilder _salvoNotes = new StringBuilder();
+    private static readonly HashSet<int> _kegIds = new HashSet<int>();
+
+    // Seconds until the next rock lands on either knight (a large number when none is coming).
+    private static float NextRockIn()
+    {
+        float soonest = 99f;
+        foreach (ProjectileSettings rock in Object.FindObjectsByType<ProjectileSettings>(FindObjectsSortMode.None))
+        {
+            if (rock.Reflected) continue;
+            Vector2 vel;
+            if (!_velocity.TryGetValue(rock.GetInstanceID(), out vel) || vel.sqrMagnitude < 0.01f) continue;
+            Vector2 pos = rock.transform.position;
+            for (int h = 0; h < 2; h++)
+            {
+                Vector2 to = Centre(h == 0 ? _left : _right) - pos;
+                float distance = to.magnitude;
+                if (distance < 0.05f) continue;
+                float closing = Vector2.Dot(vel, to / distance);
+                if (closing <= 0.3f) continue;
+                Vector2 heading = vel.normalized;
+                if (Mathf.Abs(to.x * heading.y - to.y * heading.x) > 1.3f) continue;
+                soonest = Mathf.Min(soonest, (distance - 1f) / closing);
+            }
+        }
+        return soonest;
+    }
+
+    /// <summary>Arms the salvo: both bows wait for `min` powder carts they can hit inside one window.</summary>
+    public static string ArmSalvo(int min, float window)
+    {
+        SalvoMin = min;
+        SalvoWindow = window;
+        SalvoBest = 0;
+        SalvoReport = "";
+        _kegDeaths.Clear();
+        _kegsAlive = -1;
+        _kegIds.Clear();
+        _salvoNotes.Length = 0;
+        _salvoRunning = false;
+        _armedAt = Time.time;
+        SalvoArmed = true;
+        return "armed for " + min + " in " + window + "s";
+    }
+
+    /// <summary>Fills both knights' special bars the way a mana orb would, and names what each carries.</summary>
+    public static string FillSpecials()
+    {
+        FindKnights();
+        if (_left == null || _right == null) return "no knights";
+        _left.special.AddSpecialFromOrb(_left.special.MaxSpecial);
+        _right.special.AddSpecialFromOrb(_right.special.MaxSpecial);
+        return "L=" + SpecialNames(_left) + " R=" + SpecialNames(_right);
+    }
+
+    private static string SpecialNames(Pilot pilot)
+    {
+        var names = new List<string>();
+        var specials = pilot.special != null && SpecialsField != null
+            ? SpecialsField.GetValue(pilot.special) as System.Collections.IEnumerable
+            : null;
+        if (specials != null)
+        {
+            foreach (object special in specials)
+            {
+                var asset = special as Object;
+                if (asset != null) names.Add(asset.name);
+            }
+        }
+        return "[" + string.Join(",", names) + "]";
     }
 
     private static float AngleTo(Vector2 from, Vector2 to)

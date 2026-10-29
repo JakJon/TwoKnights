@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f503628b9f3809e4faa8fb2b8c0e1cc2, type: 3}
+  m_Name: CampfireKit
+  m_EditorClassIdentifier: 
+  ventureForth: {fileID: 6367564486183092310, guid: e3834093cb733fd4b8181b687314710e, type: 3}
+  journal: {fileID: -831795513206548992, guid: e7f53ad16cace084cab504dd380240af, type: 3}
+  equipment: {fileID: -8711036688577266322, guid: 4b98417e5102dc6469bb893919ca338e, type: 3}
+  shopGoods: {fileID: 4223413198046212118, guid: ae8680eb0576ebc49b4d6d83d09939e6, type: 3}
+  settings: {fileID: 349509095282512923, guid: c78c9b794ab67bf49a1b71ee80692048, type: 3}
+  cartographerFrames:
+  - {fileID: 5345698111987873108, guid: 3f7ea8a12cba8bb4f910b8ca89cdc1ce, type: 3}
+  - {fileID: 3382576673748028987, guid: 3f7ea8a12cba8bb4f910b8ca89cdc1ce, type: 3}
+  - {fileID: 5863048369303432053, guid: 3f7ea8a12cba8bb4f910b8ca89cdc1ce, type: 3}
+  - {fileID: -8187758151717411778, guid: 3f7ea8a12cba8bb4f910b8ca89cdc1ce, type: 3}
+  fireFrames:
+  - {fileID: -4490428415846991962, guid: 32565a805304ac845ac963c6ae2821f9, type: 3}
+  - {fileID: -3869530643993862367, guid: 32565a805304ac845ac963c6ae2821f9, type: 3}
+  - {fileID: 4889869994123067591, guid: 32565a805304ac845ac963c6ae2821f9, type: 3}
+  - {fileID: -4111398662787673214, guid: 32565a805304ac845ac963c6ae2821f9, type: 3}
+  leftKnight: {fileID: 2415189905080567457, guid: a47e2d09ab2c7d74f8e4757f3b44aca1, type: 3}
+  rightKnight: {fileID: 6839563030555454722, guid: 6c14c8e46542420fa751e3c2e59eb947, type: 3}
+  wheelShader: {fileID: 4800000, guid: 8ef8b1e7aca0fe64a828c1b5cd22f8f9, type: 3}
+  firelightShader: {fileID: 4800000, guid: f5abdddcf24e4c243b93a606ee59e635, type: 3}

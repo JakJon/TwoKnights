@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-// One-shot: builds the Mine's two lighting profiles and points its stages at
+// One-shot: builds the Mine's lighting profiles and points its stages at
 // them. Unity runs this the next time it compiles or regains focus; the version
 // guard means editing the numbers below and letting Unity recompile is enough to
 // re-tune them in place. Tools ▸ Two Knights ▸ Wire Mine Lighting forces a pass.
@@ -17,10 +17,14 @@ using UnityEngine;
 // patch in the middle and no falloff at all), so the frame's edges are doing no
 // work until something puts them in shadow.
 //
-// The two stages are the same cave at two depths, and unlike the forest's pair
-// they are meant to be told apart. Past wave eleven the dark closes in: a
-// smaller clear middle, half again the shade, and a breath you are supposed to
-// catch rather than one you are supposed to miss.
+// Waves 1-20 fight under one profile; the deep cave's backdrop arrives at wave
+// eleven but the lighting does not change with it. From wave twenty-one the same
+// cave gets darker: the Mine profile with the shade turned up from 0.50 to 0.65
+// and nothing else changed (owner, 2026-10-19).
+//
+// Lighting_DeepMine is no longer under the Mine at all. It is still written here
+// because the Camp Fields' Moonlit Wood stage fights under it, so it must not be
+// re-tuned for the Mine's sake.
 public static class CaveLightingWiring
 {
     private const string MapPath = "Assets/Scripts/Maps/The Mine.asset";
@@ -28,12 +32,14 @@ public static class CaveLightingWiring
     private const string LightingFolder = "Assets/Settings/Lighting";
     private const string MinePath = LightingFolder + "/Lighting_Mine.asset";
     private const string DeepMinePath = LightingFolder + "/Lighting_DeepMine.asset";
+    private const string DeepMineDarkerPath = LightingFolder + "/Lighting_DeepMineDarker.asset";
 
     private const string VersionKey = "TwoKnights.CaveLightingWiring.Version";
-    private const int Version = 2;
+    private const int Version = 3;
 
     private const int MineFromWave = 1;
     private const int DeepMineFromWave = 11;
+    private const int DeepMineDarkFromWave = 21;
 
     // Only what the two depths disagree about. Everything a cave has in common —
     // no leaves, no sun, a nearly-clean elliptical edge — is written once in
@@ -53,32 +59,41 @@ public static class CaveLightingWiring
         public float windSpeed;
     }
 
-    // Waves 1-10. Barely there: the corners lose about a fifth of their light and
-    // the breath is a couple of RGB steps, which is the point — it should read as
-    // the room being alive, not as an effect.
+    // Waves 1-20. Tuned by the owner on 2026-10-16 (first too light, then 0.75 was
+    // too dark, settled on a third less): the corners go from about RGB 39,29,66
+    // to 27,19,48 and the clear middle is pulled in so the shade reaches where
+    // enemies come on.
     private static Settings Mine => new Settings
     {
         actorStrength = 0.25f,
         shadeColor = new Color(0.02f, 0.015f, 0.045f, 1f),
-        shadeStrength = 0.32f,
-        gladeRadius = new Vector2(8.2f, 4.6f),
+        shadeStrength = 0.50f,
+        gladeRadius = new Vector2(6.4f, 3.6f),
         gladeSoftness = 0.55f,
         edgeNoiseScale = 0.16f,
         edgeRaggedness = 0.10f,
-        breathAmount = 0.14f,
+        breathAmount = 0.18f,
         breathPeriod = 11f,
         windSpeed = 0.02f
     };
 
-    // Waves 11+. Deeper in, and it should be obvious. The clear middle shrinks
-    // from most of the arena to a pool barely wider than the fight, the shade
-    // half again as heavy and colder with it, and the breath big enough to catch
-    // out of the corner of your eye.
-    //
-    // The corners land around RGB 27,18,48 against the backdrop's 39,29,66 — dark,
-    // but still plainly purple. Taking the shade past about 0.6 crushes them to
-    // black and the cave stops having a colour, which matters more here than it
-    // would anywhere else: the Mine's enemies are purple too.
+    // Waves 21+. The waves 1-20 profile with only the shade turned up, so the
+    // step reads as the same cave getting darker. Corners land around RGB
+    // 22,16,40 — still plainly purple, which matters because the Mine's enemies
+    // are purple too.
+    private static Settings DeepMineDarker
+    {
+        get
+        {
+            Settings s = Mine;
+            s.shadeStrength = 0.65f;
+            return s;
+        }
+    }
+
+    // The Mine's old waves 11+ profile, kept as it was because the Camp Fields'
+    // Moonlit Wood fights under it (see the header). A smaller clear middle than
+    // the Mine's old waves 1-10, a colder shade colour and a bigger breath.
     private static Settings DeepMine => new Settings
     {
         actorStrength = 0.32f,
@@ -98,7 +113,7 @@ public static class CaveLightingWiring
     {
         EditorApplication.delayCall += () =>
         {
-            bool built = AssetDatabase.LoadAssetAtPath<CanopyProfile>(DeepMinePath) != null;
+            bool built = AssetDatabase.LoadAssetAtPath<CanopyProfile>(DeepMineDarkerPath) != null;
             if (built && EditorPrefs.GetInt(VersionKey, 0) >= Version) return;
             Wire();
         };
@@ -123,7 +138,8 @@ public static class CaveLightingWiring
 
         CanopyProfile mine = WriteProfile(MinePath, shader, Mine);
         CanopyProfile deepMine = WriteProfile(DeepMinePath, shader, DeepMine);
-        if (mine == null || deepMine == null) return;
+        CanopyProfile deepMineDarker = WriteProfile(DeepMineDarkerPath, shader, DeepMineDarker);
+        if (mine == null || deepMine == null || deepMineDarker == null) return;
 
         var map = AssetDatabase.LoadAssetAtPath<MapDefinition>(MapPath);
         if (map == null)
@@ -135,11 +151,12 @@ public static class CaveLightingWiring
 
         int wired = 0;
         wired += PointStageAt(map, MineFromWave, mine) ? 1 : 0;
-        wired += PointStageAt(map, DeepMineFromWave, deepMine) ? 1 : 0;
+        wired += PointStageAt(map, DeepMineFromWave, mine) ? 1 : 0;
+        wired += PointStageAt(map, DeepMineDarkFromWave, deepMineDarker) ? 1 : 0;
 
         AssetDatabase.SaveAssets();
         EditorPrefs.SetInt(VersionKey, Version);
-        Debug.Log($"[CaveLightingWiring] Done: 2 Mine profiles, {wired} of 2 stages under them.");
+        Debug.Log($"[CaveLightingWiring] Done: 3 lighting profiles, {wired} of 3 Mine stages under them.");
     }
 
     // Written through SerializedObject because every field on the profile is

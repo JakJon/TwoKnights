@@ -15,7 +15,7 @@ MonoBehaviour:
   waveName: Run of the Mine V
   weight: 1000
   isUnlocked: 0
-  waveDescription: Ten relays of four, and a fifth ogre.
+  waveDescription: Six relays of four.
   unlockedAfterXWaves: 16
   lockedAfterXWaves: 22
   useEnemyTracking: 1
@@ -30,6 +30,10 @@ MonoBehaviour:
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
   - {fileID: 8840196627819282881, guid: 8b69864c61374ea4f8037b11251aee4a, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
+  - {fileID: 7175986229030684091, guid: 4d2163450dde86844bb1490e53e82346, type: 3}
+  - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   - {fileID: 8206963243549927586, guid: d8a498ab179b1a547aa5f4ab439b7c12, type: 3}
   trafficCarts: 14
@@ -73,30 +77,6 @@ MonoBehaviour:
     wolfInterval: 1
     leadIn: 1
     courseDistance: 34
-  - label: first relay (four, the top edge and down the side) [pass 3]
-    courseRun: 0
-    wolves: 4
-    wolfInterval: 1
-    leadIn: 1
-    courseDistance: 34
-  - label: second relay (four, the bottom edge and up the side) [pass 3]
-    courseRun: 2
-    wolves: 4
-    wolfInterval: 1
-    leadIn: 1
-    courseDistance: 34
-  - label: third relay (four, the top edge and down the side) [pass 3]
-    courseRun: 0
-    wolves: 4
-    wolfInterval: 1
-    leadIn: 1
-    courseDistance: 34
-  - label: first relay (four, the top edge and down the side) [pass 4]
-    courseRun: 0
-    wolves: 4
-    wolfInterval: 1
-    leadIn: 1
-    courseDistance: 34
   packOrder:
   - 0
   - 0
@@ -112,9 +92,9 @@ MonoBehaviour:
     to: {x: 12, y: 1}
   ogres:
     label: 8 in through the ring's elbows
-    count: 5
+    count: 3
     firstAt: 5
-    interval: 4.25
+    interval: 6.38
     fireEveryNth: 3
     entries:
     - label: in through the bottom-right elbow
@@ -194,5 +174,5 @@ MonoBehaviour:
     salvoStagger: 0.1
     restAfter: 3.15
     weaveDegrees: 90
-  projectileWindow: 124
+  projectileWindow: 74
   rockSpeed: 1.75

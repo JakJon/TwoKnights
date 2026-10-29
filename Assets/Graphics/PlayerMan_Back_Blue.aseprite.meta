@@ -125,7 +125,7 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: PlayerMan_Back_Blue
     originalName: 
-    pivot: {x: 0.61904764, y: 0}
+    pivot: {x: 0.5909091, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -133,8 +133,8 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 21
-      height: 32
+      width: 22
+      height: 31
     spriteID: 2106c1c64ca638e4987ce6f36260b0b5
     spriteBone: []
     spriteOutline: []
@@ -164,8 +164,8 @@ ScriptedImporter:
       cellRect:
         x: 3
         y: 0
-        width: 21
-        height: 32
+        width: 22
+        height: 31
       spriteId: 2106c1c64ca638e4987ce6f36260b0b5
     linkedCells: []
     parentIndex: -1

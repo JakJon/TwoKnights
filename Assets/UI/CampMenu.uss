@@ -1644,10 +1644,152 @@
     color: rgb(212, 162, 74);
 }
 
+/* See-through while one of the bars' rows is selected in a run, so the bars
+   can be watched moving behind it (SettingsPanel.SetPeek). The panel's backing
+   goes, and the rows it is not on fade far enough to see the bars through. */
+.settings-panel--peek {
+    background-color: rgba(24, 19, 12, 0);
+}
+
+.settings-panel--peek .settings-row {
+    opacity: 0.25;
+}
+
+.settings-panel--peek .settings-row--focused {
+    opacity: 1;
+}
+
 .settings-hint {
     -unity-text-align: middle-center;
     font-size: 13px;
     color: rgb(101, 92, 72);
     padding-top: 6px;
     letter-spacing: 1px;
+}
+
+/* ---------- settings: the Exit row ----------
+   A row with nothing to slide. It carries a short note where the bar would be,
+   so it lines up with the two rows above it and still says what it does. */
+.settings-row--action {
+    margin-top: 14px;
+}
+
+.settings-row-note {
+    flex-grow: 1;
+    -unity-text-align: middle-right;
+    font-size: 13px;
+    color: rgb(101, 92, 72);
+    letter-spacing: 1px;
+}
+
+.settings-row--focused .settings-row-note {
+    color: rgb(217, 207, 184);
+}
+
+/* ============================================================
+   The campfire camp (CampMenuStyle.Campfire).
+
+   The menu is not a column of buttons here: it is drawn in the world, as art
+   in a ring around the knights' fire, and this document only supplies the
+   words. CampMenuController puts .camp-root--campfire on the root, which does
+   two things — lets the world show through, and takes the whole list layout
+   off the screen.
+   ============================================================ */
+
+.camp-root--campfire {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* Nothing of the list layout shows here: not the column of buttons, and not the
+   two side panels, The Knight (gold, crystals) and The Campaign (furthest wave,
+   quests) — the owner had those taken off this screen (2026-10-13). They are
+   hidden, not deleted, so the list style still has them and the code that fills
+   their lines carries on untouched. */
+.camp-root--campfire .layout-root {
+    display: none;
+}
+
+/* Only a coordinate space. Every title inside is placed absolutely, in panel
+   pixels, at the point CampfireMenu works out from the art's place in the world. */
+.wheel-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+/* left/top are the point just above the item's art; the translate hangs the
+   title from its bottom middle so it sits centred over that point whatever its
+   width. */
+.wheel-item {
+    position: absolute;
+    translate: -50% -100%;
+    flex-direction: row;
+    align-items: center;
+    transition-property: scale;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
+}
+
+/* Margin and padding are zeroed on purpose: the theme gives every Label some of
+   both, and it would push the words off the point they are centred on. */
+.wheel-title {
+    margin: 0;
+    padding: 0;
+    font-size: 17px;
+    color: rgb(196, 186, 162);
+    -unity-font-definition: url("Fonts/Alegreya-Bold.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 2px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.95);
+    transition-property: color;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
+}
+
+/* The picked item: the same gold every other interactive state in the camp uses */
+.wheel-item--selected {
+    scale: 1.18;
+}
+
+.wheel-item--selected .wheel-title {
+    color: rgb(240, 205, 120);
+}
+
+/* The "???" shop. It can be pointed at but not chosen, so even picked it never
+   lights gold. */
+.wheel-item--locked .wheel-title {
+    color: rgb(112, 104, 88);
+    letter-spacing: 5px;
+}
+
+.wheel-item--locked.wheel-item--selected .wheel-title {
+    color: rgb(150, 142, 124);
+}
+
+/* The notification dot and its halo, hung off the right-hand end of the title.
+   Pulsed by the same clock as the list menu's — CampMenuController.StartBadgePulse. */
+.wheel-badge {
+    position: absolute;
+    right: -17px;
+    top: 50%;
+    margin-top: -5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: rgb(255, 205, 120);
+}
+
+.wheel-badge-glow {
+    position: absolute;
+    right: -22px;
+    top: 50%;
+    margin-top: -10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background-color: rgba(255, 190, 90, 0.35);
 }

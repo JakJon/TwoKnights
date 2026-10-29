@@ -19,7 +19,8 @@ using UnityEngine;
 // slot out of the wall, and puts fifteen damage into everything within reach —
 // which, at one unit of separation, is five or six riders on the outer ring going
 // past at that moment. One arrow for a third of a shift is the best trade in the
-// mine, and the knights have exactly five kegs to spend.
+// mine, and the knights have exactly six kegs to spend (two of them touching at
+// the seam — see the arithmetic below).
 //
 // It is also the worst trade in the mine if taken carelessly. The inner ring runs
 // at the same height as the Mine Circuit, so a keg popped while it is over a
@@ -45,10 +46,12 @@ using UnityEngine;
 //     not close; any shorter and the carts shoulder each other apart on arrival.
 //   * How many slots there ARE is a property of the ring, so it is measured off
 //     the track (TryMeasureLoop) rather than authored. Mine Millstone comes out
-//     at 52 cells outside and 44 inside. Neither divides its pattern exactly, so
-//     one block round the back of each ring runs short — a lone rider outside, a
-//     slightly early keg inside. That is a seam, not a bug, and it is the only
-//     place either ring is not perfectly regular.
+//     at 54 cells outside and 46 inside (both bottom runs moved down a cell,
+//     owner, 2026-10-15). Neither divides its pattern exactly, so one block round
+//     the back of each ring runs short — three riders instead of four outside,
+//     and inside one extra slot, which is a sixth keg sitting right behind the
+//     first. That is a seam, not a bug, and it is the only place either ring is
+//     not perfectly regular.
 [CreateAssetMenu(fileName = "Millstone", menuName = "Waves/The Millstone (Boss)")]
 public class Millstone : BaseWave
 {

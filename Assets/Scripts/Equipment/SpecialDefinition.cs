@@ -13,10 +13,8 @@ public abstract class SpecialDefinition : ScriptableObject
     [Tooltip("Stable save key. Never change it once a build has shipped.")]
     [SerializeField] protected string id;
     [SerializeField] protected string displayName;
-    [Tooltip("Flavor. One sentence, second person, NO numbers — house style.")]
-    [TextArea(2, 4)]
-    [SerializeField] protected string description;
-    [Tooltip("Exactly what it does, with the numbers. This is the line a player buys on.")]
+    // No flavor "description" any more, the same as equipment (owner, 2026-10-05).
+    [Tooltip("Exactly what it does, with the numbers. This is the line a player buys on, and the only text the special has.")]
     [SerializeField] protected string effect;
     [SerializeField] protected Sprite icon;
     [Tooltip("Crystals to buy in the camp shop. 0 with ownedFromTheStart means a knight's stock special.")]
@@ -28,7 +26,6 @@ public abstract class SpecialDefinition : ScriptableObject
 
     public string Id => id;
     public string DisplayName => displayName;
-    public string Description => description;
     /// <summary>The mechanical line, with numbers. Never leave this empty on a shop item.</summary>
     public string Effect => effect;
     public Sprite Icon => icon;

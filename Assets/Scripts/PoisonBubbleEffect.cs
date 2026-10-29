@@ -21,7 +21,11 @@ public class PoisonBubbleEffect : MonoBehaviour
     [SerializeField] private Vector2 bubbleSizeRange = new Vector2(0.1f, 0.2f);
     [Tooltip("Color tint for bubbles")]
     [SerializeField] private Color bubbleColor = new Color(1f, 1f, 1f, 1f);
-    
+
+    // Half see-through at birth, fading to nothing (owner, 2026-10-24: "50% more
+    // transparent"). Set in code because bubbleColor above is never applied.
+    private const float BubbleAlpha = 0.5f;
+
     private ParticleSystem particles;
     private ParticleSystem.MainModule mainModule;
     private ParticleSystem.EmissionModule emissionModule;
@@ -91,7 +95,7 @@ public class PoisonBubbleEffect : MonoBehaviour
         Gradient colorGradient = new Gradient();
         colorGradient.SetKeys(
             new GradientColorKey[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
-            new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
+            new GradientAlphaKey[] { new GradientAlphaKey(BubbleAlpha, 0f), new GradientAlphaKey(0f, 1f) }
         );
         colorModule.color = colorGradient;
         
@@ -144,15 +148,17 @@ public class PoisonBubbleEffect : MonoBehaviour
         }
     }
     
-    public void StopBubblesAndDetach()
+    // puffIfEmpty: how many to make on the spot when there are none in the air, so
+    // something is left behind. An arrow passes 0 and leaves only what it had.
+    public void StopBubblesAndDetach(int puffIfEmpty = 5)
     {
         if (particles != null)
         {
             // Check current particle count
             int currentParticleCount = particles.particleCount;
-            if (currentParticleCount == 0)
+            if (currentParticleCount == 0 && puffIfEmpty > 0)
             {
-                particles.Emit(5); // Force emit some particles
+                particles.Emit(puffIfEmpty); // Force emit some particles
                 currentParticleCount = particles.particleCount;
             }
             // Stop emitting new bubbles

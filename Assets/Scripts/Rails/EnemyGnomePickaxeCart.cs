@@ -58,7 +58,7 @@ public class EnemyGnomePickaxeCart : EnemyGnomeCart
 
         if (!throwsAtBothKnights)
         {
-            EnemyPickaxe.Throw(pickaxePrefab, ThrowPoint, AimPoint(_target));
+            EnemyPickaxe.Throw(pickaxePrefab, ThrowPoint, AimPoint(_target), _target);
             return;
         }
 
@@ -74,7 +74,25 @@ public class EnemyGnomePickaxeCart : EnemyGnomeCart
     private void ThrowAt(GameObject knight)
     {
         if (knight == null) return;
-        EnemyPickaxe.Throw(pickaxePrefab, ThrowPoint, AimPoint(knight.transform));
+        EnemyPickaxe.Throw(pickaxePrefab, ThrowPoint, AimPoint(knight.transform), knight.transform);
+    }
+
+    // The pickaxe is solved for a fixed flight time, so wherever the cart is,
+    // it lands that long from now
+    protected override void PlanLandings(System.Collections.Generic.List<Landing> into)
+    {
+        float arrivesAt = Time.time + EnemyPickaxe.FlightTimeOf(pickaxePrefab);
+
+        if (!throwsAtBothKnights)
+        {
+            if (_target != null) into.Add(new Landing(_target, arrivesAt));
+            return;
+        }
+
+        GameObject left = GameObject.FindWithTag("PlayerLeft");
+        GameObject right = GameObject.FindWithTag("PlayerRight");
+        if (left != null) into.Add(new Landing(left.transform, arrivesAt));
+        if (right != null) into.Add(new Landing(right.transform, arrivesAt));
     }
 
     // The knight's pivot is at its feet, so throwing at transform.position buries

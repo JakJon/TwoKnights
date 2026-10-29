@@ -17,6 +17,7 @@ public static class MineQuests
     public const string Explorer1 = "start_spelunking";
     public const string Explorer2 = "certified_shaft_spelunker";
     public const string OutdoneOverseer = "outdone_overseer";
+    public const string SortingCarts = "sorting_carts";
 
     public const string DepthStat = "maps.mine.furthest_wave";
 
@@ -44,7 +45,9 @@ public static class MineQuests
                 "Welcome to the mines!\n"
                 + "We have had to pause our operations within these caves, since the gnomes have taken hold "
                 + "of them. Their overseer is said to be holed up deep within.\n"
-                + "Please put an end to this madness so we can once again put the mines to use.",
+                + "Please put an end to this madness so we can once again put the mines to use.\n"
+                + "The gnomes are known for hurling pick axes. Worry not, your sword swing should send "
+                + "pick axes back from where they came!",
             completion:
                 "<slow>Hmmm...<slow> I thought for certain the overseer would have been in that large "
                 + "gathering.\n"
@@ -188,6 +191,33 @@ public static class MineQuests
                 "WOW! WOW! WO-\n"
                 + "<slow>Oh...<slow> I should compose myself.. That was great work.\n"
                 + "Please take this, and have some fun with it.");
+
+        // Offered after the first time any cart sorting phase is cleared, and
+        // measured over the whole file so that clear counts — see CartSorting.
+        // The offer and the completion are the owner's (2026-10-09). The name,
+        // description and objective lines are still Claude's placeholders.
+        yield return new Quest(
+            id: SortingCarts,
+            name: "Sorting Carts",
+            description:
+                "The cartographer has set up a switch track to sort the red and blue carts. Send each "
+                + "cart to the flag of its own colour whenever we see it.",
+            mapId: Mine,
+            objectives: One(CartSorting.PhasesStat, CartSorting.TotalPhases,
+                            menu: "Complete all 5 different cart sorting challenges successfully. {current} / {target}",
+                            npc: "Complete all the cart sorting challenges successfully",
+                            lifetime: true),
+            reward: Reward(crystals: 3),
+            unlocks: Gate(Stat(CartSorting.PhasesStat, 1)),
+            cast: Mapmaker,
+            offer:
+                "Thank you for sorting those supply carts! The king sent me into these mines in order "
+                + "to try and salvage some of the kingdom's equipment. The gnomes have caused all of our "
+                + "supply carts to get out of order.\n"
+                + "If you continue to sort out these mine carts I would greatly appreciate it.",
+            completion:
+                "Wow! Wow! You have been a real help in sorting out the supply carts. I found these "
+                + "crystals in one of the carts and I feel you deserve them after all of your help.");
 
     }
 

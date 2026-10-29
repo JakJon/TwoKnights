@@ -426,6 +426,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     protected virtual bool AcceptsChill => true;
 
     /// <summary>
+    /// Cannot be chilled or frozen at all. Only the Overseer's crimson carts say
+    /// yes (owner, 2026-10-19), and they say it on screen: crimson iron, and a 0
+    /// over every hit. That is not an exception to "frozen always takes damage" —
+    /// a body that never freezes never reaches that rule.
+    /// </summary>
+    public virtual bool ImmuneToCold => false;
+
+    /// <summary>
     /// Set while something is writing this body's position ABSOLUTELY instead of
     /// stepping it — the screen entrances all do this with a Lerp. Scaling the
     /// delta against a lerp does not delay anything: the lerp rewrites the
@@ -467,7 +475,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// Cold, from any source. THE one door, so every source spends the same rules.
     ///
     /// <paramref name="freezes"/> is false unless the caller is a blow the knight
-    /// landed and that knight can freeze (Frost Tip) — pillar 2 of the Order made
+    /// landed and that knight can freeze (Frost Tip, Rimeblade) — pillar 2 of the Order made
     /// structural rather than left to convention. Fields and auras pass false and
     /// physically cannot stop anything.
     ///
@@ -480,7 +488,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
                           float freezeBonusSeconds = 0f, int iceBreakDamage = FrigidBoost.FreezeBreakDamage,
                           string ownerTag = null, bool frostBite = false)
     {
-        if (isDead) return false;
+        if (isDead || ImmuneToCold) return false;
 
         // Frost Bite (Frigid capstone): remember WHO put the cold on, so the tick
         // this body is about to start taking can be credited when it kills. Recorded
@@ -537,7 +545,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// </summary>
     public void Freeze(float seconds, int breakDamage = FrigidBoost.FreezeBreakDamage)
     {
-        if (isDead || seconds <= 0f) return;
+        if (isDead || seconds <= 0f || ImmuneToCold) return;
 
         // A boss is held for half as long as anything else (owner's call,
         // 2026-09-08). Applied HERE rather than at the knight's end so it covers
@@ -568,6 +576,11 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
             _frozenAnchor = transform.position;
             FrostFx.ShowIce(gameObject);
             PlayerStats.Increment("frigid.frozen");
+
+            // Frozen Final Chances: a freeze made while the body stands in a
+            // frost ring. The ring never freezes on its own, so whatever froze it
+            // counts as long as it happened inside one.
+            if (GlacialWard.Encloses(this)) QuestTally.Run(OrderStats.WardFrozenRunMax);
 
             // "Four at once" is the Order's showpiece image, so it is a feat. A
             // live count rather than a sweep of the field on every freeze: a
@@ -773,6 +786,13 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // aimed shot, and aimed shots are how a cart is meant to be answered.
     public virtual bool ImmuneToAreaDamage => false;
 
+    // The one blast that gets past ImmuneToAreaDamage: a gnome's bomb the knights
+    // sent back (rolled back by a sword or an arrow, or turned by the guard) breaks
+    // an EMPTY cart caught in it (owner, 2026-10-15). Only a plain empty cart says
+    // yes — see EnemyMineCart. Kegs still shrug it off, so a returned bomb never
+    // sets the powder off for the player.
+    public virtual bool BrokenByReturnedBomb => false;
+
     /// <summary>
     /// This enemy is a BOSS, and effects that skip health rather than deal it do
     /// not work on it. Killing Blow is the one that matters today: executing a
@@ -786,6 +806,14 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// health bar, instead of being remembered somewhere else.
     /// </summary>
     public virtual bool IsBoss => false;
+
+    /// <summary>
+    /// Whether Heavy Swing may throw this body when the sword kills it (see
+    /// LaunchedBody). Never a boss. Carts opt out where they are declared: they are
+    /// bolted to the rail, and a gnome cart leaves its wreck riding on, so a flying
+    /// copy would put two carts on screen.
+    /// </summary>
+    public virtual bool CanBeLaunched => !IsBoss;
 
     // Whether this counts as a member of whatever AMBUSH is open when it spawns.
     // Almost everything does — that is what makes "is this shift down yet" an
@@ -844,16 +872,21 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         // red is printed FIRST so the second call's stacking push lifts it and the
         // white lands underneath it, which puts them in the order they are spoken:
         // the hit, and then what the Order added to it.
+        //
+        // A shadow arrow, a shuriken or a Phantom Blade echo prints its share in
+        // purple rather than red (owner, 2026-10-13), so the Shadow Order's copies
+        // can be told from the shot or the swing they are copies of.
+        Color hitColor = ShadowEcho.Is(projectile) ? ShadowDamageText : Color.red;
         int holy = Mathf.Clamp(holyPortion, 0, damage);
         if (holy > 0)
         {
             int physical = damage - holy;
-            if (physical > 0) ShowDamageText(physical);
+            if (physical > 0) ShowDamageText(physical, hitColor);
             ShowDamageText(holy, HolyDamageText);
         }
         else
         {
-            ShowDamageText(damage);
+            ShowDamageText(damage, hitColor);
         }
         
         health -= damage;
@@ -925,7 +958,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // name — and refuses quietly-wrong outcomes. Animator.Play on a state that
     // does not exist does nothing AND says nothing, which is exactly how a hurt
     // animation goes missing without anyone noticing it went.
-    private void PlayAnimatorState(AnimationClip clip, string stateName)
+    protected void PlayAnimatorState(AnimationClip clip, string stateName)
     {
         if (animator == null) return;
 
@@ -992,8 +1025,8 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         poisonTimer = duration; // Reset timer to new duration
         poisonTickRate = tickRate; // Use latest tick rate
 
-        AudioManager.Instance?.PlaySFX(AudioManager.Instance.poisoned);
-        
+        PlayPoisonedSound();
+
         // Create poison bubbles if not already created
         if (poisonBubbles == null)
         {
@@ -1159,6 +1192,11 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// </summary>
     protected static readonly Color HolyDamageText = new Color(1f, 0.98f, 0.90f);
 
+    // What the Shadow Order's echoes print in: shadow arrows, shurikens and
+    // Phantom Blade's after-images. A brighter relative of the Order's own
+    // rgb(129, 128, 214), which is too dim to read at the size of a small number.
+    protected static readonly Color ShadowDamageText = new Color(0.72f, 0.52f, 1f);
+
     /// <summary>
     /// Mends this body, and says so in gold over its head — the same number in the
     /// same stack a hit prints in red.
@@ -1290,7 +1328,7 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     }
 
     // Airborne Virus (Serpent): a poisoned body breathes venom beads out around
-    // itself on the best contributor's clock - 2 beads every 6s at rank I, up to
+    // itself on the best contributor's clock - 2 beads every 5s at rank I, up to
     // 10 every 2s at rank IV (see PoisonTipBoost.SetAirborneTier). The first
     // release comes one full interval after the poisoning, not on it.
     //
@@ -2193,9 +2231,81 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     /// does not come through TakeDamage can ask the same question.</summary>
     protected virtual bool RefusesHits => false;
 
+    // ---- Carried guards (the castle skeleton's shield) ----
+    //
+    // A guard is a thing the enemy HOLDS, not a state it is in: it stops a blow
+    // that comes in through it and lets everything else land. So the question is
+    // never "is this body protected" but "did THIS blow cross the guard on its
+    // way in", and only the code that threw the blow knows the line it came in on.
+    //
+    // Everything a knight aims asks before it lands anything — arrows, shurikens,
+    // fireballs, the sword, the Sight beam, rebounds, thrown bodies, a rolled
+    // bomb's direct hit. Asked FIRST, before damage, poison, ice or fire, so a
+    // blocked arrow carries nothing through. Area damage (fire on the ground,
+    // clouds, blasts) is not aimed and is never asked.
+    //
+    // A separate shield collider would not do: Unity sends a shot's trigger
+    // messages for the shield and the body in the same physics step, in no fixed
+    // order, so the body could be hit by the arrow the shield was meant to stop.
+
+    /// <summary>A shot in flight, judged by its own heading: a Rigidbody2D's
+    /// velocity when it has one, otherwise the side of the body it touched.</summary>
+    public bool TryBlockShot(GameObject shot)
+    {
+        if (shot == null) return false;
+
+        Vector2 position = shot.transform.position;
+        Rigidbody2D body = shot.GetComponentInParent<Rigidbody2D>();
+        if (body != null && body.linearVelocity.sqrMagnitude > 0.0001f)
+        {
+            return TryBlockShot(position, body.linearVelocity);
+        }
+
+        Vector2 centre = GuardCentre;
+        Vector2 side = position - centre;
+        if (side.sqrMagnitude < 1e-6f) return false;
+        return TryBlock(centre + side.normalized * GuardLookBack, centre);
+    }
+
+    /// <summary>A shot at <paramref name="position"/> travelling along <paramref name="heading"/>.
+    /// The line runs back along the way it came, and a little way on into the body.</summary>
+    public bool TryBlockShot(Vector2 position, Vector2 heading)
+    {
+        if (heading.sqrMagnitude < 1e-6f) return false;
+        Vector2 dir = heading.normalized;
+        return TryBlock(position - dir * GuardLookBack, position + dir * GuardLookAhead);
+    }
+
+    /// <summary>A blow struck from <paramref name="source"/> straight at the body —
+    /// a sword swing (from the knight) or a beam (from where it leaves).</summary>
+    public bool TryBlockBlowFrom(Vector2 source)
+    {
+        return TryBlock(source, GuardCentre);
+    }
+
+    /// <summary>True if a guard this body carries took a blow travelling from
+    /// <paramref name="from"/> to <paramref name="to"/>. The guard plays its own
+    /// feedback; the caller only has to not land the blow.</summary>
+    protected virtual bool TryBlock(Vector2 from, Vector2 to) => false;
+
+    /// <summary>The middle of the body, where a blow is aimed.</summary>
+    protected virtual Vector2 GuardCentre
+    {
+        get
+        {
+            Collider2D body = GetComponent<Collider2D>();
+            return body != null ? (Vector2)body.bounds.center : (Vector2)transform.position;
+        }
+    }
+
+    // How far back along its path a shot is traced. Further than any guard sits
+    // from its body, and short enough not to reach a guard on the far side.
+    private const float GuardLookBack = 3f;
+    private const float GuardLookAhead = 0.5f;
+
     /// <summary>
     /// Frost damage from a blow the knight landed rather than from a chill ticking —
-    /// Rimeblade's burst. Drawn and dealt exactly like a Frost Bite tick (pale ice,
+    /// a Rimeblade sword hit. Drawn and dealt exactly like a Frost Bite tick (pale ice,
     /// never wears the ice down), but refused while the body refuses hits, because it
     /// lands on the same frame as the sword hit that carries it.
     /// </summary>
@@ -2266,6 +2376,28 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
         AudioManager.Instance.PlaySFX(AudioManager.Instance.burnTick);
     }
 
+    // Shortest gap allowed between two "poisoned" clicks anywhere on screen.
+    private const float PoisonedSoundInterval = 0.1f;
+    private static float _lastPoisonedSound = -1f;
+
+    // The poisoned click never plays over itself (owner, 2026-10-20). A cloud or
+    // a spreading virus can poison a whole pack on one frame, and every copy of
+    // the click on top of the others summed into one loud crack. One click says
+    // "poison landed"; how many it landed on is the bubbles' job. Shared with the
+    // venom trial's orbs, which are poisoned the same way.
+    public static void PlayPoisonedSound()
+    {
+        if (AudioManager.Instance == null) return;
+
+        // >= for the same reason as PlayBurnTick: with domain reload off this
+        // static outlives the play session that stamped it.
+        float now = Time.time;
+        if (now >= _lastPoisonedSound && now - _lastPoisonedSound < PoisonedSoundInterval) return;
+
+        _lastPoisonedSound = now;
+        AudioManager.Instance.PlaySFX(AudioManager.Instance.poisoned);
+    }
+
     // A blast — a powder keg going up. Like poison and fire it sidesteps
     // TakeDamage, because the stagger that comes with a normal hit would freeze
     // whatever the blast caught for a moment at exactly the point the player is
@@ -2285,9 +2417,13 @@ public abstract class EnemyBase : MonoBehaviour, IHasAttributes
     // so keg-to-keg coupling does NOT come through here — see
     // EnemyKegCart.ChainDetonate, which is sympathetic detonation rather than
     // damage and is the one thing allowed past the immunity.
-    public void ApplyBlastDamage(int damage, string ownerTag)
+    //
+    // returnedBomb: the blast is a gnome's bomb the knights sent back, which breaks
+    // empty carts as well (see BrokenByReturnedBomb).
+    public void ApplyBlastDamage(int damage, string ownerTag, bool returnedBomb = false)
     {
-        if (isDead || ImmuneToAreaDamage || damage <= 0) return;
+        if (isDead || damage <= 0) return;
+        if (ImmuneToAreaDamage && !(returnedBomb && BrokenByReturnedBomb)) return;
 
         peakHealth = Mathf.Max(peakHealth, health);
         health -= damage;

@@ -19,10 +19,10 @@ MonoBehaviour:
   unlockedAfterXWaves: 25
   lockedAfterXWaves: -1
   useEnemyTracking: 1
-  slimesPerWall: 6
+  slimesPerWall: 4
   slimeSize: 3
   wolfType: 2
-  secondsBeforeWolfAttack: 1.35
+  secondsBeforeWolfAttack: 4.5
   volleys:
   - label: round 1 - crossings on the free left knight
     shape: 7
@@ -32,6 +32,8 @@ MonoBehaviour:
     count: 7
     fanDegrees: 60
     weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
     salvo: 1
     salvoSpread: 0.45
     salvoStagger: 0.1
@@ -44,6 +46,8 @@ MonoBehaviour:
     count: 7
     fanDegrees: 60
     weaveDegrees: 90
+    spiralDegrees: 180
+    spiralPasses: 1
     salvo: 1
     salvoSpread: 0.45
     salvoStagger: 0.1

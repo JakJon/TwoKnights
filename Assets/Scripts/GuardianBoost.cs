@@ -74,10 +74,22 @@ public class GuardianBoost : MonoBehaviour
     /// long enough not to look like the enemy teleported.</summary>
     public const float BulwarkShoveSeconds = 0.18f;
 
+    /// <summary>What a body launched by Heavy Swing hits for, by rank: Heavy Swing,
+    /// then Guided Heavy Swing. Totals, not additions — rank II hits for 25, not 40
+    /// (owner, 2026-10-15).</summary>
+    private const int HeavySwingDamageRank1 = 15;
+    private const int HeavySwingDamageRank2 = 25;
+
+    /// <summary>What the sword itself hits for once Heavy Swing is owned (owner,
+    /// 2026-10-24). A floor rather than an addition, so a Long Sword rank that
+    /// already hits harder keeps its own number.</summary>
+    private const int HeavySwingSwordDamage = 20;
+
     // ---- owned ranks ----
     private int reflectorLevel;
     private int guidedShotLevel;
     private int guidedReflectionsLevel;
+    private int heavySwingLevel;
     private bool bulwark;
 
     // Setters are monotonic, the house rule: a re-pick or an out-of-order draft can
@@ -85,6 +97,7 @@ public class GuardianBoost : MonoBehaviour
     public void SetReflector(int level) { reflectorLevel = Mathf.Max(reflectorLevel, level); }
     public void SetGuidedShot(int level) { guidedShotLevel = Mathf.Max(guidedShotLevel, level); }
     public void SetGuidedReflections(int level) { guidedReflectionsLevel = Mathf.Max(guidedReflectionsLevel, level); }
+    public void SetHeavySwing(int level) { heavySwingLevel = Mathf.Max(heavySwingLevel, level); }
     public void SetBulwark() { bulwark = true; }
 
     // Equipment multiplies the rank's number rather than inflating the rank, the
@@ -97,6 +110,25 @@ public class GuardianBoost : MonoBehaviour
     public int ReflectorLevel { get { return reflectorLevel; } }
     public int GuidedShotLevel { get { return guidedShotLevel; } }
     public int GuidedReflectionsLevel { get { return guidedReflectionsLevel; } }
+    public int HeavySwingLevel { get { return heavySwingLevel; } }
+
+    /// <summary>Heavy Swing: an enemy this knight's sword kills is launched backward
+    /// and hits whatever it lands on. See LaunchedBody.</summary>
+    public bool HasHeavySwing { get { return heavySwingLevel > 0; } }
+
+    /// <summary>What a launched body hits for. Zero without Heavy Swing.</summary>
+    public int HeavySwingDamage
+    {
+        get
+        {
+            if (heavySwingLevel >= 2) return HeavySwingDamageRank2;
+            if (heavySwingLevel == 1) return HeavySwingDamageRank1;
+            return 0;
+        }
+    }
+
+    /// <summary>The least the sword hits for. Zero without Heavy Swing.</summary>
+    public int SwordDamageFloor { get { return heavySwingLevel > 0 ? HeavySwingSwordDamage : 0; } }
 
     /// <summary>Bulwark: a body that reaches this knight's guard is shoved off it
     /// instead of trading the knight health for its removal.</summary>
@@ -195,6 +227,18 @@ public class GuardianBoost : MonoBehaviour
         {
             if (guidedReflectionsLevel >= 2) return GuidedReflectionRankOneRadius * GuidedRankTwoMultiplier;
             if (guidedReflectionsLevel == 1) return GuidedReflectionRankOneRadius;
+            return 0f;
+        }
+    }
+
+    /// <summary>How close an enemy has to be before Guided Heavy Swing bends a launched
+    /// body onto it: Guided Shot II's range (owner's pick, 2026-10-15). Zero below
+    /// rank II, which is what leaves a plain Heavy Swing flying straight.</summary>
+    public float HeavySwingGuideRadius
+    {
+        get
+        {
+            if (heavySwingLevel >= 2) return GuidedShotRankOneRadius * GuidedRankTwoMultiplier;
             return 0f;
         }
     }

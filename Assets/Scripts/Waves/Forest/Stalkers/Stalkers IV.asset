@@ -29,6 +29,8 @@ MonoBehaviour:
     - 2
     - 1
     - 2
+    rocks: 14
+    rockInterval: 1.8
   - label: the second pass
     wolfCount: 14
     additionalCircles: 2
@@ -38,6 +40,8 @@ MonoBehaviour:
     - 2
     - 2
     - 1
+    rocks: 14
+    rockInterval: 1.8
   - label: the last pass
     wolfCount: 12
     additionalCircles: 1
@@ -47,3 +51,5 @@ MonoBehaviour:
     - 2
     - 2
     - 2
+    rocks: 14
+    rockInterval: 1.8

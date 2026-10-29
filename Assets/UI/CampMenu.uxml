@@ -4,7 +4,13 @@
     <ui:Template name="QuestOverlay" src="QuestOverlay.uxml" />
     <ui:Template name="EquipmentOverlay" src="EquipmentOverlay.uxml" />
     <ui:Template name="SettingsOverlay" src="SettingsOverlay.uxml" />
+    <!-- And with the pause and death screens, which use it to change upgrades mid-run -->
+    <ui:Template name="TestModeOverlay" src="TestModeOverlay.uxml" />
     <ui:VisualElement name="camp-root" class="camp-root">
+        <!-- Campfire camp only: the title over each menu item, built and placed
+             by CampfireMenu so each sits above its art in the world. Empty, and
+             so invisible, in the list style. -->
+        <ui:VisualElement name="wheel-layer" class="wheel-layer" picking-mode="Ignore" />
         <ui:VisualElement name="layout-root" class="layout-root">
             <!-- Left Knight Status Panel -->
             <ui:VisualElement name="knight-status" class="status-panel left">
@@ -120,24 +126,6 @@
         </ui:VisualElement>
 
         <!-- Test Mode Overlay (dev builds only; rows are built in code) -->
-        <ui:VisualElement name="test-panel" class="overlay-panel" style="display: none;">
-            <ui:VisualElement class="overlay-header">
-                <ui:Label text="Test Mode" class="overlay-title" />
-                <ui:Button name="test-close-button" class="overlay-close-button" text="X" />
-            </ui:VisualElement>
-            <ui:VisualElement name="test-wave-row" class="test-row">
-                <ui:Label text="Starting Wave" class="test-row-name" />
-                <ui:Label name="test-wave-value" text="&#9664; 1 &#9654;" class="test-row-value" />
-            </ui:VisualElement>
-            <ui:VisualElement name="test-map-row" class="test-row">
-                <ui:Label text="Map" class="test-row-name" />
-                <ui:Label name="test-map-value" text="&#9664; The Camp Fields &#9654;" class="test-row-value" />
-            </ui:VisualElement>
-            <ui:Label name="test-budget-line" text="" class="test-budget-line" />
-            <ui:ScrollView name="test-upgrade-list" class="test-upgrade-list" />
-            <ui:VisualElement name="test-start-row" class="test-row test-start-row">
-                <ui:Label name="test-start-label" text="Begin Run" class="test-start-label" />
-            </ui:VisualElement>
-        </ui:VisualElement>
+        <ui:Instance template="TestModeOverlay" class="overlay-host" />
     </ui:VisualElement>
 </ui:UXML>

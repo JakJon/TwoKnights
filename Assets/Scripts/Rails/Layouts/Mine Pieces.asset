@@ -26,3 +26,25 @@ MonoBehaviour:
   - kind: 5
     prefab: {fileID: 3161990899995750519, guid: 6ba731325ed60c342b29f517bb4d7850, type: 3}
   dropFlagPrefab: {fileID: 5603194786694517436, guid: 8474164d5d5b7a04b8308264374746db, type: 3}
+  redPieces:
+  - kind: 2
+    prefab: {fileID: 5111822960467538881, guid: adc85f5f6dbbf4e49960ce34edd4a856, type: 3}
+  - kind: 3
+    prefab: {fileID: 4014259040346668375, guid: 673c9b212b67c2541a014138e434183f, type: 3}
+  - kind: 4
+    prefab: {fileID: 2829636229048849581, guid: f69bfa14d05054747b698df7edf7f44d, type: 3}
+  - kind: 5
+    prefab: {fileID: 3401661586602298748, guid: f47a1f45b2396f64d893bc2105809339, type: 3}
+  bluePieces:
+  - kind: 2
+    prefab: {fileID: 4237945838947415260, guid: 535e20fbe525a8248ae238d94241eb98, type: 3}
+  - kind: 3
+    prefab: {fileID: 414410369445524120, guid: 0db622ad01dff8c4cb410bc2f4d56dbc, type: 3}
+  - kind: 4
+    prefab: {fileID: 7189875673029832904, guid: 21b64edd10303cf40b91cf1eb5a0a9c5, type: 3}
+  - kind: 5
+    prefab: {fileID: 5594962575120493189, guid: 1f8bf9d9b8ff4a741aac8049b68405db, type: 3}
+  redFlagPrefab: {fileID: 7339855290829127528, guid: 0be9a2af649cd894ea93494ffcdd610e, type: 3}
+  blueFlagPrefab: {fileID: 6817236317651890037, guid: 7ec84d430e54ce14c898c8fe3bb43506, type: 3}
+  greenFlagPrefab: {fileID: 6890542364479437745, guid: bee0e6358bf7f0c4badf5e5675552acd, type: 3}
+  yellowFlagPrefab: {fileID: 6789747048529840415, guid: 79431ec931bd2624695d579ae87680dd, type: 3}

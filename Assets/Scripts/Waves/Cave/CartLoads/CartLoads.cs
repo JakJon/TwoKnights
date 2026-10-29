@@ -109,6 +109,11 @@ public class CartLoads : BaseWave
         from = new Vector2(12f, -5f), to = new Vector2(-12f, -5f)
     };
 
+    // The run the wave promises will pay: the health one when a tier has one
+    // (owner, 2026-10-14: tier II pays a health orb on the low crossing), so a
+    // quick clear never costs the player the health; otherwise the high one.
+    private OrbRun PromisedRun => lowOrbs.healthOrb && lowOrbs.count > 0 ? lowOrbs : highOrbs;
+
     // Where the crate rotation stands. Reset at the top of every run — SO state
     // outlives the run that set it, and a rotation that carried over would deal a
     // different consignment each time the wave came up.
@@ -162,8 +167,9 @@ public class CartLoads : BaseWave
         yield return spawner.StartCoroutine(Release(rails, outerLine, innerLine, layDuration));
 
         // Every crate is out: if the orb timer has not paid yet, it pays now,
-        // with the crates still on the track. See OrbRun.SendFirstIfWaiting.
-        highOrbs.SendFirstIfWaiting(spawner);
+        // with the crates still on the track. One run keeps the promise, as in
+        // Bits and Pieces. See OrbRun.SendFirstIfWaiting.
+        PromisedRun.SendFirstIfWaiting(spawner);
 
         yield return vermin;
         yield return shafts;

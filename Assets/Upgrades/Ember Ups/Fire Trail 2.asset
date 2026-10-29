@@ -27,7 +27,7 @@ MonoBehaviour:
   - valueText: +0.25
     labelText: FIRE DAMAGE
     isPositive: 1
-  - valueText: +0.25
+  - valueText: +SMALL
     labelText: TRAIL SIZE
     isPositive: 1
   - valueText: +75%

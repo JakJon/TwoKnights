@@ -115,7 +115,9 @@ public class ProjectileSettings : MonoBehaviour
         Variant = variant;
         if (variant == RockVariant.Plain) return;
 
-        var renderer = GetComponent<SpriteRenderer>();
+        // The art is on a child so RockSpin can turn it without turning the
+        // rock's heading
+        var renderer = GetComponentInChildren<SpriteRenderer>();
 
         if (variant == RockVariant.Poison)
         {
@@ -200,7 +202,9 @@ public class ProjectileSettings : MonoBehaviour
             EnemyBase struck = other.GetComponent<EnemyBase>();
             if (struck != null && !struck.IsDead && !ReflectedRockPassesOver(struck))
             {
-                StrikeEnemy(struck);
+                // A carried guard stops a sent-back rock, payload and all
+                if (struck.TryBlockShot(gameObject)) Destroy(gameObject);
+                else StrikeEnemy(struck);
             }
             return;
         }

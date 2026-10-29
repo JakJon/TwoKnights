@@ -8,12 +8,16 @@ using UnityEngine;
 /// and stopping with the effect — the same pattern NinjaBoost uses for Thousand
 /// Cuts. A component that added and removed itself would risk unsubscribing
 /// during the very event it is handling.
+///
+/// The same deadline drives the knight's look: he wears his "blood thirst" frame
+/// for exactly as long as the window is open.
 /// </summary>
 public class BloodTitheWindow : MonoBehaviour
 {
     private string _ownerTag;
     private float _endsAt = -1f;
     private int _healPerKill;
+    private KnightFacing _facing;
 
     public static void Open(GameObject knight, string playerTag, float duration, int healPerKill)
     {
@@ -26,6 +30,11 @@ public class BloodTitheWindow : MonoBehaviour
         window._endsAt = Mathf.Max(window._endsAt, Time.time + duration);
     }
 
+    private void Awake()
+    {
+        _facing = GetComponent<KnightFacing>();
+    }
+
     private void OnEnable()
     {
         EnemyBase.OnEnemyKilledBy += HandleKill;
@@ -34,6 +43,12 @@ public class BloodTitheWindow : MonoBehaviour
     private void OnDisable()
     {
         EnemyBase.OnEnemyKilledBy -= HandleKill;
+        if (_facing != null) _facing.BloodThirst = false;
+    }
+
+    private void Update()
+    {
+        if (_facing != null) _facing.BloodThirst = Time.time < _endsAt;
     }
 
     private void HandleKill(string playerTag)

@@ -50,7 +50,7 @@ Rimeblade already establish the shape. And the last rank is certainty rather tha
 better coin, so a finished chain is a promise the player can build around rather than
 a dice game they keep playing.
 
-## The roster (17 upgrades)
+## The roster (19 upgrades)
 
 Accent `rgb(158, 168, 178)` — steel (`order--guardian`, already in `UpgradeMenu.uss`).
 Weight → rarity via `BaseUpgrade.Rarity`.
@@ -213,6 +213,42 @@ nothing to steer, and one who can only steer has nothing to send.
 
 Bodies only — a rock cannot collect an orb, so letting one chase an orb would send the
 Order's payout somewhere it physically cannot land.
+
+### Heavy Swing / Guided Heavy Swing — the kill carries on *(added 2026-10-15)*
+| Card | Damage | Homing | Weight |
+|---|---|---|---|
+| Heavy Swing | 15 | none | 100 (Common), no prerequisite |
+| Guided Heavy Swing | 25 (total, not +25) | Guided Shot II's range, 1.725u | 30 (Epic), needs Heavy Swing |
+
+An enemy the sword kills is thrown straight away from the knight, spinning, and hits
+the first live enemy it touches. If that hit kills, that body is thrown on too, the same
+way (chain reactions are wanted). If it hits nothing it flies until it is off screen.
+
+- What flies is a copy of the enemy's sprite (`LaunchedBody`). The enemy itself dies
+  where it fell as normal, so gold, orbs, the kill and a slime's split all happen there.
+- Counts as the sword: the blade, Phantom Blade echoes, the Acid Dagger, and Rimeblade's
+  frost on the blade. Not a Firebrand fireball: only the blade's own blow launches.
+- Never launched: bosses, and every cart (`EnemyBase.CanBeLaunched`). A gnome cart
+  leaves its wreck riding on, so a flying copy would show two carts.
+- Flies over empty carts and kegs, the same rule a reflected rock follows.
+- Its own homing, not `GuidedShot`, so thrown bodies do not count toward the Guided
+  Shot tallies or the no-miss streak.
+
+### The sword sends projectiles back *(every knight, 2026-10-15)*
+Not an upgrade. A sword hit on a fireball, pickaxe or confusion ray sends it off the way
+the swing faces, to hit an enemy for what it would have done to the knight (the confusion
+ray, which does no damage, hits for 10). A Reflector rank adds its damage and speed on
+top, and Guided Reflections steers it. Rocks and the slime boss's orbiting fireballs are
+unchanged. These do not count toward the reflect quest, which stays about the shield.
+
+**Bombs** are the one thing both a sword AND an arrow send back. Either one rolls the bomb
+back the way it came on a 0.5s fuse (`RollFuseSeconds` in EnemyBomb.cs): it goes off on the
+first enemy it touches or when the fuse runs out, hurting enemies AND knights in reach (knights take the bomb's own damage and poison), and is gone if it
+rolls off screen first. Reflector's damage and speed apply; it is never steered. A bomb
+turned by the SHIELD's Reflector is separate and unchanged (it flies off with no fuse).
+
+An arrow that pops a fireball, pickaxe or confusion ray flies on rather than being spent
+on it; only bombs are sent back by an arrow.
 
 ### Bulwark — the capstone
 Weight 12 (Legendary), `requiresOrderCount: 5`.

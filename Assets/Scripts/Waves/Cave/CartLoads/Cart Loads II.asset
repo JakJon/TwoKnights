@@ -40,13 +40,13 @@ MonoBehaviour:
   freightWaitsOnTheVermin: 1
   highOrbs:
     healthOrb: 0
-    count: 1
+    count: 2
     firstAt: 12
     interval: 14
     from: {x: -12, y: 4.3}
     to: {x: 12, y: 4.3}
   lowOrbs:
-    healthOrb: 0
+    healthOrb: 1
     count: 1
     firstAt: 24
     interval: 14
